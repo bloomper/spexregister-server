@@ -1,4 +1,11 @@
 spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spexregister
+    username: spexregister
+    password: spexregister
+  jpa:
+    open-in-view: false
   data:
     rest:
       base-path: api
