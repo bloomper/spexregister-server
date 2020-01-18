@@ -1,0 +1,109 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: colgate
+      changes:
+        - createTable:
+            tableName: spex_categories
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_year
+                  type: varchar(4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: logo
+                  type: longblob
+                  constraints:
+                    nullable: true
+              - column:
+                  name: logo_content_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+        - createTable:
+            tableName: spex_details
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: poster
+                  type: longblob
+                  constraints:
+                    nullable: true
+              - column:
+                  name: poster_content_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+        - createTable:
+            tableName: spex
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: year
+                  type: varchar(4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: parent_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: details_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseColumnNames: category_id
+            baseTableName: spex
+            constraintName: fk_spex_category_id
+            referencedColumnNames: id
+            referencedTableName: spex_categories
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_id
+            baseTableName: spex
+            constraintName: fk_spex_parent_id
+            referencedColumnNames: id
+            referencedTableName: spex
+        - addForeignKeyConstraint:
+            baseColumnNames: details_id
+            baseTableName: spex
+            constraintName: fk_spex_details_id
+            onDelete: CASCADE
+            referencedColumnNames: id
+            referencedTableName: spex_details
