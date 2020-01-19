@@ -1,0 +1,29 @@
+logging:
+  level:
+    ROOT: DEBUG
+    nu.fgv.register.server: DEBUG
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
+
+spring:
+  profiles:
+    active: dev
+    include:
+      - swagger
+      #- tls
+  jackson:
+    serialization:
+      indent-output: true
+  liquibase:
+    contexts: dev, faker
+  mail:
+    host: localhost
+    port: 25
+    username:
+    password:
+
+server:
+  port: 8086

@@ -1,0 +1,12 @@
+springBoot {
+    buildInfo {
+		properties {
+			time = null
+		}
+	}
+}
+
+bootRun {
+    args = []
+}
+

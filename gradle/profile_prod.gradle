@@ -1,0 +1,8 @@
+springBoot {
+    buildInfo()
+}
+
+bootRun {
+    args = []
+}
+

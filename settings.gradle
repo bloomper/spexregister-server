@@ -1,1 +1,15 @@
-rootProject.name = 'server'
+pluginManagement {
+    plugins {
+        id 'org.springframework.boot' version "${spring_boot_version}"
+        id 'io.spring.dependency-management' version "${spring_dependency_plugin_version}"
+        id 'com.google.cloud.tools.jib' version "${jib_plugin_version}"
+        id 'com.gorylenko.gradle-git-properties' version "${git_properties_plugin_version}"
+        id 'org.liquibase.gradle' version "${liquibase_plugin_version}"
+        id 'org.sonarqube' version "${sonarqube_plugin_version}"
+        id 'net.ltgt.apt-idea' version "${apt_plugin_version}"
+        id 'net.ltgt.apt' version "${apt_plugin_version}"
+        id "io.spring.nohttp" version "${spring_no_http_plugin_version}"
+        id "org.jetbrains.kotlin.jvm" version "${kotlin_jvm_plugin_version}"
+    }
+}
+rootProject.name = 'spexregister-server'

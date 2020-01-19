@@ -2,7 +2,7 @@ package nu.fgv.register.server.model
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.springframework.data.solr.core.mapping.SolrDocument
+import org.springframework.data.elasticsearch.annotations.Document
 import javax.persistence.*
 import javax.validation.constraints.Pattern
 import javax.validation.constraints.Size
@@ -10,7 +10,7 @@ import javax.validation.constraints.Size
 @Entity
 @Table(name = "spex_categories")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-@SolrDocument(collection = "spexCategory")
+@Document(indexName = "spexcategory")
 data class SpexCategory (
     @Size(max = 255)
     @Column(name = "name", length = 255, nullable = false)

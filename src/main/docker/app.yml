@@ -1,0 +1,22 @@
+version: '2'
+services:
+  spexregister-app:
+    image: spexregister
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=prod,swagger
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://spexregister-mysql:3306/spexregister?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
+      - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
+      - SPRING_DATA_JEST_URI=http://spexregister-elasticsearch:9200
+      - SPRING_ELASTICSEARCH_REST_URIS=http://spexregister-elasticsearch:9200
+    ports:
+      - 8086:8086
+  spexregister-mysql:
+    extends:
+      file: mysql.yml
+      service: spexregister-mysql
+  spexregister-elasticsearch:
+    extends:
+      file: elasticsearch.yml
+      service: spexregister-elasticsearch
