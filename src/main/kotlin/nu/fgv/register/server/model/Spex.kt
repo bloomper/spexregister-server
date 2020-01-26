@@ -12,15 +12,15 @@ import javax.validation.constraints.Size
 @Table(name = "spex")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Document(indexName = "spex")
-data class Spex (
-        @Size(max = 4)
-        @Pattern(regexp = "^(19|20|21)\\d{2}$")
-        @Column(name = "year", length = 4, nullable = false)
-        var year: String,
-        @ManyToOne(optional = false)
-        var category: SpexCategory,
-        @ManyToOne
-        var parent: Spex,
-        @ManyToOne(optional = false)
-        var details: SpexDetails
-): Base()
+data class Spex(
+    @get: NotNull
+    @get: Size(max = 4)
+    @get: Pattern(regexp = "^(19|20|21)\\d{2}$")
+    var year: String? = null,
+    @ManyToOne(optional = false)
+    var category: SpexCategory? = null,
+    @ManyToOne
+    var parent: Spex? = null,
+    @ManyToOne(optional = false)
+    var details: SpexDetails? = null
+) : Base()
