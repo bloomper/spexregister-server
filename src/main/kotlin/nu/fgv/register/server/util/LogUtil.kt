@@ -53,11 +53,11 @@ class LogUtil {
         if (isDebugEnabled) debug(format, arg.invoke())
     }
 
-    inline fun Logger.info(format:  String, arg: () -> Any) {
+    inline fun Logger.info(format: String, arg: () -> Any) {
         if (isInfoEnabled) info(format, arg.invoke())
     }
 
-    inline fun Logger.warn(format:  String, arg: () -> Any) {
+    inline fun Logger.warn(format: String, arg: () -> Any) {
         if (isWarnEnabled) warn(format, arg.invoke())
     }
 
@@ -126,7 +126,7 @@ class LogUtil {
     }
 
     inline fun Logger.trace(format: String, vararg arguments: () -> Any) {
-        if (isTraceEnabled) trace(format, arguments.map { it.invoke() } )
+        if (isTraceEnabled) trace(format, arguments.map { it.invoke() })
     }
 
     inline fun Logger.debug(format: String, vararg arguments: () -> Any) {

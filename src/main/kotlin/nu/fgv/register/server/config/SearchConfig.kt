@@ -10,17 +10,16 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 
 @Configuration
 @EnableElasticsearchRepositories
-open class SearchConfig {
+class SearchConfig {
 
     @Bean
-    open fun elasticsearchClient() : RestHighLevelClient {
-        val configuration = ClientConfiguration.localhost();
-        return RestClients.create(configuration).rest();
+    fun elasticsearchClient(): RestHighLevelClient {
+        val configuration = ClientConfiguration.localhost()
+        return RestClients.create(configuration).rest()
     }
 
     @Bean
-    open fun elasticsearchTemplate() : ElasticsearchRestTemplate {
-        return ElasticsearchRestTemplate(elasticsearchClient());
+    fun elasticsearchTemplate(): ElasticsearchRestTemplate {
+        return ElasticsearchRestTemplate(elasticsearchClient())
     }
-
 }

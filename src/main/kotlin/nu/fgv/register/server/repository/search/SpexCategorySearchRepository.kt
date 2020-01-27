@@ -5,5 +5,4 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SpexCategorySearchRepository : ElasticsearchRepository<SpexCategory, Long> {
-}
+interface SpexCategorySearchRepository : ElasticsearchRepository<SpexCategory, Long>

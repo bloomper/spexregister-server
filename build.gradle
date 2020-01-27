@@ -106,6 +106,7 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -118,17 +119,22 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "javax.servlet:javax.servlet-api:${servlet_api_version}"
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	implementation 'org.liquibase:liquibase-core'
 	implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	runtimeOnly 'mysql:mysql-connector-java'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 	testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "org.assertj:assertj-core"
+    testImplementation "junit:junit"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.hamcrest:hamcrest-library"
+    testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunit_junit5_version}"
+    testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunit_junit5_version}"
     testRuntimeOnly 'com.h2database:h2'
 
 }

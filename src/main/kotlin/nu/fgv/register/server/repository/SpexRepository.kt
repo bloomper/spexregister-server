@@ -5,5 +5,4 @@ import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.rest.core.annotation.RepositoryRestResource
 
 @RepositoryRestResource
-interface SpexRepository : PagingAndSortingRepository<Spex, Long> {
-}
+interface SpexRepository : PagingAndSortingRepository<Spex, Long>

@@ -9,4 +9,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @EnableTransactionManagement
 @EnableJpaRepositories
 @EnableJpaAuditing
-open class PersistenceConfig
+class PersistenceConfig

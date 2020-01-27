@@ -1,12 +1,12 @@
 package nu.fgv.register.server.model
 
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.springframework.data.elasticsearch.annotations.Document
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Pattern
 import javax.validation.constraints.Size
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.springframework.data.elasticsearch.annotations.Document
 
 @Entity
 @Table(name = "spex")
