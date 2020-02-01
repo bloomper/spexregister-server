@@ -1,4 +1,4 @@
-package nu.fgv.register.server.model
+package nu.fgv.register.server.domain
 
 import javax.persistence.*
 import javax.validation.constraints.NotNull
@@ -30,23 +30,11 @@ data class SpexCategory(
 ) : Base() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is SpexCategory) return false
+        if (other.id == null || id == null) return false
 
-        other as SpexCategory
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (firstYear != other.firstYear) return false
-        if (logoContentType != other.logoContentType) return false
-
-        return true
+        return id == other.id
     }
 
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + name.hashCode()
-        result = 31 * result + firstYear.hashCode()
-        result = 31 * result + logoContentType.hashCode()
-        return result
-    }
+    override fun hashCode() = 31
 }

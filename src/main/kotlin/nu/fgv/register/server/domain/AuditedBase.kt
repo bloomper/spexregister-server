@@ -1,4 +1,4 @@
-package nu.fgv.register.server.model
+package nu.fgv.register.server.domain
 
 import java.time.LocalDateTime
 import javax.persistence.Column

@@ -1,4 +1,4 @@
-package nu.fgv.register.server.model
+package nu.fgv.register.server.domain
 
 import javax.persistence.*
 import javax.validation.constraints.NotNull
@@ -23,4 +23,14 @@ data class Spex(
     var parent: Spex? = null,
     @ManyToOne(optional = false)
     var details: SpexDetails? = null
-) : Base()
+) : Base() {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Spex) return false
+        if (other.id == null || id == null) return false
+
+        return id == other.id
+    }
+
+    override fun hashCode() = 31
+}

@@ -1,15 +1,13 @@
 package nu.fgv.register.server.config
 
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.util.matcher.RequestMatcher
 
 @EnableWebSecurity
-open class SecurityConfiguration : WebSecurityConfigurerAdapter() {
+class SecurityConfig : WebSecurityConfigurerAdapter() {
+    /*
     override fun configure(http: HttpSecurity) {
-        //@formatter:off
+        // @formatter:off
         http
                 .authorizeRequests().anyRequest().authenticated()
                 .and()
@@ -27,6 +25,7 @@ open class SecurityConfiguration : WebSecurityConfigurerAdapter() {
 
         http.headers()
                 .contentSecurityPolicy("script-src 'self'; report-to /csp-report-endpoint/")
-        //@formatter:on
+        // @formatter:on
     }
+     */
 }

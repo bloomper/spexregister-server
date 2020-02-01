@@ -6,7 +6,7 @@
    - IntelliJ
    - Java 11.x
    - Gradle 6.x
-   - Dockerk
+   - Docker
 * Run MySQL in Docker
    - docker pull mysql
    - docker run --name mysql-spexregister -p 3306:3306 -v <absolute path>/.mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root -d mysql:latest

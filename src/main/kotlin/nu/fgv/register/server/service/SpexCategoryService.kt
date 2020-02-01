@@ -1,7 +1,8 @@
 package nu.fgv.register.server.service
 
 import java.util.*
-import nu.fgv.register.server.model.SpexCategory
+import nu.fgv.register.server.dto.SpexCategoryDto
+import nu.fgv.register.server.dto.mapper.SpexCategoryMapper
 import nu.fgv.register.server.repository.SpexCategoryRepository
 import nu.fgv.register.server.repository.search.SpexCategorySearchRepository
 import org.elasticsearch.index.query.QueryBuilders.queryStringQuery
@@ -13,8 +14,9 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-open class SpexCategoryService(
+class SpexCategoryService(
     private val repository: SpexCategoryRepository,
+    private val mapper: SpexCategoryMapper,
     private val searchRepository: SpexCategorySearchRepository
 ) {
 
@@ -24,23 +26,25 @@ open class SpexCategoryService(
         private val log = getLogger(javaClass.enclosingClass)
     }
 
-    fun save(spexCategory: SpexCategory): SpexCategory {
-        log.debug("Request to save spex category : {}") { spexCategory }
+    fun save(spexCategoryDto: SpexCategoryDto): SpexCategoryDto {
+        log.debug("Request to save spex category : {}") { spexCategoryDto }
+
+        var spexCategory = mapper.toEntity(spexCategoryDto)
         val result = repository.save(spexCategory)
         searchRepository.save(result)
-        return result
+        return mapper.toDto(result)
     }
 
     @Transactional(readOnly = true)
-    open fun findAll(pageable: Pageable): Page<SpexCategory> {
+    fun findAll(pageable: Pageable): Page<SpexCategoryDto> {
         log.debug("Request to get all spex categories")
-        return repository.findAll(pageable)
+        return repository.findAll(pageable).map(mapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    open fun findOne(id: Long): Optional<SpexCategory> {
+    fun findOne(id: Long): Optional<SpexCategoryDto> {
         log.debug("Request to get spex category : {}") { id }
-        return repository.findById(id)
+        return repository.findById(id).map(mapper::toDto)
     }
 
     fun delete(id: Long) {
@@ -49,8 +53,9 @@ open class SpexCategoryService(
         searchRepository.deleteById(id)
     }
 
-    open fun search(query: String, pageable: Pageable): Page<SpexCategory>? {
+    @Transactional(readOnly = true)
+    fun search(query: String, pageable: Pageable): Page<SpexCategoryDto>? {
         log.debug("Request to search for a page of spex categories for query {}") { query }
-        return searchRepository.search(queryStringQuery(query), pageable)
+        return searchRepository.search(queryStringQuery(query), pageable).map(mapper::toDto)
     }
 }
