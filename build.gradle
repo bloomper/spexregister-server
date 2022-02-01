@@ -9,7 +9,8 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 ext {
-  set('ehcacheVersion', '2.6.11')
+  set('ehcacheVersion', "2.6.11")
+  set('testcontainersVersion', "1.16.2")
 }
 
 configurations {
@@ -45,6 +46,14 @@ dependencies {
   testImplementation 'org.springframework:spring-webflux'
   testImplementation 'org.springframework.graphql:spring-graphql-test'
   testImplementation 'org.springframework.security:spring-security-test'
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.testcontainers:mysql'
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
 }
 
 tasks.named('test') {

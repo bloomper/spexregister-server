@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS activity
+(
+    id         BIGINT AUTO_INCREMENT NOT NULL,
+    spexare_id BIGINT NULL,
+    CONSTRAINT pk_activity PRIMARY KEY (id)
+);
+
+ALTER TABLE activity
+    ADD CONSTRAINT FK_ACTIVITY_ON_SPEXARE FOREIGN KEY (spexare_id) REFERENCES spexare (id);
+

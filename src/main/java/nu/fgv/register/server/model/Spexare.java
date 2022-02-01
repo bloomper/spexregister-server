@@ -28,7 +28,9 @@ import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -148,11 +150,16 @@ public class Spexare extends AbstractAuditable implements Serializable {
 
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @JoinTable(name = "spexare_tag",
+    @JoinTable(name = "tagging",
                joinColumns = @JoinColumn(name = "spexare_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     @ToString.Exclude
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "spexare")
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @ToString.Exclude
+    private List<Membership> memberships = new ArrayList<>();
 
     @OneToOne(mappedBy = "spexare")
     private UserDetails userDetails;

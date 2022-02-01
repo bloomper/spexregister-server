@@ -10,7 +10,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
-    <springProfile name="local">
+    <springProfile name="local | test">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="ch.qos.logback.classic.PatternLayout">
                 <Pattern>%d [%thread] [%level] [%logger] %msg%n</Pattern>
@@ -18,9 +18,13 @@
         </appender>
     </springProfile>
     <root level="INFO">
-        <appender-ref ref="SERVER_LOG" />
-        <springProfile name="local">
-            <appender-ref ref="CONSOLE" />
+        <springProfile name="!test">
+            <appender-ref ref="SERVER_LOG"/>
+        </springProfile>
+        <springProfile name="local | test">
+            <appender-ref ref="CONSOLE"/>
         </springProfile>
     </root>
+    <logger name="org.testcontainers" level="INFO"/>
+    <logger name="com.github.dockerjava" level="WARN"/>
 </configuration>
