@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SpexregisterApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="spexregister-server.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication" />
+    <option name="ACTIVE_PROFILES" value="local" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
