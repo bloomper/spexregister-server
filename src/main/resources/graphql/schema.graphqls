@@ -1,0 +1,12 @@
+type Query {
+    spex: [Spex]
+}
+
+
+type Mutation {
+
+}
+
+type Spex {
+
+}
