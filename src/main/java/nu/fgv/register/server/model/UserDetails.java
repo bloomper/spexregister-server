@@ -1,6 +1,5 @@
 package nu.fgv.register.server.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -32,7 +31,6 @@ public class UserDetails implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Setter(AccessLevel.PROTECTED)
     private Long id;
 
     @OneToOne(optional = false)
@@ -62,7 +60,6 @@ public class UserDetails implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(this.getClass().hashCode());
     }
-
 }

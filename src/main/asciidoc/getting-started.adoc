@@ -1,0 +1,35 @@
+= Spexregister Server Getting Started Guide
+Anders Jacobsson (Colgate);
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+[[introduction]]
+= Introduction
+
+Spexregister Server is a RESTful web service for .....
+
+
+[[getting_started_running_the_service]]
+== Running the service
+Spexregister Server is written using https://projects.spring.io/spring-boot[Spring Boot] which
+makes it easy to get it up and running so that you can start exploring the REST API.
+
+The first step is to clone the Git repository:
+
+[source,bash]
+----
+$ git clone https://github.com/bloomper/spexregister-server
+----
+
+Once the clone is complete, you're ready to get the service up and running:
+
+[source,bash]
+----
+$ cd spexregister/spexregister-server
+$ ./gradle clean bootJar
+$ java -jar target/*.jar
+----

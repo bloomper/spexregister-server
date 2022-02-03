@@ -1,6 +1,5 @@
 package nu.fgv.register.server.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -35,7 +34,6 @@ public class Activity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter(AccessLevel.PROTECTED)
     private Long id;
 
     @OneToMany(mappedBy = "activity")
@@ -63,7 +61,6 @@ public class Activity implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(this.getClass().hashCode());
     }
-
 }

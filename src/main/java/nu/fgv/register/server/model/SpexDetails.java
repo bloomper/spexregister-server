@@ -67,7 +67,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(this.getClass().hashCode());
     }
 
 }

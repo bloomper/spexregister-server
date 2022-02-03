@@ -1,6 +1,5 @@
 package nu.fgv.register.server.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,7 +37,6 @@ public class Membership implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter(AccessLevel.PROTECTED)
     private Long id;
 
     @NotNull
@@ -72,7 +70,6 @@ public class Membership implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(this.getClass().hashCode());
     }
-
 }
