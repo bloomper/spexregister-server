@@ -21,7 +21,7 @@ public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
     @JsonProperty("firstYear")
     private String firstYear;
 
-    //@JsonProperty("logoUrl")
-    // private String logoUrl;
+    @JsonProperty("logo")
+    private String logo;
 
 }
