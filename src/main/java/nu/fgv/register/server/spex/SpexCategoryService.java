@@ -1,6 +1,10 @@
 package nu.fgv.register.server.spex;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +16,7 @@ public class SpexCategoryService {
 
     private final SpexCategoryRepository repository;
 
-    public SpexCategoryService(SpexCategoryRepository repository) {
+    public SpexCategoryService(final SpexCategoryRepository repository) {
         this.repository = repository;
     }
 

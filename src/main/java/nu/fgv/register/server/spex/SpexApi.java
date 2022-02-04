@@ -58,10 +58,15 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.deleteById(id);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    }
+
+    @GetMapping("/{id}/revival")
+    public ResponseEntity<List<SpexDto>> findAllRevivals(@PathVariable Long id) {
+        return ResponseEntity.ok(mapper.toDtos(service.findAllRevivals(id)));
     }
 
 }

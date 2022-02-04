@@ -9,3 +9,6 @@ spring:
   h2:
     console:
       enabled: false
+  servlet:
+    multipart:
+      max-file-size: 10MB

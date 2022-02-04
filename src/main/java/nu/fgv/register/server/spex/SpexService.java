@@ -12,7 +12,7 @@ public class SpexService {
 
     private final SpexRepository repository;
 
-    public SpexService(SpexRepository repository) {
+    public SpexService(final SpexRepository repository) {
         this.repository = repository;
     }
 
@@ -30,5 +30,9 @@ public class SpexService {
 
     public void deleteById(final Long id) {
         repository.deleteById(id);
+    }
+
+    public List<Spex> findAllRevivals(final Long id) {
+        return repository.findAllRevivals(id);
     }
 }

@@ -10,8 +10,10 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -55,6 +57,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Lob
     @Column(name = "logo")
+    @Basic(fetch = FetchType.LAZY)
     private byte[] logo;
 
     @Column(name = "logo_content_type")

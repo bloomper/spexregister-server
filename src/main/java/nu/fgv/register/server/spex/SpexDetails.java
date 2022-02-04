@@ -9,8 +9,10 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -46,6 +48,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
 
     @Lob
     @Column(name = "poster")
+    @Basic(fetch = FetchType.LAZY)
     private byte[] poster;
 
     @Column(name = "poster_content_type")

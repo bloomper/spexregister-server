@@ -24,6 +24,7 @@ ext {
     set('testcontainersVersion', "1.16.2")
     set('ehcacheVersion', "2.6.11")
     set('mapstructVersion', "1.4.2.Final")
+    set('jmimemagicVersion', "0.1.5")
 }
 
 dependencies {
@@ -40,6 +41,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-acl'
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     implementation "net.sf.ehcache:ehcache-core:${ehcacheVersion}"
+    implementation "net.sf.jmimemagic:jmimemagic:${jmimemagicVersion}"
     implementation 'org.flywaydb:flyway-core'
     implementation 'com.querydsl:querydsl-core'
     implementation 'com.querydsl:querydsl-jpa'
