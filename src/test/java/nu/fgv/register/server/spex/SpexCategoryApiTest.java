@@ -19,26 +19,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = SpexApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = SpexCategoryApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @AutoConfigureRestDocs(outputDir = "build/snippets")
-public class SpexApiTest {
+public class SpexCategoryApiTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private SpexService service;
+    private SpexCategoryService service;
 
     @Test
-    public void shouldReturnListOfSpex() throws Exception {
-        var spex1 = Spex.builder().id(1L).year("2021").build();
-        var spex2 = Spex.builder().id(1L).year("2022").build();
-        when(service.findAll()).thenReturn(List.of(spex1, spex2));
-        this.mockMvc.perform(get("/api/v1/spex"))
+    public void shouldReturnListOfSpexCategories() throws Exception {
+        var category1 = SpexCategory.builder().id(1L).name("category1").build();
+        var category2 = SpexCategory.builder().id(1L).name("category2").build();
+        when(service.findAll()).thenReturn(List.of(category1, category2));
+        this.mockMvc.perform(get("/api/v1/spex/category"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].year", is(spex1.getYear())))
-                .andDo(document("spex"));
+                .andExpect(jsonPath("$[0].name", is(category1.getName())))
+                .andDo(document("spexCategory"));
     }
 }

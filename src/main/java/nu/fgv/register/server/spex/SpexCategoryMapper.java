@@ -7,9 +7,9 @@ import java.util.List;
 @Mapper
 public interface SpexCategoryMapper {
 
-    SpexDto toDto(Spex model);
+    SpexCategoryDto toDto(SpexCategory model);
 
-    List<SpexDto> toDtos(List<Spex> models);
+    List<SpexCategoryDto> toDtos(List<SpexCategory> models);
 
-    Spex toModel(SpexDto dto);
+    SpexCategory toModel(SpexCategoryDto dto);
 }

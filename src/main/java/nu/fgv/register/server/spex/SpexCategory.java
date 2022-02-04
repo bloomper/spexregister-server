@@ -1,5 +1,7 @@
 package nu.fgv.register.server.spex;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -26,9 +28,11 @@ import java.util.Objects;
 @Table(name = "spex_category")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
+@Builder
 public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Serial
