@@ -1,15 +1,27 @@
 package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.util.AbstractAuditableDto;
 
-public record SpexCategoryDto(
-        @JsonProperty("id") Long id,
-        @JsonProperty("name") String name,
-        @JsonProperty("firstYear") String firstYear,
-        //@JsonProperty("logoUrl") String logoUrl,
-        @JsonProperty("createdBy") String createdBy,
-        @JsonProperty("createdDate") long createdDate,
-        @JsonProperty("lastModifiedBy") String lastModifiedBy,
-        @JsonProperty("lastModifiedDate") long lastModifiedDate
-) {
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
+    @JsonProperty("id")
+    private Long id;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("firstYear")
+    private String firstYear;
+
+    //@JsonProperty("logoUrl")
+    // private String logoUrl;
+
 }

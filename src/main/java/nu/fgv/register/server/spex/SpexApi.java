@@ -2,6 +2,8 @@ package nu.fgv.register.server.spex;
 
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -29,32 +32,46 @@ public class SpexApi {
 
     @GetMapping
     public ResponseEntity<List<SpexDto>> findAll() {
-        return ResponseEntity.ok(mapper.toDtos(service.findAll()));
+        final List<Spex> models = service.findAll();
+
+        final List<SpexDto> dtos = models.stream()
+                .map(mapper::toDto)
+                .map(this::addSelfLink)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping
     public ResponseEntity<SpexDto> create(@RequestBody SpexDto dto) {
-        service.save(mapper.toModel(dto));
+        final Spex model = service.save(mapper.toModel(dto));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        final SpexDto newDto = mapper.toDto(model);
+        addSelfLink(newDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SpexDto> findById(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(e -> ResponseEntity.ok(mapper.toDto(e)))
+                .map(mapper::toDto)
+                .map(this::addSelfLink)
+                .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SpexDto> update(@PathVariable Long id, @RequestBody SpexDto dto) {
-        Spex entity = mapper.toModel(dto);
-        entity.setId(id);
+        final Spex model = mapper.toModel(dto);
+        model.setId(id);
 
-        service.save(entity);
+        final Spex updatedModel = service.save(model);
+        final SpexDto updatedDto = mapper.toDto(updatedModel);
+        addSelfLink(updatedDto);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(dto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
     }
 
     @DeleteMapping("/{id}")
@@ -66,7 +83,20 @@ public class SpexApi {
 
     @GetMapping("/{id}/revival")
     public ResponseEntity<List<SpexDto>> findAllRevivals(@PathVariable Long id) {
-        return ResponseEntity.ok(mapper.toDtos(service.findAllRevivals(id)));
+        final List<Spex> models = service.findAllRevivals(id);
+
+        final List<SpexDto> dtos = models.stream()
+                .map(mapper::toDto)
+                .map(this::addSelfLink)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    private SpexDto addSelfLink(final SpexDto dto) {
+        final Link selfLink = WebMvcLinkBuilder.linkTo(SpexApi.class).slash(dto.getId()).withSelfRel();
+        dto.add(selfLink);
+        return dto;
     }
 
 }

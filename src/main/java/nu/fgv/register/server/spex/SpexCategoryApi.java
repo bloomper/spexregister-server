@@ -5,6 +5,8 @@ import nu.fgv.register.server.util.FileUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -40,32 +42,47 @@ public class SpexCategoryApi {
 
     @GetMapping
     public ResponseEntity<List<SpexCategoryDto>> findAll() {
-        return ResponseEntity.ok(mapper.toDtos(service.findAll()));
+        final List<SpexCategory> models = service.findAll();
+
+        final List<SpexCategoryDto> dtos = models.stream()
+                .map(mapper::toDto)
+                .map(this::addSelfLink)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
+
 
     @PostMapping
     public ResponseEntity<SpexCategoryDto> create(@RequestBody SpexCategoryDto dto) {
-        service.save(mapper.toModel(dto));
+        final SpexCategory model = service.save(mapper.toModel(dto));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        final SpexCategoryDto newDto = mapper.toDto(model);
+        addSelfLink(newDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = {"application/hal+json"})
     public ResponseEntity<SpexCategoryDto> findById(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(e -> ResponseEntity.ok(mapper.toDto(e)))
+                .map(mapper::toDto)
+                .map(this::addSelfLink)
+                .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SpexCategoryDto> update(@PathVariable Long id, @RequestBody SpexCategoryDto dto) {
-        SpexCategory entity = mapper.toModel(dto);
-        entity.setId(id);
+        final SpexCategory model = mapper.toModel(dto);
+        model.setId(id);
 
-        service.save(entity);
+        final SpexCategory updatedModel = service.save(model);
+        final SpexCategoryDto updatedDto = mapper.toDto(updatedModel);
+        addSelfLink(updatedDto);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(dto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
     }
 
     @DeleteMapping("/{id}")
@@ -105,5 +122,11 @@ public class SpexCategoryApi {
                     return ResponseEntity.status(HttpStatus.ACCEPTED).build();
                 })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    private SpexCategoryDto addSelfLink(final SpexCategoryDto dto) {
+        final Link selfLink = WebMvcLinkBuilder.linkTo(SpexCategoryApi.class).slash(dto.getId()).withSelfRel();
+        dto.add(selfLink);
+        return dto;
     }
 }
