@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -17,24 +18,25 @@ import java.util.Optional;
 public class SpexService {
 
     private final SpexRepository repository;
+    private final SpexMapper mapper;
 
-    public Page<Spex> find(final Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<SpexDto> find(final Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDto);
     }
 
-    public Optional<Spex> findById(final Long id) {
-        return repository.findById(id);
+    public Optional<SpexDto> findById(final Long id) {
+        return repository.findById(id).map(mapper::toDto);
     }
 
-    public Spex save(final Spex model) {
-        return repository.save(model);
+    public SpexDto save(final SpexDto dto) {
+        return mapper.toDto(repository.save(mapper.toModel(dto)));
     }
 
     public void deleteById(final Long id) {
         repository.deleteById(id);
     }
 
-    public List<Spex> findAllRevivals(final Long id) {
-        return repository.findAllRevivals(id);
+    public List<SpexDto> findAllRevivals(final Long id) {
+        return repository.findAllRevivals(id).stream().map(mapper::toDto).collect(Collectors.toList());
     }
 }

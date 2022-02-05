@@ -33,8 +33,8 @@ public class SpexCategoryApiTest {
 
     @Test
     public void shouldReturnListOfSpexCategories() throws Exception {
-        var category1 = SpexCategory.builder().id(1L).name("category1").build();
-        var category2 = SpexCategory.builder().id(1L).name("category2").build();
+        var category1 = SpexCategoryDto.builder().id(1L).name("category1").build();
+        var category2 = SpexCategoryDto.builder().id(1L).name("category2").build();
         when(service.find(Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(category1, category2)));
         this.mockMvc.perform(get("/api/v1/spex/category"))
                 .andDo(print())

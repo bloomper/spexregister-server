@@ -1,6 +1,7 @@
 package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import org.springframework.hateoas.server.core.Relation;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
+@Builder
 @Relation(collectionRelation = "spex", itemRelation = "spex")
 public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("id")

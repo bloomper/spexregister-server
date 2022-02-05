@@ -2,11 +2,8 @@ package nu.fgv.register.server.spex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.FileUtil;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -32,11 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static nu.fgv.register.server.spex.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
-import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -49,18 +41,16 @@ public class SpexCategoryApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<SpexCategoryDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final Page<SpexCategory> models = service.find(pageable);
-        final List<SpexCategoryDto> dtos = toDtos(models.getContent());
-        final PagedModel<EntityModel<SpexCategoryDto>> paged = pagedResourcesAssembler.toModel(new PageImpl<>(dtos, pageable, models.getTotalElements()));
+        final PagedModel<EntityModel<SpexCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+        // TODO: Add affordances
 
         return ResponseEntity.ok(paged);
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<SpexCategoryDto> create(@RequestBody SpexCategoryDto dto) {
-        final SpexCategory model = service.save(SPEX_CATEGORY_MAPPER.toModel(dto));
-
-        final SpexCategoryDto newDto = toDto(model);
+        final SpexCategoryDto newDto = service.save(dto);
+        addSelfLink(newDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
     }
@@ -69,19 +59,17 @@ public class SpexCategoryApi {
     public ResponseEntity<SpexCategoryDto> retrieve(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(SPEX_CATEGORY_MAPPER::toDto)
                 .map(this::addSelfLink)
+                // TODO: Add affordances
                 .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<SpexCategoryDto> update(@PathVariable Long id, @RequestBody SpexCategoryDto dto) {
-        final SpexCategory model = SPEX_CATEGORY_MAPPER.toModel(dto);
-        model.setId(id);
-
-        final SpexCategory updatedModel = service.save(model);
-        final SpexCategoryDto updatedDto = toDto(updatedModel);
+        dto.setId(id);
+        final SpexCategoryDto updatedDto = service.save(dto);
+        addSelfLink(updatedDto);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
     }
@@ -95,11 +83,11 @@ public class SpexCategoryApi {
 
     @GetMapping("/{id}/logo")
     public ResponseEntity<Resource> downloadLogo(@PathVariable Long id) {
-        return service.findById(id)
-                .map(entity -> {
-                    final Resource resource = new ByteArrayResource(entity.getLogo());
+        return service.getLogo(id)
+                .map(tuple -> {
+                    final Resource resource = new ByteArrayResource(tuple.getFirst());
                     return ResponseEntity.ok()
-                            .contentType(MediaType.valueOf(entity.getLogoContentType()))
+                            .contentType(MediaType.valueOf(tuple.getSecond()))
                             .body(resource);
                 })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -107,35 +95,16 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        return service.findById(id)
-                .map(entity -> {
-                    try {
-                        final byte[] binary = file.getBytes();
-                        entity.setLogo(binary);
-                        entity.setLogoContentType(hasText(file.getContentType()) ? file.getContentType() : FileUtil.detectMimeType(binary));
-                    } catch (final IOException e) {
-                        if (log.isErrorEnabled()) {
-                            log.error(String.format("Could not save logo for spex category %s", entity.getId()), e);
-                        }
-                        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-                    }
-                    service.save(entity);
-                    return ResponseEntity.status(HttpStatus.ACCEPTED).build();
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    private SpexCategoryDto toDto(final SpexCategory model) {
-        final SpexCategoryDto newDto = SPEX_CATEGORY_MAPPER.toDto(model);
-        addSelfLink(newDto);
-        return newDto;
-    }
-
-    private List<SpexCategoryDto> toDtos(final List<SpexCategory> models) {
-        return models.stream()
-                .map(SPEX_CATEGORY_MAPPER::toDto)
-                .map(this::addSelfLink)
-                .collect(Collectors.toList());
+        try {
+            return service.saveLogo(id, file.getBytes(), file.getContentType())
+                    .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (IOException e) {
+            if (log.isErrorEnabled()) {
+                log.error(String.format("Could not save logo for spex category %s", id), e);
+            }
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        }
     }
 
     private SpexCategoryDto addSelfLink(final SpexCategoryDto dto) {

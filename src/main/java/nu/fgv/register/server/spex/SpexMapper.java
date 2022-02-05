@@ -9,12 +9,12 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.Objects;
 
 @Mapper(
+        componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 @MapperConfig(
@@ -22,8 +22,6 @@ import java.util.Objects;
         unmappedSourcePolicy = ReportingPolicy.ERROR
 )
 public interface SpexMapper {
-
-    SpexMapper SPEX_MAPPER = Mappers.getMapper( SpexMapper.class );
 
     @Mappings({
             @Mapping(target = "details", ignore = true),
