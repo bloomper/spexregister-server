@@ -6,11 +6,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import org.springframework.hateoas.server.core.Relation;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
+@Relation(collectionRelation = "spex", itemRelation = "spex")
 public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("id")
     private Long id;

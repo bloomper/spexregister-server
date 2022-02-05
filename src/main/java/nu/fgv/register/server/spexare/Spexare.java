@@ -4,9 +4,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 

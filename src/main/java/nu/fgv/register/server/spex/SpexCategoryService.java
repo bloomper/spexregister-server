@@ -1,25 +1,24 @@
 package nu.fgv.register.server.spex;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
+@Transactional
 public class SpexCategoryService {
 
     private final SpexCategoryRepository repository;
 
-    public SpexCategoryService(final SpexCategoryRepository repository) {
-        this.repository = repository;
-    }
-
-    public List<SpexCategory> findAll() {
-        return repository.findAll();
+    public Page<SpexCategory> find(final Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     public Optional<SpexCategory> findById(final Long id) {

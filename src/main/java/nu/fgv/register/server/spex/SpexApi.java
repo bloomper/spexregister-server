@@ -1,8 +1,17 @@
 package nu.fgv.register.server.spex;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.factory.Mappers;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,58 +27,52 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
+
 @Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/spex")
 public class SpexApi {
 
     private final SpexService service;
-    private final SpexMapper mapper = Mappers.getMapper(SpexMapper.class);
+    private final PagedResourcesAssembler<SpexDto> pagedResourcesAssembler;
 
-    public SpexApi(final SpexService service) {
-        this.service = service;
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+        final Page<Spex> models = service.find(pageable);
+        final List<SpexDto> dtos = toDtos(models.getContent());
+        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(new PageImpl<>(dtos, pageable, models.getTotalElements()));
+
+        return ResponseEntity.ok(paged);
     }
 
-    @GetMapping
-    public ResponseEntity<List<SpexDto>> findAll() {
-        final List<Spex> models = service.findAll();
-
-        final List<SpexDto> dtos = models.stream()
-                .map(mapper::toDto)
-                .map(this::addSelfLink)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(dtos);
-    }
-
-    @PostMapping
+    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<SpexDto> create(@RequestBody SpexDto dto) {
-        final Spex model = service.save(mapper.toModel(dto));
+        final Spex model = service.save(SPEX_MAPPER.toModel(dto));
 
-        final SpexDto newDto = mapper.toDto(model);
-        addSelfLink(newDto);
+        final SpexDto newDto = toDto(model);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SpexDto> findById(@PathVariable Long id) {
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<SpexDto> retrieve(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(mapper::toDto)
+                .map(SPEX_MAPPER::toDto)
                 .map(this::addSelfLink)
                 .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<SpexDto> update(@PathVariable Long id, @RequestBody SpexDto dto) {
-        final Spex model = mapper.toModel(dto);
+        final Spex model = SPEX_MAPPER.toModel(dto);
         model.setId(id);
 
         final Spex updatedModel = service.save(model);
-        final SpexDto updatedDto = mapper.toDto(updatedModel);
-        addSelfLink(updatedDto);
+        final SpexDto updatedDto = toDto(updatedModel);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
     }
@@ -81,16 +84,26 @@ public class SpexApi {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @GetMapping("/{id}/revival")
+    @GetMapping(value = "/{id}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<List<SpexDto>> findAllRevivals(@PathVariable Long id) {
         final List<Spex> models = service.findAllRevivals(id);
 
-        final List<SpexDto> dtos = models.stream()
-                .map(mapper::toDto)
-                .map(this::addSelfLink)
-                .collect(Collectors.toList());
+        final List<SpexDto> dtos = toDtos(models);
 
         return ResponseEntity.ok(dtos);
+    }
+
+    private SpexDto toDto(final Spex model) {
+        final SpexDto newDto = SPEX_MAPPER.toDto(model);
+        addSelfLink(newDto);
+        return newDto;
+    }
+
+    private List<SpexDto> toDtos(final List<Spex> models) {
+        return models.stream()
+                .map(SPEX_MAPPER::toDto)
+                .map(this::addSelfLink)
+                .collect(Collectors.toList());
     }
 
     private SpexDto addSelfLink(final SpexDto dto) {

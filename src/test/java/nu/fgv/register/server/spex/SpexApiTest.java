@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -33,7 +35,7 @@ public class SpexApiTest {
     public void shouldReturnListOfSpex() throws Exception {
         var spex1 = Spex.builder().id(1L).year("2021").build();
         var spex2 = Spex.builder().id(1L).year("2022").build();
-        when(service.findAll()).thenReturn(List.of(spex1, spex2));
+        when(service.find(Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(spex1, spex2)));
         this.mockMvc.perform(get("/api/v1/spex"))
                 .andDo(print())
                 .andExpect(status().isOk())

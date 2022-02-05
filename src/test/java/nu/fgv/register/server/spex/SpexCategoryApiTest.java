@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -33,7 +35,7 @@ public class SpexCategoryApiTest {
     public void shouldReturnListOfSpexCategories() throws Exception {
         var category1 = SpexCategory.builder().id(1L).name("category1").build();
         var category2 = SpexCategory.builder().id(1L).name("category2").build();
-        when(service.findAll()).thenReturn(List.of(category1, category2));
+        when(service.find(Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(category1, category2)));
         this.mockMvc.perform(get("/api/v1/spex/category"))
                 .andDo(print())
                 .andExpect(status().isOk())

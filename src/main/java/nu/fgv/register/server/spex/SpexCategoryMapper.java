@@ -9,6 +9,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
@@ -25,6 +26,8 @@ import static org.springframework.util.StringUtils.hasText;
         unmappedSourcePolicy = ReportingPolicy.ERROR
 )
 public interface SpexCategoryMapper {
+
+    SpexCategoryMapper SPEX_CATEGORY_MAPPER = Mappers.getMapper( SpexCategoryMapper.class );
 
     @Mappings({
             @Mapping(target = "logo", ignore = true),
