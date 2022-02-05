@@ -10,7 +10,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,7 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,36 +39,33 @@ public class SpexApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
-        // TODO: Add affordances
+        paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexDto> create(@RequestBody SpexDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody SpexDto dto) {
         final SpexDto newDto = service.save(dto);
-        addSelfLink(newDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexDto> retrieve(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<SpexDto>> retrieve(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(this::addSelfLink)
-                // TODO: Add affordances
+                .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexDto> update(@PathVariable Long id, @RequestBody SpexDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable Long id, @Valid @RequestBody SpexDto dto) {
         dto.setId(id);
         final SpexDto updatedDto = service.save(dto);
-        addSelfLink(updatedDto);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
@@ -77,16 +77,25 @@ public class SpexApi {
 
     @GetMapping(value = "/{id}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<List<SpexDto>> findAllRevivals(@PathVariable Long id) {
-        // TODO: Pagination
+        // TODO: Pagination + entity model
         final List<SpexDto> dtos = service.findAllRevivals(id);
 
         return ResponseEntity.ok(dtos);
     }
 
-    private SpexDto addSelfLink(final SpexDto dto) {
-        final Link selfLink = WebMvcLinkBuilder.linkTo(SpexApi.class).slash(dto.getId()).withSelfRel();
-        dto.add(selfLink);
-        return dto;
+    private void addLinks(final EntityModel<SpexDto> entity) {
+        if (entity != null && entity.getContent() != null) {
+            entity.getContent().add(getLinks(entity.getContent()));
+        }
+    }
+
+    private List<Link> getLinks(final SpexDto dto) {
+        final Link selfLink = linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel();
+        if (dto.getParent() != null) {
+            final Link parentLink = linkTo(methodOn(SpexApi.class).retrieve(dto.getParent().getId())).withSelfRel();
+            return List.of(selfLink, parentLink);
+        }
+        return List.of(selfLink);
     }
 
 }

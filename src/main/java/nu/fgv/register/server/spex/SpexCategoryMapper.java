@@ -52,11 +52,10 @@ public interface SpexCategoryMapper {
     }
 
     @AfterMapping
-    default void setLogo(final SpexCategory model, final @MappingTarget SpexCategoryDto dto) {
+    default void setLogo(final SpexCategory model, final @MappingTarget SpexCategoryDto.SpexCategoryDtoBuilder dto) {
         if (hasText(model.getLogoContentType())) {
             final Link logoLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).withRel("logo");
-            dto.add(logoLink);
-            dto.setLogo(logoLink.getHref());
+            dto.logo(logoLink.getHref());
         }
     }
 

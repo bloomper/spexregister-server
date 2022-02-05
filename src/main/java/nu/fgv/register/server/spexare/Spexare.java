@@ -150,8 +150,8 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @JoinTable(name = "tagging",
-               joinColumns = @JoinColumn(name = "spexare_id", referencedColumnName = "id"),
-               inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
+            joinColumns = @JoinColumn(name = "spexare_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     @ToString.Exclude
     private Set<Tag> tags = new HashSet<>();
 

@@ -12,7 +12,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,36 +47,33 @@ public class SpexCategoryApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<SpexCategoryDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
-        // TODO: Add affordances
+        paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexCategoryDto> create(@RequestBody SpexCategoryDto dto) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> create(@Valid @RequestBody SpexCategoryDto dto) {
         final SpexCategoryDto newDto = service.save(dto);
-        addSelfLink(newDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexCategoryDto> retrieve(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieve(@PathVariable Long id) {
         return service
                 .findById(id)
-                .map(this::addSelfLink)
-                // TODO: Add affordances
+                .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<SpexCategoryDto> update(@PathVariable Long id, @RequestBody SpexCategoryDto dto) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable Long id, @Valid @RequestBody SpexCategoryDto dto) {
         dto.setId(id);
         final SpexCategoryDto updatedDto = service.save(dto);
-        addSelfLink(updatedDto);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
@@ -107,9 +109,18 @@ public class SpexCategoryApi {
         }
     }
 
-    private SpexCategoryDto addSelfLink(final SpexCategoryDto dto) {
-        final Link selfLink = WebMvcLinkBuilder.linkTo(SpexCategoryApi.class).slash(dto.getId()).withSelfRel();
-        dto.add(selfLink);
-        return dto;
+    private void addLinks(final EntityModel<SpexCategoryDto> entity) {
+        if (entity != null && entity.getContent() != null) {
+            entity.getContent().add(getLinks(entity.getContent()));
+        }
+    }
+
+    private List<Link> getLinks(final SpexCategoryDto dto) {
+        final Link selfLink = linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel();
+        if (hasText(dto.getLogo())) {
+            final Link logoLink = Link.of(dto.getLogo()).withRel("logo");
+            return List.of(selfLink, logoLink);
+        }
+        return List.of(selfLink);
     }
 }
