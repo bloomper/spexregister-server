@@ -58,6 +58,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @Lob
     @Column(name = "logo")
     @Basic(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private byte[] logo;
 
     @Column(name = "logo_content_type")

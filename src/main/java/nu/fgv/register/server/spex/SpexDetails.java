@@ -49,6 +49,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @Lob
     @Column(name = "poster")
     @Basic(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private byte[] poster;
 
     @Column(name = "poster_content_type")
