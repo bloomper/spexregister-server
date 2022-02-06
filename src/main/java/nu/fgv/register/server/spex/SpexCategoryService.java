@@ -34,6 +34,14 @@ public class SpexCategoryService {
         return mapper.toDto(repository.save(mapper.toModel(dto)));
     }
 
+    public Optional<SpexCategoryDto> update(final SpexCategoryDto dto) {
+        if (repository.existsById(dto.getId())) {
+            return Optional.of(mapper.toDto(repository.save(mapper.toModel(dto))));
+        } else {
+            return Optional.empty();
+        }
+    }
+
     public void deleteById(final Long id) {
         repository.deleteById(id);
     }
@@ -48,6 +56,8 @@ public class SpexCategoryService {
     }
 
     public Optional<Pair<byte[], String>> getLogo(final Long id) {
-        return repository.findById(id).map(model -> Pair.of(model.getLogo(), model.getLogoContentType()));
+        return repository.findById(id)
+                .filter(model -> model.getLogo() != null && hasText(model.getLogoContentType()))
+                .map(model -> Pair.of(model.getLogo(), model.getLogoContentType()));
     }
 }

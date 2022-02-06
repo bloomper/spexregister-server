@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'nu.fgv.register'
-version = '0.0.1-SNAPSHOT'
+version = '2.0.0-SNAPSHOT'
 sourceCompatibility = '17'
 
 configurations {

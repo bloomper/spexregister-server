@@ -35,7 +35,7 @@ public class SpexApiTest {
     public void shouldReturnListOfSpex() throws Exception {
         var spex1 = SpexDto.builder().id(1L).year("2021").build();
         var spex2 = SpexDto.builder().id(1L).year("2022").build();
-        when(service.find(Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(spex1, spex2)));
+        when(service.find(false, Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(spex1, spex2)));
         this.mockMvc.perform(get("/api/v1/spex"))
                 .andDo(print())
                 .andExpect(status().isOk())

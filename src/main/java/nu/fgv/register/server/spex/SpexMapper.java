@@ -9,13 +9,18 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.List;
 import java.util.Objects;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Mapper(
         componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        uses = SpexCategoryMapper.class
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -24,7 +29,8 @@ import java.util.Objects;
 public interface SpexMapper {
 
     @Mappings({
-            @Mapping(target = "details", ignore = true),
+            @Mapping(target = "poster", ignore = true),
+            @Mapping(target = "title", source = "details.title")
     })
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     SpexDto toDto(Spex model);
@@ -43,6 +49,19 @@ public interface SpexMapper {
     default void setModelId(final SpexDto dto, final @MappingTarget Spex model) {
         if (Objects.nonNull(dto.getId())) {
             model.setId(dto.getId());
+        }
+    }
+
+    @AfterMapping
+    default void setRevival(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {
+        dto.revival(model.isRevival());
+    }
+
+    @AfterMapping
+    default void setPoster(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {
+        if (hasText(model.getDetails().getPosterContentType())) {
+            final Link posterLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).withRel("poster");
+            dto.poster(posterLink.getHref());
         }
     }
 }

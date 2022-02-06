@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -71,9 +72,10 @@ public class SpexCategoryApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable Long id, @Valid @RequestBody SpexCategoryDto dto) {
         dto.setId(id);
-        final SpexCategoryDto updatedDto = service.save(dto);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto)));
+        return service
+                .update(dto)
+                .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")
@@ -111,16 +113,20 @@ public class SpexCategoryApi {
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
         if (entity != null && entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
+            addLinks(entity.getContent());
         }
     }
 
-    private List<Link> getLinks(final SpexCategoryDto dto) {
-        final Link selfLink = linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel();
+    void addLinks(final SpexCategoryDto dto) {
+        dto.add(getLinks(dto));
+    }
+
+    List<Link> getLinks(final SpexCategoryDto dto) {
+        final List<Link> links = new ArrayList<>();
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         if (hasText(dto.getLogo())) {
-            final Link logoLink = Link.of(dto.getLogo()).withRel("logo");
-            return List.of(selfLink, logoLink);
+            links.add(Link.of(dto.getLogo()).withRel("logo"));
         }
-        return List.of(selfLink);
+        return links;
     }
 }

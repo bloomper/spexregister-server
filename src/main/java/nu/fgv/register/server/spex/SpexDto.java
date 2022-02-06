@@ -22,12 +22,19 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("year")
     private String year;
 
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("poster")
+    private String poster;
+
     @JsonProperty("category")
     private SpexCategoryDto category;
 
     @JsonProperty("parent")
     private SpexDto parent;
 
-    @JsonProperty("details")
-    private SpexDetailsDto details;
+    @JsonProperty("revival")
+    private boolean revival;
+
 }

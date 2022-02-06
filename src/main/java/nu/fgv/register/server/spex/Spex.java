@@ -57,6 +57,10 @@ public class Spex extends AbstractAuditable implements Serializable {
     @NotNull
     private SpexDetails details;
 
+    public boolean isRevival() {
+        return parent != null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
