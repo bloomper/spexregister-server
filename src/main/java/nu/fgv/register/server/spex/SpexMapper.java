@@ -30,7 +30,8 @@ public interface SpexMapper {
 
     @Mappings({
             @Mapping(target = "poster", ignore = true),
-            @Mapping(target = "title", source = "details.title")
+            @Mapping(target = "title", source = "details.title"),
+            @Mapping(target = "category", source = "details.category")
     })
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     SpexDto toDto(Spex model);

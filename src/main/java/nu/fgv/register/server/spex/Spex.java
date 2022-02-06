@@ -1,6 +1,5 @@
 package nu.fgv.register.server.spex;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -27,7 +26,6 @@ import java.util.Objects;
 @Table(name = "spex")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -45,10 +43,6 @@ public class Spex extends AbstractAuditable implements Serializable {
     @Pattern(regexp = "^(19|20|21)\\d{2}$")
     @Column(name = "year", length = 4, nullable = false)
     private String year;
-
-    @ManyToOne(optional = false)
-    @NotNull
-    private SpexCategory category;
 
     @ManyToOne
     private Spex parent;

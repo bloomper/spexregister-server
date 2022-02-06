@@ -83,7 +83,6 @@ public class SpexService {
                         revival.setDetails(parent.getDetails());
                         revival.setParent(parent);
                         revival.setYear(year);
-                        revival.setCategory(parent.getCategory());
                         return repository.save(revival);
                     })
                     .map(mapper::toDto);
@@ -106,7 +105,7 @@ public class SpexService {
         if (repository.existsById(id) && categoryRepository.existsById(categoryId)) {
             repository.findById(id).ifPresent(spex ->
                     categoryRepository.findById(categoryId).ifPresent(category -> {
-                        spex.setCategory(category);
+                        spex.getDetails().setCategory(category);
                         repository.save(spex);
                     }));
             return findById(id);

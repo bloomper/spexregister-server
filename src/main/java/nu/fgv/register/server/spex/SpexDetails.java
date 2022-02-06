@@ -1,6 +1,5 @@
 package nu.fgv.register.server.spex;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -17,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -38,7 +38,6 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter(AccessLevel.PROTECTED)
     private Long id;
 
     @NotNull
@@ -54,6 +53,10 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
 
     @Column(name = "poster_content_type")
     private String posterContentType;
+
+    @ManyToOne(optional = false)
+    @NotNull
+    private SpexCategory category;
 
     @Override
     public boolean equals(Object o) {

@@ -6,14 +6,10 @@ CREATE TABLE IF NOT EXISTS spex
     last_modified_by   VARCHAR(50)           NULL,
     last_modified_date BIGINT                NULL,
     year               VARCHAR(4)            NOT NULL,
-    category_id        BIGINT                NOT NULL,
     parent_id          BIGINT                NULL,
     details_id         BIGINT                NOT NULL,
     CONSTRAINT pk_spex PRIMARY KEY (id)
 );
-
-ALTER TABLE spex
-    ADD CONSTRAINT FK_SPEX_ON_CATEGORY FOREIGN KEY (category_id) REFERENCES spex_category (id);
 
 ALTER TABLE spex
     ADD CONSTRAINT FK_SPEX_ON_DETAILS FOREIGN KEY (details_id) REFERENCES spex_details (id);
