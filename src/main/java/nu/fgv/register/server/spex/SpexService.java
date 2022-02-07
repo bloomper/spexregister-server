@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
+import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -21,27 +22,26 @@ public class SpexService {
 
     private final SpexRepository repository;
     private final SpexCategoryRepository categoryRepository;
-    private final SpexMapper mapper;
 
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
         if (includeRevivals) {
-            return repository.findAll(pageable).map(mapper::toDto);
+            return repository.findAll(pageable).map(SPEX_MAPPER::toDto);
         } else {
-            return repository.findAllByParentIsNull(pageable).map(mapper::toDto);
+            return repository.findAllByParentIsNull(pageable).map(SPEX_MAPPER::toDto);
         }
     }
 
     public Optional<SpexDto> findById(final Long id) {
-        return repository.findById(id).map(mapper::toDto);
+        return repository.findById(id).map(SPEX_MAPPER::toDto);
     }
 
     public SpexDto save(final SpexDto dto) {
-        return mapper.toDto(repository.save(mapper.toModel(dto)));
+        return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
     }
 
     public Optional<SpexDto> update(final SpexDto dto) {
         if (repository.existsById(dto.getId())) {
-            return Optional.of(mapper.toDto(repository.save(mapper.toModel(dto))));
+            return Optional.of(SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto))));
         } else {
             return Optional.empty();
         }
@@ -56,7 +56,7 @@ public class SpexService {
             model.getDetails().setPoster(poster);
             model.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
             repository.save(model);
-            return mapper.toDto(model);
+            return SPEX_MAPPER.toDto(model);
         });
     }
 
@@ -68,37 +68,40 @@ public class SpexService {
     }
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {
-        return repository.findAllByParentIsNotNull(pageable).map(mapper::toDto);
+        return repository.findAllByParentIsNotNull(pageable).map(SPEX_MAPPER::toDto);
     }
 
     public Page<SpexDto> findRevivalsByParent(final Long id, final Pageable pageable) {
-        return repository.findRevivalsByParent(id, pageable).map(mapper::toDto);
+        return repository
+                .findById(id)
+                .map(parent -> repository.findRevivalsByParent(parent, pageable).map(SPEX_MAPPER::toDto))
+                .orElse(Page.empty());
     }
 
     public Optional<SpexDto> addRevival(final Long id, final String year) {
-        if (repository.existsById(id) && !repository.existsRevivalByParentAndYear(id, year)) {
-            return repository.findById(id)
-                    .map(parent -> {
-                        final Spex revival = new Spex();
-                        revival.setDetails(parent.getDetails());
-                        revival.setParent(parent);
-                        revival.setYear(year);
-                        return repository.save(revival);
-                    })
-                    .map(mapper::toDto);
-        } else {
-            return Optional.empty();
-        }
+        return repository
+                .findById(id)
+                .filter(parent -> !repository.existsRevivalByParentAndYear(parent, year))
+                .map(parent -> {
+                    final Spex revival = new Spex();
+                    revival.setDetails(parent.getDetails());
+                    revival.setParent(parent);
+                    revival.setYear(year);
+                    return repository.save(revival);
+                })
+                .map(SPEX_MAPPER::toDto);
     }
 
     public boolean removeRevival(final Long id, final String year) {
-        if (repository.existsById(id) && repository.existsRevivalByParentAndYear(id, year)) {
-            repository.findByParentAndYear(id, year)
-                    .ifPresent(revival -> repository.deleteById(revival.getId()));
-            return true;
-        } else {
-            return false;
-        }
+        return repository
+                .findById(id)
+                .filter(parent -> repository.existsRevivalByParentAndYear(parent, year))
+                .flatMap(parent -> repository.findRevivalByParentAndYear(parent, year))
+                .map(revival -> {
+                    repository.deleteById(revival.getId());
+                    return true;
+                })
+                .orElse(false);
     }
 
     public Optional<SpexDto> updateCategory(final Long id, final Long categoryId) {

@@ -141,7 +141,7 @@ public class SpexApi {
         return service.removeRevival(id, year) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
-    @PutMapping(value = "/{id}/category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PutMapping(value = "/{id}/spex-category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexDto>> updateCategory(@PathVariable Long id, @PathVariable final Long categoryId) {
         return service
                 .updateCategory(id, categoryId)

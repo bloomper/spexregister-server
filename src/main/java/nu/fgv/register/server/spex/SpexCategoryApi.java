@@ -39,7 +39,7 @@ import static org.springframework.util.StringUtils.hasText;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spex/category")
+@RequestMapping("/api/v1/spex-categories")
 public class SpexCategoryApi {
 
     private final SpexCategoryService service;

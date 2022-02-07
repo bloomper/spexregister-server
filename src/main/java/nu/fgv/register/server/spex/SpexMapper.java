@@ -9,6 +9,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
@@ -18,7 +19,6 @@ import java.util.Objects;
 import static org.springframework.util.StringUtils.hasText;
 
 @Mapper(
-        componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = SpexCategoryMapper.class
 )
@@ -27,6 +27,8 @@ import static org.springframework.util.StringUtils.hasText;
         unmappedSourcePolicy = ReportingPolicy.ERROR
 )
 public interface SpexMapper {
+
+    SpexMapper SPEX_MAPPER = Mappers.getMapper(SpexMapper.class);
 
     @Mappings({
             @Mapping(target = "poster", ignore = true),

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
+import static nu.fgv.register.server.spex.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -20,23 +21,22 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexCategoryService {
 
     private final SpexCategoryRepository repository;
-    private final SpexCategoryMapper mapper;
 
     public Page<SpexCategoryDto> find(final Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDto);
+        return repository.findAll(pageable).map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     public Optional<SpexCategoryDto> findById(final Long id) {
-        return repository.findById(id).map(mapper::toDto);
+        return repository.findById(id).map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     public SpexCategoryDto save(final SpexCategoryDto dto) {
-        return mapper.toDto(repository.save(mapper.toModel(dto)));
+        return SPEX_CATEGORY_MAPPER.toDto(repository.save(SPEX_CATEGORY_MAPPER.toModel(dto)));
     }
 
     public Optional<SpexCategoryDto> update(final SpexCategoryDto dto) {
         if (repository.existsById(dto.getId())) {
-            return Optional.of(mapper.toDto(repository.save(mapper.toModel(dto))));
+            return Optional.of(SPEX_CATEGORY_MAPPER.toDto(repository.save(SPEX_CATEGORY_MAPPER.toModel(dto))));
         } else {
             return Optional.empty();
         }
@@ -51,7 +51,7 @@ public class SpexCategoryService {
             model.setLogo(logo);
             model.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
             repository.save(model);
-            return mapper.toDto(model);
+            return SPEX_CATEGORY_MAPPER.toDto(model);
         });
     }
 

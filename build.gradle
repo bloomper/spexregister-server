@@ -25,6 +25,8 @@ ext {
     set('ehcacheVersion', "2.6.11")
     set('mapstructVersion', "1.4.2.Final")
     set('jmimemagicVersion', "0.1.5")
+    set('easyRandomVersion', "0.3.0")
+    set('restAssuredVersion', "4.5.0")
 }
 
 dependencies {
@@ -59,6 +61,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "org.mvnsearch:easy-random-junit5-extension:${easyRandomVersion}"
+    testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
+    testImplementation "io.rest-assured:rest-assured-all:${restAssuredVersion}"
     //testImplementation 'org.testcontainers:elasticsearch'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
