@@ -10,6 +10,11 @@ import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -21,15 +26,21 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("id")
     private Long id;
 
+    @NotBlank(message = "{spex.year.notBlank}")
+    @Size(max = 4, message = "{spex.year.size}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.pattern}")
     @JsonProperty("year")
     private String year;
 
+    @NotBlank(message = "{spex.title.notBlank}")
+    @Size(max = 255, message = "{spex.title.size}")
     @JsonProperty("title")
     private String title;
 
     @JsonProperty("poster")
     private String poster;
 
+    @NotNull(message = "{spex.category.notBlank}")
     @JsonProperty("category")
     private SpexCategoryDto category;
 

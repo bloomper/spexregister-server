@@ -18,8 +18,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -40,8 +38,6 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 255)
     @Column(name = "title", nullable = false)
     private String title;
 
@@ -55,7 +51,6 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     private String posterContentType;
 
     @ManyToOne(optional = false)
-    @NotNull
     private SpexCategory category;
 
     @Override

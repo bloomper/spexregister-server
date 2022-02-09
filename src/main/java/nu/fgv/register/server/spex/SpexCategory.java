@@ -17,9 +17,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -40,14 +37,9 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 255)
     @Column(name = "name", nullable = false)
     private String name;
 
-    @NotNull
-    @Size(max = 4)
-    @Pattern(regexp = "^(19|20|21)\\d{2}$")
     @Column(name = "first_year", length = 4, nullable = false)
     private String firstYear;
 

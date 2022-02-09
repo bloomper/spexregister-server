@@ -15,9 +15,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -38,9 +35,6 @@ public class Spex extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 4)
-    @Pattern(regexp = "^(19|20|21)\\d{2}$")
     @Column(name = "year", length = 4, nullable = false)
     private String year;
 
@@ -48,7 +42,6 @@ public class Spex extends AbstractAuditable implements Serializable {
     private Spex parent;
 
     @ManyToOne(optional = false)
-    @NotNull
     private SpexDetails details;
 
     public boolean isRevival() {
