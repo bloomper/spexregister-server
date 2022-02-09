@@ -89,8 +89,19 @@ tasks.named('asciidoctor') {
     dependsOn test
 }
 
+test {
+    exclude '**/**IntegrationTest*'
+}
+
 asciidoctor {
     sourceDir 'src/main/asciidoc'
     attributes \
       'snippets': file('build/generated-snippets')
+}
+
+bootJar {
+    dependsOn asciidoctor
+    from ("${asciidoctor.outputDir}") {
+        into 'static/docs'
+    }
 }
