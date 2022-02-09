@@ -92,5 +92,5 @@ tasks.named('asciidoctor') {
 asciidoctor {
     sourceDir 'src/main/asciidoc'
     attributes \
-      'snippets': file('target/snippets')
+      'snippets': file('build/generated-snippets')
 }
