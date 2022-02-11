@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,6 +32,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -55,8 +57,8 @@ public class SpexApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody SpexDto dto) {
-        final SpexDto newDto = service.save(dto);
+    public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody SpexRequestDto dto) {
+        final SpexDto newDto = service.create(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
     }
@@ -72,9 +74,22 @@ public class SpexApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable Long id, @Valid @RequestBody SpexDto dto) {
-        dto.setId(id);
+        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
         return service
                 .update(dto)
+                .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody SpexDto dto) {
+        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        return service
+                .partialUpdate(dto)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

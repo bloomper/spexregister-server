@@ -35,6 +35,12 @@ public class SpexService {
         return repository.findById(id).map(SPEX_MAPPER::toDto);
     }
 
+    public SpexDto create(final SpexRequestDto dto) {
+        // TODO: Fix category lookup
+        // TODO: Fix details stuff (in mapper?)
+        return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
+    }
+
     public SpexDto save(final SpexDto dto) {
         return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
     }
@@ -45,6 +51,17 @@ public class SpexService {
         } else {
             return Optional.empty();
         }
+    }
+
+    public Optional<SpexDto> partialUpdate(final SpexDto dto) {
+        return repository
+                .findById(dto.getId())
+                .map(model -> {
+                    SPEX_MAPPER.toPartialModel(dto, model);
+                    return model;
+                })
+                .map(repository::save)
+                .map(SPEX_MAPPER::toDto);
     }
 
     public void deleteById(final Long id) {

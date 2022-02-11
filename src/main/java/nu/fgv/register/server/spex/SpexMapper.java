@@ -14,7 +14,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -42,18 +41,26 @@ public interface SpexMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "details", ignore = true),
+            @Mapping(target = "parent", ignore = true),
+            @Mapping(target = "createdBy", ignore = true),
+            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "lastModifiedBy", ignore = true),
+            @Mapping(target = "lastModifiedDate", ignore = true)
+    })
+    Spex toModel(SpexRequestDto dto);
+
+    @Mappings({
             @Mapping(target = "details", ignore = true)
     })
     Spex toModel(SpexDto dto);
 
-    List<Spex> toModels(List<SpexDto> dtos);
+    @Mappings({
+            @Mapping(target = "details", ignore = true),
+    })
+    void toPartialModel(SpexDto dto, @MappingTarget Spex model);
 
-    @AfterMapping
-    default void setModelId(final SpexDto dto, final @MappingTarget Spex model) {
-        if (Objects.nonNull(dto.getId())) {
-            model.setId(dto.getId());
-        }
-    }
+    List<Spex> toModels(List<SpexDto> dtos);
 
     @AfterMapping
     default void setRevival(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {

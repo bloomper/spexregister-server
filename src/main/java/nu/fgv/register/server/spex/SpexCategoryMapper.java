@@ -14,7 +14,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -41,17 +40,26 @@ public interface SpexCategoryMapper {
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
+            @Mapping(target = "createdBy", ignore = true),
+            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "lastModifiedBy", ignore = true),
+            @Mapping(target = "lastModifiedDate", ignore = true)
+    })
+    SpexCategory toModel(SpexCategoryRequestDto dto);
+
+    @Mappings({
+            @Mapping(target = "logo", ignore = true),
+            @Mapping(target = "logoContentType", ignore = true),
     })
     SpexCategory toModel(SpexCategoryDto dto);
 
-    List<SpexCategory> toModels(List<SpexCategoryDto> dtos);
+    @Mappings({
+            @Mapping(target = "logo", ignore = true),
+            @Mapping(target = "logoContentType", ignore = true),
+    })
+    void toPartialModel(SpexCategoryDto dto, @MappingTarget SpexCategory model);
 
-    @AfterMapping
-    default void setId(final SpexCategoryDto dto, final @MappingTarget SpexCategory model) {
-        if (Objects.nonNull(dto.getId())) {
-            model.setId(dto.getId());
-        }
-    }
+    List<SpexCategory> toModels(List<SpexCategoryDto> dtos);
 
     @AfterMapping
     default void setLogo(final SpexCategory model, final @MappingTarget SpexCategoryDto.SpexCategoryDtoBuilder dto) {
