@@ -135,4 +135,14 @@ public class SpexService {
         }
     }
 
+    public Optional<SpexDto> removeCategory(final Long id) {
+        return repository
+                .findById(id)
+                .map(model -> {
+                    model.getDetails().setCategory(null);
+                    return model;
+                })
+                .map(SPEX_MAPPER::toDto);
+    }
+
 }

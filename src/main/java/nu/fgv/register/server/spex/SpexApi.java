@@ -171,6 +171,14 @@ public class SpexApi {
                 .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
+    @DeleteMapping(value = "/{id}/spex-category", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> deleteCategory(@PathVariable Long id) {
+        return service
+                .removeCategory(id)
+                .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+    }
+
     private void addLinks(final EntityModel<SpexDto> entity) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
