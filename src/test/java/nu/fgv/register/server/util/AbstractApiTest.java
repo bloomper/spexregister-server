@@ -37,6 +37,12 @@ import static org.springframework.util.StringUtils.collectionToDelimitedString;
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class AbstractApiTest {
 
+    protected final LinksSnippet baseLinks = links(
+            halLinks(),
+            linkWithRel("self").description("Link to the current entity"),
+            linkWithRel("logo").description("Link to the current entity's logo").optional()
+    );
+
     protected final LinksSnippet pagingLinks = links(
             halLinks(),
             linkWithRel("first").description("Link to the first page"),
@@ -62,6 +68,13 @@ public abstract class AbstractApiTest {
 
     protected final ResponseHeadersSnippet responseHeaders = responseHeaders(
             headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header")
+    );
+
+    protected final ResponseFieldsSnippet auditResponseFields = responseFields(
+            fieldWithPath("createdBy").description("Who created the spex category"),
+            fieldWithPath("createdDate").description("When was the spex category created"),
+            fieldWithPath("lastModifiedBy").description("Who last modified the spex category"),
+            fieldWithPath("lastModifiedDate").description("When was the spex category last modified")
     );
 
     protected final SubsectionDescriptor linksSubsection = (SubsectionDescriptor) subsectionWithPath("_links").description("Links section");
@@ -90,7 +103,7 @@ public abstract class AbstractApiTest {
             this.constraintDescriptions = new ConstraintDescriptions(input);
         }
 
-        public FieldDescriptor withPath(String path) {
+        public FieldDescriptor withPath(final String path) {
             return fieldWithPath(path)
                     .attributes(key("constraints")
                             .value(collectionToDelimitedString(this.constraintDescriptions.descriptionsForProperty(path), ". ")));
