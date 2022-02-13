@@ -13,8 +13,6 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
-import java.util.List;
-
 import static org.springframework.util.StringUtils.hasText;
 
 @Mapper(
@@ -34,8 +32,6 @@ public interface SpexCategoryMapper {
     @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
     SpexCategoryDto toDto(SpexCategory model);
 
-    List<SpexCategoryDto> toDtos(List<SpexCategory> models);
-
     @Mappings({
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "logo", ignore = true),
@@ -45,21 +41,27 @@ public interface SpexCategoryMapper {
             @Mapping(target = "lastModifiedBy", ignore = true),
             @Mapping(target = "lastModifiedDate", ignore = true)
     })
-    SpexCategory toModel(SpexCategoryRequestDto dto);
+    SpexCategory toModel(SpexCategoryCreateDto dto);
 
     @Mappings({
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
+            @Mapping(target = "createdBy", ignore = true),
+            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "lastModifiedBy", ignore = true),
+            @Mapping(target = "lastModifiedDate", ignore = true)
     })
-    SpexCategory toModel(SpexCategoryDto dto);
+    SpexCategory toModel(SpexCategoryUpdateDto dto);
 
     @Mappings({
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
+            @Mapping(target = "createdBy", ignore = true),
+            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "lastModifiedBy", ignore = true),
+            @Mapping(target = "lastModifiedDate", ignore = true)
     })
-    void toPartialModel(SpexCategoryDto dto, @MappingTarget SpexCategory model);
-
-    List<SpexCategory> toModels(List<SpexCategoryDto> dtos);
+    void toPartialModel(SpexCategoryUpdateDto dto, @MappingTarget SpexCategory model);
 
     @AfterMapping
     default void setLogo(final SpexCategory model, final @MappingTarget SpexCategoryDto.SpexCategoryDtoBuilder dto) {

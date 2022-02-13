@@ -9,7 +9,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -19,7 +18,7 @@ import javax.validation.constraints.Size;
 @ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpexRequestDto {
+public class SpexCreateDto {
     @NotBlank(message = "{spex.year.notBlank}")
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.pattern}")
@@ -30,9 +29,5 @@ public class SpexRequestDto {
     @Size(max = 255, message = "{spex.title.size}")
     @JsonProperty("title")
     private String title;
-
-    @NotNull(message = "{spex.category.notBlank}")
-    @JsonProperty("category")
-    private SpexCategoryDto category;
 
 }

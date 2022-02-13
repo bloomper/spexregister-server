@@ -86,17 +86,4 @@ public class SpexCategoryServiceTest {
         assertThat(dto.get().getFirstYear(), is(category1.getFirstYear()));
     }
 
-    @Test
-    public void givenModel_whenSave_thenReturnDto() {
-        // given
-        when(repository.save(any(SpexCategory.class))).thenReturn(category1);
-
-        // when
-        final SpexCategoryDto dto = SpexCategoryDto.builder().firstYear("1948").name("category").build();
-        final SpexCategoryDto newDto = service.save(dto);
-
-        // then
-        assertThat(newDto.getId(), is(category1.getId()));
-        assertThat(newDto.getFirstYear(), is(category1.getFirstYear()));
-    }
 }

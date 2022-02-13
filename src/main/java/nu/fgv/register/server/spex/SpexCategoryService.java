@@ -30,23 +30,19 @@ public class SpexCategoryService {
         return repository.findById(id).map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
-    public SpexCategoryDto create(final SpexCategoryRequestDto dto) {
+    public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
         return SPEX_CATEGORY_MAPPER.toDto(repository.save(SPEX_CATEGORY_MAPPER.toModel(dto)));
     }
 
-    public SpexCategoryDto save(final SpexCategoryDto dto) {
-        return SPEX_CATEGORY_MAPPER.toDto(repository.save(SPEX_CATEGORY_MAPPER.toModel(dto)));
+    public Optional<SpexCategoryDto> update(final SpexCategoryUpdateDto dto) {
+        return repository
+                .findById(dto.getId())
+                .map(category -> SPEX_CATEGORY_MAPPER.toModel(dto))
+                .map(repository::save)
+                .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
-    public Optional<SpexCategoryDto> update(final SpexCategoryDto dto) {
-        if (repository.existsById(dto.getId())) {
-            return Optional.of(SPEX_CATEGORY_MAPPER.toDto(repository.save(SPEX_CATEGORY_MAPPER.toModel(dto))));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public Optional<SpexCategoryDto> partialUpdate(final SpexCategoryDto dto) {
+    public Optional<SpexCategoryDto> partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
                 .findById(dto.getId())
                 .map(model -> {

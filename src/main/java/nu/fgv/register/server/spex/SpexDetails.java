@@ -50,7 +50,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @Column(name = "poster_content_type")
     private String posterContentType;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     private SpexCategory category;
 
     @Override

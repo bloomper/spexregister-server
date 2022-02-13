@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.hateoas.server.core.Relation;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -17,8 +18,12 @@ import javax.validation.constraints.Size;
 @EqualsAndHashCode
 @ToString
 @Builder
+@Relation(collectionRelation = "spexCategories", itemRelation = "spexCategory")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpexCategoryRequestDto {
+public class SpexCategoryUpdateDto {
+    @JsonProperty("id")
+    private Long id;
+
     @NotBlank(message = "{spexCategory.name.notBlank}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @JsonProperty("name")

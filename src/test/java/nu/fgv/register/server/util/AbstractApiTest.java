@@ -1,13 +1,17 @@
 package nu.fgv.register.server.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.constraints.ConstraintDescriptions;
 import org.springframework.restdocs.headers.ResponseHeadersSnippet;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
+import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.restdocs.payload.SubsectionDescriptor;
 import org.springframework.restdocs.request.RequestParametersSnippet;
@@ -26,6 +30,8 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.snippet.Attributes.key;
+import static org.springframework.util.StringUtils.collectionToDelimitedString;
 
 @AutoConfigureRestDocs(outputDir = "build/generated-snippets")
 @ExtendWith(RestDocumentationExtension.class)
@@ -62,6 +68,9 @@ public abstract class AbstractApiTest {
 
     protected MockMvc mockMvc;
 
+    @Autowired
+    protected ObjectMapper objectMapper;
+
     @BeforeEach
     public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -71,5 +80,20 @@ public abstract class AbstractApiTest {
                         .withPort(443)
                         .withScheme("https"))
                 .build();
+    }
+
+    protected static class ConstrainedFields {
+
+        private final ConstraintDescriptions constraintDescriptions;
+
+        public ConstrainedFields(Class<?> input) {
+            this.constraintDescriptions = new ConstraintDescriptions(input);
+        }
+
+        public FieldDescriptor withPath(String path) {
+            return fieldWithPath(path)
+                    .attributes(key("constraints")
+                            .value(collectionToDelimitedString(this.constraintDescriptions.descriptionsForProperty(path), ". ")));
+        }
     }
 }

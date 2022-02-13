@@ -35,25 +35,15 @@ public class SpexService {
         return repository.findById(id).map(SPEX_MAPPER::toDto);
     }
 
-    public SpexDto create(final SpexRequestDto dto) {
-        // TODO: Fix category lookup
-        // TODO: Fix details stuff (in mapper?)
+    public SpexDto create(final SpexCreateDto dto) {
         return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
     }
 
-    public SpexDto save(final SpexDto dto) {
-        return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
+    public Optional<SpexDto> update(final SpexUpdateDto dto) {
+        return partialUpdate(dto);
     }
 
-    public Optional<SpexDto> update(final SpexDto dto) {
-        if (repository.existsById(dto.getId())) {
-            return Optional.of(SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto))));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public Optional<SpexDto> partialUpdate(final SpexDto dto) {
+    public Optional<SpexDto> partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById(dto.getId())
                 .map(model -> {

@@ -57,7 +57,7 @@ public class SpexApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody SpexRequestDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody SpexCreateDto dto) {
         final SpexDto newDto = service.create(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
@@ -73,7 +73,7 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable Long id, @Valid @RequestBody SpexDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable Long id, @Valid @RequestBody SpexUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -84,7 +84,7 @@ public class SpexApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody SpexDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody SpexUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }

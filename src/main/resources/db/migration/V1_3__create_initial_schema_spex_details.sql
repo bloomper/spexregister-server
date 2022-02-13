@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS spex_details
     title               VARCHAR(255)          NOT NULL,
     poster              BLOB                  NULL,
     poster_content_type VARCHAR(255)          NULL,
-    category_id         BIGINT                NOT NULL,
+    category_id         BIGINT                NULL,
     CONSTRAINT pk_spex_details PRIMARY KEY (id)
 );
 
