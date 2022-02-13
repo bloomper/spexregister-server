@@ -83,7 +83,7 @@ public class SpexCategoryApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody SpexCategoryUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable Long id, @RequestBody SpexCategoryUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -124,6 +124,13 @@ public class SpexCategoryApi {
             }
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
+    }
+
+    @DeleteMapping("/{id}/logo")
+    public ResponseEntity<?> deleteLogo(@PathVariable Long id) {
+        return service.removeLogo(id)
+                .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {

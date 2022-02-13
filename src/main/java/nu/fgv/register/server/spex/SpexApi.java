@@ -127,6 +127,13 @@ public class SpexApi {
         }
     }
 
+    @DeleteMapping("/{id}/poster")
+    public ResponseEntity<?> deletePoster(@PathVariable Long id) {
+        return service.removePoster(id)
+                .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
     @GetMapping(value = "/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivals(pageable));

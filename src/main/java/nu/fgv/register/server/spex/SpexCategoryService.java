@@ -58,12 +58,25 @@ public class SpexCategoryService {
     }
 
     public Optional<SpexCategoryDto> saveLogo(final Long id, final byte[] logo, final String contentType) {
-        return repository.findById(id).map(model -> {
-            model.setLogo(logo);
-            model.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
-            repository.save(model);
-            return SPEX_CATEGORY_MAPPER.toDto(model);
-        });
+        return repository
+                .findById(id)
+                .map(model -> {
+                    model.setLogo(logo);
+                    model.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
+                    repository.save(model);
+                    return SPEX_CATEGORY_MAPPER.toDto(model);
+                });
+    }
+
+    public Optional<SpexCategoryDto> removeLogo(final Long id) {
+        return repository
+                .findById(id)
+                .map(model -> {
+                    model.setLogo(null);
+                    model.setLogoContentType(null);
+                    repository.save(model);
+                    return SPEX_CATEGORY_MAPPER.toDto(model);
+                });
     }
 
     public Optional<Pair<byte[], String>> getLogo(final Long id) {

@@ -67,6 +67,17 @@ public class SpexService {
         });
     }
 
+    public Optional<SpexDto> removePoster(final Long id) {
+        return repository
+                .findById(id)
+                .map(model -> {
+                    model.getDetails().setPoster(null);
+                    model.getDetails().setPosterContentType(null);
+                    repository.save(model);
+                    return SPEX_MAPPER.toDto(model);
+                });
+    }
+
     public Optional<Pair<byte[], String>> getPoster(final Long id) {
         return repository.findById(id)
                 .map(Spex::getDetails)
