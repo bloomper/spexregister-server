@@ -94,10 +94,14 @@ public class SpexCategoryApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.deleteById(id);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        return service
+                .findById(id)
+                .map(dto -> {
+                    service.deleteById(id);
+                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/logo")
@@ -116,7 +120,7 @@ public class SpexCategoryApi {
     public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
             return service.saveLogo(id, file.getBytes(), file.getContentType())
-                    .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                    .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (IOException e) {
             if (log.isErrorEnabled()) {
@@ -129,7 +133,7 @@ public class SpexCategoryApi {
     @DeleteMapping("/{id}/logo")
     public ResponseEntity<?> deleteLogo(@PathVariable Long id) {
         return service.removeLogo(id)
-                .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 

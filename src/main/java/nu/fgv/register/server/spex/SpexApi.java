@@ -95,10 +95,14 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.deleteById(id);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        return service
+                .findById(id)
+                .map(dto -> {
+                    service.deleteById(id);
+                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/poster")
@@ -117,7 +121,7 @@ public class SpexApi {
     public ResponseEntity<?> uploadPoster(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
             return service.savePoster(id, file.getBytes(), file.getContentType())
-                    .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                    .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (IOException e) {
             if (log.isErrorEnabled()) {
@@ -130,7 +134,7 @@ public class SpexApi {
     @DeleteMapping("/{id}/poster")
     public ResponseEntity<?> deletePoster(@PathVariable Long id) {
         return service.removePoster(id)
-                .map(entity -> ResponseEntity.status(HttpStatus.ACCEPTED).build())
+                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
@@ -160,7 +164,7 @@ public class SpexApi {
 
     @DeleteMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> removeRevival(@PathVariable Long id, @PathVariable final String year) {
-        return service.removeRevival(id, year) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return service.removeRevival(id, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     @PutMapping(value = "/{id}/spex-category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
