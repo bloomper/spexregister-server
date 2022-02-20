@@ -78,9 +78,7 @@ public interface SpexMapper {
 
     @AfterMapping
     default void setPoster(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {
-        if (hasText(model.getDetails().getPosterContentType())) {
-            final Link posterLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).withRel("poster");
-            dto.poster(posterLink.getHref());
-        }
+        final Link posterLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).withRel("poster");
+        dto.poster(posterLink.getHref());
     }
 }

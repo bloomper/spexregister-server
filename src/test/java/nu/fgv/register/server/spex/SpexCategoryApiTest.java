@@ -242,13 +242,16 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
     @Test
     public void should_delete_spex_category() throws Exception {
+        var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
+
+        when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
         doNothing().when(service).deleteById(any(Long.class));
 
         this.mockMvc
                 .perform(
                         delete("/api/v1/spex-categories/{id}", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
@@ -301,7 +304,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         multipart("/api/v1/spex-categories/{id}/logo", 1)
                                 .file(logo)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
@@ -327,7 +330,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex-categories/{id}/logo", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(

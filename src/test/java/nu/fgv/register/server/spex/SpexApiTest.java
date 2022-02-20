@@ -266,13 +266,16 @@ public class SpexApiTest extends AbstractApiTest {
 
     @Test
     public void should_delete_spex() throws Exception {
+        var spex = SpexDto.builder().id(1L).year("2021").build();
+
+        when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
         doNothing().when(service).deleteById(any(Long.class));
 
         this.mockMvc
                 .perform(
                         delete("/api/v1/spex/{id}", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
@@ -325,7 +328,7 @@ public class SpexApiTest extends AbstractApiTest {
                         multipart("/api/v1/spex/{id}/poster", 1)
                                 .file(poster)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
@@ -351,7 +354,7 @@ public class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{id}/poster", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
@@ -489,7 +492,7 @@ public class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{id}/revivals/{year}", 1, "2021")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(document(
                                 "spex/revival-remove",
                                 preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
