@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -41,7 +42,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.removeHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
@@ -312,13 +315,44 @@ public class SpexApiTest extends AbstractApiTest {
                                 ),
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                )
+                                ),
+                                responseBody()
                         )
                 );
     }
 
     @Test
     public void should_upload_spex_poster() throws Exception {
+        var poster = new byte[]{10, 12};
+        var spex = SpexDto.builder().id(1L).year("2021").build();
+        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
+
+        this.mockMvc
+                .perform(
+                        put("/api/v1/spex/{id}/poster", 1)
+                                .contentType(MediaType.IMAGE_PNG)
+                                .content(poster)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex/poster-upload",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spex")
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
+                                ),
+                                requestBody()
+                        )
+                );
+    }
+
+    @Test
+    public void should_upload_spex_poster_via_multipart() throws Exception {
         var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
@@ -332,7 +366,7 @@ public class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/poster-upload",
+                                "spex/poster-upload-multipart",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

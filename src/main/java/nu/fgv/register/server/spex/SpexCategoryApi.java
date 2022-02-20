@@ -118,6 +118,13 @@ public class SpexCategoryApi {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestBody byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
+        return service.saveLogo(id, file, contentType)
+                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
     @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {

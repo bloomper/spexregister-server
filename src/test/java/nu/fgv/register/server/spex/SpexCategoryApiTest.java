@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -39,7 +40,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.removeHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
@@ -288,13 +291,44 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                )
+                                ),
+                                responseBody()
                         )
                 );
     }
 
     @Test
     public void should_upload_spex_category_logo() throws Exception {
+        var logo = new byte[]{10, 12};
+        var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
+        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
+
+        this.mockMvc
+                .perform(
+                        put("/api/v1/spex-categories/{id}/logo", 1)
+                                .contentType(MediaType.IMAGE_PNG)
+                                .content(logo)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex-categories/logo-upload",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spex category")
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
+                                ),
+                                requestBody()
+                        )
+                );
+    }
+
+    @Test
+    public void should_upload_spex_category_logo_via_multipart() throws Exception {
         var logo = new MockMultipartFile("file", "logo.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
@@ -308,7 +342,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/logo-upload",
+                                "spex-categories/logo-upload-multipart",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
