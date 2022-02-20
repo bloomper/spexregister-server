@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS spex
 (
-    id                 BIGINT AUTO_INCREMENT NOT NULL,
-    created_by         VARCHAR(50)           NOT NULL,
-    created_date       BIGINT                NOT NULL,
-    last_modified_by   VARCHAR(50)           NULL,
-    last_modified_date BIGINT                NULL,
-    year               VARCHAR(4)            NOT NULL,
-    parent_id          BIGINT                NULL,
-    details_id         BIGINT                NOT NULL,
+    id               BIGINT AUTO_INCREMENT NOT NULL,
+    created_by       VARCHAR(50)           NOT NULL,
+    created_at       BIGINT                NOT NULL,
+    last_modified_by VARCHAR(50)           NULL,
+    last_modified_at BIGINT                NULL,
+    year             VARCHAR(4)            NOT NULL,
+    parent_id        BIGINT                NULL,
+    details_id       BIGINT                NOT NULL,
     CONSTRAINT pk_spex PRIMARY KEY (id)
 );
 

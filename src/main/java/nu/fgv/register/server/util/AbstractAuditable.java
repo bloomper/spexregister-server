@@ -24,15 +24,15 @@ public abstract class AbstractAuditable {
     private String createdBy;
 
     @CreatedDate
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private long createdDate = Instant.now().toEpochMilli();
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private long createdAt = Instant.now().toEpochMilli();
 
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
     private String lastModifiedBy;
 
     @LastModifiedDate
-    @Column(name = "last_modified_date")
-    private long lastModifiedDate = Instant.now().toEpochMilli();
+    @Column(name = "last_modified_at")
+    private long lastModifiedAt = Instant.now().toEpochMilli();
 
 }

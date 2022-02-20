@@ -37,9 +37,9 @@ public interface SpexCategoryMapper {
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedDate", ignore = true)
+            @Mapping(target = "lastModifiedAt", ignore = true)
     })
     SpexCategory toModel(SpexCategoryCreateDto dto);
 
@@ -47,9 +47,9 @@ public interface SpexCategoryMapper {
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedDate", ignore = true)
+            @Mapping(target = "lastModifiedAt", ignore = true)
     })
     SpexCategory toModel(SpexCategoryUpdateDto dto);
 
@@ -57,9 +57,9 @@ public interface SpexCategoryMapper {
             @Mapping(target = "logo", ignore = true),
             @Mapping(target = "logoContentType", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdDate", ignore = true),
+            @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedDate", ignore = true)
+            @Mapping(target = "lastModifiedAt", ignore = true)
     })
     void toPartialModel(SpexCategoryUpdateDto dto, @MappingTarget SpexCategory model);
 

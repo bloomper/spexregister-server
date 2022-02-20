@@ -2,9 +2,9 @@ CREATE TABLE IF NOT EXISTS spexare
 (
     id                     BIGINT AUTO_INCREMENT NOT NULL,
     created_by             VARCHAR(50)           NOT NULL,
-    created_date           BIGINT                NOT NULL,
+    created_at             BIGINT                NOT NULL,
     last_modified_by       VARCHAR(50)           NULL,
-    last_modified_date     BIGINT                NULL,
+    last_modified_at       BIGINT                NULL,
     first_name             VARCHAR(255)          NOT NULL,
     last_name              VARCHAR(255)          NOT NULL,
     nick_name              VARCHAR(255)          NULL,
