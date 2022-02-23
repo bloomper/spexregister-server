@@ -13,8 +13,6 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
-import static org.springframework.util.StringUtils.hasText;
-
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = SpexCategoryMapper.class

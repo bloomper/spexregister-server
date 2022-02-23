@@ -50,13 +50,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
                 .randomize(
-                        FieldPredicates.named("firstYear").and(FieldPredicates.inClass(SpexCategory.class)), new YearRandomizer()
-                )
-                .randomize(
-                        FieldPredicates.named("firstYear").and(FieldPredicates.inClass(SpexCategoryCreateDto.class)), new YearRandomizer()
-                )
-                .randomize(
-                        FieldPredicates.named("firstYear").and(FieldPredicates.inClass(SpexCategoryUpdateDto.class)), new YearRandomizer()
+                        FieldPredicates.named("firstYear"), new YearRandomizer()
                 );
         random = new EasyRandom(parameters);
     }

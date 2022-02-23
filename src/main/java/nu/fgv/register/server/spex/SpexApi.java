@@ -185,7 +185,7 @@ public class SpexApi {
     }
 
     @DeleteMapping(value = "/{id}/spex-category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<SpexDto>> removeCategory(@PathVariable Long id) {
         return service
                 .removeCategory(id)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
