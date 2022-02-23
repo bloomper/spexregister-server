@@ -216,7 +216,9 @@ public class SpexApi {
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), null)).withRel("revivals"));
         }
-        spexCategoryApi.addLinks(dto.getCategory());
+        if (dto.getCategory() != null) {
+            spexCategoryApi.addLinks(dto.getCategory());
+        }
         return links;
     }
 

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,6 +17,8 @@ public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredi
     Page<Spex> findAllByParentIsNotNull(Pageable pageable);
 
     Page<Spex> findRevivalsByParent(Spex parent, Pageable pageable);
+
+    List<Spex> findAllRevivalsByParent(Spex parent);
 
     boolean existsRevivalByParentAndYear(Spex parent, String year);
 

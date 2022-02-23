@@ -21,6 +21,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexService {
 
     private final SpexRepository repository;
+    private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
 
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
@@ -36,7 +37,9 @@ public class SpexService {
     }
 
     public SpexDto create(final SpexCreateDto dto) {
-        return SPEX_MAPPER.toDto(repository.save(SPEX_MAPPER.toModel(dto)));
+        final Spex model = SPEX_MAPPER.toModel(dto);
+        detailsRepository.save(model.getDetails());
+        return SPEX_MAPPER.toDto(repository.save(model));
     }
 
     public Optional<SpexDto> update(final SpexUpdateDto dto) {
@@ -50,19 +53,28 @@ public class SpexService {
                     SPEX_MAPPER.toPartialModel(dto, model);
                     return model;
                 })
-                .map(repository::save)
+                .map(model -> {
+                    detailsRepository.save(model.getDetails());
+                    return repository.save(model);
+                })
                 .map(SPEX_MAPPER::toDto);
     }
 
     public void deleteById(final Long id) {
-        repository.deleteById(id);
+        repository
+                .findById(id)
+                .ifPresent(model -> {
+                    repository.findAllRevivalsByParent(model).forEach(revival -> repository.deleteById(revival.getId()));
+                    repository.deleteById(model.getId());
+                    detailsRepository.deleteById(model.getDetails().getId());
+                });
     }
 
     public Optional<SpexDto> savePoster(final Long id, final byte[] poster, final String contentType) {
         return repository.findById(id).map(model -> {
             model.getDetails().setPoster(poster);
             model.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
-            repository.save(model);
+            detailsRepository.save(model.getDetails());
             return SPEX_MAPPER.toDto(model);
         });
     }
@@ -73,7 +85,7 @@ public class SpexService {
                 .map(model -> {
                     model.getDetails().setPoster(null);
                     model.getDetails().setPosterContentType(null);
-                    repository.save(model);
+                    detailsRepository.save(model.getDetails());
                     return SPEX_MAPPER.toDto(model);
                 });
     }
@@ -127,7 +139,7 @@ public class SpexService {
             repository.findById(id).ifPresent(spex ->
                     categoryRepository.findById(categoryId).ifPresent(category -> {
                         spex.getDetails().setCategory(category);
-                        repository.save(spex);
+                        detailsRepository.save(spex.getDetails());
                     }));
             return findById(id);
         } else {
@@ -138,9 +150,10 @@ public class SpexService {
     public Optional<SpexDto> removeCategory(final Long id) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.getDetails().setCategory(null);
-                    return model;
+                .map(spex -> {
+                    spex.getDetails().setCategory(null);
+                    detailsRepository.save(spex.getDetails());
+                    return spex;
                 })
                 .map(SPEX_MAPPER::toDto);
     }

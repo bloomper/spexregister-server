@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -124,6 +125,41 @@ public class SpexRepositoryTest {
         assertThat(found.getTotalElements(), is(1L));
         assertThat(found.getContent().get(0).getYear(), is(revival.getYear()));
         assertThat(found.getContent().get(0).getDetails().getTitle(), is(revival.getDetails().getTitle()));
+    }
+
+    @Test
+    void whenFindAllRevivalsByParent_thenReturnItsRevivals() {
+        // given
+        final SpexCategory category = new SpexCategory();
+        category.setFirstYear("1996");
+        category.setName("category");
+        category.setCreatedBy("test");
+        final SpexDetails details = new SpexDetails();
+        details.setTitle("Nobel");
+        details.setCreatedBy("test");
+        details.setCategory(category);
+        final Spex spex = new Spex();
+        spex.setYear("1996");
+        spex.setDetails(details);
+        spex.setCreatedBy("test");
+        final Spex revival = new Spex();
+        revival.setYear("2006");
+        revival.setDetails(details);
+        revival.setParent(spex);
+        revival.setCreatedBy("test");
+        entityManager.persist(category);
+        entityManager.persist(details);
+        entityManager.persist(spex);
+        entityManager.persist(revival);
+        entityManager.flush();
+
+        // when
+        final List<Spex> found = repository.findAllRevivalsByParent(spex);
+
+        // then
+        assertThat(found.size(), is(1));
+        assertThat(found.get(0).getYear(), is(revival.getYear()));
+        assertThat(found.get(0).getDetails().getTitle(), is(revival.getDetails().getTitle()));
     }
 
     @Test
