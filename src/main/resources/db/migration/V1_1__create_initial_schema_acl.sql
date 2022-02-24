@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS acl_sid
 (
-    id        BIGINT(20)   NOT NULL AUTO_INCREMENT,
-    principal TINYINT(1)   NOT NULL,
+    id        BIGINT       NOT NULL AUTO_INCREMENT,
+    principal TINYINT      NOT NULL,
     sid       VARCHAR(100) NOT NULL,
     CONSTRAINT pk_acl_sid PRIMARY KEY (id)
 );
@@ -11,7 +11,7 @@ ALTER TABLE acl_sid
 
 CREATE TABLE IF NOT EXISTS acl_class
 (
-    id    BIGINT(20)   NOT NULL AUTO_INCREMENT,
+    id    BIGINT       NOT NULL AUTO_INCREMENT,
     class varchar(255) NOT NULL,
     CONSTRAINT pk_acl_class PRIMARY KEY (id)
 );
@@ -21,14 +21,14 @@ ALTER TABLE acl_class
 
 CREATE TABLE IF NOT EXISTS acl_entry
 (
-    id                  BIGINT(20) NOT NULL AUTO_INCREMENT,
-    acl_object_identity BIGINT(20) NOT NULL,
-    ace_order           INT(11)    NOT NULL,
-    sid                 BIGINT(20) NOT NULL,
-    mask                INT(11)    NOT NULL,
-    granting            TINYINT(1) NOT NULL,
-    audit_success       TINYINT(1) NOT NULL,
-    audit_failure       TINYINT(1) NOT NULL,
+    id                  BIGINT  NOT NULL AUTO_INCREMENT,
+    acl_object_identity BIGINT  NOT NULL,
+    ace_order           INT     NOT NULL,
+    sid                 BIGINT  NOT NULL,
+    mask                INT     NOT NULL,
+    granting            TINYINT NOT NULL,
+    audit_success       TINYINT NOT NULL,
+    audit_failure       TINYINT NOT NULL,
     CONSTRAINT pk_acl_entry PRIMARY KEY (id)
 );
 
@@ -37,12 +37,12 @@ ALTER TABLE acl_entry
 
 CREATE TABLE IF NOT EXISTS acl_object_identity
 (
-    id                 BIGINT(20) NOT NULL AUTO_INCREMENT,
-    object_id_class    BIGINT(20) NOT NULL,
-    object_id_identity BIGINT(20) NOT NULL,
-    parent_object      BIGINT(20) DEFAULT NULL,
-    owner_sid          BIGINT(20) DEFAULT NULL,
-    entries_inheriting TINYINT(1) NOT NULL,
+    id                 BIGINT  NOT NULL AUTO_INCREMENT,
+    object_id_class    BIGINT  NOT NULL,
+    object_id_identity BIGINT  NOT NULL,
+    parent_object      BIGINT DEFAULT NULL,
+    owner_sid          BIGINT DEFAULT NULL,
+    entries_inheriting TINYINT NOT NULL,
     CONSTRAINT pk_acl_object_identity PRIMARY KEY (id)
 );
 
