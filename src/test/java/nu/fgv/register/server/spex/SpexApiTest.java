@@ -1,6 +1,7 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.util.AbstractApiTest;
+import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -31,8 +33,8 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -62,7 +64,10 @@ public class SpexApiTest extends AbstractApiTest {
     private SpexService service;
 
     @MockBean
-    private SpexCategoryApi spexCategoryApi;
+    private SpexExportService exportService;
+
+    @MockBean
+    private SpexCategoryApi categoryApi;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex"),
@@ -81,9 +86,9 @@ public class SpexApiTest extends AbstractApiTest {
             fieldWithPath("category.firstYear").description("The first year of the spex category"),
             fieldWithPath("category.logo").description("The logo of the spex category").optional(),
             fieldWithPath("category.createdBy").description("Who created the entity"),
-            fieldWithPath("category.createdDate").description("When was the entity created"),
+            fieldWithPath("category.createdAt").description("When was the entity created"),
             fieldWithPath("category.lastModifiedBy").description("Who last modified the entity"),
-            fieldWithPath("category.lastModifiedDate").description("When was the entity last modified")
+            fieldWithPath("category.lastModifiedAt").description("When was the entity last modified")
     );
 
     private final LinksSnippet links = baseLinks.and(
@@ -122,15 +127,49 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
-                                        fieldWithPath("_embedded.spex[].createdDate").description("When was the spex"),
+                                        fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
                                         fieldWithPath("_embedded.spex[].lastModifiedBy").description("Who last modified the spex"),
-                                        fieldWithPath("_embedded.spex[].lastModifiedDate").description("When was the spex last modified"),
+                                        fieldWithPath("_embedded.spex[].lastModifiedAt").description("When was the spex last modified"),
                                         subsectionWithPath("_embedded.spex[]._links").description("The spex links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,
                                 pagingRequestParameters,
                                 responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_spex_export() throws Exception {
+        var export = Pair.of(".xlsx", new byte[]{10, 12});
+
+        when(exportService.export(anyList(), any(String.class))).thenReturn(export);
+
+        this.mockMvc
+                .perform(
+                        get("/api/v1/spex?ids=1,2,3")
+                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
+                )
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex/get-export",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                pathParameters(
+                                        parameterWithName("ids").description("The ids of the spex to export").optional()
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                                ),
+                                responseBody()
                         )
                 );
     }
@@ -314,6 +353,7 @@ public class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex")
                                 ),
                                 responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody()
@@ -432,9 +472,9 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
-                                        fieldWithPath("_embedded.spex[].createdDate").description("When was the spex"),
+                                        fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
                                         fieldWithPath("_embedded.spex[].lastModifiedBy").description("Who last modified the spex"),
-                                        fieldWithPath("_embedded.spex[].lastModifiedDate").description("When was the spex last modified"),
+                                        fieldWithPath("_embedded.spex[].lastModifiedAt").description("When was the spex last modified"),
                                         subsectionWithPath("_embedded.spex[]._links").description("The spex links"),
                                         linksSubsection
                                 ),
@@ -478,9 +518,9 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
-                                        fieldWithPath("_embedded.spex[].createdDate").description("When was the spex"),
+                                        fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
                                         fieldWithPath("_embedded.spex[].lastModifiedBy").description("Who last modified the spex"),
-                                        fieldWithPath("_embedded.spex[].lastModifiedDate").description("When was the spex last modified"),
+                                        fieldWithPath("_embedded.spex[].lastModifiedAt").description("When was the spex last modified"),
                                         subsectionWithPath("_embedded.spex[]._links").description("The spex links"),
                                         linksSubsection
                                 ),

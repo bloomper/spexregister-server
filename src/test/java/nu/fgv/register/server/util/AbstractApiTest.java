@@ -72,9 +72,9 @@ public abstract class AbstractApiTest {
 
     protected final ResponseFieldsSnippet auditResponseFields = responseFields(
             fieldWithPath("createdBy").description("Who created the entity"),
-            fieldWithPath("createdDate").description("When was the entity created"),
+            fieldWithPath("createdAt").description("When was the entity created"),
             fieldWithPath("lastModifiedBy").description("Who last modified the entity"),
-            fieldWithPath("lastModifiedDate").description("When was the entity last modified")
+            fieldWithPath("lastModifiedAt").description("When was the entity last modified")
     );
 
     protected final SubsectionDescriptor linksSubsection = (SubsectionDescriptor) subsectionWithPath("_links").description("Links section");

@@ -1,6 +1,7 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.util.AbstractApiTest;
+import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -58,6 +60,9 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
     @MockBean
     private SpexCategoryService service;
+
+    @MockBean
+    private SpexCategoryExportService exportService;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex category"),
@@ -98,15 +103,49 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spexCategories[].firstYear").description("The first year of the spex category"),
                                         fieldWithPath("_embedded.spexCategories[].logo").description("The logo of the spex category").optional(),
                                         fieldWithPath("_embedded.spexCategories[].createdBy").description("Who created the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].createdDate").description("When was the spex category created"),
+                                        fieldWithPath("_embedded.spexCategories[].createdAt").description("When was the spex category created"),
                                         fieldWithPath("_embedded.spexCategories[].lastModifiedBy").description("Who last modified the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].lastModifiedDate").description("When was the spex category last modified"),
+                                        fieldWithPath("_embedded.spexCategories[].lastModifiedAt").description("When was the spex category last modified"),
                                         subsectionWithPath("_embedded.spexCategories[]._links").description("The spex category links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,
                                 pagingRequestParameters,
                                 responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_spex_categories_export() throws Exception {
+        var export = Pair.of(".xlsx", new byte[]{10, 12});
+
+        when(exportService.export(anyList(), any(String.class))).thenReturn(export);
+
+        this.mockMvc
+                .perform(
+                        get("/api/v1/spex-categories?ids=1,2,3")
+                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
+                )
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex-categories/get-export",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                pathParameters(
+                                        parameterWithName("ids").description("The ids of the spex categories to export").optional()
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                                ),
+                                responseBody()
                         )
                 );
     }
@@ -290,6 +329,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
                                 responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody()
