@@ -28,7 +28,7 @@ public abstract class AbstractAuditable {
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     @ExcelCell(header = "Created at")
-    private long createdAt = Instant.now().toEpochMilli();
+    private Instant createdAt = Instant.now();
 
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
@@ -38,6 +38,6 @@ public abstract class AbstractAuditable {
     @LastModifiedDate
     @Column(name = "last_modified_at")
     @ExcelCell(header = "Last modified at")
-    private long lastModifiedAt = Instant.now().toEpochMilli();
+    private Instant lastModifiedAt;
 
 }

@@ -2,6 +2,7 @@ package nu.fgv.register.server.spex;
 
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
@@ -51,14 +52,7 @@ public interface SpexCategoryMapper {
     })
     SpexCategory toModel(SpexCategoryUpdateDto dto);
 
-    @Mappings({
-            @Mapping(target = "logo", ignore = true),
-            @Mapping(target = "logoContentType", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @InheritConfiguration
     void toPartialModel(SpexCategoryUpdateDto dto, @MappingTarget SpexCategory model);
 
     @AfterMapping

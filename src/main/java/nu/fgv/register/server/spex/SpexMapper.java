@@ -2,6 +2,7 @@ package nu.fgv.register.server.spex;
 
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
@@ -59,14 +60,7 @@ public interface SpexMapper {
     })
     Spex toModel(SpexUpdateDto dto);
 
-    @Mappings({
-            @Mapping(target = "details", ignore = true),
-            @Mapping(target = "parent", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @InheritConfiguration
     void toPartialModel(SpexUpdateDto dto, @MappingTarget Spex model);
 
     @AfterMapping
