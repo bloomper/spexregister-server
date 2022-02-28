@@ -60,7 +60,7 @@ public interface SpexMapper {
     })
     Spex toModel(SpexUpdateDto dto);
 
-    @InheritConfiguration
+    @InheritConfiguration(name = "toModel")
     void toPartialModel(SpexUpdateDto dto, @MappingTarget Spex model);
 
     @AfterMapping

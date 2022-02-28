@@ -52,7 +52,7 @@ public interface SpexCategoryMapper {
     })
     SpexCategory toModel(SpexCategoryUpdateDto dto);
 
-    @InheritConfiguration
+    @InheritConfiguration(name = "toModel")
     void toPartialModel(SpexCategoryUpdateDto dto, @MappingTarget SpexCategory model);
 
     @AfterMapping

@@ -41,20 +41,20 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ExcelCell(header = "Id")
+    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
     @NotBlank(message = "{spexCategory.name.notBlank}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @Column(name = "name", nullable = false)
-    @ExcelCell(header = "Name")
+    @ExcelCell(header = "Name", position = 1)
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notBlank}")
     @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.pattern}")
     @Column(name = "first_year", length = 4, nullable = false)
-    @ExcelCell(header = "First year")
+    @ExcelCell(header = "First year", position = 2)
     private String firstYear;
 
     @Lob

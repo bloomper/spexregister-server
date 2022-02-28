@@ -11,11 +11,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelCell {
 
-    int index() default 0;
+    int position();
 
     String header() default "";
 
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface Exclude {}
+    @interface Exclude {}
 }

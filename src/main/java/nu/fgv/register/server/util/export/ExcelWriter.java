@@ -1,6 +1,7 @@
 package nu.fgv.register.server.util.export;
 
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.export.model.ExcelCell;
 import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -16,10 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
@@ -83,24 +83,24 @@ public class ExcelWriter {
                 return field.isAnnotationPresent(ExcelCell.class);
             }).toList();
             final BiConsumer<Cell, String> columnWriter = workbookContainer.getWriterFactory().getHeaderWriter();
-            final AtomicInteger columnIndex = new AtomicInteger();
-            final Consumer<String> addColumn = (final String header) -> {
-                final Cell cell = row.createCell(columnIndex.get());
+            final BiConsumer<String, Integer> addColumn = (final String header, final Integer position) -> {
+                final Cell cell = row.createCell(position);
                 columnWriter.accept(cell, header);
-                sheet.setColumnWidth(columnIndex.getAndIncrement(), ((header.length() + 3) * 256) + 200);
+                sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
             };
 
-            annotatedFields.stream()
-                    .filter(field -> !field.isAnnotationPresent(ExcelCell.Exclude.class))
-                    .forEach(field -> {
-                        String header = field.getAnnotation(ExcelCell.class).header();
+            final int maxPosition = determineMaxPosition(annotatedFields);
+            annotatedFields.forEach(field -> {
+                final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+                String header = excelCell.header();
+                final int position = determinePosition(field, maxPosition);
 
-                        if (!hasText(header)) {
-                            header = parseCamelCase(field.getName());
-                        }
+                if (!hasText(header)) {
+                    header = parseCamelCase(field.getName());
+                }
 
-                        addColumn.accept(header);
-                    });
+                addColumn.accept(header, position);
+            });
         } catch (final Exception e) {
             log.error(String.format("Could not add columns to sheet %s", sheet.getSheetName()), e);
         }
@@ -114,31 +114,33 @@ public class ExcelWriter {
         try {
             final Class<?> clazz = models.get(0).getClass();
             final Field[] fields = FieldUtils.getAllFields(clazz);
-            final List<Field> annotatedFields = Arrays.stream(fields).filter(field -> {
-                field.setAccessible(true);
-                return field.isAnnotationPresent(ExcelCell.class);
-            }).toList();
+            final List<Field> annotatedFields = Arrays.stream(fields)
+                    .filter(field -> {
+                        field.setAccessible(true);
+                        return field.isAnnotationPresent(ExcelCell.class);
+                    }).toList();
             final Map<Field, BiConsumer<Cell, Object>> fieldWriter = new HashMap<>();
             annotatedFields.forEach(field -> {
                 final BiConsumer<Cell, Object> cellWriter = workbookContainer.getWriterFactory().getFieldWriter(field);
                 fieldWriter.put(field, cellWriter);
             });
 
-            for (int rowNum = 0; rowNum < models.size(); rowNum++) {
+            IntStream.range(0, models.size()).forEach(rowNum -> {
                 final Row row = sheet.createRow(rowNum + 1);
                 final Object data = models.get(rowNum);
 
-                for (int colNum = 0; colNum < annotatedFields.size(); colNum++) {
-                    final Field field = annotatedFields.get(colNum);
+                final int maxPosition = determineMaxPosition(annotatedFields);
+                annotatedFields.forEach(field -> {
+                    final int position = determinePosition(field, maxPosition);
 
                     try {
-                        final Cell cell = row.createCell(colNum);
+                        final Cell cell = row.createCell(position);
                         fieldWriter.get(field).accept(cell, data);
                     } catch (final Exception e) {
-                        log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, colNum + 1, sheet.getSheetName()), e);
+                        log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
                     }
-                }
-            }
+                });
+            });
         } catch (Exception e) {
             log.error(String.format("Could not write data to sheet %s", sheet.getSheetName()), e);
         }
@@ -168,6 +170,21 @@ public class ExcelWriter {
         sheet.setAutoFilter(new CellRangeAddress(0, 0, 0, lastColumn));
         return sheetContainer;
     };
+
+    private static int determineMaxPosition(final List<Field> annotatedFields) {
+        final int maxPosition = annotatedFields.stream()
+                .filter(f -> !f.getDeclaringClass().equals(AbstractAuditable.class))
+                .map(f -> f.getAnnotation(ExcelCell.class).position())
+                .mapToInt(v -> v)
+                .max()
+                .orElseThrow(() -> new IllegalArgumentException("Could not determine max position"));
+        return maxPosition + 1;
+    }
+
+    private static int determinePosition(final Field field, final int maxPosition) {
+        final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+        return excelCell.position() + (field.getDeclaringClass().equals(AbstractAuditable.class) ? maxPosition : 0);
+    }
 
     private static String parseCamelCase(final String camelCaseString) {
         if (camelCaseString == null) {
