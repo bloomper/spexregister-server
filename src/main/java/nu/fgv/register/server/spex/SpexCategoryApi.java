@@ -2,10 +2,12 @@ package nu.fgv.register.server.spex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
@@ -47,6 +49,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexCategoryApi {
 
     private final SpexCategoryService service;
+    private final SpexCategoryExportService exportService;
     private final PagedResourcesAssembler<SpexCategoryDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -55,6 +58,28 @@ public class SpexCategoryApi {
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
+    }
+
+    @GetMapping(headers = {
+            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLSX_VALUE,
+            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLS_VALUE
+    }, produces = {
+            Constants.MediaTypes.APPLICATION_XLSX_VALUE,
+            Constants.MediaTypes.APPLICATION_XLS_VALUE
+    })
+    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String type) {
+        try {
+            final Pair<String, byte[]> export = exportService.export(ids, type);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.valueOf(type))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex_categories" + export.getFirst() + "\"")
+                    .body(new ByteArrayResource(export.getSecond()));
+        } catch (final IOException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not export spex categories", e);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -131,7 +156,7 @@ public class SpexCategoryApi {
             return service.saveLogo(id, file.getBytes(), file.getContentType())
                     .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if (log.isErrorEnabled()) {
                 log.error(String.format("Could not save logo for spex category %s", id), e);
             }

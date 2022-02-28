@@ -28,6 +28,8 @@ ext {
     set('easyRandomVersion', "0.3.0")
     set('fakerVersion', "1.0.2")
     set('restAssuredVersion', "4.5.0")
+    set('poiVersion', "5.2.0")
+    set('commonsLangVersion', "3.12.0")
 }
 
 dependencies {
@@ -46,6 +48,9 @@ dependencies {
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     implementation "net.sf.ehcache:ehcache-core:${ehcacheVersion}"
     implementation "net.sf.jmimemagic:jmimemagic:${jmimemagicVersion}"
+    implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
+    implementation "org.apache.poi:poi:${poiVersion}"
+    implementation "org.apache.poi:poi-ooxml:${poiVersion}"
     implementation 'org.flywaydb:flyway-core'
     implementation 'com.querydsl:querydsl-core'
     implementation 'com.querydsl:querydsl-jpa'
