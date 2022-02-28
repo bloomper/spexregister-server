@@ -1,7 +1,7 @@
 package nu.fgv.register.server.util.export;
 
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.AbstractAuditableDto;
 import nu.fgv.register.server.util.export.model.ExcelCell;
 import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -30,9 +30,9 @@ public class ExcelWriter {
 
     final WorkbookContainer workbookContainer = new WorkbookContainer();
 
-    public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> models) {
+    public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data) {
         workbookContainer.setWorkbook(workbook);
-        return models != null && !models.isEmpty() ?
+        return data != null && !data.isEmpty() ?
                 Optional.of(createSheet
                         .andThen(generateSheetName)
                         .andThen(addColumns)
@@ -40,15 +40,15 @@ public class ExcelWriter {
                         .andThen(autoSizeColumns)
                         .andThen(freezePane)
                         .andThen(attachFilters)
-                        .apply(models)
+                        .apply(data)
                         .getSheet()) :
                 Optional.empty();
     }
 
-    private final Function<List<?>, SheetContainer> createSheet = (final List<?> models) -> {
+    private final Function<List<?>, SheetContainer> createSheet = (final List<?> data) -> {
         final SheetContainer sheetContainer = new SheetContainer();
         sheetContainer.setSheet(workbookContainer.getWorkbook().createSheet());
-        sheetContainer.setModels(models);
+        sheetContainer.setData(data);
         return sheetContainer;
     };
 
@@ -57,7 +57,7 @@ public class ExcelWriter {
         final Sheet sheet = sheetContainer.getSheet();
         final String sheetName;
 
-        final Class<?> clazz = sheetContainer.getModels().get(0).getClass();
+        final Class<?> clazz = sheetContainer.getData().get(0).getClass();
 
         if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             sheetName = clazz.getAnnotation(ExcelSheet.class).name();
@@ -72,11 +72,11 @@ public class ExcelWriter {
 
     private final Function<SheetContainer, SheetContainer> addColumns = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
-        final List<?> models = sheetContainer.getModels();
+        final List<?> data = sheetContainer.getData();
         final Row row = sheet.createRow(0);
 
         try {
-            final Class<?> clazz = models.get(0).getClass();
+            final Class<?> clazz = data.get(0).getClass();
             final Field[] fields = FieldUtils.getAllFields(clazz);
             final List<Field> annotatedFields = Arrays.stream(fields).filter(field -> {
                 field.setAccessible(true);
@@ -109,10 +109,10 @@ public class ExcelWriter {
 
     private final Function<SheetContainer, SheetContainer> writeData = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
-        final List<?> models = sheetContainer.getModels();
+        final List<?> data = sheetContainer.getData();
 
         try {
-            final Class<?> clazz = models.get(0).getClass();
+            final Class<?> clazz = data.get(0).getClass();
             final Field[] fields = FieldUtils.getAllFields(clazz);
             final List<Field> annotatedFields = Arrays.stream(fields)
                     .filter(field -> {
@@ -125,9 +125,9 @@ public class ExcelWriter {
                 fieldWriter.put(field, cellWriter);
             });
 
-            IntStream.range(0, models.size()).forEach(rowNum -> {
+            IntStream.range(0, data.size()).forEach(rowNum -> {
                 final Row row = sheet.createRow(rowNum + 1);
-                final Object data = models.get(rowNum);
+                final Object value = data.get(rowNum);
 
                 final int maxPosition = determineMaxPosition(annotatedFields);
                 annotatedFields.forEach(field -> {
@@ -135,7 +135,7 @@ public class ExcelWriter {
 
                     try {
                         final Cell cell = row.createCell(position);
-                        fieldWriter.get(field).accept(cell, data);
+                        fieldWriter.get(field).accept(cell, value);
                     } catch (final Exception e) {
                         log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
                     }
@@ -173,7 +173,7 @@ public class ExcelWriter {
 
     private static int determineMaxPosition(final List<Field> annotatedFields) {
         final int maxPosition = annotatedFields.stream()
-                .filter(f -> !f.getDeclaringClass().equals(AbstractAuditable.class))
+                .filter(f -> !f.getDeclaringClass().equals(AbstractAuditableDto.class))
                 .map(f -> f.getAnnotation(ExcelCell.class).position())
                 .mapToInt(v -> v)
                 .max()
@@ -183,7 +183,7 @@ public class ExcelWriter {
 
     private static int determinePosition(final Field field, final int maxPosition) {
         final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-        return excelCell.position() + (field.getDeclaringClass().equals(AbstractAuditable.class) ? maxPosition : 0);
+        return excelCell.position() + (field.getDeclaringClass().equals(AbstractAuditableDto.class) ? maxPosition : 0);
     }
 
     private static String parseCamelCase(final String camelCaseString) {

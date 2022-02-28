@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.export.model.ExcelCell;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -20,15 +21,19 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
     @JsonProperty("id")
+    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
     @JsonProperty("name")
+    @ExcelCell(header = "Name", position = 1)
     private String name;
 
     @JsonProperty("firstYear")
+    @ExcelCell(header = "First year", position = 2)
     private String firstYear;
 
     @JsonProperty("logo")
+    @ExcelCell(header = "Logo", position = 3)
     private String logo;
 
     @Builder

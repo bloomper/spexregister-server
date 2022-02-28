@@ -5,11 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
@@ -24,6 +27,10 @@ public class SpexService {
     private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
 
+    public List<SpexDto> findAll(final Sort sort) {
+        return repository.findAllByParentIsNull(sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+    }
+
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
         if (includeRevivals) {
             return repository.findAll(pageable).map(SPEX_MAPPER::toDto);
@@ -34,6 +41,10 @@ public class SpexService {
 
     public Optional<SpexDto> findById(final Long id) {
         return repository.findById(id).map(SPEX_MAPPER::toDto);
+    }
+
+    public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
+        return repository.findByIds(ids, sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
     }
 
     public SpexDto create(final SpexCreateDto dto) {

@@ -16,21 +16,21 @@ import java.util.List;
 @Service
 public class SpexCategoryExportService extends AbstractExportService {
 
-    private final SpexCategoryRepository repository;
+    private final SpexCategoryService service;
     private final ExcelWriter writer = new ExcelWriter();
 
     protected byte[] export(final Workbook workbook, final List<Long> ids) throws IOException {
-        var models = retrieveModels(ids);
+        var dtos = retrieveDtos(ids);
 
-        writer.createSheet(workbook, models);
+        writer.createSheet(workbook, dtos);
         return convertWorkbookToByteArray(workbook);
     }
 
-    private List<SpexCategory> retrieveModels(final List<Long> ids) {
+    private List<SpexCategoryDto> retrieveDtos(final List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
-            return repository.findAll();
+            return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
         } else {
-            return repository.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));
+            return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));
         }
     }
 

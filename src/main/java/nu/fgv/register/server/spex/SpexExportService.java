@@ -18,6 +18,8 @@ public class SpexExportService extends AbstractExportService {
 
     @Override
     protected byte[] export(final Workbook workbook, final List<Long> ids) throws IOException {
+        // TODO: Spex categories sheet
+        // TODO: Revivals sheet
         return convertWorkbookToByteArray(workbook);
     }
 }

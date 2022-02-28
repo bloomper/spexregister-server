@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
-import nu.fgv.register.server.util.export.model.ExcelCell;
 import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -41,31 +40,26 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
     @NotBlank(message = "{spexCategory.name.notBlank}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @Column(name = "name", nullable = false)
-    @ExcelCell(header = "Name", position = 1)
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notBlank}")
     @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.pattern}")
     @Column(name = "first_year", length = 4, nullable = false)
-    @ExcelCell(header = "First year", position = 2)
     private String firstYear;
 
     @Lob
     @Column(name = "logo")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
-    @ExcelCell.Exclude
     private byte[] logo;
 
     @Column(name = "logo_content_type")
-    @ExcelCell.Exclude
     private String logoContentType;
 
     @Override
