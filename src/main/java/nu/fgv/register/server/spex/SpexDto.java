@@ -8,12 +8,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.export.model.ExcelCell;
+import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.time.Instant;
 
 @Getter
@@ -22,25 +20,24 @@ import java.time.Instant;
 @ToString
 @Relation(collectionRelation = "spex", itemRelation = "spex")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ExcelSheet(name = "Spex")
 public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("id")
+    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
-    @NotBlank(message = "{spex.year.notBlank}")
-    @Size(max = 4, message = "{spex.year.size}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.pattern}")
     @JsonProperty("year")
+    @ExcelCell(header = "Year", position = 1)
     private String year;
 
-    @NotBlank(message = "{spex.title.notBlank}")
-    @Size(max = 255, message = "{spex.title.size}")
     @JsonProperty("title")
+    @ExcelCell(header = "Title", position = 2)
     private String title;
 
     @JsonProperty("poster")
+    @ExcelCell(header = "Poster", position = 3)
     private String poster;
 
-    @NotNull(message = "{spex.category.notBlank}")
     @JsonProperty("category")
     private SpexCategoryDto category;
 
@@ -48,6 +45,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private SpexDto parent;
 
     @JsonProperty("revival")
+    @ExcelCell(header = "Revival", position = 4)
     private boolean revival;
 
     @Builder

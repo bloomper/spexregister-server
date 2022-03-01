@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
-import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -32,7 +31,6 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@ExcelSheet(name = "Spex categories")
 public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Serial

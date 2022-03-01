@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
 import nu.fgv.register.server.util.export.model.ExcelCell;
+import nu.fgv.register.server.util.export.model.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.time.Instant;
 @ToString
 @Relation(collectionRelation = "spexCategories", itemRelation = "spexCategory")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ExcelSheet(name = "Spex categories")
 public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
     @JsonProperty("id")
     @ExcelCell(header = "Id", position = 0)

@@ -31,4 +31,7 @@ public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredi
 
     @Query("SELECT s FROM Spex s WHERE s.id IN :ids")
     List<Spex> findByIds(@Param("ids") List<Long> ids, Sort sort);
+
+    @Query("SELECT s FROM Spex s WHERE s.parent IN :ids")
+    List<Spex> findRevivalsByParentIds(@Param("ids") List<Long> ids, Sort sort);
 }

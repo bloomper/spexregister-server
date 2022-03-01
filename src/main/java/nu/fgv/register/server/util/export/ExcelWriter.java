@@ -29,9 +29,15 @@ import static org.springframework.util.StringUtils.hasText;
 public class ExcelWriter {
 
     final WorkbookContainer workbookContainer = new WorkbookContainer();
+    String overrideSheetName;
 
     public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data) {
+        return createSheet(workbook, data, null);
+    }
+
+    public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data, final String overrideSheetName) {
         workbookContainer.setWorkbook(workbook);
+        this.overrideSheetName = overrideSheetName;
         return data != null && !data.isEmpty() ?
                 Optional.of(createSheet
                         .andThen(generateSheetName)
@@ -59,7 +65,9 @@ public class ExcelWriter {
 
         final Class<?> clazz = sheetContainer.getData().get(0).getClass();
 
-        if (clazz.isAnnotationPresent(ExcelSheet.class)) {
+        if (hasText(overrideSheetName)) {
+            sheetName = overrideSheetName;
+        } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             sheetName = clazz.getAnnotation(ExcelSheet.class).name();
         } else {
             sheetName = parseCamelCase(clazz.getSimpleName());

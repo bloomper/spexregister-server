@@ -10,9 +10,11 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
@@ -28,7 +30,27 @@ public class SpexService {
     private final SpexCategoryRepository categoryRepository;
 
     public List<SpexDto> findAll(final Sort sort) {
-        return repository.findAllByParentIsNull(sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+        final List<SpexDto> categories = new ArrayList<>();
+        final SpexCategory category = new SpexCategory();
+        category.setId(2L);
+        category.setLogoContentType("image/png");
+        category.setFirstYear("1948");
+        final SpexDetails details = new SpexDetails();
+        details.setId(3L);
+        details.setTitle("Nobel");
+        details.setPosterContentType("image/png");
+        details.setCategory(category);
+        final Spex spex = new Spex();
+        spex.setId(1L);
+        spex.setYear("1996");
+        spex.setDetails(details);
+        final Spex revival = new Spex();
+        revival.setId(4L);
+        revival.setYear("2006");
+        revival.setParent(spex);
+        revival.setDetails(details);
+        return Stream.of(spex).map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+        //return repository.findAllByParentIsNull(sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
     }
 
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
@@ -45,6 +67,10 @@ public class SpexService {
 
     public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository.findByIds(ids, sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+    }
+
+    public List<SpexDto> findRevivalsByParentIds(final List<Long> ids, final Sort sort) {
+        return repository.findRevivalsByParentIds(ids, sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
     }
 
     public SpexDto create(final SpexCreateDto dto) {
