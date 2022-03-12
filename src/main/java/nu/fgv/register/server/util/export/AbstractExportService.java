@@ -9,10 +9,11 @@ import org.springframework.data.util.Pair;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class AbstractExportService {
 
-    public Pair<String, byte[]> export(final List<Long> ids, final String type) throws IOException {
+    public Pair<String, byte[]> export(final List<Long> ids, final String type, final Locale locale) throws IOException {
         final Workbook workbook;
         final String extension;
         switch (type) {
@@ -26,10 +27,10 @@ public abstract class AbstractExportService {
             }
             default -> throw new IllegalArgumentException("Unrecognized type");
         }
-        return Pair.of(extension, export(workbook, ids));
+        return Pair.of(extension, export(workbook, ids, locale));
     }
 
-    protected abstract byte[] export(final Workbook workbook, final List<Long> ids) throws IOException;
+    protected abstract byte[] export(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException;
 
     protected byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
         var outputStream = new ByteArrayOutputStream();

@@ -19,6 +19,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -144,7 +145,7 @@ public class SpexApiTest extends AbstractApiTest {
     public void should_get_spex_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
-        when(exportService.export(anyList(), any(String.class))).thenReturn(export);
+        when(exportService.export(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
         this.mockMvc
                 .perform(

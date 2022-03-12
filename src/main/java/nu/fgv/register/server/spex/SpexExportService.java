@@ -9,11 +9,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,17 +25,18 @@ public class SpexExportService extends AbstractExportService {
 
     private final SpexService service;
     private final SpexCategoryService categoryService;
+    private final MessageSource messageSource;
     private final ExcelWriter writer = new ExcelWriter();
 
     @Override
-    protected byte[] export(final Workbook workbook, final List<Long> ids) throws IOException {
+    protected byte[] export(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
         var dtos = retrieveDtos(ids);
         var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).collect(Collectors.toList()));
         var categoryDtos = retrieveCategoryDtos();
 
-        writer.createSheet(workbook, dtos);
-        writer.createSheet(workbook, revivalDtos, "Revivals");
-        writer.createSheet(workbook, categoryDtos)
+        writer.createSheet(messageSource, locale, workbook, dtos);
+        writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.revivals", null, "Revivals", locale));
+        writer.createSheet(messageSource, locale, workbook, categoryDtos)
                 .ifPresent(sheet -> {
                     if (sheet instanceof XSSFSheet) {
                         final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
@@ -41,6 +44,7 @@ public class SpexExportService extends AbstractExportService {
                     }
                     sheet.protectSheet("");
                 });
+
         return convertWorkbookToByteArray(workbook);
     }
 

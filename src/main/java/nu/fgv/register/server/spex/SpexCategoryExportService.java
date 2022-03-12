@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.export.AbstractExportService;
 import nu.fgv.register.server.util.export.ExcelWriter;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -17,12 +19,13 @@ import java.util.List;
 public class SpexCategoryExportService extends AbstractExportService {
 
     private final SpexCategoryService service;
+    private final MessageSource messageSource;
     private final ExcelWriter writer = new ExcelWriter();
 
-    protected byte[] export(final Workbook workbook, final List<Long> ids) throws IOException {
+    protected byte[] export(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
         var dtos = retrieveDtos(ids);
 
-        writer.createSheet(workbook, dtos);
+        writer.createSheet(messageSource, locale, workbook, dtos);
         return convertWorkbookToByteArray(workbook);
     }
 

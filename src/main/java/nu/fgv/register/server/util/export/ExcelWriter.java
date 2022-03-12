@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.springframework.context.MessageSource;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -17,6 +18,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -31,14 +33,16 @@ import static org.springframework.util.StringUtils.hasText;
 @Slf4j
 public class ExcelWriter {
 
-    final WorkbookContainer workbookContainer = new WorkbookContainer();
     private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+    final WorkbookContainer workbookContainer = new WorkbookContainer();
 
-    public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data) {
-        return createSheet(workbook, data, null);
+    public <T> Optional<Sheet> createSheet(final MessageSource messageSource, final Locale locale, final Workbook workbook, final List<T> data) {
+        return createSheet(messageSource, locale, workbook, data, null);
     }
 
-    public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data, final String overrideSheetName) {
+    public <T> Optional<Sheet> createSheet(final MessageSource messageSource, final Locale locale, final Workbook workbook, final List<T> data, final String overrideSheetName) {
+        workbookContainer.setMessageSource(messageSource);
+        workbookContainer.setLocale(locale);
         workbookContainer.setWorkbook(workbook);
         return data != null && !data.isEmpty() ?
                 Optional.of(createSheet
@@ -71,7 +75,8 @@ public class ExcelWriter {
         if (hasText(sheetContainer.getOverrideSheetName())) {
             sheetName = sheetContainer.getOverrideSheetName();
         } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
-            sheetName = clazz.getAnnotation(ExcelSheet.class).name();
+            final String name = clazz.getAnnotation(ExcelSheet.class).name();
+            sheetName = workbookContainer.getMessageSource().getMessage(name, null, name, workbookContainer.getLocale());
         } else {
             sheetName = parseCamelCase(clazz.getSimpleName());
         }
@@ -108,6 +113,8 @@ public class ExcelWriter {
 
                 if (!hasText(header)) {
                     header = parseCamelCase(field.getName());
+                } else {
+                    header = workbookContainer.getMessageSource().getMessage(header, null, header, workbookContainer.getLocale());
                 }
 
                 addColumn.accept(header, position);
@@ -155,7 +162,6 @@ public class ExcelWriter {
                         } else {
                             final Cell cell = row.createCell(position);
                             fieldWriters.get(field).accept(cell, value);
-
                         }
                     } catch (final Exception e) {
                         log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
