@@ -15,6 +15,12 @@ public @interface ExcelCell {
 
     String header() default "";
 
+    String transform() default "";
+
+    boolean crossRef() default false;
+
+    int crossRefPosition() default -1;
+
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     @interface Exclude {}

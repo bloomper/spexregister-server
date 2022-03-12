@@ -39,6 +39,7 @@ public class SpexExportService extends AbstractExportService {
                         final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
                         ((XSSFSheet) sheet).setTabColor(new XSSFColor(red));
                     }
+                    sheet.protectSheet("");
                 });
         return convertWorkbookToByteArray(workbook);
     }

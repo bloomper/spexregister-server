@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 class SheetContainer {
 
+    private String overrideSheetName;
     private Sheet sheet;
     private String heading;
     private List<?> data;

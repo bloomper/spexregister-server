@@ -39,13 +39,14 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private String poster;
 
     @JsonProperty("category")
+    @ExcelCell(header = "Spex category", position = 4, transform = "#this.id", crossRef = true, crossRefPosition = 0)
     private SpexCategoryDto category;
 
     @JsonProperty("parent")
+    @ExcelCell(header = "Parent", position = 6, transform = "#this.id", crossRef = true, crossRefPosition = 0)
     private SpexDto parent;
 
     @JsonProperty("revival")
-    @ExcelCell(header = "Revival", position = 4)
     private boolean revival;
 
     @Builder

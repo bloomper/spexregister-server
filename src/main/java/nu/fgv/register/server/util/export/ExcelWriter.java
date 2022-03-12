@@ -10,6 +10,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -29,7 +32,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class ExcelWriter {
 
     final WorkbookContainer workbookContainer = new WorkbookContainer();
-    String overrideSheetName;
+    private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
     public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data) {
         return createSheet(workbook, data, null);
@@ -37,7 +40,6 @@ public class ExcelWriter {
 
     public <T> Optional<Sheet> createSheet(final Workbook workbook, final List<T> data, final String overrideSheetName) {
         workbookContainer.setWorkbook(workbook);
-        this.overrideSheetName = overrideSheetName;
         return data != null && !data.isEmpty() ?
                 Optional.of(createSheet
                         .andThen(generateSheetName)
@@ -46,13 +48,14 @@ public class ExcelWriter {
                         .andThen(autoSizeColumns)
                         .andThen(freezePane)
                         .andThen(attachFilters)
-                        .apply(data)
+                        .apply(data, overrideSheetName)
                         .getSheet()) :
                 Optional.empty();
     }
 
-    private final Function<List<?>, SheetContainer> createSheet = (final List<?> data) -> {
+    private final BiFunction<List<?>, String, SheetContainer> createSheet = (final List<?> data, final String overrideSheetName) -> {
         final SheetContainer sheetContainer = new SheetContainer();
+        sheetContainer.setOverrideSheetName(overrideSheetName);
         sheetContainer.setSheet(workbookContainer.getWorkbook().createSheet());
         sheetContainer.setData(data);
         return sheetContainer;
@@ -65,8 +68,8 @@ public class ExcelWriter {
 
         final Class<?> clazz = sheetContainer.getData().get(0).getClass();
 
-        if (hasText(overrideSheetName)) {
-            sheetName = overrideSheetName;
+        if (hasText(sheetContainer.getOverrideSheetName())) {
+            sheetName = sheetContainer.getOverrideSheetName();
         } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             sheetName = clazz.getAnnotation(ExcelSheet.class).name();
         } else {
@@ -127,10 +130,10 @@ public class ExcelWriter {
                         field.setAccessible(true);
                         return field.isAnnotationPresent(ExcelCell.class);
                     }).toList();
-            final Map<Field, BiConsumer<Cell, Object>> fieldWriter = new HashMap<>();
+            final Map<Field, BiConsumer<Cell, Object>> fieldWriters = new HashMap<>();
             annotatedFields.forEach(field -> {
                 final BiConsumer<Cell, Object> cellWriter = workbookContainer.getWriterFactory().getFieldWriter(field);
-                fieldWriter.put(field, cellWriter);
+                fieldWriters.put(field, cellWriter);
             });
 
             IntStream.range(0, data.size()).forEach(rowNum -> {
@@ -139,11 +142,21 @@ public class ExcelWriter {
 
                 final int maxPosition = determineMaxPosition(annotatedFields);
                 annotatedFields.forEach(field -> {
+                    final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
                     final int position = determinePosition(field, maxPosition);
 
                     try {
-                        final Cell cell = row.createCell(position);
-                        fieldWriter.get(field).accept(cell, value);
+                        if (hasText(excelCell.transform()) && field.get(value) != null) {
+                            final SpelExpression spelExpression = PARSER.parseRaw(excelCell.transform());
+                            final Object transformedValue = spelExpression.getValue(field.get(value));
+                            final Class<?> transformedClazz = spelExpression.getValueType(field.get(value));
+                            final Cell cell = row.createCell(position);
+                            CellTypedWriterFactory.getTypedWriter(transformedClazz).accept(cell, transformedValue);
+                        } else {
+                            final Cell cell = row.createCell(position);
+                            fieldWriters.get(field).accept(cell, value);
+
+                        }
                     } catch (final Exception e) {
                         log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
                     }
