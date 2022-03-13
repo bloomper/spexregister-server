@@ -1,6 +1,5 @@
 package nu.fgv.register.server.config;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cache.ehcache.EhCacheFactoryBean;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +23,6 @@ import javax.sql.DataSource;
 import java.util.Objects;
 
 @Configuration
-@EnableAutoConfiguration
 public class AclContext {
 
     final DataSource dataSource;
