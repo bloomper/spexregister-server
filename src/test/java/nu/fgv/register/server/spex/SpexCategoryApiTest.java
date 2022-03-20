@@ -121,7 +121,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     public void should_get_spex_categories_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
-        when(exportService.export(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
+        when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
         this.mockMvc
                 .perform(

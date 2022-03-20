@@ -1,4 +1,4 @@
-package nu.fgv.register.server.util.export;
+package nu.fgv.register.server.util.impex.exporting;
 
 import org.apache.poi.ss.usermodel.Cell;
 

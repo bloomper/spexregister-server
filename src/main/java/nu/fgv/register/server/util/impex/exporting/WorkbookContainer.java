@@ -1,7 +1,8 @@
-package nu.fgv.register.server.util.export;
+package nu.fgv.register.server.util.impex.exporting;
 
 import lombok.Getter;
 import lombok.Setter;
+import nu.fgv.register.server.util.impex.util.AbstractWorkbookContainer;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 
@@ -9,11 +10,8 @@ import java.util.Locale;
 
 @Getter
 @Setter
-class WorkbookContainer {
+class WorkbookContainer extends AbstractWorkbookContainer {
 
-    private MessageSource messageSource;
-    private Locale locale;
-    private Workbook workbook;
     private CellWriterFactory writerFactory;
 
     public WorkbookContainer() {

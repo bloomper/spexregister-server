@@ -1,4 +1,4 @@
-package nu.fgv.register.server.util.export.model;
+package nu.fgv.register.server.util.impex.model;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

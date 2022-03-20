@@ -69,14 +69,14 @@ public class SpexApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String type, final Locale locale) {
+    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String contentType, final Locale locale) {
         try {
-            final Pair<String, byte[]> export = exportService.export(ids, type, locale);
+            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
             return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(type))
+                    .contentType(MediaType.valueOf(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex" + export.getFirst() + "\"")
                     .body(new ByteArrayResource(export.getSecond()));
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not export spex", e);
             }
@@ -155,9 +155,7 @@ public class SpexApi {
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     public ResponseEntity<?> uploadPoster(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            return service.savePoster(id, file.getBytes(), file.getContentType())
-                    .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return uploadPoster(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
                 log.error(String.format("Could not save poster for spex %s", id), e);

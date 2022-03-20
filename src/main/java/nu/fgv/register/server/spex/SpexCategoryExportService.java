@@ -2,8 +2,8 @@ package nu.fgv.register.server.spex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.export.AbstractExportService;
-import nu.fgv.register.server.util.export.ExcelWriter;
+import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
+import nu.fgv.register.server.util.impex.exporting.ExcelWriter;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Sort;
@@ -22,7 +22,7 @@ public class SpexCategoryExportService extends AbstractExportService {
     private final MessageSource messageSource;
     private final ExcelWriter writer = new ExcelWriter();
 
-    protected byte[] export(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
+    protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
         var dtos = retrieveDtos(ids);
 
         writer.createSheet(messageSource, locale, workbook, dtos);

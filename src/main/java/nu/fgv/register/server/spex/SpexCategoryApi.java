@@ -3,6 +3,7 @@ package nu.fgv.register.server.spex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +52,7 @@ public class SpexCategoryApi {
 
     private final SpexCategoryService service;
     private final SpexCategoryExportService exportService;
+    private final SpexCategoryImportService importService;
     private final PagedResourcesAssembler<SpexCategoryDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -68,14 +70,14 @@ public class SpexCategoryApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String type, final Locale locale) {
+    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String contentType, final Locale locale) {
         try {
-            final Pair<String, byte[]> export = exportService.export(ids, type, locale);
+            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
             return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(type))
+                    .contentType(MediaType.valueOf(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex_categories" + export.getFirst() + "\"")
                     .body(new ByteArrayResource(export.getSecond()));
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not export spex categories", e);
             }
@@ -97,6 +99,37 @@ public class SpexCategoryApi {
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .map(ResponseEntity::ok)
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
+            consumes = {
+                    Constants.MediaTypes.APPLICATION_XLSX_VALUE,
+                    Constants.MediaTypes.APPLICATION_XLS_VALUE
+            })
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, final Locale locale) {
+        try {
+            final ImportResultDto result = importService.doImport(file, contentType, locale);
+            return ResponseEntity
+                    .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                    .body(result);
+        } catch (final Exception e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not import spex categories", e);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") MultipartFile file, final Locale locale) {
+        try {
+            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
+        } catch (final IOException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not import spex categories %s", e);
+            }
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        }
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -154,9 +187,7 @@ public class SpexCategoryApi {
     @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            return service.saveLogo(id, file.getBytes(), file.getContentType())
-                    .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return uploadLogo(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
                 log.error(String.format("Could not save logo for spex category %s", id), e);

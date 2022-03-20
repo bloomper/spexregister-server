@@ -1,9 +1,8 @@
-package nu.fgv.register.server.util.export;
+package nu.fgv.register.server.util.impex.exporting;
 
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.export.model.ExcelCell;
-import nu.fgv.register.server.util.export.model.ExcelSheet;
+import nu.fgv.register.server.util.impex.model.ExcelCell;
+import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,8 +25,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
+import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
+import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition;
+import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePositionBeforeAuditableFields;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -44,8 +44,9 @@ public class ExcelWriter {
         workbookContainer.setMessageSource(messageSource);
         workbookContainer.setLocale(locale);
         workbookContainer.setWorkbook(workbook);
+
         return data != null && !data.isEmpty() ?
-                Optional.of(createSheet
+                Optional.of(initialize
                         .andThen(generateSheetName)
                         .andThen(addColumns)
                         .andThen(writeData)
@@ -57,11 +58,13 @@ public class ExcelWriter {
                 Optional.empty();
     }
 
-    private final BiFunction<List<?>, String, SheetContainer> createSheet = (final List<?> data, final String overrideSheetName) -> {
+    private final BiFunction<List<?>, String, SheetContainer> initialize = (final List<?> data, final String overrideSheetName) -> {
         final SheetContainer sheetContainer = new SheetContainer();
+
         sheetContainer.setOverrideSheetName(overrideSheetName);
         sheetContainer.setSheet(workbookContainer.getWorkbook().createSheet());
         sheetContainer.setData(data);
+
         return sheetContainer;
     };
 
@@ -69,13 +72,13 @@ public class ExcelWriter {
         final Workbook workbook = workbookContainer.getWorkbook();
         final Sheet sheet = sheetContainer.getSheet();
         final String sheetName;
-
         final Class<?> clazz = sheetContainer.getData().get(0).getClass();
 
         if (hasText(sheetContainer.getOverrideSheetName())) {
             sheetName = sheetContainer.getOverrideSheetName();
         } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             final String name = clazz.getAnnotation(ExcelSheet.class).name();
+
             sheetName = workbookContainer.getMessageSource().getMessage(name, null, name, workbookContainer.getLocale());
         } else {
             sheetName = parseCamelCase(clazz.getSimpleName());
@@ -104,12 +107,12 @@ public class ExcelWriter {
                 columnWriter.accept(cell, header);
                 sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
             };
+            final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
 
-            final int maxPosition = determineMaxPosition(annotatedFields);
             annotatedFields.forEach(field -> {
                 final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-                String header = excelCell.header();
                 final int position = determinePosition(field, maxPosition);
+                String header = excelCell.header();
 
                 if (!hasText(header)) {
                     header = parseCamelCase(field.getName());
@@ -138,16 +141,18 @@ public class ExcelWriter {
                         return field.isAnnotationPresent(ExcelCell.class);
                     }).toList();
             final Map<Field, BiConsumer<Cell, Object>> fieldWriters = new HashMap<>();
+
             annotatedFields.forEach(field -> {
                 final BiConsumer<Cell, Object> cellWriter = workbookContainer.getWriterFactory().getFieldWriter(field);
+
                 fieldWriters.put(field, cellWriter);
             });
 
             IntStream.range(0, data.size()).forEach(rowNum -> {
                 final Row row = sheet.createRow(rowNum + 1);
                 final Object value = data.get(rowNum);
+                final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
 
-                final int maxPosition = determineMaxPosition(annotatedFields);
                 annotatedFields.forEach(field -> {
                     final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
                     final int position = determinePosition(field, maxPosition);
@@ -158,9 +163,11 @@ public class ExcelWriter {
                             final Object transformedValue = spelExpression.getValue(field.get(value));
                             final Class<?> transformedClazz = spelExpression.getValueType(field.get(value));
                             final Cell cell = row.createCell(position);
+
                             CellTypedWriterFactory.getTypedWriter(transformedClazz).accept(cell, transformedValue);
                         } else {
                             final Cell cell = row.createCell(position);
+
                             fieldWriters.get(field).accept(cell, value);
                         }
                     } catch (final Exception e) {
@@ -187,37 +194,19 @@ public class ExcelWriter {
 
     private final Function<SheetContainer, SheetContainer> freezePane = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
+
         sheet.createFreezePane(0, 1);
+
         return sheetContainer;
     };
 
     private final Function<SheetContainer, SheetContainer> attachFilters = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
         final int lastColumn = sheet.getRow(sheet.getLastRowNum()).getLastCellNum() - 1;
+
         sheet.setAutoFilter(new CellRangeAddress(0, 0, 0, lastColumn));
+
         return sheetContainer;
     };
 
-    private static int determineMaxPosition(final List<Field> annotatedFields) {
-        final int maxPosition = annotatedFields.stream()
-                .filter(f -> !f.getDeclaringClass().equals(AbstractAuditableDto.class))
-                .map(f -> f.getAnnotation(ExcelCell.class).position())
-                .mapToInt(v -> v)
-                .max()
-                .orElseThrow(() -> new IllegalArgumentException("Could not determine max position"));
-        return maxPosition + 1;
-    }
-
-    private static int determinePosition(final Field field, final int maxPosition) {
-        final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-        return excelCell.position() + (field.getDeclaringClass().equals(AbstractAuditableDto.class) ? maxPosition : 0);
-    }
-
-    private static String parseCamelCase(final String camelCaseString) {
-        if (camelCaseString == null) {
-            return "";
-        } else {
-            return capitalize(String.join(" ", splitByCharacterTypeCamelCase(camelCaseString)));
-        }
-    }
 }

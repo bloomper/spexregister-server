@@ -1,17 +1,14 @@
-package nu.fgv.register.server.util.export;
+package nu.fgv.register.server.util.impex.util;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import java.util.List;
-
 @Getter
 @Setter
-class SheetContainer {
+public abstract class AbstractSheetContainer {
 
     private String overrideSheetName;
     private Sheet sheet;
     private String heading;
-    private List<?> data;
 }

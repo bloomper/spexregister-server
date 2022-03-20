@@ -21,7 +21,6 @@ repositories {
 
 ext {
     set('snippetsDir', file("build/generated-snippets"))
-    set('commonsLangVersion', "3.12.0")
 }
 
 dependencies {

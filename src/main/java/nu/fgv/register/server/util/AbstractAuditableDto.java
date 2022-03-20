@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import nu.fgv.register.server.util.export.model.ExcelCell;
+import nu.fgv.register.server.util.impex.model.ExcelCell;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.time.Instant;
