@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.model.ExcelCell;
 import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,6 +30,7 @@ import java.util.stream.IntStream;
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePositionBeforeAuditableFields;
+import static nu.fgv.register.server.util.impex.util.ImpexUtil.setCellBorders;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -65,6 +68,15 @@ public class ExcelWriter {
         sheetContainer.setSheet(workbookContainer.getWorkbook().createSheet());
         sheetContainer.setData(data);
 
+        final Class<?> clazz = data.get(0).getClass();
+        sheetContainer.setAnnotatedFields(
+                Arrays.stream(FieldUtils.getAllFields(clazz))
+                        .filter(field -> {
+                            field.setAccessible(true);
+                            return field.isAnnotationPresent(ExcelCell.class);
+                        }).toList()
+        );
+
         return sheetContainer;
     };
 
@@ -95,21 +107,15 @@ public class ExcelWriter {
         final Row row = sheet.createRow(0);
 
         try {
-            final Class<?> clazz = data.get(0).getClass();
-            final Field[] fields = FieldUtils.getAllFields(clazz);
-            final List<Field> annotatedFields = Arrays.stream(fields).filter(field -> {
-                field.setAccessible(true);
-                return field.isAnnotationPresent(ExcelCell.class);
-            }).toList();
             final BiConsumer<Cell, String> columnWriter = workbookContainer.getWriterFactory().getHeaderWriter();
             final BiConsumer<String, Integer> addColumn = (final String header, final Integer position) -> {
                 final Cell cell = row.createCell(position);
                 columnWriter.accept(cell, header);
                 sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
             };
-            final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
+            final int maxPosition = determinePositionBeforeAuditableFields(sheetContainer.getAnnotatedFields());
 
-            annotatedFields.forEach(field -> {
+            sheetContainer.getAnnotatedFields().forEach(field -> {
                 final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
                 final int position = determinePosition(field, maxPosition);
                 String header = excelCell.header();
@@ -133,16 +139,9 @@ public class ExcelWriter {
         final List<?> data = sheetContainer.getData();
 
         try {
-            final Class<?> clazz = data.get(0).getClass();
-            final Field[] fields = FieldUtils.getAllFields(clazz);
-            final List<Field> annotatedFields = Arrays.stream(fields)
-                    .filter(field -> {
-                        field.setAccessible(true);
-                        return field.isAnnotationPresent(ExcelCell.class);
-                    }).toList();
             final Map<Field, BiConsumer<Cell, Object>> fieldWriters = new HashMap<>();
 
-            annotatedFields.forEach(field -> {
+            sheetContainer.getAnnotatedFields().forEach(field -> {
                 final BiConsumer<Cell, Object> cellWriter = workbookContainer.getWriterFactory().getFieldWriter(field);
 
                 fieldWriters.put(field, cellWriter);
@@ -151,24 +150,35 @@ public class ExcelWriter {
             IntStream.range(0, data.size()).forEach(rowNum -> {
                 final Row row = sheet.createRow(rowNum + 1);
                 final Object value = data.get(rowNum);
-                final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
+                final int maxPosition = determinePositionBeforeAuditableFields(sheetContainer.getAnnotatedFields());
 
-                annotatedFields.forEach(field -> {
+                sheetContainer.getAnnotatedFields().forEach(field -> {
                     final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
                     final int position = determinePosition(field, maxPosition);
 
                     try {
+                        final Cell cell;
+
                         if (hasText(excelCell.transform()) && field.get(value) != null) {
                             final SpelExpression spelExpression = PARSER.parseRaw(excelCell.transform());
                             final Object transformedValue = spelExpression.getValue(field.get(value));
                             final Class<?> transformedClazz = spelExpression.getValueType(field.get(value));
-                            final Cell cell = row.createCell(position);
+                            cell = row.createCell(position);
 
                             CellTypedWriterFactory.getTypedWriter(transformedClazz).accept(cell, transformedValue);
                         } else {
-                            final Cell cell = row.createCell(position);
-
+                            cell = row.createCell(position);
                             fieldWriters.get(field).accept(cell, value);
+                        }
+
+                        if (excelCell.updatable() && excelCell.mandatory()) {
+                            setCellBorders(cell, BorderStyle.THIN, IndexedColors.GREEN);
+                        } else if (excelCell.updatable()) {
+                            setCellBorders(cell, BorderStyle.THIN, IndexedColors.LIGHT_GREEN);
+                        } else if (excelCell.mandatory()) {
+                            setCellBorders(cell, BorderStyle.THIN, IndexedColors.BRIGHT_GREEN);
+                        } else {
+                            setCellBorders(cell, BorderStyle.THIN, IndexedColors.DARK_RED);
                         }
                     } catch (final Exception e) {
                         log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
