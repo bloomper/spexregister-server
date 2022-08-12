@@ -47,7 +47,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @NotBlank(message = "{spexCategory.firstYear.notBlank}")
     @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.pattern}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.regexp}")
     @Column(name = "first_year", length = 4, nullable = false)
     private String firstYear;
 

@@ -26,7 +26,7 @@ public class SpexUpdateDto {
 
     @NotBlank(message = "{spex.year.notBlank}")
     @Size(max = 4, message = "{spex.year.size}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.pattern}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @JsonProperty("year")
     private String year;
 

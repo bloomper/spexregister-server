@@ -35,7 +35,7 @@ public class SpexExportService extends AbstractExportService {
         var categoryDtos = retrieveCategoryDtos();
 
         writer.createSheet(messageSource, locale, workbook, dtos);
-        writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.revivals", null, "Revivals", locale));
+        writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
         writer.createSheet(messageSource, locale, workbook, categoryDtos)
                 .ifPresent(sheet -> {
                     if (sheet instanceof XSSFSheet) {

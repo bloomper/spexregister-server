@@ -2,6 +2,7 @@ package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class SpexCategoryUpdateDto {
 
     @NotBlank(message = "{spexCategory.firstYear.notBlank}")
     @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.pattern}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.regexp}")
     @JsonProperty("firstYear")
     private String firstYear;
 
