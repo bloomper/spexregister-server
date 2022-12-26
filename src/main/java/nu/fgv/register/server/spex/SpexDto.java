@@ -27,11 +27,11 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private Long id;
 
     @JsonProperty("year")
-    @ExcelCell(header = "Year", position = 1)
+    @ExcelCell(header = "Year", position = 1, updatable = true, mandatory = true)
     private String year;
 
     @JsonProperty("title")
-    @ExcelCell(header = "Title", position = 2)
+    @ExcelCell(header = "Title", position = 2, updatable = true, mandatory = true)
     private String title;
 
     @JsonProperty("poster")
@@ -39,11 +39,11 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private String poster;
 
     @JsonProperty("category")
-    @ExcelCell(header = "Spex category", position = 4, transform = "#this.id")
+    @ExcelCell(header = "Spex category", position = 4, transform = "#this.id", updatable = true)
     private SpexCategoryDto category;
 
     @JsonProperty("parent")
-    @ExcelCell(header = "Parent", position = 5, transform = "#this.id")
+    @ExcelCell(header = "Parent", position = 5, transform = "#this.id", updatable = true)
     private SpexDto parent;
 
     @JsonProperty("revival")

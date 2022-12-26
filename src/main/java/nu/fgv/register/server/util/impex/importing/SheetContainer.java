@@ -9,5 +9,6 @@ import nu.fgv.register.server.util.impex.util.AbstractSheetContainer;
 class SheetContainer extends AbstractSheetContainer {
 
     private int sheetIndex;
+    private int primaryKeyPosition;
     private Class<?> clazz;
 }

@@ -103,7 +103,6 @@ public class ExcelWriter {
 
     private final Function<SheetContainer, SheetContainer> addColumns = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
-        final List<?> data = sheetContainer.getData();
         final Row row = sheet.createRow(0);
 
         try {

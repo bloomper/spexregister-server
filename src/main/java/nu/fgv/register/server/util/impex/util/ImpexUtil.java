@@ -35,6 +35,14 @@ public class ImpexUtil {
         return cell.getCellType() == CellType.STRING && cell.getStringCellValue().toLowerCase().endsWith("d");
     }
 
+    public static boolean isMarkedForCreation(final Cell cell) {
+        return cell.getCellType() == CellType.STRING && cell.getStringCellValue().toLowerCase().endsWith("n");
+    }
+
+    public static boolean isMarkedForUpdate(final Cell cell) {
+        return !isMarkedForDeletion(cell) && !isMarkedForCreation(cell);
+    }
+
     public static void setCellBorders(final Cell cell, final BorderStyle borderStyle, final IndexedColors color) {
         CellStyle cellStyle = cell.getCellStyle();
         if (cellStyle == null) {

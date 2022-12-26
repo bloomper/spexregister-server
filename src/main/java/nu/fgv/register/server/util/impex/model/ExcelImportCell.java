@@ -9,19 +9,10 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelCell {
+public @interface ExcelImportCell {
 
     int position();
 
-    boolean mandatory() default false;
+    boolean primaryKey() default false;
 
-    boolean updatable() default false;
-
-    String header() default "";
-
-    String transform() default "";
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Exclude {}
 }

@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -23,11 +24,13 @@ public class SpexCreateDto {
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @JsonProperty("year")
+    @ExcelImportCell(position = 1)
     private String year;
 
     @NotBlank(message = "{spex.title.notBlank}")
     @Size(max = 255, message = "{spex.title.size}")
     @JsonProperty("title")
+    @ExcelImportCell(position = 2)
     private String title;
 
 }
