@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS spex
     created_at       DATETIME              NOT NULL,
     last_modified_by VARCHAR(50)           NULL,
     last_modified_at DATETIME              NULL,
-    year             VARCHAR(4)            NOT NULL,
+    year_            VARCHAR(4)            NOT NULL,
     parent_id        BIGINT                NULL,
     details_id       BIGINT                NOT NULL,
     CONSTRAINT pk_spex PRIMARY KEY (id)
@@ -17,4 +17,4 @@ ALTER TABLE spex
 ALTER TABLE spex
     ADD CONSTRAINT FK_SPEX_ON_PARENT FOREIGN KEY (parent_id) REFERENCES spex (id);
 
-CREATE INDEX IDX_SPEX_ON_YEAR ON spex (year);
+CREATE INDEX IDX_SPEX_ON_YEAR ON spex (year_);

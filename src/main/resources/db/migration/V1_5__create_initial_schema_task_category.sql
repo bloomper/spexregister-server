@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS task_category
 (
     id        BIGINT AUTO_INCREMENT NOT NULL,
     name      VARCHAR(255)          NOT NULL,
-    has_actor BIT(1)                NULL,
+    has_actor BIT                   NULL,
     CONSTRAINT pk_task_category PRIMARY KEY (id)
 );
 

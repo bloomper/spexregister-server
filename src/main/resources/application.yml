@@ -6,9 +6,15 @@ management:
 spring:
   jpa:
     open-in-view: false
+    properties:
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: UNSPECIFIED
   h2:
     console:
       enabled: false
   servlet:
     multipart:
       max-file-size: 10MB
+

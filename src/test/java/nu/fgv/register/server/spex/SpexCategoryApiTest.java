@@ -38,10 +38,10 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.removeHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
@@ -95,7 +95,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/get-paged",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.spexCategories[]").description("The elements"),
@@ -111,7 +111,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingRequestParameters,
+                                pagingQueryParameters,
                                 responseHeaders
                         )
                 );
@@ -168,8 +168,8 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex-categories/create",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
                                         fields.withPath("name").description("The name of the spex category"),
                                         fields.withPath("firstYear").description("The first year of the spex category")
@@ -198,7 +198,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/get",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
@@ -230,7 +230,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/update",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
@@ -267,7 +267,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/partial-update",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
@@ -300,7 +300,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/delete",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 )
@@ -356,7 +356,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/logo-upload",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
@@ -385,7 +385,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/logo-upload-multipart",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
@@ -411,7 +411,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         document(
                                 "spex-categories/logo-delete",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 )

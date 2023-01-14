@@ -14,7 +14,7 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.restdocs.payload.SubsectionDescriptor;
-import org.springframework.restdocs.request.RequestParametersSnippet;
+import org.springframework.restdocs.request.QueryParametersSnippet;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -29,7 +29,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.util.StringUtils.collectionToDelimitedString;
 
@@ -60,7 +60,7 @@ public abstract class AbstractApiTest {
             fieldWithPath("page.number").description("The current page number")
     );
 
-    protected final RequestParametersSnippet pagingRequestParameters = requestParameters(
+    protected final QueryParametersSnippet pagingQueryParameters = queryParameters(
             parameterWithName("page").description("The page to be requested"),
             parameterWithName("size").description("Parameter determining the size of the requested page"),
             parameterWithName("sort").description("Information about sorting elements")
@@ -83,6 +83,9 @@ public abstract class AbstractApiTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    private WebApplicationContext context;
 
     @BeforeEach
     public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {

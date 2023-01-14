@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS news
     publication_date date                  NOT NULL,
     subject          VARCHAR(255)          NOT NULL,
     text             LONGTEXT              NOT NULL,
-    published        BIT(1)                NULL,
+    published        BIT                   NULL,
     CONSTRAINT pk_news PRIMARY KEY (id)
 );
 

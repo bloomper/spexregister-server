@@ -11,7 +11,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 
-import javax.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -25,7 +25,6 @@ import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePositionBeforeAuditableFields;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForCreation;
-import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForDeletion;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForUpdate;
 import static org.springframework.util.StringUtils.hasText;
 

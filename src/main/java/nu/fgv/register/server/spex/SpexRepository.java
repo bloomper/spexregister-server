@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredicateExecutor<Spex> {
+public interface SpexRepository extends JpaRepository<Spex, Long> {
 
     List<Spex> findAllByParentIsNull(Sort sort);
 
@@ -29,9 +28,16 @@ public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredi
 
     Optional<Spex> findRevivalByParentAndYear(Spex parent, String year);
 
-    @Query("SELECT s FROM Spex s WHERE s.id IN :ids")
+    @Query("""
+                SELECT s FROM Spex s
+                 WHERE s.id IN :ids
+            """)
     List<Spex> findByIds(@Param("ids") List<Long> ids, Sort sort);
 
-    @Query("SELECT s FROM Spex s JOIN s.parent p WHERE p.id IN :parentIds")
+    @Query("""
+            SELECT s FROM Spex s
+             JOIN s.parent p
+              WHERE p.id IN :parentIds
+              """)
     List<Spex> findRevivalsByParentIds(@Param("parentIds") List<Long> parentIds, Sort sort);
 }

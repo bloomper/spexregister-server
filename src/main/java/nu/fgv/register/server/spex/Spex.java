@@ -8,16 +8,16 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -41,7 +41,7 @@ public class Spex extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spex.year.notBlank}")
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
-    @Column(name = "year", length = 4, nullable = false)
+    @Column(name = "year_", length = 4, nullable = false)
     private String year;
 
     @ManyToOne
@@ -55,14 +55,14 @@ public class Spex extends AbstractAuditable implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Spex spex = (Spex) o;
+        final Spex spex = (Spex) o;
         if (spex.getId() == null || getId() == null) {
             return false;
         }

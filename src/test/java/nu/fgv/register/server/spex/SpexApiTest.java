@@ -40,10 +40,10 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.removeHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
@@ -116,7 +116,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/get-paged",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.spex[]").description("The elements"),
@@ -135,7 +135,7 @@ public class SpexApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingRequestParameters,
+                                pagingQueryParameters,
                                 responseHeaders
                         )
                 );
@@ -192,8 +192,8 @@ public class SpexApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex/create",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
                                         fields.withPath("year").description("The year of the spex"),
                                         fields.withPath("title").description("The title of the spex")
@@ -222,7 +222,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/get",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -254,7 +254,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/update",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -291,7 +291,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/partial-update",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -324,7 +324,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/delete",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 )
@@ -380,7 +380,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/poster-upload",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -409,7 +409,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/poster-upload-multipart",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -435,7 +435,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/poster-delete",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 )
@@ -461,7 +461,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/revivals-paged",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.spex[]").description("The elements"),
@@ -480,7 +480,7 @@ public class SpexApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingRequestParameters,
+                                pagingQueryParameters,
                                 responseHeaders
                         )
                 );
@@ -504,7 +504,7 @@ public class SpexApiTest extends AbstractApiTest {
                         document(
                                 "spex/revivals-specific-paged",
                                 preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
@@ -526,7 +526,7 @@ public class SpexApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingRequestParameters,
+                                pagingQueryParameters,
                                 responseHeaders
                         )
                 );
@@ -546,8 +546,8 @@ public class SpexApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex/revival-add",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex"),
                                         parameterWithName("year").description("The year of the revival")
@@ -570,8 +570,8 @@ public class SpexApiTest extends AbstractApiTest {
                 .andExpect(status().isNoContent())
                 .andDo(document(
                                 "spex/revival-remove",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex"),
                                         parameterWithName("year").description("The year of the revival")
@@ -595,8 +595,8 @@ public class SpexApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex/spex-category-update",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex"),
                                         parameterWithName("categoryId").description("The id of the spex category")
@@ -621,8 +621,8 @@ public class SpexApiTest extends AbstractApiTest {
                 .andExpect(status().isAccepted())
                 .andDo(document(
                                 "spex/spex-category-delete",
-                                preprocessRequest(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), removeHeaders(HttpHeaders.CONTENT_LENGTH)),
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
