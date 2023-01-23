@@ -24,11 +24,11 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableMethodSecurity
-public class SecurityConfiguration {
+public class AclSecurityConfig {
 
     final DataSource dataSource;
 
-    public SecurityConfiguration(final DataSource dataSource) {
+    public AclSecurityConfig(final DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

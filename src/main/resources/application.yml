@@ -3,6 +3,7 @@ management:
     web:
       exposure:
         include: health,metrics,info
+
 spring:
   jpa:
     open-in-view: false
@@ -11,10 +12,17 @@ spring:
         persistence:
           sharedCache:
             mode: UNSPECIFIED
+
   h2:
     console:
       enabled: false
+
   servlet:
     multipart:
       max-file-size: 10MB
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000

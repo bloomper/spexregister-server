@@ -1,8 +1,8 @@
 plugins {
-    id 'org.springframework.boot' version '3.0.1'
+    id 'org.springframework.boot' version '3.0.2'
     id 'io.spring.dependency-management' version '1.1.0'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
-    id "io.freefair.lombok" version "6.6.1"
+    id 'io.freefair.lombok' version '6.6.1'
     id 'java'
 }
 
@@ -21,7 +21,7 @@ repositories {
 }
 
 ext {
-    set('snippetsDir', file("build/generated-snippets"))
+    set('snippetsDir', file('build/generated-snippets'))
 }
 
 dependencies {
@@ -31,14 +31,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation 'org.springframework.security:spring-security-acl'
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
-    implementation 'org.ehcache.modules:ehcache-core:3.10.8'
     implementation 'net.sf.jmimemagic:jmimemagic:0.1.5'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.apache.poi:poi:5.2.3'

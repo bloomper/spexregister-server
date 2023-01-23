@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS "user"
     uid              VARCHAR(254)          NOT NULL,
     first_name       VARCHAR(50)           NULL,
     last_name        VARCHAR(50)           NULL,
+    password         VARCHAR(254)          NULL,
     activated        BIT                   NOT NULL,
     CONSTRAINT pk_user PRIMARY KEY (id)
 );
