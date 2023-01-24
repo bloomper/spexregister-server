@@ -63,6 +63,9 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     private SpexCategoryService service;
 
     @MockBean
+    private SpexCategoryImportService importService;
+
+    @MockBean
     private SpexCategoryExportService exportService;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(

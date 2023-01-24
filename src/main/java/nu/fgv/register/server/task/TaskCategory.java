@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -26,7 +27,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-public class TaskCategory implements Serializable {
+public class TaskCategory extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

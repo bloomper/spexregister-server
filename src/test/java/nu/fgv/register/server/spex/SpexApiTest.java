@@ -65,6 +65,8 @@ public class SpexApiTest extends AbstractApiTest {
     private SpexService service;
 
     @MockBean
+    private SpexImportService importService;
+    @MockBean
     private SpexExportService exportService;
 
     @MockBean
