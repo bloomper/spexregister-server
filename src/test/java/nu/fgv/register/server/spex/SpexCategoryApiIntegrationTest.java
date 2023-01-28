@@ -274,7 +274,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
-                    .ignoringFields("createdBy", "lastModifiedBy", "lastModifiedAt")
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 

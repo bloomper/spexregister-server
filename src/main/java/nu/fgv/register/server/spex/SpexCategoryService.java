@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spex;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
@@ -9,8 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,19 +26,7 @@ public class SpexCategoryService {
     private final SpexCategoryRepository repository;
 
     public List<SpexCategoryDto> findAll(final Sort sort) {
-        final List<SpexCategoryDto> categories = new ArrayList<>();
-        for(int i = 0;i<20;i++) {
-            final SpexCategory model = new SpexCategory();
-            model.setId((long) i);
-            model.setLogoContentType("image/png");
-            model.setFirstYear(String.valueOf(i));
-            //model.setCreatedAt(Instant.now());
-            model.setName("Name" + i);
-            model.setLastModifiedBy("hepp");
-            categories.add(SPEX_CATEGORY_MAPPER.toDto(model));
-        }
-        return categories;
-        //return repository.findAll(sort).stream().map(SPEX_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
+        return repository.findAll(sort).stream().map(SPEX_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
     }
 
     public Page<SpexCategoryDto> find(final Pageable pageable) {

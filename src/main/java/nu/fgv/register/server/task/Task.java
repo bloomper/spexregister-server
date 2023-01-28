@@ -1,13 +1,5 @@
 package nu.fgv.register.server.task;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,6 +9,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.util.AbstractAuditable;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -42,8 +42,7 @@ public class Task extends AbstractAuditable implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToOne(optional = false)
-    @NotNull
+    @ManyToOne
     private TaskCategory category;
 
     @Override

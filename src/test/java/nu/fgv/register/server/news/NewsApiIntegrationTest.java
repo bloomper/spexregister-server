@@ -236,6 +236,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
+                    .text(before.getText())
+                    .publicationDate(before.getPublicationDate())
                     .build();
 
             //@formatter:off
@@ -265,7 +267,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
-                    .ignoringFields("createdBy", "lastModifiedBy", "lastModifiedAt")
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -324,6 +326,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
+                    .text(before.getText())
+                    .publicationDate(before.getPublicationDate())
                     .build();
 
             //@formatter:off

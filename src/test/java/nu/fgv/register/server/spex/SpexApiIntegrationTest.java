@@ -290,7 +290,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
-                    .ignoringFields("createdBy", "lastModifiedBy", "lastModifiedAt")
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -873,7 +873,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         var spex = random.nextObject(Spex.class);
         spex.setParent(null);
         var details = random.nextObject(SpexDetails.class);
-        var category = random.nextObject(SpexCategory.class);
+        var category = randomizeSpexCategory();
         // For some reason, name is sometimes empty which results in a validation error so a safeguard is needed
         if (!hasText(category.getName())) {
             category.setName("Chalmersspexet");
@@ -895,7 +895,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spex persistSpex(Spex spex) {
-        var category = categoryRepository.save(spex.getDetails().getCategory());
+        var category = persistSpexCategory(spex.getDetails().getCategory());
         spex.getDetails().setCategory(category);
         var details = detailsRepository.save(spex.getDetails());
         spex.setDetails(details);

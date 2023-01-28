@@ -5,7 +5,7 @@
             <pattern>%d [%thread] [%level] [%logger] %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="warn">
+    <root level="WARN">
         <appender-ref ref="CONSOLE"/>
     </root>
     <logger name="org.testcontainers" level="INFO"/>

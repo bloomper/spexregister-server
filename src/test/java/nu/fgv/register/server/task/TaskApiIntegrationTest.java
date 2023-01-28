@@ -85,7 +85,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.task", TaskDto.class);
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -105,7 +105,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.task", TaskDto.class);
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -129,7 +129,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.task", TaskDto.class);
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -159,8 +159,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskDto result = objectMapper.readValue(json, TaskDto.class);
             assertThat(result)
-                    .extracting("name", "")
-                    .contains(dto.getName());
+                    .extracting("name")
+                    .isEqualTo(dto.getName());
         }
 
         @Test
@@ -270,7 +270,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
-                    .ignoringFields("createdBy", "lastModifiedBy", "lastModifiedAt")
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -520,7 +520,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
     private Task randomizeTask() {
         var task = random.nextObject(Task.class);
-        var category = random.nextObject(TaskCategory.class);
+        var category = randomizeTaskCategory();
         // For some reason, name is sometimes empty which results in a validation error so a safeguard is needed
         if (!hasText(category.getName())) {
             category.setName("Kommitte");
@@ -534,7 +534,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Task persistTask(Task task) {
-        var category = categoryRepository.save(task.getCategory());
+        var category = persistTaskCategory(task.getCategory());
         task.setCategory(category);
         return repository.save(task);
     }
