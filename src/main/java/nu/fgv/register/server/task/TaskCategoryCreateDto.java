@@ -18,7 +18,7 @@ import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskCategoryCreateDto {
-    @NotBlank(message = "{taskCategory.name.notBlank}")
+    @NotBlank(message = "{taskCategory.name.notEmpty}")
     @Size(max = 255, message = "{taskCategory.name.maxSize}")
     @JsonProperty("name")
     @ExcelImportCell(position = 1)

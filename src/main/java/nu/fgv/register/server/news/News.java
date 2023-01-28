@@ -1,5 +1,7 @@
 package nu.fgv.register.server.news;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,15 +40,16 @@ public class News extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @NotNull(message = "{news.publicationDate.notEmpty}")
     @Column(name = "publication_date", nullable = false)
     private LocalDate publicationDate;
 
-    @NotNull
-    @Size(max = 255)
+    @NotBlank(message = "{news.subject.notEmpty}")
+    @Size(max = 255, message = "{news.subject.size}")
     @Column(nullable = false)
     private String subject;
 
+    @NotBlank(message = "{news.text.notEmpty}")
     @Lob
     @Column(nullable = false)
     private String text;

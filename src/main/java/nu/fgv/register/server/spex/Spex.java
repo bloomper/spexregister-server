@@ -38,7 +38,7 @@ public class Spex extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{spex.year.notBlank}")
+    @NotBlank(message = "{spex.year.notEmpty}")
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @Column(name = "year_", length = 4, nullable = false)

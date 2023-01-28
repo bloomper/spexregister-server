@@ -20,14 +20,14 @@ import jakarta.validation.constraints.Size;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexCreateDto {
-    @NotBlank(message = "{spex.year.notBlank}")
+    @NotBlank(message = "{spex.year.notEmpty}")
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @JsonProperty("year")
     @ExcelImportCell(position = 1)
     private String year;
 
-    @NotBlank(message = "{spex.title.notBlank}")
+    @NotBlank(message = "{spex.title.notEmpty}")
     @Size(max = 255, message = "{spex.title.size}")
     @JsonProperty("title")
     @ExcelImportCell(position = 2)

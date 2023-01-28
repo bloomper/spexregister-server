@@ -23,7 +23,7 @@ public abstract class AbstractIntegrationTest {
     private static final MySQLContainer<?> mysql;
 
     static {
-        mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.28")).withDatabaseName("test_database");
+        mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32")).withDatabaseName("test_database");
         mysql.start();
     }
 

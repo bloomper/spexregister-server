@@ -40,7 +40,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{spex.title.notBlank}")
+    @NotBlank(message = "{spex.title.notEmpty}")
     @Size(max = 255, message = "{spex.title.size}")
     @Column(name = "title", nullable = false)
     private String title;

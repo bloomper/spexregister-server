@@ -24,7 +24,7 @@ public class TaskUpdateDto {
     @ExcelImportCell(position = 0, primaryKey = true)
     private Long id;
 
-    @NotBlank(message = "{task.name.notBlank}")
+    @NotBlank(message = "{task.name.notEmpty}")
     @Size(max = 255, message = "{task.name.size}")
     @JsonProperty("name")
     @ExcelImportCell(position = 1)

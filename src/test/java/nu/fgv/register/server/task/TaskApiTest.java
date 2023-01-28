@@ -90,7 +90,7 @@ public class TaskApiTest extends AbstractApiTest {
     @Test
     public void should_get_paged_task() throws Exception {
         var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
-        var task2 = TaskDto.builder().id(1L).name("Ljusmästare").build();
+        var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
 
         when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(task1, task2), PageRequest.of(1, 2, Sort.by("name")), 10));
 

@@ -103,7 +103,7 @@ public class SpexApiTest extends AbstractApiTest {
     @Test
     public void should_get_paged_spex() throws Exception {
         var spex1 = SpexDto.builder().id(1L).year("2021").build();
-        var spex2 = SpexDto.builder().id(1L).year("2022").build();
+        var spex2 = SpexDto.builder().id(2L).year("2022").build();
 
         when(service.find(eq(false), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spex1, spex2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
