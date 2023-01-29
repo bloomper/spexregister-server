@@ -44,43 +44,6 @@ public class SpexareUpdateDto {
     @JsonProperty("nickName")
     private String nickName;
 
-    @Size(max = 255, message = "{spexare.streetAddress.size}")
-    @JsonProperty("streetAddress")
-    private String streetAddress;
-
-    @Size(max = 255, message = "{spexare.postalCode.size}")
-    @JsonProperty("postalCode")
-    private String postalCode;
-
-    @Size(max = 255, message = "{spexare.postalAddress.size}")
-    @JsonProperty("postalAddress")
-    private String postalAddress;
-
-    @Size(max = 255, message = "{spexare.country.size}")
-    @JsonProperty("country")
-    private String country;
-
-    @Size(max = 255, message = "{spexare.phoneHome.size}")
-    @JsonProperty("phoneHome")
-    private String phoneHome;
-
-    @Size(max = 255, message = "{spexare.phoneWork.size}")
-    @JsonProperty("phoneWork")
-    private String phoneWork;
-
-    @Size(max = 255, message = "{spexare.phoneMobile.size}")
-    @JsonProperty("phoneMobile")
-    private String phoneMobile;
-
-    @Size(max = 255, message = "{spexare.phoneOther.size}")
-    @JsonProperty("phoneOther")
-    private String phoneOther;
-
-    @Size(max = 255, message = "{spexare.emailAddress.size}")
-    @Email(message = "{spexare.emailAddress.valid}")
-    @JsonProperty("emailAddress")
-    private String emailAddress;
-
     @JsonProperty("birthDate")
     private LocalDate birthDate;
 
@@ -101,14 +64,5 @@ public class SpexareUpdateDto {
 
     @JsonProperty("deceased")
     private Boolean deceased;
-
-    @JsonProperty("publishApproval")
-    private Boolean publishApproval;
-
-    @JsonProperty("wantCirculars")
-    private Boolean wantCirculars;
-
-    @JsonProperty("wantEmailCirculars")
-    private Boolean wantEmailCirculars;
 
 }

@@ -36,33 +36,6 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     @JsonProperty("nickName")
     private String nickName;
 
-    @JsonProperty("streetAddress")
-    private String streetAddress;
-
-    @JsonProperty("postalCode")
-    private String postalCode;
-
-    @JsonProperty("postalAddress")
-    private String postalAddress;
-
-    @JsonProperty("country")
-    private String country;
-
-    @JsonProperty("phoneHome")
-    private String phoneHome;
-
-    @JsonProperty("phoneWork")
-    private String phoneWork;
-
-    @JsonProperty("phoneMobile")
-    private String phoneMobile;
-
-    @JsonProperty("phoneOther")
-    private String phoneOther;
-
-    @JsonProperty("emailAddress")
-    private String emailAddress;
-
     @JsonProperty("birthDate")
     private LocalDate birthDate;
 
@@ -81,15 +54,6 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     @JsonProperty("deceased")
     private Boolean deceased;
 
-    @JsonProperty("publishApproval")
-    private Boolean publishApproval;
-
-    @JsonProperty("wantCirculars")
-    private Boolean wantCirculars;
-
-    @JsonProperty("wantEmailCirculars")
-    private Boolean wantEmailCirculars;
-
     @JsonProperty("image")
     private String image;
 
@@ -99,24 +63,12 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
             final String firstName,
             final String lastName,
             final String nickName,
-            final String streetAddress,
-            final String postalCode,
-            final String postalAddress,
-            final String country,
-            final String phoneHome,
-            final String phoneWork,
-            final String phoneMobile,
-            final String phoneOther,
-            final String emailAddress,
             final LocalDate birthDate,
             final String socialSecurityNumber,
             final Boolean chalmersStudent,
             final String graduation,
             final String comment,
             final boolean deceased,
-            final boolean publishApproval,
-            final boolean wantCirculars,
-            final boolean wantEmailCirculars,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -127,23 +79,11 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
         this.firstName = firstName;
         this.lastName = lastName;
         this.nickName = nickName;
-        this.streetAddress = streetAddress;
-        this.postalCode = postalCode;
-        this.postalAddress = postalAddress;
-        this.country = country;
-        this.phoneHome = phoneHome;
-        this.phoneWork = phoneWork;
-        this.phoneMobile = phoneMobile;
-        this.phoneOther = phoneOther;
-        this.emailAddress = emailAddress;
         this.birthDate = birthDate;
         this.socialSecurityNumber = socialSecurityNumber;
         this.chalmersStudent = chalmersStudent;
         this.graduation = graduation;
         this.comment = comment;
         this.deceased = deceased;
-        this.publishApproval = publishApproval;
-        this.wantCirculars = wantCirculars;
-        this.wantEmailCirculars = wantEmailCirculars;
     }
 }

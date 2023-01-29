@@ -13,7 +13,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -66,43 +65,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "nick_name")
     private String nickName;
 
-    @Size(max = 255, message = "{spexare.streetAddress.size}")
-    @Column(name = "street_address")
-    private String streetAddress;
-
-    @Size(max = 255, message = "{spexare.postalCode.size}")
-    @Column(name = "postal_code")
-    private String postalCode;
-
-    @Size(max = 255, message = "{spexare.postalAddress.size}")
-    @Column(name = "postal_address")
-    private String postalAddress;
-
-    @Size(max = 255, message = "{spexare.country.size}")
-    @Column(name = "country")
-    private String country;
-
-    @Size(max = 255, message = "{spexare.phoneHome.size}")
-    @Column(name = "phone_home")
-    private String phoneHome;
-
-    @Size(max = 255, message = "{spexare.phoneWork.size}")
-    @Column(name = "phone_work")
-    private String phoneWork;
-
-    @Size(max = 255, message = "{spexare.phoneMobile.size}")
-    @Column(name = "phone_mobile")
-    private String phoneMobile;
-
-    @Size(max = 255, message = "{spexare.phoneOther.size}")
-    @Column(name = "phone_other")
-    private String phoneOther;
-
-    @Size(max = 255, message = "{spexare.emailAddress.size}")
-    @Email(message = "{spexare.emailAddress.valid}")
-    @Column(name = "email_address")
-    private String emailAddress;
-
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
@@ -147,6 +109,11 @@ public class Spexare extends AbstractAuditable implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     @ToString.Exclude
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "spexare")
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @ToString.Exclude
+    private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare")
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
