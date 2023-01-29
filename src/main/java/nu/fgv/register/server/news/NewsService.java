@@ -23,15 +23,23 @@ public class NewsService {
     private final NewsRepository repository;
 
     public List<NewsDto> findAll(final Sort sort) {
-        return repository.findAll(sort).stream().map(NEWS_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findAll(sort)
+                .stream()
+                .map(NEWS_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public Page<NewsDto> find(final Pageable pageable) {
-        return repository.findAll(pageable).map(NEWS_MAPPER::toDto);
+        return repository
+                .findAll(pageable)
+                .map(NEWS_MAPPER::toDto);
     }
 
     public Optional<NewsDto> findById(final Long id) {
-        return repository.findById(id).map(NEWS_MAPPER::toDto);
+        return repository
+                .findById(id)
+                .map(NEWS_MAPPER::toDto);
     }
 
     public NewsDto create(final NewsCreateDto dto) {

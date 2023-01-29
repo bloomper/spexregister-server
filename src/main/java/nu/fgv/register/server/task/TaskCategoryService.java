@@ -23,19 +23,31 @@ public class TaskCategoryService {
     private final TaskCategoryRepository repository;
 
     public List<TaskCategoryDto> findAll(final Sort sort) {
-        return repository.findAll(sort).stream().map(TASK_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findAll(sort)
+                .stream()
+                .map(TASK_CATEGORY_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public Page<TaskCategoryDto> find(final Pageable pageable) {
-        return repository.findAll(pageable).map(TASK_CATEGORY_MAPPER::toDto);
+        return repository
+                .findAll(pageable)
+                .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
     public Optional<TaskCategoryDto> findById(final Long id) {
-        return repository.findById(id).map(TASK_CATEGORY_MAPPER::toDto);
+        return repository
+                .findById(id)
+                .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
     public List<TaskCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository.findByIds(ids, sort).stream().map(TASK_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findByIds(ids, sort)
+                .stream()
+                .map(TASK_CATEGORY_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public TaskCategoryDto create(final TaskCategoryCreateDto dto) {

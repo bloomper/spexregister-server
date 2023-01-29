@@ -24,19 +24,30 @@ public class TaskService {
     private final TaskCategoryRepository categoryRepository;
 
     public List<TaskDto> findAll(final Sort sort) {
-        return repository.findAll(sort).stream().map(TASK_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findAll(sort)
+                .stream()
+                .map(TASK_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public Page<TaskDto> find(final Pageable pageable) {
-        return repository.findAll(pageable).map(TASK_MAPPER::toDto);
+        return repository
+                .findAll(pageable)
+                .map(TASK_MAPPER::toDto);
     }
 
     public Optional<TaskDto> findById(final Long id) {
-        return repository.findById(id).map(TASK_MAPPER::toDto);
+        return repository
+                .findById(id)
+                .map(TASK_MAPPER::toDto);
     }
 
     public List<TaskDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository.findByIds(ids, sort).stream().map(TASK_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findByIds(ids, sort)
+                .stream().map(TASK_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public TaskDto create(final TaskCreateDto dto) {
@@ -64,11 +75,13 @@ public class TaskService {
 
     public Optional<TaskDto> updateCategory(final Long id, final Long categoryId) {
         if (repository.existsById(id) && categoryRepository.existsById(categoryId)) {
-            repository.findById(id).ifPresent(task ->
-                    categoryRepository.findById(categoryId).ifPresent(category -> {
-                        task.setCategory(category);
-                        repository.save(task);
-                    }));
+            repository
+                    .findById(id)
+                    .ifPresent(task ->
+                            categoryRepository.findById(categoryId).ifPresent(category -> {
+                                task.setCategory(category);
+                                repository.save(task);
+                            }));
             return findById(id);
         } else {
             return Optional.empty();

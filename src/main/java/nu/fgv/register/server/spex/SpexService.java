@@ -10,6 +10,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,7 +29,10 @@ public class SpexService {
     private final SpexCategoryRepository categoryRepository;
 
     public List<SpexDto> findAll(final Sort sort) {
-         return repository.findAllByParentIsNull(sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findAllByParentIsNull(sort)
+                .stream().map(SPEX_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
@@ -40,15 +44,25 @@ public class SpexService {
     }
 
     public Optional<SpexDto> findById(final Long id) {
-        return repository.findById(id).map(SPEX_MAPPER::toDto);
+        return repository
+                .findById(id)
+                .map(SPEX_MAPPER::toDto);
     }
 
     public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository.findByIds(ids, sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findByIds(ids, sort)
+                .stream()
+                .map(SPEX_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public List<SpexDto> findRevivalsByParentIds(final List<Long> ids, final Sort sort) {
-        return repository.findRevivalsByParentIds(ids, sort).stream().map(SPEX_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findRevivalsByParentIds(ids, sort)
+                .stream()
+                .map(SPEX_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public SpexDto create(final SpexCreateDto dto) {
@@ -86,12 +100,14 @@ public class SpexService {
     }
 
     public Optional<SpexDto> savePoster(final Long id, final byte[] poster, final String contentType) {
-        return repository.findById(id).map(model -> {
-            model.getDetails().setPoster(poster);
-            model.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
-            detailsRepository.save(model.getDetails());
-            return SPEX_MAPPER.toDto(model);
-        });
+        return repository
+                .findById(id)
+                .map(model -> {
+                    model.getDetails().setPoster(poster);
+                    model.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
+                    detailsRepository.save(model.getDetails());
+                    return SPEX_MAPPER.toDto(model);
+                });
     }
 
     public Optional<SpexDto> removePoster(final Long id) {
@@ -106,14 +122,17 @@ public class SpexService {
     }
 
     public Optional<Pair<byte[], String>> getPoster(final Long id) {
-        return repository.findById(id)
+        return repository
+                .findById(id)
                 .map(Spex::getDetails)
                 .filter(model -> model.getPoster() != null && hasText(model.getPosterContentType()))
                 .map(model -> Pair.of(model.getPoster(), model.getPosterContentType()));
     }
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {
-        return repository.findAllByParentIsNotNull(pageable).map(SPEX_MAPPER::toDto);
+        return repository
+                .findAllByParentIsNotNull(pageable)
+                .map(SPEX_MAPPER::toDto);
     }
 
     public Page<SpexDto> findRevivalsByParent(final Long id, final Pageable pageable) {
@@ -151,11 +170,13 @@ public class SpexService {
 
     public Optional<SpexDto> updateCategory(final Long id, final Long categoryId) {
         if (repository.existsById(id) && categoryRepository.existsById(categoryId)) {
-            repository.findById(id).ifPresent(spex ->
-                    categoryRepository.findById(categoryId).ifPresent(category -> {
-                        spex.getDetails().setCategory(category);
-                        detailsRepository.save(spex.getDetails());
-                    }));
+            repository
+                    .findById(id)
+                    .ifPresent(spex ->
+                            categoryRepository.findById(categoryId).ifPresent(category -> {
+                                spex.getDetails().setCategory(category);
+                                detailsRepository.save(spex.getDetails());
+                            }));
             return findById(id);
         } else {
             return Optional.empty();

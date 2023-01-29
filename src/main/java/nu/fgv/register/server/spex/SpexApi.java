@@ -232,8 +232,8 @@ public class SpexApi {
         if (hasText(dto.getPoster())) {
             links.add(Link.of(dto.getPoster()).withRel("poster"));
         } else {
-            final Link logoLink = linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster");
-            links.add(logoLink);
+            final Link posterLink = linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster");
+            links.add(posterLink);
         }
         if (dto.getParent() != null) {
             links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getParent().getId())).withRel("parent"));

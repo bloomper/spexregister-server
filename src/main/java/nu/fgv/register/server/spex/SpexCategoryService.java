@@ -26,19 +26,31 @@ public class SpexCategoryService {
     private final SpexCategoryRepository repository;
 
     public List<SpexCategoryDto> findAll(final Sort sort) {
-        return repository.findAll(sort).stream().map(SPEX_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findAll(sort)
+                .stream()
+                .map(SPEX_CATEGORY_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public Page<SpexCategoryDto> find(final Pageable pageable) {
-        return repository.findAll(pageable).map(SPEX_CATEGORY_MAPPER::toDto);
+        return repository
+                .findAll(pageable)
+                .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     public Optional<SpexCategoryDto> findById(final Long id) {
-        return repository.findById(id).map(SPEX_CATEGORY_MAPPER::toDto);
+        return repository
+                .findById(id)
+                .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     public List<SpexCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository.findByIds(ids, sort).stream().map(SPEX_CATEGORY_MAPPER::toDto).collect(Collectors.toList());
+        return repository
+                .findByIds(ids, sort)
+                .stream()
+                .map(SPEX_CATEGORY_MAPPER::toDto)
+                .collect(Collectors.toList());
     }
 
     public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
