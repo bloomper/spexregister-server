@@ -1,6 +1,5 @@
 package nu.fgv.register.server.task;
 
-import org.mapstruct.BeanMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;

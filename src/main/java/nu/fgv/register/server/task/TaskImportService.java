@@ -3,7 +3,6 @@ package nu.fgv.register.server.task;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spex.SpexCategoryDto;
-import nu.fgv.register.server.spex.SpexCategoryService;
 import nu.fgv.register.server.spex.SpexCreateDto;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ExcelValidator;

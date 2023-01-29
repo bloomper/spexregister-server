@@ -21,7 +21,8 @@ class WorkbookContainer extends AbstractWorkbookContainer {
     private final Validator validator;
 
     WorkbookContainer() {
-        final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
+        try (final ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
     }
 }
