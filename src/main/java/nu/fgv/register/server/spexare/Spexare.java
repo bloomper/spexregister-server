@@ -1,5 +1,7 @@
 package nu.fgv.register.server.spexare;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -51,68 +53,69 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(message = "{spexare.firstName.notEmpty}")
+    @Size(max = 255, message = "{spexare.firstName.size}")
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(message = "{spexare.lastName.notEmpty}")
+    @Size(max = 255, message = "{spexare.lastName.size}")
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
     private String nickName;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.streetAddress.size}")
     @Column(name = "street_address")
     private String streetAddress;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.postalCode.size}")
     @Column(name = "postal_code")
     private String postalCode;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.postalAddress.size}")
     @Column(name = "postal_address")
     private String postalAddress;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.country.size}")
     @Column(name = "country")
     private String country;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.phoneHome.size}")
     @Column(name = "phone_home")
     private String phoneHome;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.phoneWork.size}")
     @Column(name = "phone_work")
     private String phoneWork;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.phoneMobile.size}")
     @Column(name = "phone_mobile")
     private String phoneMobile;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.phoneOther.size}")
     @Column(name = "phone_other")
     private String phoneOther;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.emailAddress.size}")
+    @Email(message = "{spexare.emailAddress.valid}")
     @Column(name = "email_address")
     private String emailAddress;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Size(max = 4)
-    @Pattern(regexp = "^\\d{4}$")
+    @Size(max = 4, message = "{spexare.socialSecurityNumber.size}")
+    @Pattern(regexp = "^\\d{4}$", message = "{spexare.socialSecurityNumber.size}")
     @Column(name = "social_security_number", length = 4)
     private String socialSecurityNumber;
 
     @Column(name = "chalmers_student")
     private Boolean chalmersStudent;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")
     private String graduation;
 

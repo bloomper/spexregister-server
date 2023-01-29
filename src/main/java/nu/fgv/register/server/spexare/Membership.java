@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spexare;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -39,13 +40,13 @@ public class Membership implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 4)
-    @Pattern(regexp = "^(19|20|21)\\d{2}$")
+    @NotBlank(message = "{membership.year.notEmpty}")
+    @Size(max = 4, message = "{membership.year.maxSize}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
     @Column(length = 4, nullable = false)
     private String year;
 
-    @NotNull
+    @NotNull(message = "{membership.type.notEmpty}")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MembershipType type;

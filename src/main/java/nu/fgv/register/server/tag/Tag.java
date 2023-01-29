@@ -1,5 +1,6 @@
 package nu.fgv.register.server.tag;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -39,8 +40,8 @@ public class Tag implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(message = "{tag.name.notEmpty}")
+    @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
     private String name;
 

@@ -37,7 +37,7 @@ public class Actor extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "{actor.role.size}")
     private String role;
 
     @Enumerated(EnumType.STRING)
