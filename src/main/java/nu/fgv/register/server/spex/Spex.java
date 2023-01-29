@@ -41,7 +41,7 @@ public class Spex extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spex.year.notEmpty}")
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
-    @Column(name = "year_", length = 4, nullable = false)
+    @Column(name = "year", length = 4, nullable = false)
     private String year;
 
     @ManyToOne
