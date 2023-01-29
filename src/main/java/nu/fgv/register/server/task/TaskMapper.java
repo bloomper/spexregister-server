@@ -1,6 +1,5 @@
 package nu.fgv.register.server.task;
 
-import nu.fgv.register.server.spex.SpexCategoryMapper;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -13,7 +12,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        uses = SpexCategoryMapper.class
+        uses = TaskCategoryMapper.class
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
