@@ -1,5 +1,18 @@
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -8,27 +21,18 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
-@Table(name = "activity")
+@Table(name = "consent")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Activity extends AbstractAuditable implements Serializable {
+public class Consent extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -37,10 +41,14 @@ public class Activity extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "activity")
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @ToString.Exclude
-    private Set<TaskActivity> taskActivities = new HashSet<>();
+    @NotBlank(message = "{consent.value.notEmpty}")
+    @Column(nullable = false)
+    private Boolean value;
+
+    @NotNull(message = "{consent.type.notEmpty}")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ConsentType type;
 
     @ManyToOne
     private Spexare spexare;
@@ -53,11 +61,11 @@ public class Activity extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Activity activity = (Activity) o;
-        if (activity.getId() == null || getId() == null) {
+        final Consent membership = (Consent) o;
+        if (membership.getId() == null || getId() == null) {
             return false;
         }
-        return Objects.equals(getId(), activity.getId());
+        return Objects.equals(getId(), membership.getId());
     }
 
     @Override

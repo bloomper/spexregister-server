@@ -125,15 +125,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "deceased")
     private Boolean deceased;
 
-    @Column(name = "publish_approval")
-    private Boolean publishApproval;
-
-    @Column(name = "want_circulars")
-    private Boolean wantCirculars;
-
-    @Column(name = "want_email_circulars")
-    private Boolean wantEmailCirculars;
-
     @Lob
     @Column(name = "image")
     private byte[] image;
@@ -161,6 +152,11 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Membership> memberships = new ArrayList<>();
+
+    @OneToMany(mappedBy = "spexare")
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @ToString.Exclude
+    private List<Consent> consents = new ArrayList<>();
 
     @OneToOne(mappedBy = "spexare")
     private UserDetails userDetails;
