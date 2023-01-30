@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS actor
     created_date     DATETIME              NOT NULL,
     last_modified_by VARCHAR(50)           NULL,
     last_modified_at DATETIME              NULL,
-    `role`           VARCHAR(255)          NULL,
+    role             VARCHAR(255)          NULL,
     vocal            VARCHAR(255)          NULL,
     task_activity_id BIGINT                NULL,
     CONSTRAINT pk_actor PRIMARY KEY (id)
