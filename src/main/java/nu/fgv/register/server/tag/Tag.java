@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -30,7 +31,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class Tag implements Serializable {
+public class Tag extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

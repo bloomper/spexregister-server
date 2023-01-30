@@ -2,8 +2,6 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,12 +9,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.type.Type;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -42,13 +39,12 @@ public class Consent extends AbstractAuditable implements Serializable {
     private Long id;
 
     @NotBlank(message = "{consent.value.notEmpty}")
-    @Column(nullable = false)
+    @Column(name = "value", nullable = false)
     private Boolean value;
 
     @NotNull(message = "{consent.type.notEmpty}")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ConsentType type;
+    @ManyToOne(optional = false)
+    private Type type;
 
     @ManyToOne
     private Spexare spexare;

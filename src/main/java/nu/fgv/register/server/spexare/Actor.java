@@ -1,22 +1,21 @@
 package nu.fgv.register.server.spexare;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.type.Type;
+import nu.fgv.register.server.util.AbstractAuditable;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -40,8 +39,8 @@ public class Actor extends AbstractAuditable implements Serializable {
     @Size(max = 255, message = "{actor.role.size}")
     private String role;
 
-    @Enumerated(EnumType.STRING)
-    private VocalType vocal;
+    @ManyToOne
+    private Type vocal;
 
     @ManyToOne
     private TaskActivity taskActivity;

@@ -12,12 +12,15 @@ CREATE TABLE IF NOT EXISTS address
     phone                  VARCHAR(255)          NULL,
     mobile_phone           VARCHAR(255)          NULL,
     email_address          VARCHAR(255)          NULL,
-    type                   VARCHAR(255)          NOT NULL,
+    type_id                BIGINT                NOT NULL,
     spexare_id             BIGINT                NULL,
     CONSTRAINT pk_address PRIMARY KEY (id)
 );
 
 ALTER TABLE address
     ADD CONSTRAINT FK_ADDRESS_ON_SPEXARE FOREIGN KEY (spexare_id) REFERENCES spexare (id);
+
+ALTER TABLE address
+    ADD CONSTRAINT FK_ADDRESS_ON_TYPE FOREIGN KEY (type_id) REFERENCES type (id);
 
 CREATE INDEX IDX_ADDRESS_ON_SPEXARE_ID ON address (spexare_id);

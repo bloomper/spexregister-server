@@ -40,7 +40,7 @@ public class User extends AbstractAuditable implements Serializable {
     @NotNull
     @Email
     @Size(min = 1, max = 254)
-    @Column(length = 254, unique = true, nullable = false)
+    @Column(name = "uid", length = 254, unique = true, nullable = false)
     private String uid;
 
     @Size(max = 50)
@@ -52,7 +52,7 @@ public class User extends AbstractAuditable implements Serializable {
     private String lastName;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(name = "activated", nullable = false)
     private boolean activated = false;
 
     @Override

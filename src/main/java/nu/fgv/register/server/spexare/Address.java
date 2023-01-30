@@ -2,42 +2,26 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.tag.Tag;
-import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.type.Type;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "address")
@@ -85,9 +69,11 @@ public class Address extends AbstractAuditable implements Serializable {
     private String emailAddress;
 
     @NotNull(message = "{address.type.notEmpty}")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AddressType type;
+    @ManyToOne(optional = false)
+    private Type type;
+
+    @ManyToOne
+    private Spexare spexare;
 
     @Override
     public boolean equals(final Object o) {

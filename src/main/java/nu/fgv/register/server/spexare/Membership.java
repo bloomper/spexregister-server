@@ -1,26 +1,25 @@
 package nu.fgv.register.server.spexare;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.type.Type;
+import nu.fgv.register.server.util.AbstractAuditable;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -44,13 +43,12 @@ public class Membership extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{membership.year.notEmpty}")
     @Size(max = 4, message = "{membership.year.maxSize}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
-    @Column(length = 4, nullable = false)
+    @Column(name = "year", length = 4, nullable = false)
     private String year;
 
     @NotNull(message = "{membership.type.notEmpty}")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MembershipType type;
+    @ManyToOne(optional = false)
+    private Type type;
 
     @ManyToOne
     private Spexare spexare;

@@ -45,12 +45,12 @@ public class News extends AbstractAuditable implements Serializable {
 
     @NotBlank(message = "{news.subject.notEmpty}")
     @Size(max = 255, message = "{news.subject.size}")
-    @Column(nullable = false)
+    @Column(name = "subject", nullable = false)
     private String subject;
 
     @NotBlank(message = "{news.text.notEmpty}")
     @Lob
-    @Column(nullable = false)
+    @Column(name = "text", nullable = false)
     private String text;
 
     private Boolean published;
