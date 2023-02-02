@@ -65,7 +65,7 @@ public class TaskApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String contentType, final Locale locale) {
+    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         try {
             final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
             return ResponseEntity.ok()
@@ -81,14 +81,14 @@ public class TaskApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> create(@Valid @RequestBody TaskCreateDto dto) {
+    public ResponseEntity<EntityModel<TaskDto>> create(@Valid @RequestBody final TaskCreateDto dto) {
         final TaskDto newDto = service.create(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
@@ -97,7 +97,7 @@ public class TaskApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable Long id, @Valid @RequestBody TaskUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable final Long id, @Valid @RequestBody final TaskUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -119,7 +119,7 @@ public class TaskApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
@@ -130,7 +130,7 @@ public class TaskApi {
     }
 
     @PutMapping(value = "/{id}/task-category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable Long id, @PathVariable final Long categoryId) {
+    public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long id, @PathVariable final Long categoryId) {
         return service
                 .updateCategory(id, categoryId)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
@@ -138,7 +138,7 @@ public class TaskApi {
     }
 
     @DeleteMapping(value = "/{id}/task-category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> removeCategory(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<TaskDto>> removeCategory(@PathVariable final Long id) {
         return service
                 .removeCategory(id)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))

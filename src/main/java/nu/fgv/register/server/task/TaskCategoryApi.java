@@ -69,7 +69,7 @@ public class TaskCategoryApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) String contentType, final Locale locale) {
+    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         try {
             final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
             return ResponseEntity.ok()
@@ -85,14 +85,14 @@ public class TaskCategoryApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskCategoryDto>> create(@Valid @RequestBody TaskCategoryCreateDto dto) {
+    public ResponseEntity<EntityModel<TaskCategoryDto>> create(@Valid @RequestBody final TaskCategoryCreateDto dto) {
         final TaskCategoryDto newDto = service.create(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieve(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
@@ -105,7 +105,7 @@ public class TaskCategoryApi {
                     Constants.MediaTypes.APPLICATION_XLSX_VALUE,
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, final Locale locale) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale) {
         try {
             final ImportResultDto result = importService.doImport(file, contentType, locale);
             return ResponseEntity
@@ -120,7 +120,7 @@ public class TaskCategoryApi {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") MultipartFile file, final Locale locale) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale);
         } catch (final IOException e) {
@@ -132,7 +132,7 @@ public class TaskCategoryApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskCategoryDto>> update(@PathVariable Long id, @Valid @RequestBody TaskCategoryUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskCategoryDto>> update(@PathVariable final Long id, @Valid @RequestBody final TaskCategoryUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -143,7 +143,7 @@ public class TaskCategoryApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskCategoryDto>> partialUpdate(@PathVariable Long id, @RequestBody TaskCategoryUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskCategoryDto>> partialUpdate(@PathVariable final Long id, @RequestBody final TaskCategoryUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -154,7 +154,7 @@ public class TaskCategoryApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
