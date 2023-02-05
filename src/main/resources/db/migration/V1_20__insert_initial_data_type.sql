@@ -14,3 +14,5 @@ INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('S1', 'VO
 INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('S2', 'VOCAL', '{ "en": "S2", "sv": "S2" }', 'system', CURRENT_DATE());
 INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('A1', 'VOCAL', '{ "en": "A1", "sv": "A1" }', 'system', CURRENT_DATE());
 INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('A2', 'VOCAL', '{ "en": "A2", "sv": "A2" }', 'system', CURRENT_DATE());
+INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('CHALMERS_STUDENT', 'TOGGLE', '{ "en": "Student at Chalmers", "sv": "Chalmersstudent" }', 'system', CURRENT_DATE());
+INSERT INTO type (value, type, labels, created_by, created_at) VALUES ('DECEASED', 'TOGGLE', '{ "en": "Deceased", "sv": "Avliden" }', 'system', CURRENT_DATE());

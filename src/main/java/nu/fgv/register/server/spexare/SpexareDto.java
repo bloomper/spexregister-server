@@ -42,17 +42,11 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     @JsonProperty("socialSecurityNumber")
     private String socialSecurityNumber;
 
-    @JsonProperty("chalmersStudent")
-    private Boolean chalmersStudent;
-
     @JsonProperty("graduation")
     private String graduation;
 
     @JsonProperty("comment")
     private String comment;
-
-    @JsonProperty("deceased")
-    private Boolean deceased;
 
     @JsonProperty("image")
     private String image;
@@ -65,10 +59,8 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
             final String nickName,
             final LocalDate birthDate,
             final String socialSecurityNumber,
-            final Boolean chalmersStudent,
             final String graduation,
             final String comment,
-            final boolean deceased,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -81,9 +73,7 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
         this.nickName = nickName;
         this.birthDate = birthDate;
         this.socialSecurityNumber = socialSecurityNumber;
-        this.chalmersStudent = chalmersStudent;
         this.graduation = graduation;
         this.comment = comment;
-        this.deceased = deceased;
     }
 }

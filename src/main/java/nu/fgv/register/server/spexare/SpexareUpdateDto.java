@@ -51,17 +51,11 @@ public class SpexareUpdateDto {
     @JsonProperty("socialSecurityNumber")
     private String socialSecurityNumber;
 
-    @JsonProperty("chalmersStudent")
-    private Boolean chalmersStudent;
-
     @Size(max = 255, message = "{spexare.graduation.size}")
     @JsonProperty("graduation")
     private String graduation;
 
     @JsonProperty("comment")
     private String comment;
-
-    @JsonProperty("deceased")
-    private Boolean deceased;
 
 }

@@ -73,9 +73,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "social_security_number", length = 4)
     private String socialSecurityNumber;
 
-    @Column(name = "chalmers_student")
-    private Boolean chalmersStudent;
-
     @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")
     private String graduation;
@@ -83,9 +80,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Lob
     @Column(name = "comment")
     private String comment;
-
-    @Column(name = "deceased")
-    private Boolean deceased;
 
     @Lob
     @Column(name = "image")
@@ -124,6 +118,11 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Consent> consents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @ToString.Exclude
+    private List<Toggle> toggles = new ArrayList<>();
 
     @OneToOne(mappedBy = "spexare")
     private UserDetails userDetails;
