@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,7 +39,7 @@ public class TaskActivity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "taskActivity")
+    @OneToMany(mappedBy = "taskActivity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private Set<Actor> actors = new HashSet<>();

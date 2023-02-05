@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -88,7 +89,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "image_content_type")
     private String imageContentType;
 
-    @OneToMany(mappedBy = "spexare")
+    @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private Set<Activity> activities = new HashSet<>();
@@ -104,17 +105,17 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @ToString.Exclude
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "spexare")
+    @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Address> addresses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "spexare")
+    @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Membership> memberships = new ArrayList<>();
 
-    @OneToMany(mappedBy = "spexare")
+    @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Consent> consents = new ArrayList<>();
