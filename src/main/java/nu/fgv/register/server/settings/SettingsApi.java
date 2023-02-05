@@ -25,9 +25,10 @@ public class SettingsApi {
 
     private final CountryService countryService;
 
+    private final TypeService typeService;
+
     @GetMapping("/language")
     public ResponseEntity<CollectionModel<EntityModel<LanguageDto>>> retrieveLanguages() {
-
         final List<EntityModel<LanguageDto>> languages = languageService.findAll().stream()
                 .map(language -> EntityModel.of(language,
                         linkTo(methodOn(SettingsApi.class).retrieveLanguage(language.getIsoCode())).withSelfRel(),
@@ -68,6 +69,42 @@ public class SettingsApi {
                 .map(country -> EntityModel.of(country,
                         linkTo(methodOn(SettingsApi.class).retrieveCountry(country.getIsoCode())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveCountries()).withRel("countries")))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/type")
+    public ResponseEntity<CollectionModel<EntityModel<TypeDto>>> retrieveTypes() {
+        final List<EntityModel<TypeDto>> types = typeService.findAll().stream()
+                .map(type -> EntityModel.of(type,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type.getId())).withSelfRel(),
+                        linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(types,
+                        linkTo(methodOn(SettingsApi.class).retrieveTypes()).withSelfRel()));
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<CollectionModel<EntityModel<TypeDto>>> retrieveTypes(@PathVariable final TypeType type) {
+        final List<EntityModel<TypeDto>> types = typeService.findByType(type).stream()
+                .map(_type -> EntityModel.of(_type,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(_type.getId())).withSelfRel(),
+                        linkTo(methodOn(SettingsApi.class).retrieveTypes(type)).withRel("types")))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(types,
+                        linkTo(methodOn(SettingsApi.class).retrieveTypes(type)).withSelfRel()));
+    }
+
+    @GetMapping("/type/{type}/{id}")
+    public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final Long id) {
+        return typeService.findById(id)
+                .map(type -> EntityModel.of(type,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type.getId())).withSelfRel(),
+                        linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

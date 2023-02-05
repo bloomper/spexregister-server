@@ -6,7 +6,6 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.apache.http.HttpHeaders;
-import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
-    private final EasyRandom random;
     @LocalServerPort
     private int localPort;
 
@@ -38,7 +36,6 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
     public SettingsApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
-        random = new EasyRandom(parameters);
     }
 
     @BeforeAll
@@ -241,6 +238,128 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
             .when()
                 .get("/country/{isoCode}", "123")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+    }
+
+    @Nested
+    @DisplayName("Retrieve type(s)")
+    class RetrieveTypeTests {
+
+        @Test
+        public void should_return_many() {
+            //@formatter:off
+            final List<TypeDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/type")
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.types", TypeDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(16);
+        }
+
+        @Test
+        public void should_return_many_of_type() {
+            //@formatter:off
+            final List<TypeDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/type/{type}", TypeType.ADDRESS)
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.types", TypeDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(3);
+        }
+
+        @Test
+        public void should_return_400_when_unknown_type() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/type/{type}", "whatever")
+            .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_found() {
+            //@formatter:off
+            final TypeDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(TypeDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "value", "label", "type")
+                    .contains(1L, "HOME", "Hem", TypeType.ADDRESS);
+        }
+
+        @Test
+        public void should_return_found_in_sv() {
+            //@formatter:off
+            final TypeDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                        .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
+                    .when()
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(TypeDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "value", "label", "type")
+                    .contains(1L, "HOME", "Hem", TypeType.ADDRESS);
+        }
+
+        @Test
+        public void should_return_found_in_en() {
+            //@formatter:off
+            final TypeDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                        .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                    .when()
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(TypeDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "value", "label", "type")
+                    .contains(1L, "HOME", "Home", TypeType.ADDRESS);
+        }
+
+        @Test
+        public void should_return_404_when_not_found() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/type/{type}/{id}", TypeType.ADDRESS, 123)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

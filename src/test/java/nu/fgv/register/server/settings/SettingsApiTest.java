@@ -38,6 +38,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(value = SettingsApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 public class SettingsApiTest extends AbstractApiTest {
 
@@ -46,6 +47,9 @@ public class SettingsApiTest extends AbstractApiTest {
 
     @MockBean
     private CountryService countryService;
+
+    @MockBean
+    private TypeService typeService;
 
     private final ResponseFieldsSnippet languageResponseFields = responseFields(
             fieldWithPath("isoCode").description("The ISO code of the language"),
@@ -65,6 +69,18 @@ public class SettingsApiTest extends AbstractApiTest {
 
     private final LinksSnippet countryLinks = baseLinks.and(
             linkWithRel("countries").description("Link to all countries")
+    );
+
+    private final ResponseFieldsSnippet typeResponseFields = auditResponseFields.and(
+            fieldWithPath("id").description("The id of the type"),
+            fieldWithPath("value").description("The value of the type"),
+            fieldWithPath("type").description("The type of the type"),
+            fieldWithPath("label").description("The label of the type"),
+            linksSubsection
+    );
+
+    private final LinksSnippet typeLinks = baseLinks.and(
+            linkWithRel("types").description("Link to all types")
     );
 
     protected final RequestHeadersSnippet requestHeaders = requestHeaders(
@@ -203,4 +219,107 @@ public class SettingsApiTest extends AbstractApiTest {
         }
     }
 
+    @Nested
+    @DisplayName("Type")
+    class TypeApiTest {
+        @Test
+        public void should_get_types() throws Exception {
+            var type1 = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            var type2 = TypeDto.builder().id(2L).value("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+
+            when(typeService.findAll()).thenReturn((List.of(type1, type2)));
+
+            mockMvc
+                    .perform(
+                            get("/api/v1/settings/type")
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("_embedded.types", hasSize(2)))
+                    .andDo(print())
+                    .andDo(
+                            document(
+                                    "settings/type-get-all",
+                                    preprocessRequest(prettyPrint()),
+                                    preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                    responseFields(
+                                            subsectionWithPath("_embedded").description("The embedded section"),
+                                            subsectionWithPath("_embedded.types[]").description("The elements"),
+                                            fieldWithPath("_embedded.types[].id").description("The id of the type"),
+                                            fieldWithPath("_embedded.types[].value").description("The value of the type"),
+                                            fieldWithPath("_embedded.types[].type").description("The type of the type"),
+                                            fieldWithPath("_embedded.types[].label").description("The label of the type"),
+                                            subsectionWithPath("_embedded.types[]._links").description("The type links"),
+                                            linksSubsection
+                                    ),
+                                    requestHeaders,
+                                    responseHeaders
+                            )
+                    );
+        }
+
+        @Test
+        public void should_get_types_of_type() throws Exception {
+            var type1 = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            var type2 = TypeDto.builder().id(2L).value("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+
+            when(typeService.findByType(any(TypeType.class))).thenReturn((List.of(type1, type2)));
+
+            mockMvc
+                    .perform(
+                            get("/api/v1/settings/type/{type}", TypeType.ADDRESS)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("_embedded.types", hasSize(2)))
+                    .andDo(print())
+                    .andDo(
+                            document(
+                                    "settings/type-get-all-of-type",
+                                    preprocessRequest(prettyPrint()),
+                                    preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                    responseFields(
+                                            subsectionWithPath("_embedded").description("The embedded section"),
+                                            subsectionWithPath("_embedded.types[]").description("The elements"),
+                                            fieldWithPath("_embedded.types[].id").description("The id of the type"),
+                                            fieldWithPath("_embedded.types[].value").description("The value of the type"),
+                                            fieldWithPath("_embedded.types[].type").description("The type of the type"),
+                                            fieldWithPath("_embedded.types[].label").description("The label of the type"),
+                                            subsectionWithPath("_embedded.types[]._links").description("The type links"),
+                                            linksSubsection
+                                    ),
+                                    requestHeaders,
+                                    responseHeaders
+                            )
+                    );
+        }
+
+        @Test
+        public void should_get_type() throws Exception {
+            var type = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
+
+            when(typeService.findById(any(Long.class))).thenReturn(Optional.of(type));
+
+            mockMvc
+                    .perform(
+                            RestDocumentationRequestBuilders.get("/api/v1/settings/type/{type}/{id}", TypeType.ADDRESS, 1L)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("id", is(notNullValue())))
+                    .andDo(print())
+                    .andDo(
+                            document(
+                                    "settings/type-get",
+                                    preprocessRequest(prettyPrint()),
+                                    preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                    pathParameters(
+                                            parameterWithName("id").description("The id of the type"),
+                                            parameterWithName("type").description("The type of the type")
+                                    ),
+                                    typeResponseFields,
+                                    typeLinks,
+                                    requestHeaders,
+                                    responseHeaders
+                            )
+                    );
+        }
+    }
 }

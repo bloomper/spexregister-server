@@ -2,7 +2,7 @@ package nu.fgv.register.server.settings;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import nu.fgv.register.server.config.SpexregisterConfig;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,12 @@ import java.util.stream.Collectors;
 @Service
 public class LanguageService {
 
-    @Value("${spexregister.languages}}")
-    private List<String> languages;
+    private final SpexregisterConfig spexregisterConfig;
 
     private final MessageSource messageSource;
 
     public List<LanguageDto> findAll() {
-        return languages
+        return spexregisterConfig.getLanguages()
                 .stream()
                 .map(this::mapDto)
                 .sorted(Comparator.comparing(LanguageDto::getLabel))
@@ -31,7 +30,7 @@ public class LanguageService {
     }
 
     public Optional<LanguageDto> findByIsoCode(final String isoCode) {
-        return languages
+        return spexregisterConfig.getLanguages()
                 .stream()
                 .filter(l -> l.equals(isoCode))
                 .map(this::mapDto)

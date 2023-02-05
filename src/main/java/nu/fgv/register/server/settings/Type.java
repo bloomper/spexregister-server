@@ -1,4 +1,4 @@
-package nu.fgv.register.server.type;
+package nu.fgv.register.server.settings;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;

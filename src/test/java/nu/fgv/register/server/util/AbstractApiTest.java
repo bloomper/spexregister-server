@@ -1,9 +1,11 @@
 package nu.fgv.register.server.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nu.fgv.register.server.config.SpexregisterConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.RestDocumentationContextProvider;
@@ -35,6 +37,7 @@ import static org.springframework.util.StringUtils.collectionToDelimitedString;
 
 @AutoConfigureRestDocs(outputDir = "build/generated-snippets")
 @ExtendWith(RestDocumentationExtension.class)
+@EnableConfigurationProperties(value = SpexregisterConfig.class)
 public abstract class AbstractApiTest {
 
     protected final LinksSnippet baseLinks = links(
