@@ -68,37 +68,37 @@ public class NewsApiTest extends AbstractApiTest {
 
         when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("publicationDate")), 10));
 
-        this.mockMvc
-                .perform(
-                        get("/api/v1/news?page=1&size=2&sort=publicationDate,desc")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.news", hasSize(2)))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "news/get-paged",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pageLinks.and(
-                                        subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.news[]").description("The elements"),
-                                        fieldWithPath("_embedded.news[].id").description("The id of the news"),
-                                        fieldWithPath("_embedded.news[].subject").description("The subject of the news"),
-                                        fieldWithPath("_embedded.news[].text").description("The text of the news"),
-                                        fieldWithPath("_embedded.news[].publicationDate").description("The publication date of the news"),
-                                        fieldWithPath("_embedded.news[].createdBy").description("Who created the news"),
-                                        fieldWithPath("_embedded.news[].createdAt").description("When was the news created"),
-                                        fieldWithPath("_embedded.news[].lastModifiedBy").description("Who last modified the news"),
-                                        fieldWithPath("_embedded.news[].lastModifiedAt").description("When was the news last modified"),
-                                        subsectionWithPath("_embedded.news[]._links").description("The news links"),
-                                        linksSubsection
-                                ),
-                                pagingLinks,
-                                pagingQueryParameters,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    get("/api/v1/news?page=1&size=2&sort=publicationDate,desc")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("_embedded.news", hasSize(2)))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "news/get-paged",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pageLinks.and(
+                                    subsectionWithPath("_embedded").description("The embedded section"),
+                                    subsectionWithPath("_embedded.news[]").description("The elements"),
+                                    fieldWithPath("_embedded.news[].id").description("The id of the news"),
+                                    fieldWithPath("_embedded.news[].subject").description("The subject of the news"),
+                                    fieldWithPath("_embedded.news[].text").description("The text of the news"),
+                                    fieldWithPath("_embedded.news[].publicationDate").description("The publication date of the news"),
+                                    fieldWithPath("_embedded.news[].createdBy").description("Who created the news"),
+                                    fieldWithPath("_embedded.news[].createdAt").description("When was the news created"),
+                                    fieldWithPath("_embedded.news[].lastModifiedBy").description("Who last modified the news"),
+                                    fieldWithPath("_embedded.news[].lastModifiedAt").description("When was the news last modified"),
+                                    subsectionWithPath("_embedded.news[]._links").description("The news links"),
+                                    linksSubsection
+                            ),
+                            pagingLinks,
+                            pagingQueryParameters,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -108,28 +108,28 @@ public class NewsApiTest extends AbstractApiTest {
 
         when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.getSubject()).text(dto.getText()).publicationDate(dto.getPublicationDate()).build());
 
-        this.mockMvc
-                .perform(
-                        post("/api/v1/news")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "news/create",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                requestFields(
-                                        fields.withPath("subject").description("The subject of the news"),
-                                        fields.withPath("text").description("The text of the news"),
-                                        fields.withPath("publicationDate").description("The publication date of the news")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    post("/api/v1/news")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(document(
+                            "news/create",
+                            preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            requestFields(
+                                    fields.withPath("subject").description("The subject of the news"),
+                                    fields.withPath("text").description("The text of the news"),
+                                    fields.withPath("publicationDate").description("The publication date of the news")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -138,26 +138,26 @@ public class NewsApiTest extends AbstractApiTest {
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
 
-        this.mockMvc
-                .perform(
-                        RestDocumentationRequestBuilders.get("/api/v1/news/{id}", 1)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "news/get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the news")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    RestDocumentationRequestBuilders.get("/api/v1/news/{id}", 1)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "news/get",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the news")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -168,34 +168,34 @@ public class NewsApiTest extends AbstractApiTest {
 
         when(service.update(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
-        this.mockMvc
-                .perform(
-                        put("/api/v1/news/{id}", 1)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "news/update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the news")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the news"),
-                                        fields.withPath("subject").description("The subject of the news"),
-                                        fields.withPath("text").description("The text of the news"),
-                                        fields.withPath("publicationDate").description("The publication date of the news")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    put("/api/v1/news/{id}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "news/update",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the news")
+                            ),
+                            requestFields(
+                                    fields.withPath("id").description("The id of the news"),
+                                    fields.withPath("subject").description("The subject of the news"),
+                                    fields.withPath("text").description("The text of the news"),
+                                    fields.withPath("publicationDate").description("The publication date of the news")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -206,34 +206,34 @@ public class NewsApiTest extends AbstractApiTest {
 
         when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
-        this.mockMvc
-                .perform(
-                        patch("/api/v1/news/{id}", 1)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "news/partial-update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the news")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the news"),
-                                        fields.withPath("subject").description("The subject of the news").optional(),
-                                        fields.withPath("text").description("The text of the news").optional(),
-                                        fields.withPath("publicationDate").description("The publication date of the news").optional()
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    patch("/api/v1/news/{id}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "news/partial-update",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the news")
+                            ),
+                            requestFields(
+                                    fields.withPath("id").description("The id of the news"),
+                                    fields.withPath("subject").description("The subject of the news").optional(),
+                                    fields.withPath("text").description("The text of the news").optional(),
+                                    fields.withPath("publicationDate").description("The publication date of the news").optional()
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -243,22 +243,22 @@ public class NewsApiTest extends AbstractApiTest {
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
         doNothing().when(service).deleteById(any(Long.class));
 
-        this.mockMvc
-                .perform(
-                        delete("/api/v1/news/{id}", 1)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "news/delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the news")
-                                )
-                        )
-                );
+        mockMvc
+            .perform(
+                    delete("/api/v1/news/{id}", 1)
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print())
+            .andDo(
+                    document(
+                            "news/delete",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the news")
+                            )
+                    )
+            );
     }
 
 }

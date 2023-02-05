@@ -87,37 +87,37 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(category1, category2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
-        this.mockMvc
-                .perform(
-                        get("/api/v1/spex-categories?page=1&size=2&sort=name,asc")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.spexCategories", hasSize(2)))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/get-paged",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pageLinks.and(
-                                        subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.spexCategories[]").description("The elements"),
-                                        fieldWithPath("_embedded.spexCategories[].id").description("The id of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].name").description("The name of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].firstYear").description("The first year of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].logo").description("The logo of the spex category").optional(),
-                                        fieldWithPath("_embedded.spexCategories[].createdBy").description("Who created the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].createdAt").description("When was the spex category created"),
-                                        fieldWithPath("_embedded.spexCategories[].lastModifiedBy").description("Who last modified the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].lastModifiedAt").description("When was the spex category last modified"),
-                                        subsectionWithPath("_embedded.spexCategories[]._links").description("The spex category links"),
-                                        linksSubsection
-                                ),
-                                pagingLinks,
-                                pagingQueryParameters,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    get("/api/v1/spex-categories?page=1&size=2&sort=name,asc")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("_embedded.spexCategories", hasSize(2)))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/get-paged",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pageLinks.and(
+                                    subsectionWithPath("_embedded").description("The embedded section"),
+                                    subsectionWithPath("_embedded.spexCategories[]").description("The elements"),
+                                    fieldWithPath("_embedded.spexCategories[].id").description("The id of the spex category"),
+                                    fieldWithPath("_embedded.spexCategories[].name").description("The name of the spex category"),
+                                    fieldWithPath("_embedded.spexCategories[].firstYear").description("The first year of the spex category"),
+                                    fieldWithPath("_embedded.spexCategories[].logo").description("The logo of the spex category").optional(),
+                                    fieldWithPath("_embedded.spexCategories[].createdBy").description("Who created the spex category"),
+                                    fieldWithPath("_embedded.spexCategories[].createdAt").description("When was the spex category created"),
+                                    fieldWithPath("_embedded.spexCategories[].lastModifiedBy").description("Who last modified the spex category"),
+                                    fieldWithPath("_embedded.spexCategories[].lastModifiedAt").description("When was the spex category last modified"),
+                                    subsectionWithPath("_embedded.spexCategories[]._links").description("The spex category links"),
+                                    linksSubsection
+                            ),
+                            pagingLinks,
+                            pagingQueryParameters,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -126,32 +126,32 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
-        this.mockMvc
-                .perform(
-                        get("/api/v1/spex-categories?ids=1,2,3")
-                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
-                )
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/get-export",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                pathParameters(
-                                        parameterWithName("ids").description("The ids of the spex categories to export").optional()
-                                ),
-                                requestHeaders(
-                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
-                                ),
-                                responseHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                ),
-                                responseBody()
-                        )
-                );
+        mockMvc
+            .perform(
+                    get("/api/v1/spex-categories?ids=1,2,3")
+                            .accept(Constants.MediaTypes.APPLICATION_XLSX)
+            )
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/get-export",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint()),
+                            pathParameters(
+                                    parameterWithName("ids").description("The ids of the spex categories to export").optional()
+                            ),
+                            requestHeaders(
+                                    headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                            ),
+                            responseHeaders.and(
+                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                    headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                            ),
+                            responseBody()
+                    )
+            );
     }
 
     @Test
@@ -161,27 +161,27 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(service.create(any(SpexCategoryCreateDto.class))).thenReturn(SpexCategoryDto.builder().id(1L).firstYear(dto.getFirstYear()).name(dto.getName()).build());
 
-        this.mockMvc
-                .perform(
-                        post("/api/v1/spex-categories")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "spex-categories/create",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                requestFields(
-                                        fields.withPath("name").description("The name of the spex category"),
-                                        fields.withPath("firstYear").description("The first year of the spex category")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    post("/api/v1/spex-categories")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(document(
+                            "spex-categories/create",
+                            preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            requestFields(
+                                    fields.withPath("name").description("The name of the spex category"),
+                                    fields.withPath("firstYear").description("The first year of the spex category")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -190,26 +190,26 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        get("/api/v1/spex-categories/{id}", 1)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    get("/api/v1/spex-categories/{id}", 1)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/get",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -220,33 +220,33 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(service.update(any(SpexCategoryUpdateDto.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        put("/api/v1/spex-categories/{id}", 1)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the spex category"),
-                                        fields.withPath("name").description("The name of the spex category"),
-                                        fields.withPath("firstYear").description("The first year of the spex category")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    put("/api/v1/spex-categories/{id}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/update",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            requestFields(
+                                    fields.withPath("id").description("The id of the spex category"),
+                                    fields.withPath("name").description("The name of the spex category"),
+                                    fields.withPath("firstYear").description("The first year of the spex category")
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -257,33 +257,33 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         when(service.partialUpdate(any(SpexCategoryUpdateDto.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        patch("/api/v1/spex-categories/{id}", 1)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/partial-update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the spex category"),
-                                        fields.withPath("name").description("The name of the spex category").optional(),
-                                        fields.withPath("firstYear").description("The first year of the spex category").optional()
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
-                        )
-                );
+        mockMvc
+            .perform(
+                    patch("/api/v1/spex-categories/{id}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(this.objectMapper.writeValueAsString(dto))
+            )
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("id", is(notNullValue())))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/partial-update",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            requestFields(
+                                    fields.withPath("id").description("The id of the spex category"),
+                                    fields.withPath("name").description("The name of the spex category").optional(),
+                                    fields.withPath("firstYear").description("The first year of the spex category").optional()
+                            ),
+                            responseFields,
+                            links,
+                            responseHeaders
+                    )
+            );
     }
 
     @Test
@@ -293,22 +293,22 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
         doNothing().when(service).deleteById(any(Long.class));
 
-        this.mockMvc
-                .perform(
-                        delete("/api/v1/spex-categories/{id}", 1)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                )
-                        )
-                );
+        mockMvc
+            .perform(
+                    delete("/api/v1/spex-categories/{id}", 1)
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/delete",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            )
+                    )
+            );
     }
 
     @Test
@@ -316,29 +316,29 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         var logo = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
         when(service.getLogo(any(Long.class))).thenReturn(Optional.of(logo));
 
-        this.mockMvc
-                .perform(
-                        get("/api/v1/spex-categories/{id}/logo", 1)
-                )
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, logo.getSecond()))
-                .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, logo.getFirst().length))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/logo-download",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                responseHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                ),
-                                responseBody()
-                        )
-                );
+        mockMvc
+            .perform(
+                    get("/api/v1/spex-categories/{id}/logo", 1)
+            )
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, logo.getSecond()))
+            .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, logo.getFirst().length))
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/logo-download",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint()),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            responseHeaders.and(
+                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                    headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                            ),
+                            responseBody()
+                    )
+            );
     }
 
     @Test
@@ -347,28 +347,28 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        put("/api/v1/spex-categories/{id}/logo", 1)
-                                .contentType(MediaType.IMAGE_PNG)
-                                .content(logo)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/logo-upload",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                requestHeaders(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
-                                ),
-                                requestBody()
-                        )
-                );
+        mockMvc
+            .perform(
+                    put("/api/v1/spex-categories/{id}/logo", 1)
+                            .contentType(MediaType.IMAGE_PNG)
+                            .content(logo)
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/logo-upload",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            requestHeaders(
+                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
+                            ),
+                            requestBody()
+                    )
+            );
     }
 
     @Test
@@ -377,26 +377,26 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        multipart("/api/v1/spex-categories/{id}/logo", 1)
-                                .file(logo)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/logo-upload-multipart",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                requestParts(
-                                        partWithName("file").description("The logo to upload")
-                                )
-                        )
-                );
+        mockMvc
+            .perform(
+                    multipart("/api/v1/spex-categories/{id}/logo", 1)
+                            .file(logo)
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/logo-upload-multipart",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            ),
+                            requestParts(
+                                    partWithName("file").description("The logo to upload")
+                            )
+                    )
+            );
     }
 
     @Test
@@ -404,21 +404,21 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         when(service.removeLogo(any(Long.class))).thenReturn(Optional.of(category));
 
-        this.mockMvc
-                .perform(
-                        delete("/api/v1/spex-categories/{id}/logo", 1)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-categories/logo-delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
-                                )
-                        )
-                );
+        mockMvc
+            .perform(
+                    delete("/api/v1/spex-categories/{id}/logo", 1)
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print())
+            .andDo(
+                    document(
+                            "spex-categories/logo-delete",
+                            preprocessRequest(prettyPrint()),
+                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                            pathParameters(
+                                    parameterWithName("id").description("The id of the spex category")
+                            )
+                    )
+            );
     }
 }
