@@ -397,6 +397,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);
+            assertThat(categoryRepository.count()).isEqualTo(1);
         }
 
         @Test
