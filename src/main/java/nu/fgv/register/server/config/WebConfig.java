@@ -1,5 +1,6 @@
 package nu.fgv.register.server.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,10 +11,22 @@ import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${spexregister.default-language}")
+    private String defaultLanguage;
+
+    @Value("${spexregister.languages}}")
+    private List<String> languages;
 
     @Bean
     public ShallowEtagHeaderFilter shallowEtagHeaderFilter() {
@@ -48,4 +61,13 @@ public class WebConfig implements WebMvcConfigurer {
         registrar.setUseIsoFormat(true);
         registrar.registerFormatters(registry);
     }
+
+    @Bean
+    public LocaleResolver localeResolver() {
+        final AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
+        resolver.setSupportedLocales(languages.stream().map(Locale::new).collect(Collectors.toList()));
+        resolver.setDefaultLocale(new Locale(defaultLanguage));
+        return resolver;
+    }
+
 }

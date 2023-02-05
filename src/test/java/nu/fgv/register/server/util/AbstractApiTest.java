@@ -39,8 +39,7 @@ public abstract class AbstractApiTest {
 
     protected final LinksSnippet baseLinks = links(
             halLinks(),
-            linkWithRel("self").description("Link to the current entity"),
-            linkWithRel("logo").description("Link to the current entity's logo").optional()
+            linkWithRel("self").description("Link to the current entity")
     );
 
     protected final LinksSnippet pagingLinks = links(
