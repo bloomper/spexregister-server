@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS address
     city                   VARCHAR(255)          NULL,
     country                VARCHAR(255)          NULL,
     phone                  VARCHAR(255)          NULL,
-    mobile_phone           VARCHAR(255)          NULL,
+    phone_mobile           VARCHAR(255)          NULL,
     email_address          VARCHAR(255)          NULL,
     type_id                BIGINT                NOT NULL,
     spexare_id             BIGINT                NULL,
