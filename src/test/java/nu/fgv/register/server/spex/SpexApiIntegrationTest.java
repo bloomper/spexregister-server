@@ -436,7 +436,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Poster")
-    class LogoTests {
+    class PosterTests {
 
         @Test
         public void should_update_poster() throws Exception {
