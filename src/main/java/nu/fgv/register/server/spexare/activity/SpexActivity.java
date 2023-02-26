@@ -1,22 +1,17 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.activity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.settings.Type;
-import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.spex.Spex;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -25,13 +20,13 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "membership")
+@Table(name = "spex_activity")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Membership extends AbstractAuditable implements Serializable {
+public class SpexActivity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -40,18 +35,13 @@ public class Membership extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{membership.year.notEmpty}")
-    @Size(max = 4, message = "{membership.year.maxSize}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
-    @Column(name = "year", length = 4, nullable = false)
-    private String year;
-
-    @NotNull(message = "{membership.type.notEmpty}")
     @ManyToOne(optional = false)
-    private Type type;
+    @NotNull
+    private Activity activity;
 
-    @ManyToOne
-    private Spexare spexare;
+    @ManyToOne(optional = false)
+    @NotNull
+    private Spex spex;
 
     @Override
     public boolean equals(final Object o) {
@@ -61,15 +51,16 @@ public class Membership extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Membership membership = (Membership) o;
-        if (membership.getId() == null || getId() == null) {
+        final SpexActivity spexActivity = (SpexActivity) o;
+        if (spexActivity.getId() == null || getId() == null) {
             return false;
         }
-        return Objects.equals(getId(), membership.getId());
+        return Objects.equals(getId(), spexActivity.getId());
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(this.getClass().hashCode());
     }
+
 }

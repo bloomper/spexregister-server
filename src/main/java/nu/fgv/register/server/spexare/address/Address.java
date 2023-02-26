@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.address;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;

@@ -1,14 +1,6 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.activity;
 
 import jakarta.persistence.CascadeType;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.util.AbstractAuditable;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashSet;

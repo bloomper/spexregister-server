@@ -5,8 +5,11 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TypeRepository extends JpaRepository<Type, Long>, QuerydslPredicateExecutor<Type> {
     List<Type> findByType(TypeType type);
+
+    Optional<Type> findByTypeAndValue(TypeType type, String value);
 }

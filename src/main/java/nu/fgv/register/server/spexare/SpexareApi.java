@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -189,6 +190,9 @@ public class SpexareApi {
             final Link imageLink = linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image");
             links.add(imageLink);
         }
+        final Link membershipsLink = linkTo(methodOn(MembershipApi.class).retrieveMemberships(dto.getId(), null)).withRel("memberships");
+        links.add(membershipsLink);
+
         return links;
     }
 

@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.membership;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,12 +7,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -22,13 +26,13 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "toggle")
+@Table(name = "membership")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Toggle extends AbstractAuditable implements Serializable {
+public class Membership extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -37,11 +41,13 @@ public class Toggle extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "{toggle.value.notEmpty}")
-    @Column(name = "value", nullable = false)
-    private Boolean value;
+    @NotBlank(message = "{membership.year.notEmpty}")
+    @Size(max = 4, message = "{membership.year.maxSize}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
+    @Column(name = "year", length = 4, nullable = false)
+    private String year;
 
-    @NotNull(message = "{toggle.type.notEmpty}")
+    @NotNull(message = "{membership.type.notEmpty}")
     @ManyToOne(optional = false)
     private Type type;
 
@@ -56,7 +62,7 @@ public class Toggle extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Toggle membership = (Toggle) o;
+        final Membership membership = (Membership) o;
         if (membership.getId() == null || getId() == null) {
             return false;
         }

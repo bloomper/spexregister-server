@@ -10,11 +10,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.headers.RequestHeadersSnippet;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -72,11 +74,7 @@ public class SettingsApiTest extends AbstractApiTest {
     );
 
     private final ResponseFieldsSnippet typeResponseFields = auditResponseFields.and(
-            fieldWithPath("id").description("The id of the type"),
-            fieldWithPath("value").description("The value of the type"),
-            fieldWithPath("type").description("The type of the type"),
-            fieldWithPath("label").description("The label of the type"),
-            linksSubsection
+            Stream.of(typeResponseFieldDescriptors, List.of(linksSubsection)).flatMap(Collection::stream).collect(Collectors.toList())
     );
 
     private final LinksSnippet typeLinks = baseLinks.and(

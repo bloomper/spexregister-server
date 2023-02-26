@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.List;
+
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.halLinks;
@@ -40,12 +42,12 @@ import static org.springframework.util.StringUtils.collectionToDelimitedString;
 @EnableConfigurationProperties(value = SpexregisterConfig.class)
 public abstract class AbstractApiTest {
 
-    protected final LinksSnippet baseLinks = links(
+    protected static final LinksSnippet baseLinks = links(
             halLinks(),
             linkWithRel("self").description("Link to the current entity")
     );
 
-    protected final LinksSnippet pagingLinks = links(
+    protected static final LinksSnippet pagingLinks = links(
             halLinks(),
             linkWithRel("first").description("Link to the first page"),
             linkWithRel("next").description("Link to the next page"),
@@ -54,7 +56,7 @@ public abstract class AbstractApiTest {
             linkWithRel("self").description("Link to the current page")
     );
 
-    protected final ResponseFieldsSnippet pageLinks = responseFields(
+    protected static final ResponseFieldsSnippet pageLinks = responseFields(
             subsectionWithPath("page").description("Page section"),
             fieldWithPath("page.size").description("The size of one page"),
             fieldWithPath("page.totalElements").description("The total number of elements found"),
@@ -62,24 +64,34 @@ public abstract class AbstractApiTest {
             fieldWithPath("page.number").description("The current page number")
     );
 
-    protected final QueryParametersSnippet pagingQueryParameters = queryParameters(
+    protected static final QueryParametersSnippet pagingQueryParameters = queryParameters(
             parameterWithName("page").description("The page to be requested"),
             parameterWithName("size").description("Parameter determining the size of the requested page"),
             parameterWithName("sort").description("Information about sorting elements")
     );
 
-    protected final ResponseHeadersSnippet responseHeaders = responseHeaders(
+    protected static final ResponseHeadersSnippet responseHeaders = responseHeaders(
             headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header")
     );
 
-    protected final ResponseFieldsSnippet auditResponseFields = responseFields(
+    protected static final List<FieldDescriptor> auditResponseFieldsDescriptors = List.of(
             fieldWithPath("createdBy").description("Who created the entity"),
             fieldWithPath("createdAt").description("When was the entity created"),
             fieldWithPath("lastModifiedBy").description("Who last modified the entity"),
             fieldWithPath("lastModifiedAt").description("When was the entity last modified")
     );
+    protected static final ResponseFieldsSnippet auditResponseFields = responseFields(
+            auditResponseFieldsDescriptors
+    );
 
-    protected final SubsectionDescriptor linksSubsection = (SubsectionDescriptor) subsectionWithPath("_links").description("Links section");
+    protected static final List<FieldDescriptor> typeResponseFieldDescriptors = List.of(
+            fieldWithPath("id").description("The id of the type"),
+            fieldWithPath("value").description("The value of the type"),
+            fieldWithPath("type").description("The type of the type"),
+            fieldWithPath("label").description("The label of the type")
+    );
+
+    protected static final SubsectionDescriptor linksSubsection = (SubsectionDescriptor) subsectionWithPath("_links").description("Links section");
 
     protected MockMvc mockMvc;
 

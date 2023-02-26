@@ -21,6 +21,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.spexare.address.Address;
+import nu.fgv.register.server.spexare.consent.Consent;
+import nu.fgv.register.server.spexare.membership.Membership;
+import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.UserDetails;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -89,13 +94,16 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "image_content_type")
     private String imageContentType;
 
+    @ManyToOne
+    private Spexare spouse;
+
+    @OneToOne(mappedBy = "spexare")
+    private UserDetails userDetails;
+
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private Set<Activity> activities = new HashSet<>();
-
-    @ManyToOne
-    private Spexare spouse;
 
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -124,9 +132,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     private List<Toggle> toggles = new ArrayList<>();
-
-    @OneToOne(mappedBy = "spexare")
-    private UserDetails userDetails;
 
     @Override
     public boolean equals(final Object o) {

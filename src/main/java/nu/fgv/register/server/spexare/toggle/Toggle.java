@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.toggle;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,13 +7,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -23,13 +23,13 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "consent")
+@Table(name = "toggle")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Consent extends AbstractAuditable implements Serializable {
+public class Toggle extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -38,11 +38,11 @@ public class Consent extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{consent.value.notEmpty}")
+    @NotNull(message = "{toggle.value.notEmpty}")
     @Column(name = "value", nullable = false)
     private Boolean value;
 
-    @NotNull(message = "{consent.type.notEmpty}")
+    @NotNull(message = "{toggle.type.notEmpty}")
     @ManyToOne(optional = false)
     private Type type;
 
@@ -57,7 +57,7 @@ public class Consent extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Consent membership = (Consent) o;
+        final Toggle membership = (Toggle) o;
         if (membership.getId() == null || getId() == null) {
             return false;
         }

@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare;
+package nu.fgv.register.server.spexare.activity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
