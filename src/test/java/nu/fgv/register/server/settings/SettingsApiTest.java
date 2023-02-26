@@ -131,7 +131,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            RestDocumentationRequestBuilders.get("/api/v1/settings/language/{isoCode}", "sv")
+                            get("/api/v1/settings/language/{isoCode}", "sv")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
@@ -197,7 +197,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            RestDocumentationRequestBuilders.get("/api/v1/settings/country/{isoCode}", "SE")
+                            get("/api/v1/settings/country/{isoCode}", "SE")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
@@ -300,7 +300,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            RestDocumentationRequestBuilders.get("/api/v1/settings/type/{type}/{id}", TypeType.ADDRESS, 1L)
+                            get("/api/v1/settings/type/{type}/{id}", TypeType.ADDRESS, 1L)
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("id", is(notNullValue())))

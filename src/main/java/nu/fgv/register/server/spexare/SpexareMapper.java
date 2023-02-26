@@ -25,6 +25,20 @@ public interface SpexareMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "birthDate", ignore = true),
+            @Mapping(target = "socialSecurityNumber", ignore = true),
+            @Mapping(target = "graduation", ignore = true),
+            @Mapping(target = "comment", ignore = true),
+            @Mapping(target = "image", ignore = true),
+            @Mapping(target = "imageContentType", ignore = true),
+            @Mapping(target = "spouse", ignore = true),
+            @Mapping(target = "userDetails", ignore = true),
+            @Mapping(target = "activities", ignore = true),
+            @Mapping(target = "tags", ignore = true),
+            @Mapping(target = "addresses", ignore = true),
+            @Mapping(target = "memberships", ignore = true),
+            @Mapping(target = "consents", ignore = true),
+            @Mapping(target = "toggles", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
@@ -33,6 +47,16 @@ public interface SpexareMapper {
     Spexare toModel(SpexareCreateDto dto);
 
     @Mappings({
+            @Mapping(target = "image", ignore = true),
+            @Mapping(target = "imageContentType", ignore = true),
+            @Mapping(target = "spouse", ignore = true),
+            @Mapping(target = "userDetails", ignore = true),
+            @Mapping(target = "activities", ignore = true),
+            @Mapping(target = "tags", ignore = true),
+            @Mapping(target = "addresses", ignore = true),
+            @Mapping(target = "memberships", ignore = true),
+            @Mapping(target = "consents", ignore = true),
+            @Mapping(target = "toggles", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),

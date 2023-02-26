@@ -30,16 +30,20 @@ public class SpexService {
 
     public List<SpexDto> findAll(final Sort sort) {
         return repository
-                .findAllByParentIsNull(sort)
+                .findByParentIsNull(sort)
                 .stream().map(SPEX_MAPPER::toDto)
                 .collect(Collectors.toList());
     }
 
     public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
         if (includeRevivals) {
-            return repository.findAll(pageable).map(SPEX_MAPPER::toDto);
+            return repository
+                    .findAll(pageable)
+                    .map(SPEX_MAPPER::toDto);
         } else {
-            return repository.findAllByParentIsNull(pageable).map(SPEX_MAPPER::toDto);
+            return repository
+                    .findByParentIsNull(pageable)
+                    .map(SPEX_MAPPER::toDto);
         }
     }
 
@@ -131,7 +135,7 @@ public class SpexService {
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {
         return repository
-                .findAllByParentIsNotNull(pageable)
+                .findByParentIsNotNull(pageable)
                 .map(SPEX_MAPPER::toDto);
     }
 

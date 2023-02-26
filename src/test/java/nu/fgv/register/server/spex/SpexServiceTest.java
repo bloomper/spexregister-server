@@ -30,7 +30,7 @@ public class SpexServiceTest {
     @Test
     public void givenNoModels_whenFind_thenReturnEmptyPagedDtos() {
         // given
-        when(repository.findAllByParentIsNull(any(Pageable.class))).thenReturn(Page.empty());
+        when(repository.findByParentIsNull(any(Pageable.class))).thenReturn(Page.empty());
 
         // when
         final Page<SpexDto> page = service.find(false, Pageable.unpaged());

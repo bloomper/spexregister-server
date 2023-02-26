@@ -26,6 +26,7 @@ public interface TaskMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "category", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
@@ -34,6 +35,7 @@ public interface TaskMapper {
     Task toModel(TaskCreateDto dto);
 
     @Mappings({
+            @Mapping(target = "category", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),

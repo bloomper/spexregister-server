@@ -54,7 +54,7 @@ public class SpexRepositoryTest {
         entityManager.flush();
 
         // when
-        final Page<Spex> found = repository.findAllByParentIsNull(Pageable.unpaged());
+        final Page<Spex> found = repository.findByParentIsNull(Pageable.unpaged());
 
         // then
         assertThat(found.getTotalElements(), is(1L));
@@ -90,7 +90,7 @@ public class SpexRepositoryTest {
         entityManager.flush();
 
         // when
-        final Page<Spex> found = repository.findAllByParentIsNotNull(Pageable.unpaged());
+        final Page<Spex> found = repository.findByParentIsNotNull(Pageable.unpaged());
 
         // then
         assertThat(found.getTotalElements(), is(1L));

@@ -15,11 +15,11 @@ import java.util.Optional;
 @Repository
 public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredicateExecutor<Spex> {
 
-    List<Spex> findAllByParentIsNull(Sort sort);
+    List<Spex> findByParentIsNull(Sort sort);
 
-    Page<Spex> findAllByParentIsNull(Pageable pageable);
+    Page<Spex> findByParentIsNull(Pageable pageable);
 
-    Page<Spex> findAllByParentIsNotNull(Pageable pageable);
+    Page<Spex> findByParentIsNotNull(Pageable pageable);
 
     Page<Spex> findRevivalsByParent(Spex parent, Pageable pageable);
 

@@ -94,37 +94,37 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), 10));
 
         mockMvc
-            .perform(
-                    get("/api/v1/spexare?page=1&size=2&sort=firstName,desc")
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/get-paged",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pageLinks.and(
-                                    subsectionWithPath("_embedded").description("The embedded section"),
-                                    subsectionWithPath("_embedded.spexare[]").description("The elements"),
-                                    fieldWithPath("_embedded.spexare[].id").description("The id of the spexare"),
-                                    fieldWithPath("_embedded.spexare[].firstName").description("The first name of the spexare"),
-                                    fieldWithPath("_embedded.spexare[].lastName").description("The last name of the spexare"),
-                                    fieldWithPath("_embedded.spexare[].nickName").description("The nickname of the spexare"),
-                                    fieldWithPath("_embedded.spexare[].image").description("The poster of the spexare"),
-                                    fieldWithPath("_embedded.spexare[].createdBy").description("Who created the spexare"),
-                                    fieldWithPath("_embedded.spexare[].createdAt").description("When was the spexare created"),
-                                    fieldWithPath("_embedded.spexare[].lastModifiedBy").description("Who last modified the spexare"),
-                                    fieldWithPath("_embedded.spexare[].lastModifiedAt").description("When was the spexare last modified"),
-                                    subsectionWithPath("_embedded.spexare[]._links").description("The spexare links"),
-                                    linksSubsection
-                            ),
-                            pagingLinks,
-                            pagingQueryParameters,
-                            responseHeaders
-                    )
-            );
+                .perform(
+                        get("/api/v1/spexare?page=1&size=2&sort=firstName,desc")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/get-paged",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pageLinks.and(
+                                        subsectionWithPath("_embedded").description("The embedded section"),
+                                        subsectionWithPath("_embedded.spexare[]").description("The elements"),
+                                        fieldWithPath("_embedded.spexare[].id").description("The id of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].firstName").description("The first name of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].lastName").description("The last name of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].nickName").description("The nickname of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].image").description("The poster of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].createdBy").description("Who created the spexare"),
+                                        fieldWithPath("_embedded.spexare[].createdAt").description("When was the spexare created"),
+                                        fieldWithPath("_embedded.spexare[].lastModifiedBy").description("Who last modified the spexare"),
+                                        fieldWithPath("_embedded.spexare[].lastModifiedAt").description("When was the spexare last modified"),
+                                        subsectionWithPath("_embedded.spexare[]._links").description("The spexare links"),
+                                        linksSubsection
+                                ),
+                                pagingLinks,
+                                pagingQueryParameters,
+                                responseHeaders
+                        )
+                );
     }
 
     @Test
@@ -134,31 +134,31 @@ public class SpexareApiTest extends AbstractApiTest {
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
         mockMvc
-            .perform(
-                    get("/api/v1/spexare?ids=1,2,3")
-                            .accept(Constants.MediaTypes.APPLICATION_XLSX)
-            )
-            .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/get-export",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint()),
-                            pathParameters(
-                                    parameterWithName("ids").description("The ids of the spexare to export").optional()
-                            ),
-                            requestHeaders(
-                                    headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
-                            ),
-                            responseHeaders.and(
-                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                    headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                            ),
-                            responseBody()
-                    )
-            );
+                .perform(
+                        get("/api/v1/spexare?ids=1,2,3")
+                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
+                )
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/get-export",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                pathParameters(
+                                        parameterWithName("ids").description("The ids of the spexare to export").optional()
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                                ),
+                                responseBody()
+                        )
+                );
     }
 
     @Test
@@ -169,27 +169,27 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.getFirstName()).lastName(dto.getLastName()).build());
 
         mockMvc
-            .perform(
-                    post("/api/v1/spexare")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(this.objectMapper.writeValueAsString(dto))
-            )
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("id", is(notNullValue())))
-            .andDo(document(
-                            "spexare/create",
-                            preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            requestFields(
-                                    fields.withPath("firstName").description("The first name of the spexare"),
-                                    fields.withPath("lastName").description("The last name of the spexare"),
-                                    fields.withPath("nickName").description("The nickname of the spexare")
-                            ),
-                            responseFields,
-                            links,
-                            responseHeaders
-                    )
-            );
+                .perform(
+                        post("/api/v1/spexare")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(this.objectMapper.writeValueAsString(dto))
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(document(
+                                "spexare/create",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                requestFields(
+                                        fields.withPath("firstName").description("The first name of the spexare"),
+                                        fields.withPath("lastName").description("The last name of the spexare"),
+                                        fields.withPath("nickName").description("The nickname of the spexare")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
     }
 
     @Test
@@ -199,25 +199,25 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    RestDocumentationRequestBuilders.get("/api/v1/spexare/{id}", 1)
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("id", is(notNullValue())))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/get",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            responseFields,
-                            links,
-                            responseHeaders
-                    )
-            );
+                .perform(
+                        get("/api/v1/spexare/{id}", 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/get",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
     }
 
     @Test
@@ -229,37 +229,37 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.update(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    put("/api/v1/spexare/{id}", 1)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(this.objectMapper.writeValueAsString(dto))
-            )
-            .andExpect(status().isAccepted())
-            .andExpect(jsonPath("id", is(notNullValue())))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/update",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            requestFields(
-                                    fields.withPath("id").description("The id of the spexare"),
-                                    fields.withPath("firstName").description("The first name of the spexare"),
-                                    fields.withPath("lastName").description("The last name of the spexare"),
-                                    fields.withPath("nickName").description("The nickname of the spexare"),
-                                    fields.withPath("birthDate").description("The birth date of the spexare"),
-                                    fields.withPath("socialSecurityNumber").description("The social security number of the spexare"),
-                                    fields.withPath("graduation").description("The graduation of the spexare"),
-                                    fields.withPath("comment").description("The comment of the spexare")
-                            ),
-                            responseFields,
-                            links,
-                            responseHeaders
-                    )
-            );
+                .perform(
+                        put("/api/v1/spexare/{id}", 1)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(this.objectMapper.writeValueAsString(dto))
+                )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/update",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                requestFields(
+                                        fields.withPath("id").description("The id of the spexare"),
+                                        fields.withPath("firstName").description("The first name of the spexare"),
+                                        fields.withPath("lastName").description("The last name of the spexare"),
+                                        fields.withPath("nickName").description("The nickname of the spexare"),
+                                        fields.withPath("birthDate").description("The birth date of the spexare"),
+                                        fields.withPath("socialSecurityNumber").description("The social security number of the spexare"),
+                                        fields.withPath("graduation").description("The graduation of the spexare"),
+                                        fields.withPath("comment").description("The comment of the spexare")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
     }
 
     @Test
@@ -271,37 +271,37 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    patch("/api/v1/spexare/{id}", 1)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(this.objectMapper.writeValueAsString(dto))
-            )
-            .andExpect(status().isAccepted())
-            .andExpect(jsonPath("id", is(notNullValue())))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/partial-update",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            requestFields(
-                                    fields.withPath("id").description("The id of the spexare"),
-                                    fields.withPath("firstName").description("The first name of the spexare").optional(),
-                                    fields.withPath("lastName").description("The last name of the spexare").optional(),
-                                    fields.withPath("nickName").description("The nickname of the spexare").optional(),
-                                    fields.withPath("birthDate").description("The birth date of the spexare").optional(),
-                                    fields.withPath("socialSecurityNumber").description("The social security number of the spexare").optional(),
-                                    fields.withPath("graduation").description("The graduation of the spexare").optional(),
-                                    fields.withPath("comment").description("The comment of the spexare").optional()
-                            ),
-                            responseFields,
-                            links,
-                            responseHeaders
-                    )
-            );
+                .perform(
+                        patch("/api/v1/spexare/{id}", 1)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(this.objectMapper.writeValueAsString(dto))
+                )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/partial-update",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                requestFields(
+                                        fields.withPath("id").description("The id of the spexare"),
+                                        fields.withPath("firstName").description("The first name of the spexare").optional(),
+                                        fields.withPath("lastName").description("The last name of the spexare").optional(),
+                                        fields.withPath("nickName").description("The nickname of the spexare").optional(),
+                                        fields.withPath("birthDate").description("The birth date of the spexare").optional(),
+                                        fields.withPath("socialSecurityNumber").description("The social security number of the spexare").optional(),
+                                        fields.withPath("graduation").description("The graduation of the spexare").optional(),
+                                        fields.withPath("comment").description("The comment of the spexare").optional()
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
     }
 
     @Test
@@ -312,21 +312,21 @@ public class SpexareApiTest extends AbstractApiTest {
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
-            .perform(
-                    delete("/api/v1/spexare/{id}", 1)
-            )
-            .andExpect(status().isNoContent())
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/delete",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            )
-                    )
-            );
+                .perform(
+                        delete("/api/v1/spexare/{id}", 1)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/delete",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                )
+                        )
+                );
     }
 
     @Test
@@ -335,28 +335,28 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.getImage(any(Long.class))).thenReturn(Optional.of(image));
 
         mockMvc
-            .perform(
-                    RestDocumentationRequestBuilders.get("/api/v1/spexare/{id}/image", 1)
-            )
-            .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, image.getSecond()))
-            .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, image.getFirst().length))
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/image-download",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint()),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            responseHeaders.and(
-                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                    headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                            ),
-                            responseBody()
-                    )
-            );
+                .perform(
+                        get("/api/v1/spexare/{id}/image", 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, image.getSecond()))
+                .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, image.getFirst().length))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/image-download",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                                ),
+                                responseBody()
+                        )
+                );
     }
 
     @Test
@@ -366,27 +366,27 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    put("/api/v1/spexare/{id}/image", 1)
-                            .contentType(MediaType.IMAGE_PNG)
-                            .content(image)
-            )
-            .andExpect(status().isNoContent())
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/image-upload",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            requestHeaders(
-                                    headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
-                            ),
-                            requestBody()
-                    )
-            );
+                .perform(
+                        put("/api/v1/spexare/{id}/image", 1)
+                                .contentType(MediaType.IMAGE_PNG)
+                                .content(image)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/image-upload",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                requestHeaders(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
+                                ),
+                                requestBody()
+                        )
+                );
     }
 
     @Test
@@ -396,25 +396,25 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    multipart("/api/v1/spexare/{id}/image", 1)
-                            .file(image)
-            )
-            .andExpect(status().isNoContent())
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/image-upload-multipart",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            ),
-                            requestParts(
-                                    partWithName("file").description("The image to upload")
-                            )
-                    )
-            );
+                .perform(
+                        multipart("/api/v1/spexare/{id}/image", 1)
+                                .file(image)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/image-upload-multipart",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                requestParts(
+                                        partWithName("file").description("The image to upload")
+                                )
+                        )
+                );
     }
 
     @Test
@@ -423,21 +423,21 @@ public class SpexareApiTest extends AbstractApiTest {
         when(service.removeImage(any(Long.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
-            .perform(
-                    delete("/api/v1/spexare/{id}/image", 1)
-            )
-            .andExpect(status().isNoContent())
-            .andDo(print())
-            .andDo(
-                    document(
-                            "spexare/image-delete",
-                            preprocessRequest(prettyPrint()),
-                            preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                            pathParameters(
-                                    parameterWithName("id").description("The id of the spexare")
-                            )
-                    )
-            );
+                .perform(
+                        delete("/api/v1/spexare/{id}/image", 1)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/image-delete",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                )
+                        )
+                );
     }
 
 }
