@@ -81,7 +81,7 @@ public class MembershipApi {
             return service
                     .addMembership(spexareId, type, year)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
-                    .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isWarnEnabled()) {
                 log.warn("Could not add year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
@@ -93,7 +93,7 @@ public class MembershipApi {
     @DeleteMapping(value = "/{type}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String type, @PathVariable final String year) {
         try {
-            return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isWarnEnabled()) {
                 log.warn("Could not remove year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);

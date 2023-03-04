@@ -351,7 +351,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_adding_already_existing_year() {
+        public void should_return_409_when_adding_already_existing_year() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -373,7 +373,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{type}/{year}", type.getValue(), "2023")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
         }
 
@@ -457,7 +457,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_removing_non_existing_year() {
+        public void should_return_422_when_removing_non_existing_year() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -468,7 +468,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{type}/{year}", type.getValue(), "2023")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
         }
 
