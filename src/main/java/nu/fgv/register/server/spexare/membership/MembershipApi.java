@@ -44,8 +44,8 @@ public class MembershipApi {
 
             return ResponseEntity.ok(paged);
         } catch (final ResourceNotFoundException e) {
-            if (log.isWarnEnabled()) {
-                log.warn("Could not retrieve memberships due to unknown spexare {}", spexareId, e);
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve memberships", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -59,8 +59,8 @@ public class MembershipApi {
 
             return ResponseEntity.ok(paged);
         } catch (final ResourceNotFoundException e) {
-            if (log.isWarnEnabled()) {
-                log.warn("Could not retrieve memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve memberships", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -83,8 +83,8 @@ public class MembershipApi {
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
-            if (log.isWarnEnabled()) {
-                log.warn("Could not add year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            if (log.isErrorEnabled()) {
+                log.error("Could not add year to memberships", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -95,8 +95,8 @@ public class MembershipApi {
         try {
             return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
-            if (log.isWarnEnabled()) {
-                log.warn("Could not remove year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            if (log.isErrorEnabled()) {
+                log.error("Could not remove year to memberships", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

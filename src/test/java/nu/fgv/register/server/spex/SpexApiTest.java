@@ -583,7 +583,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_spex_spex_category() throws Exception {
+    public void should_update_spex_category() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").category(category).build();
 
@@ -591,12 +591,12 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{id}/spex-category/{categoryId}", 1, 1)
+                        put("/api/v1/spex/{id}/category/{categoryId}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spex/spex-category-update",
+                                "spex/category-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -611,18 +611,18 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_spex_spex_category() throws Exception {
+    public void should_delete_spex_category() throws Exception {
         var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").build();
 
         when(service.removeCategory(any(Long.class))).thenReturn(Optional.of(spex));
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{id}/spex-category", 1)
+                        delete("/api/v1/spex/{id}/category", 1)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
-                                "spex/spex-category-delete",
+                                "spex/category-delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

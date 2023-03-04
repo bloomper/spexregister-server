@@ -36,7 +36,7 @@ public class MembershipService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException("Spexare does not exist");
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
         }
     }
 
@@ -54,7 +54,7 @@ public class MembershipService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeValue));
         }
     }
 
@@ -80,7 +80,7 @@ public class MembershipService {
                     )
                     .orElse(null);
         } else {
-            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeValue));
         }
     }
 
@@ -99,12 +99,12 @@ public class MembershipService {
                             .orElse(false))
                     .orElse(false);
         } else {
-            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeValue));
         }
     }
 
-    private boolean doesSpexareExist(final Long spexareId) {
-        return spexareRepository.existsById(spexareId);
+    private boolean doesSpexareExist(final Long id) {
+        return spexareRepository.existsById(id);
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeValue) {

@@ -607,12 +607,15 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_zero() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+
             //@formatter:off
             final List<SpexDto> result =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/revivals", "123")
+                        .get("/{id}/revivals", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -620,6 +623,18 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_404_when_non_existent_spex() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{id}/revivals", "123")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
         }
 
         @Test
@@ -688,22 +703,36 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("title", "year")
                     .contains(spex.getDetails().getTitle(), "2022");
+
+            //@formatter:off
+            final List<SpexDto> result1 =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{id}/revivals", spex.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+            //@formatter:on
+
+            assertThat(result1).hasSize(1);
         }
 
         @Test
-        public void should_return_400_when_adding_and_spex_not_found() {
+        public void should_return_404_when_adding_and_spex_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{id}/revivals/{year}", "123", "2022")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        public void should_return_400_when_adding_and_year_already_exists() {
+        public void should_return_409_when_adding_and_year_already_exists() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -723,24 +752,49 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/revivals/{year}", spex.getId(), "2022")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
         }
 
         @Test
-        public void should_return_400_when_deleting_and_spex_not_found() {
+        public void should_remove_and_return_204() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{id}/revivals/{year}", spex.getId(), "2022")
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value())
+                .extract().body().asString();
+            //@formatter:on
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/revivals/{year}", spex.getId(), "2022")
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_removing_and_spex_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/revivals/{year}", "123", "2022")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        public void should_return_400_when_deleting_and_year_not_found() {
+        public void should_return_422_when_removing_and_year_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -750,8 +804,22 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}/revivals/{year}", spex.getId(), "2022")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            //@formatter:off
+            final List<SpexDto> result1 =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{id}/revivals", spex.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+            //@formatter:on
+
+            assertThat(result1).isEmpty();
         }
     }
 
@@ -784,7 +852,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .put("/{id}/spex-category/{categoryId}", spex.getId(), category.getId())
+                        .put("/{id}/category/{categoryId}", spex.getId(), category.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -798,19 +866,19 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_updating_and_spex_not_found() {
+        public void should_return_404_when_updating_and_spex_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/spex-category/{categoryId}", "123", "321")
+                .put("/{id}/category/{categoryId}", "123", "321")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        public void should_return_400_when_updating_and_spex_category_not_found() {
+        public void should_return_404_when_updating_and_category_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -818,9 +886,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/spex-category/{categoryId}", spex.getId(), "321")
+                .put("/{id}/category/{categoryId}", spex.getId(), "321")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
@@ -834,7 +902,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .delete("/{id}/spex-category", spex.getId())
+                        .delete("/{id}/category", spex.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -842,19 +910,18 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexDto result = objectMapper.readValue(json, SpexDto.class);
 
-            assertThat(result.getCategory())
-                    .isNull();
+            assertThat(result.getCategory()).isNull();
         }
 
         @Test
-        public void should_return_400_when_removing_and_spex_not_found() {
+        public void should_return_404_when_removing_and_spex_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/spex-category", "123")
+                .delete("/{id}/category", "123")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
