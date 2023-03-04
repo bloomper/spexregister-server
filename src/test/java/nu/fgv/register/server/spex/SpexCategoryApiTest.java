@@ -89,14 +89,14 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex-categories?page=1&size=2&sort=name,asc")
+                        get("/api/v1/spex/categories?page=1&size=2&sort=name,asc")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spexCategories", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/get-paged",
+                                "spex/categories/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -128,7 +128,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex-categories?ids=1,2,3")
+                        get("/api/v1/spex/categories?ids=1,2,3")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -136,7 +136,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/get-export",
+                                "spex/categories/get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -163,14 +163,14 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spex-categories")
+                        post("/api/v1/spex/categories")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spex-categories/create",
+                                "spex/categories/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -192,14 +192,14 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex-categories/{id}", 1)
+                        get("/api/v1/spex/categories/{id}", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/get",
+                                "spex/categories/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -222,7 +222,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex-categories/{id}", 1)
+                        put("/api/v1/spex/categories/{id}", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -231,7 +231,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/update",
+                                "spex/categories/update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -259,7 +259,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spex-categories/{id}", 1)
+                        patch("/api/v1/spex/categories/{id}", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -268,7 +268,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/partial-update",
+                                "spex/categories/partial-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -295,13 +295,13 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex-categories/{id}", 1)
+                        delete("/api/v1/spex/categories/{id}", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/delete",
+                                "spex/categories/delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -318,7 +318,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex-categories/{id}/logo", 1)
+                        get("/api/v1/spex/categories/{id}/logo", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, logo.getSecond()))
@@ -326,7 +326,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/logo-download",
+                                "spex/categories/logo-download",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -349,7 +349,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex-categories/{id}/logo", 1)
+                        put("/api/v1/spex/categories/{id}/logo", 1)
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(logo)
                 )
@@ -357,7 +357,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/logo-upload",
+                                "spex/categories/logo-upload",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -379,14 +379,14 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spex-categories/{id}/logo", 1)
+                        multipart("/api/v1/spex/categories/{id}/logo", 1)
                                 .file(logo)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/logo-upload-multipart",
+                                "spex/categories/logo-upload-multipart",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -406,13 +406,13 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex-categories/{id}/logo", 1)
+                        delete("/api/v1/spex/categories/{id}/logo", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-categories/logo-delete",
+                                "spex/categories/logo-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

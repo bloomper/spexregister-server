@@ -357,6 +357,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -508,7 +509,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/task-category", "123")
+                .delete("/{id}/task/category", "123")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

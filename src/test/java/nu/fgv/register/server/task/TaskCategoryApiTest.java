@@ -80,14 +80,14 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/task-categories?page=1&size=2&sort=name,asc")
+                        get("/api/v1/tasks/categories?page=1&size=2&sort=name,asc")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.taskCategories", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/get-paged",
+                                "tasks/categories/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -118,7 +118,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/task-categories?ids=1,2,3")
+                        get("/api/v1/tasks/categories?ids=1,2,3")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -126,7 +126,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/get-export",
+                                "tasks/categories/get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -153,14 +153,14 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/task-categories")
+                        post("/api/v1/tasks/categories")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "task-categories/create",
+                                "tasks/categories/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -182,14 +182,14 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/task-categories/{id}", 1)
+                        get("/api/v1/tasks/categories/{id}", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/get",
+                                "tasks/categories/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -212,7 +212,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/task-categories/{id}", 1)
+                        put("/api/v1/tasks/categories/{id}", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -221,7 +221,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/update",
+                                "tasks/categories/update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -249,7 +249,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/task-categories/{id}", 1)
+                        patch("/api/v1/tasks/categories/{id}", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -258,7 +258,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/partial-update",
+                                "tasks/categories/partial-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -285,13 +285,13 @@ public class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/task-categories/{id}", 1)
+                        delete("/api/v1/tasks/categories/{id}", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-categories/delete",
+                                "tasks/categories/delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
