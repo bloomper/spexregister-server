@@ -441,7 +441,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .put("/{id}/task-category/{categoryId}", task.getId(), category.getId())
+                        .put("/{id}/category/{categoryId}", task.getId(), category.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -455,19 +455,19 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_updating_and_task_not_found() {
+        public void should_return_404_when_updating_and_task_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/task-category/{categoryId}", "123", "321")
+                .put("/{id}/category/{categoryId}", "123", "321")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        public void should_return_400_when_updating_and_task_category_not_found() {
+        public void should_return_404_when_updating_and_category_not_found() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 
@@ -475,9 +475,9 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/task-category/{categoryId}", task.getId(), "321")
+                .put("/{id}/category/{categoryId}", task.getId(), "321")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
@@ -491,7 +491,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .delete("/{id}/task-category", task.getId())
+                        .delete("/{id}/category", task.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -499,19 +499,18 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskDto result = objectMapper.readValue(json, TaskDto.class);
 
-            assertThat(result.getCategory())
-                    .isNull();
+            assertThat(result.getCategory()).isNull();
         }
 
         @Test
-        public void should_return_400_when_removing_and_task_not_found() {
+        public void should_return_404_when_removing_and_task_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/task-category", "123")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 

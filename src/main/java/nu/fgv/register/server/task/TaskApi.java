@@ -8,6 +8,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
@@ -129,20 +130,34 @@ public class TaskApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping(value = "/{id}/task-category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PutMapping(value = "/{id}/category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long id, @PathVariable final Long categoryId) {
-        return service
-                .updateCategory(id, categoryId)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        try {
+            return service
+                    .updateCategory(id, categoryId)
+                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not add category for task", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    @DeleteMapping(value = "/{id}/task-category", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TaskDto>> removeCategory(@PathVariable final Long id) {
-        return service
-                .removeCategory(id)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        try {
+            return service
+                    .removeCategory(id)
+                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY)); // Unreachable
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not remove category for task", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     private void addLinks(final EntityModel<TaskDto> entity) {

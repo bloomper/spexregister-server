@@ -103,7 +103,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/get-paged",
+                                "tasks/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -142,7 +142,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/get-export",
+                                "tasks/get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -176,7 +176,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "task/create",
+                                "tasks/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -204,7 +204,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/get",
+                                "tasks/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -236,7 +236,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/update",
+                                "tasks/update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -272,7 +272,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/partial-update",
+                                "tasks/partial-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -304,7 +304,7 @@ public class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task/delete",
+                                "tasks/delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -315,7 +315,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_task_task_category() throws Exception {
+    public void should_update_task_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
         var task = TaskDto.builder().id(1L).name("Scenmästare").category(category).build();
 
@@ -323,12 +323,12 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{id}/task-category/{categoryId}", 1, 1)
+                        put("/api/v1/tasks/{id}/category/{categoryId}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "task/task-category-update",
+                                "tasks/category-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -343,18 +343,18 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_task_task_category() throws Exception {
+    public void should_delete_task_category() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.removeCategory(any(Long.class))).thenReturn(Optional.of(task));
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{id}/task-category", 1)
+                        delete("/api/v1/tasks/{id}/category", 1)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
-                                "task/task-category-delete",
+                                "tasks/category-delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -73,30 +74,42 @@ public class TaskService {
         repository.deleteById(id);
     }
 
-    public Optional<TaskDto> updateCategory(final Long id, final Long categoryId) {
-        if (repository.existsById(id) && categoryRepository.existsById(categoryId)) {
+    public Optional<TaskDto> updateCategory(final Long taskId, final Long id) {
+        if (doTaskAndCategoryExist(taskId, id)) {
             repository
-                    .findById(id)
+                    .findById(taskId)
                     .ifPresent(task ->
-                            categoryRepository.findById(categoryId).ifPresent(category -> {
+                            categoryRepository.findById(id).ifPresent(category -> {
                                 task.setCategory(category);
                                 repository.save(task);
                             }));
-            return findById(id);
+            return findById(taskId);
         } else {
-            return Optional.empty();
+            throw new ResourceNotFoundException(String.format("Task %s and/or category %s do not exist", taskId, id));
         }
     }
 
-    public Optional<TaskDto> removeCategory(final Long id) {
-        return repository
-                .findById(id)
-                .map(task -> {
-                    task.setCategory(null);
-                    repository.save(task);
-                    return task;
-                })
-                .map(TASK_MAPPER::toDto);
+    public Optional<TaskDto> removeCategory(final Long taskId) {
+        if (doesTaskExist(taskId)) {
+            return repository
+                    .findById(taskId)
+                    .map(task -> {
+                        task.setCategory(null);
+                        repository.save(task);
+                        return task;
+                    })
+                    .map(TASK_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Task %s does not exist", taskId));
+        }
+    }
+
+    private boolean doesTaskExist(final Long id) {
+        return repository.existsById(id);
+    }
+
+    private boolean doTaskAndCategoryExist(final Long taskId, final Long categoryId) {
+        return doesTaskExist(taskId) && categoryRepository.existsById(categoryId);
     }
 
 }
