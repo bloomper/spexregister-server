@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
@@ -37,18 +38,32 @@ public class MembershipApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMemberships(@PathVariable final Long spexareId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
-        paged.getContent().forEach(p -> addLinks(p, spexareId));
+        try {
+            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
+            paged.getContent().forEach(p -> addLinks(p, spexareId));
 
-        return ResponseEntity.ok(paged);
+            return ResponseEntity.ok(paged);
+        } catch (final ResourceNotFoundException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Could not retrieve memberships due to unknown spexare {}", spexareId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value = "/type/{type}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final String type, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, type, pageable));
-        paged.getContent().forEach(p -> addLinks(p, spexareId));
+        try {
+            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, type, pageable));
+            paged.getContent().forEach(p -> addLinks(p, spexareId));
 
-        return ResponseEntity.ok(paged);
+            return ResponseEntity.ok(paged);
+        } catch (final ResourceNotFoundException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Could not retrieve memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -62,15 +77,29 @@ public class MembershipApi {
 
     @PutMapping(value = "/{type}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<MembershipDto>> addMembership(@PathVariable final Long spexareId, @PathVariable final String type, @PathVariable final String year) {
-        return service
-                .addMembership(spexareId, type, year)
-                .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
-                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        try {
+            return service
+                    .addMembership(spexareId, type, year)
+                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
+                    .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Could not add year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping(value = "/{type}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String type, @PathVariable final String year) {
-        return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        try {
+            return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Could not remove year to memberships due to unknown spexare {} and/or type {}", spexareId, type, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     private void addLinks(final EntityModel<MembershipDto> entity, final Long spexareId) {

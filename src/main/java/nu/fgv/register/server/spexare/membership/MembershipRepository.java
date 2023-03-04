@@ -24,7 +24,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long>, Q
     @Query("""
                 SELECT m FROM Membership m
                 JOIN m.spexare s
-                WHERE s.id = :spexare
+                WHERE s = :spexare
                 AND m.type = :type
                 AND m.year = :year
             """)

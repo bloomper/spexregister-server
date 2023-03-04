@@ -8,6 +8,7 @@ import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -26,27 +27,35 @@ public class MembershipService {
     private final TypeRepository typeRepository;
 
     public Page<MembershipDto> findBySpexare(final Long spexareId, final Pageable pageable) {
-        return spexareRepository
-                .findById(spexareId)
-                .map(value -> repository
-                        .findBySpexare(value, pageable)
-                        .map(MEMBERSHIP_MAPPER::toDto)
-                )
-                .orElseGet(Page::empty);
+        if (doesSpexareExist(spexareId)) {
+            return spexareRepository
+                    .findById(spexareId)
+                    .map(value -> repository
+                            .findBySpexare(value, pageable)
+                            .map(MEMBERSHIP_MAPPER::toDto)
+                    )
+                    .orElseGet(Page::empty);
+        } else {
+            throw new ResourceNotFoundException("Spexare does not exist");
+        }
     }
 
     public Page<MembershipDto> findBySpexareAndType(final Long spexareId, final String typeValue, final Pageable pageable) {
-        return spexareRepository
-                .findById(spexareId)
-                .map(value -> typeRepository
-                        .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
-                        .map(type -> repository
-                                .findBySpexareAndType(value, type, pageable)
-                                .map(MEMBERSHIP_MAPPER::toDto)
-                        )
-                        .orElse(Page.empty())
-                )
-                .orElseGet(Page::empty);
+        if (doSpexareAndTypeExist(spexareId, typeValue)) {
+            return spexareRepository
+                    .findById(spexareId)
+                    .map(value -> typeRepository
+                            .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
+                            .map(type -> repository
+                                    .findBySpexareAndType(value, type, pageable)
+                                    .map(MEMBERSHIP_MAPPER::toDto)
+                            )
+                            .orElse(Page.empty())
+                    )
+                    .orElseGet(Page::empty);
+        } else {
+            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+        }
     }
 
     public Optional<MembershipDto> findById(final Long id) {
@@ -54,36 +63,52 @@ public class MembershipService {
     }
 
     public Optional<MembershipDto> addMembership(final Long spexareId, final String typeValue, final String year) {
-        return typeRepository
-                .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
-                .map(type -> spexareRepository
-                        .findById(spexareId)
-                        .filter(spexare -> !repository.existsBySpexareAndTypeAndYear(spexare, type, year))
-                        .map(spexare -> {
-                            final Membership membership = new Membership();
-                            membership.setSpexare(spexare);
-                            membership.setType(type);
-                            membership.setYear(year);
-                            return repository.save(membership);
-                        })
-                        .map(MEMBERSHIP_MAPPER::toDto)
-                )
-                .orElse(null);
+        if (doSpexareAndTypeExist(spexareId, typeValue)) {
+            return typeRepository
+                    .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
+                    .map(type -> spexareRepository
+                            .findById(spexareId)
+                            .filter(spexare -> !repository.existsBySpexareAndTypeAndYear(spexare, type, year))
+                            .map(spexare -> {
+                                final Membership membership = new Membership();
+                                membership.setSpexare(spexare);
+                                membership.setType(type);
+                                membership.setYear(year);
+                                return repository.save(membership);
+                            })
+                            .map(MEMBERSHIP_MAPPER::toDto)
+                    )
+                    .orElse(null);
+        } else {
+            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+        }
     }
 
     public boolean removeMembership(final Long spexareId, final String typeValue, final String year) {
-        return typeRepository
-                .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
-                .map(type -> spexareRepository
-                        .findById(spexareId)
-                        .filter(spexare -> repository.existsBySpexareAndTypeAndYear(spexare, type, year))
-                        .flatMap(spexare -> repository.findBySpexareAndTypeAndYear(spexare, type, year))
-                        .map(membership -> {
-                            repository.deleteById(membership.getId());
-                            return true;
-                        })
-                        .orElse(false))
-                .orElse(false);
-
+        if (doSpexareAndTypeExist(spexareId, typeValue)) {
+            return typeRepository
+                    .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
+                    .map(type -> spexareRepository
+                            .findById(spexareId)
+                            .filter(spexare -> repository.existsBySpexareAndTypeAndYear(spexare, type, year))
+                            .flatMap(spexare -> repository.findBySpexareAndTypeAndYear(spexare, type, year))
+                            .map(membership -> {
+                                repository.deleteById(membership.getId());
+                                return true;
+                            })
+                            .orElse(false))
+                    .orElse(false);
+        } else {
+            throw new ResourceNotFoundException("Spexare and/or type do not exist");
+        }
     }
+
+    private boolean doesSpexareExist(final Long spexareId) {
+        return spexareRepository.existsById(spexareId);
+    }
+
+    private boolean doSpexareAndTypeExist(final Long spexareId, final String typeValue) {
+        return doesSpexareExist(spexareId) && typeRepository.existsByTypeAndValue(TypeType.MEMBERSHIP, typeValue);
+    }
+
 }
