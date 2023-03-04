@@ -190,7 +190,7 @@ public class SpexCategoryApi {
             return uploadLogo(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
-                log.error(String.format("Could not save logo for spex category %s", id), e);
+                log.error("Could not save logo for spex category {}", id, e);
             }
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }

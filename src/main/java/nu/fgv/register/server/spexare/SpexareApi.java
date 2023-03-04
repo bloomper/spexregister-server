@@ -158,7 +158,7 @@ public class SpexareApi {
             return uploadImage(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
-                log.error(String.format("Could not save image for spexare %s", id), e);
+                log.error("Could not save image for spexare {}", id, e);
             }
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }

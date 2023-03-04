@@ -128,7 +128,7 @@ public class ExcelWriter {
                 addColumn.accept(header, position);
             });
         } catch (final Exception e) {
-            log.error(String.format("Could not add columns to sheet %s", sheet.getSheetName()), e);
+            log.error("Could not add columns to sheet {}", sheet.getSheetName(), e);
         }
         return sheetContainer;
     };
@@ -180,12 +180,12 @@ public class ExcelWriter {
                             setCellBorders(cell, BorderStyle.THIN, IndexedColors.DARK_RED);
                         }
                     } catch (final Exception e) {
-                        log.warn(String.format("Could not write data to row %s cell %s of sheet %s", rowNum + 1, position, sheet.getSheetName()), e);
+                        log.warn("Could not write data to row {} cell {} of sheet {}", rowNum + 1, position, sheet.getSheetName(), e);
                     }
                 });
             });
         } catch (Exception e) {
-            log.error(String.format("Could not write data to sheet %s", sheet.getSheetName()), e);
+            log.error("Could not write data to sheet {}", sheet.getSheetName(), e);
         }
         return sheetContainer;
     };

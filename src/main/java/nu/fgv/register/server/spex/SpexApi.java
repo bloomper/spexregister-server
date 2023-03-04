@@ -158,7 +158,7 @@ public class SpexApi {
             return uploadPoster(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
-                log.error(String.format("Could not save poster for spex %s", id), e);
+                log.error("Could not save poster for spex {}", id, e);
             }
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
