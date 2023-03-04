@@ -88,8 +88,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            var news = randomizeNews();
-            persistNews(news);
+            persistNews(randomizeNews());
 
             //@formatter:off
             final List<NewsDto> result =
@@ -109,10 +108,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> {
-                var news = randomizeNews();
-                persistNews(news);
-            });
+            IntStream.range(0, size).forEach(i -> persistNews(randomizeNews()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -180,15 +176,14 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         public void should_return_found() {
-            var news = randomizeNews();
-            var persisted = persistNews(news);
+            var news = persistNews(randomizeNews());
 
             //@formatter:off
             final NewsDto result =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(NewsDto.class);
@@ -197,7 +192,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "subject", "text", "publicationDate")
-                    .contains(persisted.getId(), persisted.getSubject(), persisted.getText(), persisted.getPublicationDate());
+                    .contains(news.getId(), news.getSubject(), news.getText(), news.getPublicationDate());
         }
 
         @Test
@@ -219,15 +214,14 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var news = randomizeNews();
-            var persisted = persistNews(news);
+            var news = persistNews(randomizeNews());
 
             //@formatter:off
             final NewsDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(NewsDto.class);
@@ -246,7 +240,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .put("/{id}", persisted.getId())
+                        .put("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -259,7 +253,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(NewsDto.class);
@@ -309,15 +303,14 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var news = randomizeNews();
-            var persisted = persistNews(news);
+            var news = persistNews(randomizeNews());
 
             //@formatter:off
             final NewsDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                     .extract().body().as(NewsDto.class);
@@ -336,7 +329,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .patch("/{id}", persisted.getId())
+                        .patch("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -349,7 +342,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", news.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(NewsDto.class);
@@ -357,6 +350,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -383,14 +377,13 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_delete() {
-            var news = randomizeNews();
-            var persisted = persistNews(news);
+            var news = persistNews(randomizeNews());
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}", persisted.getId())
+                .delete("/{id}", news.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on

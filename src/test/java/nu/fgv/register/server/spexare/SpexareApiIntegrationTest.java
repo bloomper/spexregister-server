@@ -112,8 +112,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            var spexare = randomizeSpexare();
-            persistSpexare(spexare);
+            persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -133,10 +132,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> {
-                var spexare = randomizeSpexare();
-                persistSpexare(spexare);
-            });
+            IntStream.range(0, size).forEach(i -> persistSpexare(randomizeSpexare()));
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -204,15 +200,14 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         public void should_return_found() {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto result =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(SpexareDto.class);
@@ -221,7 +216,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "firstName", "lastName", "nickName")
-                    .contains(persisted.getId(), persisted.getFirstName(), persisted.getLastName(), persisted.getNickName());
+                    .contains(spexare.getId(), spexare.getFirstName(), spexare.getLastName(), spexare.getNickName());
         }
 
         @Test
@@ -243,15 +238,14 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(SpexareDto.class);
@@ -270,7 +264,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .put("/{id}", persisted.getId())
+                        .put("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -283,7 +277,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(SpexareDto.class);
@@ -333,15 +327,14 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                     .extract().body().as(SpexareDto.class);
@@ -360,7 +353,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .patch("/{id}", persisted.getId())
+                        .patch("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -373,7 +366,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(SpexareDto.class);
@@ -381,6 +374,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -407,14 +401,13 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_delete() {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}", persisted.getId())
+                .delete("/{id}", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -441,8 +434,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_image() throws Exception {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
@@ -450,7 +442,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
-                .put("/{id}/image", persisted.getId())
+                .put("/{id}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -460,7 +452,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/image", persisted.getId())
+                        .get("/{id}/image", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -472,15 +464,14 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_image_via_multipart() throws Exception {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
             var image = ResourceUtils.getFile("classpath:test.png");
 
             //@formatter:off
             given()
                 .multiPart("file", image, MediaType.IMAGE_PNG_VALUE)
             .when()
-                .post("/{id}/image", persisted.getId())
+                .post("/{id}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -490,7 +481,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/image", persisted.getId())
+                        .get("/{id}/image", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -502,8 +493,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_delete_image() throws Exception {
-            var spexare = randomizeSpexare();
-            var persisted = persistSpexare(spexare);
+            var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
@@ -511,7 +501,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
-                .put("/{id}/image", persisted.getId())
+                .put("/{id}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -520,7 +510,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/image", persisted.getId())
+                .delete("/{id}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -529,7 +519,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}/image", persisted.getId())
+                .get("/{id}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

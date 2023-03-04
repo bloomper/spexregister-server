@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
@@ -88,8 +88,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            var category = random.nextObject(TaskCategory.class);
-            repository.save(category);
+            persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             final List<TaskCategoryDto> result =
@@ -109,8 +108,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_many() {
             int size = 42;
-            final Stream<TaskCategory> categories = random.objects(TaskCategory.class, size);
-            categories.forEach(category -> repository.save(category));
+            IntStream.range(0, size).forEach(i -> persistTaskCategory(randomizeTaskCategory()));
 
             //@formatter:off
             final List<TaskCategoryDto> result =
@@ -177,15 +175,14 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         public void should_return_found() {
-            var category = random.nextObject(TaskCategory.class);
-            var persisted = repository.save(category);
+            var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             final TaskCategoryDto result =
                 given()
                     .contentType(ContentType.JSON)
                 .when()
-                    .get("/{id}", persisted.getId())
+                    .get("/{id}", category.getId())
                 .then()
                     .statusCode(HttpStatus.OK.value())
                     .extract().body().as(TaskCategoryDto.class);
@@ -194,7 +191,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "name", "hasActor")
-                    .contains(persisted.getId(), persisted.getName(), persisted.getHasActor());
+                    .contains(category.getId(), category.getName(), category.getHasActor());
         }
 
         @Test
@@ -216,15 +213,14 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var category = random.nextObject(TaskCategory.class);
-            var persisted = repository.save(category);
+            var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             final TaskCategoryDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskCategoryDto.class);
@@ -242,7 +238,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                             .contentType(ContentType.JSON)
                             .body(dto)
                     .when()
-                            .put("/{id}", persisted.getId())
+                            .put("/{id}", category.getId())
                     .then()
                             .statusCode(HttpStatus.ACCEPTED.value())
                             .extract().body().asString();
@@ -255,7 +251,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskCategoryDto.class);
@@ -305,15 +301,14 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var category = random.nextObject(TaskCategory.class);
-            var persisted = repository.save(category);
+            var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             final TaskCategoryDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskCategoryDto.class);
@@ -331,7 +326,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .patch("/{id}", persisted.getId())
+                        .patch("/{id}", category.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -344,7 +339,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskCategoryDto.class);
@@ -352,6 +347,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(after)
                     .usingRecursiveComparison()
+                    .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
         }
 
@@ -378,14 +374,13 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_delete() {
-            var category = random.nextObject(TaskCategory.class);
-            var persisted = repository.save(category);
+            var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}", persisted.getId())
+                .delete("/{id}", category.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -406,4 +401,11 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
+    private TaskCategory randomizeTaskCategory() {
+        return random.nextObject(TaskCategory.class);
+    }
+
+    private TaskCategory persistTaskCategory(TaskCategory category) {
+        return repository.save(category);
+    }
 }

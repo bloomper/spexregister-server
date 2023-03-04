@@ -25,7 +25,6 @@ import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.util.StringUtils.hasText;
 
 public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
@@ -93,8 +92,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            var task = randomizeTask();
-            persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            persistTask(randomizeTask(category));
 
             //@formatter:off
             final List<TaskDto> result =
@@ -115,8 +114,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var task = randomizeTask();
-                persistTask(task);
+                var category = persistTaskCategory(randomizeTaskCategory());
+                persistTask(randomizeTask(category));
             });
 
             //@formatter:off
@@ -185,15 +184,15 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         public void should_return_found() {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             final TaskDto result =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskDto.class);
@@ -202,7 +201,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "name")
-                    .contains(persisted.getId(), persisted.getName());
+                    .contains(task.getId(), task.getName());
         }
 
         @Test
@@ -224,15 +223,15 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             final TaskDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskDto.class);
@@ -249,7 +248,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .put("/{id}", persisted.getId())
+                        .put("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -262,7 +261,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskDto.class);
@@ -312,15 +311,15 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             final TaskDto before =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                     .extract().body().as(TaskDto.class);
@@ -337,7 +336,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
-                        .patch("/{id}", persisted.getId())
+                        .patch("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -350,7 +349,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", task.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskDto.class);
@@ -384,14 +383,14 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_delete() {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}", persisted.getId())
+                .delete("/{id}", task.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -419,8 +418,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_201() throws Exception {
-            var category = randomizeTaskCategory();
-            var persisted = persistTaskCategory(category);
+            var category = persistTaskCategory(randomizeTaskCategory());
 
             final TaskCreateDto dto = random.nextObject(TaskCreateDto.class);
 
@@ -443,7 +441,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .put("/{id}/task-category/{categoryId}", task.getId(), persisted.getId())
+                        .put("/{id}/task-category/{categoryId}", task.getId(), category.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -470,14 +468,14 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_400_when_updating_and_task_category_not_found() {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/task-category/{categoryId}", persisted.getId(), "321")
+                .put("/{id}/task-category/{categoryId}", task.getId(), "321")
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
@@ -485,15 +483,15 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_remove_and_return_201() throws Exception {
-            var task = randomizeTask();
-            var persisted = persistTask(task);
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
 
             //@formatter:off
             final String json =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .delete("/{id}/task-category", persisted.getId())
+                        .delete("/{id}/task-category", task.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -519,13 +517,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private Task randomizeTask() {
+    private Task randomizeTask(TaskCategory category) {
         var task = random.nextObject(Task.class);
-        var category = randomizeTaskCategory();
-        // For some reason, name is sometimes empty which results in a validation error so a safeguard is needed
-        if (!hasText(category.getName())) {
-            category.setName("Kommitte");
-        }
         task.setCategory(category);
         return task;
     }
@@ -535,8 +528,6 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Task persistTask(Task task) {
-        var category = persistTaskCategory(task.getCategory());
-        task.setCategory(category);
         return repository.save(task);
     }
 
