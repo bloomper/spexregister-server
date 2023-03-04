@@ -59,7 +59,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.mvnsearch:easy-random-junit5-extension:0.5.0'
+    testImplementation 'org.mvnsearch:easy-random-junit5-extension:0.3.0'
     testImplementation ('com.github.javafaker:javafaker:1.0.2') { exclude module: 'org.yaml' }
     testImplementation 'org.yaml:snakeyaml:1.33:android'
     testImplementation 'io.rest-assured:rest-assured:5.3.0'
