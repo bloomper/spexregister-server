@@ -30,7 +30,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/membership")
+@RequestMapping("/api/v1/spexare/{spexareId}/memberships")
 public class MembershipApi {
 
     private final MembershipService service;

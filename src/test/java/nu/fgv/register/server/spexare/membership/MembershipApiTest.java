@@ -70,7 +70,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/membership?page=1&size=2&sort=year,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberships", hasSize(2)))
@@ -112,7 +112,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/membership/type/{type}?page=1&size=2&sort=year,desc", 1, "FGV")
+                        get("/api/v1/spexare/{spexareId}/memberships/type/{type}?page=1&size=2&sort=year,desc", 1, "FGV")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberships", hasSize(2)))
@@ -154,7 +154,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/membership/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/memberships/{id}", 1, 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -183,7 +183,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/membership/{type}/{year}", 1, "FGV", "2023")
+                        put("/api/v1/spexare/{spexareId}/memberships/{type}/{year}", 1, "FGV", "2023")
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -209,7 +209,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/membership/{type}/{year}", 1, "FGV", "2023")
+                        delete("/api/v1/spexare/{spexareId}/memberships/{type}/{year}", 1, "FGV", "2023")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
