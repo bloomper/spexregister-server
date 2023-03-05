@@ -51,10 +51,10 @@ public class MembershipApi {
         }
     }
 
-    @GetMapping(value = "/type/{type}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final String type, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    @GetMapping(value = "/type/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final String typeId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
-            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, type, pageable));
+            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, typeId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));
 
             return ResponseEntity.ok(paged);
@@ -75,11 +75,11 @@ public class MembershipApi {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PutMapping(value = "/{type}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<MembershipDto>> addMembership(@PathVariable final Long spexareId, @PathVariable final String type, @PathVariable final String year) {
+    @PutMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<MembershipDto>> addMembership(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
         try {
             return service
-                    .addMembership(spexareId, type, year)
+                    .addMembership(spexareId, typeId, year)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
@@ -90,10 +90,10 @@ public class MembershipApi {
         }
     }
 
-    @DeleteMapping(value = "/{type}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String type, @PathVariable final String year) {
+    @DeleteMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
         try {
-            return service.removeMembership(spexareId, type, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.removeMembership(spexareId, typeId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not remove year to memberships", e);
