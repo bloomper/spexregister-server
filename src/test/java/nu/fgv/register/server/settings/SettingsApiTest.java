@@ -222,8 +222,8 @@ public class SettingsApiTest extends AbstractApiTest {
     class TypeApiTest {
         @Test
         public void should_get_types() throws Exception {
-            var type1 = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
-            var type2 = TypeDto.builder().id(2L).value("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+            var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
 
             when(typeService.findAll()).thenReturn((List.of(type1, type2)));
 
@@ -243,7 +243,6 @@ public class SettingsApiTest extends AbstractApiTest {
                                             subsectionWithPath("_embedded").description("The embedded section"),
                                             subsectionWithPath("_embedded.types[]").description("The elements"),
                                             fieldWithPath("_embedded.types[].id").description("The id of the type"),
-                                            fieldWithPath("_embedded.types[].value").description("The value of the type"),
                                             fieldWithPath("_embedded.types[].type").description("The type of the type"),
                                             fieldWithPath("_embedded.types[].label").description("The label of the type"),
                                             subsectionWithPath("_embedded.types[]._links").description("The type links"),
@@ -257,8 +256,8 @@ public class SettingsApiTest extends AbstractApiTest {
 
         @Test
         public void should_get_types_of_type() throws Exception {
-            var type1 = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
-            var type2 = TypeDto.builder().id(2L).value("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+            var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
 
             when(typeService.findByType(any(TypeType.class))).thenReturn((List.of(type1, type2)));
 
@@ -278,7 +277,6 @@ public class SettingsApiTest extends AbstractApiTest {
                                             subsectionWithPath("_embedded").description("The embedded section"),
                                             subsectionWithPath("_embedded.types[]").description("The elements"),
                                             fieldWithPath("_embedded.types[].id").description("The id of the type"),
-                                            fieldWithPath("_embedded.types[].value").description("The value of the type"),
                                             fieldWithPath("_embedded.types[].type").description("The type of the type"),
                                             fieldWithPath("_embedded.types[].label").description("The label of the type"),
                                             subsectionWithPath("_embedded.types[]._links").description("The type links"),
@@ -292,9 +290,9 @@ public class SettingsApiTest extends AbstractApiTest {
 
         @Test
         public void should_get_type() throws Exception {
-            var type = TypeDto.builder().id(1L).value("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            var type = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
 
-            when(typeService.findById(any(Long.class))).thenReturn(Optional.of(type));
+            when(typeService.findById(any(String.class))).thenReturn(Optional.of(type));
 
             mockMvc
                     .perform(

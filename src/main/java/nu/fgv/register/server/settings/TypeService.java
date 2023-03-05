@@ -33,13 +33,7 @@ public class TypeService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<TypeDto> findByTypeAndValue(final TypeType type, final String value) {
-        return repository
-                .findByTypeAndValue(type, value)
-                .map(TYPE_MAPPER::toDto);
-    }
-
-    public Optional<TypeDto> findById(final Long id) {
+    public Optional<TypeDto> findById(final String id) {
         return repository
                 .findById(id)
                 .map(TYPE_MAPPER::toDto);

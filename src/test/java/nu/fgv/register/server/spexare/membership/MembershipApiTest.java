@@ -63,8 +63,8 @@ public class MembershipApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_paged_memberships_by_spexare() throws Exception {
-        var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
-        var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
+        var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(membership1, membership2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -105,8 +105,8 @@ public class MembershipApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_paged_memberships_by_spexare_and_type() throws Exception {
-        var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
-        var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
+        var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.findBySpexareAndType(any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(membership1, membership2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -148,7 +148,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_membership() throws Exception {
-        var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
+        var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(membership));
 
@@ -177,7 +177,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
     @Test
     public void should_add_membership() throws Exception {
-        var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id(1L).type(TypeType.MEMBERSHIP).build()).build();
+        var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.addMembership(any(Long.class), any(String.class), any(String.class))).thenReturn(Optional.of(membership));
 

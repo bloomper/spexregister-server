@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TypeRepository extends JpaRepository<Type, Long>, QuerydslPredicateExecutor<Type> {
+public interface TypeRepository extends JpaRepository<Type, String>, QuerydslPredicateExecutor<Type> {
     List<Type> findByType(TypeType type);
-
-    boolean existsByTypeAndValue(TypeType type, String value);
-
-    Optional<Type> findByTypeAndValue(TypeType type, String value);
 }

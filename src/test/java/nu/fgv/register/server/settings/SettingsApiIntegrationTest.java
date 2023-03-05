@@ -262,7 +262,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.types", TypeDto.class);
             //@formatter:on
 
-            assertThat(result).hasSize(16);
+            assertThat(result).hasSize(18);
         }
 
         @Test
@@ -301,7 +301,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -309,8 +309,8 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("id", "value", "label", "type")
-                    .contains(1L, "HOME", "Hem", TypeType.ADDRESS);
+                    .extracting("id", "label", "type")
+                    .contains("HOME", "Hem", TypeType.ADDRESS);
         }
 
         @Test
@@ -321,7 +321,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -329,8 +329,8 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("id", "value", "label", "type")
-                    .contains(1L, "HOME", "Hem", TypeType.ADDRESS);
+                    .extracting("id", "label", "type")
+                    .contains("HOME", "Hem", TypeType.ADDRESS);
         }
 
         @Test
@@ -341,7 +341,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, 1)
+                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -349,8 +349,8 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("id", "value", "label", "type")
-                    .contains(1L, "HOME", "Home", TypeType.ADDRESS);
+                    .extracting("id", "label", "type")
+                    .contains("HOME", "Home", TypeType.ADDRESS);
         }
 
         @Test
@@ -359,7 +359,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/type/{type}/{id}", TypeType.ADDRESS, 123)
+                .get("/type/{type}/{id}", TypeType.ADDRESS, "dummy")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

@@ -3,11 +3,6 @@ package nu.fgv.register.server.spexare;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.settings.TypeRepository;
-import nu.fgv.register.server.settings.TypeType;
-import nu.fgv.register.server.spexare.membership.Membership;
-import nu.fgv.register.server.spexare.membership.MembershipDto;
-import nu.fgv.register.server.spexare.membership.MembershipRepository;
 import nu.fgv.register.server.util.FileUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
-import static nu.fgv.register.server.spexare.membership.MembershipMapper.MEMBERSHIP_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -30,10 +24,6 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareService {
 
     private final SpexareRepository repository;
-
-    private final MembershipRepository membershipRepository;
-
-    private final TypeRepository typeRepository;
 
     public List<SpexareDto> findAll(final Sort sort) {
         return repository.findAll(sort).stream().map(SPEXARE_MAPPER::toDto).collect(Collectors.toList());
@@ -103,37 +93,4 @@ public class SpexareService {
                 .map(model -> Pair.of(model.getImage(), model.getImageContentType()));
     }
 
-    public Optional<MembershipDto> addMembership(final Long id, final String typeValue, final String year) {
-        return typeRepository
-                .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
-                .map(t -> repository
-                        .findById(id)
-                        .filter(spexare -> !membershipRepository.existsBySpexareAndTypeAndYear(spexare, t, year))
-                        .map(spexare -> {
-                            final Membership membership = new Membership();
-                            membership.setSpexare(spexare);
-                            membership.setType(t);
-                            membership.setYear(year);
-                            return membershipRepository.save(membership);
-                        })
-                        .map(MEMBERSHIP_MAPPER::toDto)
-                )
-                .orElse(null);
-    }
-
-    public boolean removeMembership(final Long id, final String typeValue, final String year) {
-        return typeRepository
-                .findByTypeAndValue(TypeType.MEMBERSHIP, typeValue)
-                .map(t -> repository
-                        .findById(id)
-                        .filter(spexare -> membershipRepository.existsBySpexareAndTypeAndYear(spexare, t, year))
-                        .flatMap(spexare -> membershipRepository.findBySpexareAndTypeAndYear(spexare, t, year))
-                        .map(membership -> {
-                            membershipRepository.deleteById(membership.getId());
-                            return true;
-                        })
-                        .orElse(false))
-                .orElse(false);
-
-    }
 }

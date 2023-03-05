@@ -100,7 +100,7 @@ public class SettingsApi {
     }
 
     @GetMapping("/type/{type}/{id}")
-    public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final String id) {
         return typeService.findById(id)
                 .map(type -> EntityModel.of(type,
                         linkTo(methodOn(SettingsApi.class).retrieveType(type.getId())).withSelfRel(),

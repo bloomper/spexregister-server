@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS address
     phone                  VARCHAR(255)          NULL,
     phone_mobile           VARCHAR(255)          NULL,
     email_address          VARCHAR(255)          NULL,
-    type_id                BIGINT                NOT NULL,
+    type_id                VARCHAR(255)          NOT NULL,
     spexare_id             BIGINT                NULL,
     CONSTRAINT pk_address PRIMARY KEY (id)
 );

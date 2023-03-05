@@ -36,12 +36,9 @@ public class Type extends AbstractAuditable implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Size(max = 255, message = "{type.value.size}")
-    @Column(name = "value")
-    private String value;
+    @Column(name = "id")
+    private String id;
 
     @org.hibernate.annotations.Type(JsonType.class)
     @Column(name = "labels", columnDefinition = "json")

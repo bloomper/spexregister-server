@@ -215,7 +215,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getValue())
+                        .get("/type/{type}", type.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -237,7 +237,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getValue())
+                        .get("/type/{type}", type.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -261,7 +261,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .pathParam("spexareId", spexare.getId())
                     .when()
                         .queryParam("size", size)
-                        .get("/type/{type}", type.getValue())
+                        .get("/type/{type}", type.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -328,7 +328,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{type}/{year}", type.getValue(), "2023")
+                .put("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -340,7 +340,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getValue())
+                        .get("/type/{type}", type.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -360,7 +360,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{type}/{year}", type.getValue(), "2023")
+                .put("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -371,7 +371,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{type}/{year}", type.getValue(), "2023")
+                .put("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
@@ -386,7 +386,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", "1")
             .when()
-                .put("/{type}/{year}", type.getValue(), "2023")
+                .put("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -423,7 +423,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{type}/{year}", type.getValue(), "2023")
+                .put("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -434,7 +434,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{type}/{year}", type.getValue(), "2023")
+                .delete("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value())
                 .extract().body().asString();
@@ -446,7 +446,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getValue())
+                        .get("/type/{type}", type.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -466,7 +466,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{type}/{year}", type.getValue(), "2023")
+                .delete("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
@@ -481,7 +481,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", "1")
             .when()
-                .delete("/{type}/{year}", type.getValue(), "2023")
+                .delete("/{type}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

@@ -21,10 +21,7 @@ import java.time.Instant;
 public class TypeDto extends AbstractAuditableDto<TypeDto> {
 
     @JsonProperty("id")
-    private Long id;
-
-    @JsonProperty("value")
-    private String value;
+    private String id;
 
     @JsonProperty("label")
     private String label;
@@ -34,8 +31,7 @@ public class TypeDto extends AbstractAuditableDto<TypeDto> {
 
     @Builder
     public TypeDto(
-            final Long id,
-            final String value,
+            final String id,
             final String label,
             final TypeType type,
             final String createdBy,
@@ -45,7 +41,6 @@ public class TypeDto extends AbstractAuditableDto<TypeDto> {
     ) {
         super(createdBy, createdAt, lastModifiedBy, lastModifiedAt);
         this.id = id;
-        this.value = value;
         this.label = label;
         this.type = type;
     }

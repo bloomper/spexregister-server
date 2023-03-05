@@ -28,7 +28,7 @@ public interface TypeMapper {
     TypeDto toDto(Type model);
 
     @AfterMapping
-    default void setRevival(final Type model, final @MappingTarget TypeDto.TypeDtoBuilder dto) {
+    default void setLabel(final Type model, final @MappingTarget TypeDto.TypeDtoBuilder dto) {
         dto.label(model.getLabels().get(LocaleContextHolder.getLocale().getLanguage()));
     }
 

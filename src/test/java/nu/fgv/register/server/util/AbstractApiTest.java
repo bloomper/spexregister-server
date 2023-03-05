@@ -86,7 +86,6 @@ public abstract class AbstractApiTest {
 
     protected static final List<FieldDescriptor> typeResponseFieldDescriptors = List.of(
             fieldWithPath("id").description("The id of the type"),
-            fieldWithPath("value").description("The value of the type"),
             fieldWithPath("type").description("The type of the type"),
             fieldWithPath("label").description("The label of the type")
     );
