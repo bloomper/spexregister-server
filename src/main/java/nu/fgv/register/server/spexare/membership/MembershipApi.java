@@ -2,6 +2,7 @@ package nu.fgv.register.server.spexare.membership;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,10 +52,10 @@ public class MembershipApi {
         }
     }
 
-    @GetMapping(value = "/type/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final String typeId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    @GetMapping(value = "/type/{type}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final TypeType type, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
-            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, typeId, pageable));
+            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, type, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));
 
             return ResponseEntity.ok(paged);
@@ -90,10 +91,10 @@ public class MembershipApi {
         }
     }
 
-    @DeleteMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
+    @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> removeMembership(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
         try {
-            return service.removeMembership(spexareId, typeId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.removeMembership(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not remove year to memberships", e);

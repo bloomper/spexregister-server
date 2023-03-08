@@ -190,7 +190,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedBySpexareAndTypeTests {
 
         @Test
-        public void should_return_404() {
+        public void should_return_400() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -200,7 +200,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/type/{type}", "dummy")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
         }
 
@@ -215,7 +215,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getId())
+                        .get("/type/{type}", type.getType())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -237,7 +237,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getId())
+                        .get("/type/{type}", type.getType())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -261,7 +261,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .pathParam("spexareId", spexare.getId())
                     .when()
                         .queryParam("size", size)
-                        .get("/type/{type}", type.getId())
+                        .get("/type/{type}", type.getType())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -340,7 +340,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getId())
+                        .get("/type/{type}", type.getType())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -419,14 +419,15 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             var type = persistType(randomizeType());
 
             //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-            .when()
-                .put("/{type}/{year}", type.getId(), "2023")
-            .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+            final MembershipDto result =
+                given()
+                    .contentType(ContentType.JSON)
+                    .pathParam("spexareId", spexare.getId())
+                .when()
+                    .put("/{type}/{year}", type.getId(), "2023")
+                .then()
+                    .statusCode(HttpStatus.ACCEPTED.value())
+                    .extract().body().as(MembershipDto.class);
             //@formatter:on
 
             //@formatter:off
@@ -434,26 +435,26 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{type}/{year}", type.getId(), "2023")
+                .delete("/{type}/{id}", type.getId(), result.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value())
                 .extract().body().asString();
             //@formatter:on
 
             //@formatter:off
-            final List<MembershipDto> result =
+            final List<MembershipDto> result1 =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/type/{type}", type.getId())
+                        .get("/type/{type}", type.getType())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
                         .jsonPath().getList("_embedded.memberships", MembershipDto.class);
             //@formatter:on
 
-            assertThat(result).isEmpty();
+            assertThat(result1).isEmpty();
         }
 
         @Test
