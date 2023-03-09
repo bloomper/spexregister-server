@@ -13,8 +13,8 @@ import java.util.List;
 public interface SpexareRepository extends JpaRepository<Spexare, Long>, QuerydslPredicateExecutor<Spexare> {
 
     @Query("""
-                SELECT s FROM Spexare s
-                 WHERE s.id IN :ids
+              SELECT s FROM Spexare s
+              WHERE s.id IN :ids
             """)
     List<Spexare> findByIds(@Param("ids") List<Long> ids, Sort sort);
 

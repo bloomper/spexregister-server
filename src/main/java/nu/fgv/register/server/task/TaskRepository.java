@@ -13,8 +13,8 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long>, QuerydslPredicateExecutor<Task> {
 
     @Query("""
-                SELECT t FROM Task t
-                 WHERE t.id IN :ids
+              SELECT t FROM Task t
+              WHERE t.id IN :ids
             """)
     List<Task> findByIds(@Param("ids") List<Long> ids, Sort sort);
 

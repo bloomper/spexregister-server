@@ -77,7 +77,7 @@ public class SettingsApi {
     public ResponseEntity<CollectionModel<EntityModel<TypeDto>>> retrieveTypes() {
         final List<EntityModel<TypeDto>> types = typeService.findAll().stream()
                 .map(type -> EntityModel.of(type,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(type.getId())).withSelfRel(),
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type.getType(), type.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
                 .toList();
 
@@ -90,7 +90,7 @@ public class SettingsApi {
     public ResponseEntity<CollectionModel<EntityModel<TypeDto>>> retrieveTypes(@PathVariable final TypeType type) {
         final List<EntityModel<TypeDto>> types = typeService.findByType(type).stream()
                 .map(_type -> EntityModel.of(_type,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(_type.getId())).withSelfRel(),
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type, _type.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes(type)).withRel("types")))
                 .toList();
 
@@ -100,10 +100,10 @@ public class SettingsApi {
     }
 
     @GetMapping("/type/{type}/{id}")
-    public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final String id) {
+    public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final TypeType type, @PathVariable final String id) {
         return typeService.findById(id)
-                .map(type -> EntityModel.of(type,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(type.getId())).withSelfRel(),
+                .map(_type -> EntityModel.of(_type,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type, _type.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

@@ -17,11 +17,11 @@ public interface MembershipRepository extends JpaRepository<Membership, Long>, Q
     Page<Membership> findBySpexare(Spexare spexare, Pageable pageable);
 
     @Query("""
-            SELECT m FROM Membership m
-             JOIN m.type t
+              SELECT m FROM Membership m
+              JOIN m.type t
               WHERE m.spexare = :spexare
               AND t.type = :type
-              """)
+            """)
     Page<Membership> findBySpexareAndType(@Param("spexare") Spexare spexare, @Param("type") TypeType type, Pageable pageable);
 
     boolean existsBySpexareAndTypeAndYear(Spexare spexare, Type type, String year);

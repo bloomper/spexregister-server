@@ -5,7 +5,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TypeRepository extends JpaRepository<Type, String>, QuerydslPredicateExecutor<Type> {

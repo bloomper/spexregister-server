@@ -13,8 +13,8 @@ import java.util.List;
 public interface SpexCategoryRepository extends JpaRepository<SpexCategory, Long>, QuerydslPredicateExecutor<SpexCategory> {
 
     @Query("""
-            SELECT s FROM SpexCategory s
-             WHERE s.id IN :ids
-             """)
+              SELECT s FROM SpexCategory s
+              WHERE s.id IN :ids
+            """)
     List<SpexCategory> findByIds(@Param("ids") List<Long> ids, Sort sort);
 }

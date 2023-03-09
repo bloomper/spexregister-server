@@ -30,15 +30,15 @@ public interface SpexRepository extends JpaRepository<Spex, Long>, QuerydslPredi
     Optional<Spex> findRevivalByParentAndYear(Spex parent, String year);
 
     @Query("""
-                SELECT s FROM Spex s
-                 WHERE s.id IN :ids
+              SELECT s FROM Spex s
+              WHERE s.id IN :ids
             """)
     List<Spex> findByIds(@Param("ids") List<Long> ids, Sort sort);
 
     @Query("""
-            SELECT s FROM Spex s
-             JOIN s.parent p
+              SELECT s FROM Spex s
+              JOIN s.parent p
               WHERE p.id IN :parentIds
-              """)
+            """)
     List<Spex> findRevivalsByParentIds(@Param("parentIds") List<Long> parentIds, Sort sort);
 }
