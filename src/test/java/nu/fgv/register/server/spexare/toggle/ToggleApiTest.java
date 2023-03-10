@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare.consent;
+package nu.fgv.register.server.spexare.toggle;
 
 import nu.fgv.register.server.settings.SettingsApiTest;
 import nu.fgv.register.server.settings.TypeDto;
@@ -44,40 +44,40 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = ConsentApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
-public class ConsentApiTest extends AbstractApiTest {
+@WebMvcTest(value = ToggleApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+public class ToggleApiTest extends AbstractApiTest {
 
     @MockBean
-    private ConsentService service;
+    private ToggleService service;
 
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
-            fieldWithPath("id").description("The id of the consent"),
-            fieldWithPath("value").description("The value of the consent"),
+            fieldWithPath("id").description("The id of the toggle"),
+            fieldWithPath("value").description("The value of the toggle"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(SettingsApiTest.typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).collect(Collectors.toList()));
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
-            linkWithRel("consents").description("Link to the current spexare's consents")
+            linkWithRel("toggles").description("Link to the current spexare's toggles")
     );
 
     @Test
-    public void should_get_paged_consents() throws Exception {
-        var consent1 = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
-        var consent2 = ConsentDto.builder().id(2L).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
+    public void should_get_paged_toggles() throws Exception {
+        var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(consent1, consent2), PageRequest.of(1, 2, Sort.by("type")), 10));
+        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(toggle1, toggle2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.consents", hasSize(2)))
+                .andExpect(jsonPath("_embedded.toggles", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/consents/get-paged",
+                                "spexare/toggles/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -85,15 +85,15 @@ public class ConsentApiTest extends AbstractApiTest {
                                 ),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.consents[]").description("The elements"),
-                                        fieldWithPath("_embedded.consents[].id").description("The id of the consent"),
-                                        fieldWithPath("_embedded.consents[].value").description("The value of the consent"),
-                                        fieldWithPath("_embedded.consents[].type").description("The type of the consent"),
-                                        fieldWithPath("_embedded.consents[].createdBy").description("Who created the consent"),
-                                        fieldWithPath("_embedded.consents[].createdAt").description("When was the consent created"),
-                                        fieldWithPath("_embedded.consents[].lastModifiedBy").description("Who last modified the consent"),
-                                        fieldWithPath("_embedded.consents[].lastModifiedAt").description("When was the consent last modified"),
-                                        subsectionWithPath("_embedded.consents[]._links").description("The consent links"),
+                                        subsectionWithPath("_embedded.toggles[]").description("The elements"),
+                                        fieldWithPath("_embedded.toggles[].id").description("The id of the toggle"),
+                                        fieldWithPath("_embedded.toggles[].value").description("The value of the toggle"),
+                                        fieldWithPath("_embedded.toggles[].type").description("The type of the toggle"),
+                                        fieldWithPath("_embedded.toggles[].createdBy").description("Who created the toggle"),
+                                        fieldWithPath("_embedded.toggles[].createdAt").description("When was the toggle created"),
+                                        fieldWithPath("_embedded.toggles[].lastModifiedBy").description("Who last modified the toggle"),
+                                        fieldWithPath("_embedded.toggles[].lastModifiedAt").description("When was the toggle last modified"),
+                                        subsectionWithPath("_embedded.toggles[]._links").description("The toggle links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,
@@ -104,26 +104,26 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_consent() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+    public void should_get_toggle() throws Exception {
+        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(consent));
+        when(service.findById(any(Long.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/toggles/{id}", 1, 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/consents/get",
+                                "spexare/toggles/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("id").description("The id of the consent")
+                                        parameterWithName("id").description("The id of the toggle")
                                 ),
                                 responseFields,
                                 links,
@@ -133,25 +133,25 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_consent() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+    public void should_add_toggle() throws Exception {
+        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.addConsent(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.addToggle(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1, consent.getId(), Boolean.TRUE)
+                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1, toggle.getId(), Boolean.TRUE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/consents/add",
+                                "spexare/toggles/add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the consent"),
-                                        parameterWithName("value").description("The value of the consent")
+                                        parameterWithName("typeId").description("The type id of the toggle"),
+                                        parameterWithName("value").description("The value of the toggle")
                                 ),
                                 responseFields,
                                 links,
@@ -161,26 +161,26 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_consent() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+    public void should_update_toggle() throws Exception {
+        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.updateConsent(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.updateToggle(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1, consent.getType().getId(), consent.getId(), Boolean.FALSE)
+                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/consents/update",
+                                "spexare/toggles/update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the consent"),
-                                        parameterWithName("id").description("The id of the consent"),
-                                        parameterWithName("value").description("The value of the consent")
+                                        parameterWithName("typeId").description("The type id of the toggle"),
+                                        parameterWithName("id").description("The id of the toggle"),
+                                        parameterWithName("value").description("The value of the toggle")
                                 ),
                                 responseFields,
                                 links,
@@ -190,22 +190,22 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_consent() throws Exception {
-        when(service.removeConsent(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
+    public void should_remove_toggle() throws Exception {
+        when(service.removeToggle(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1, "PUBLISH", 1)
+                        delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1, "DECEASED", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/consents/remove",
+                                "spexare/toggles/remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the consent"),
-                                        parameterWithName("id").description("The id of the consent")
+                                        parameterWithName("typeId").description("The type id of the toggle"),
+                                        parameterWithName("id").description("The id of the toggle")
                                 )
                         )
                 );

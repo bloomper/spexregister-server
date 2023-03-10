@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare.consent;
+package nu.fgv.register.server.spexare.toggle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
@@ -37,7 +37,7 @@ import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 
-public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
+public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;
@@ -48,7 +48,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private ConsentRepository repository;
+    private ToggleRepository repository;
 
     @Autowired
     private TypeRepository typeRepository;
@@ -56,7 +56,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private SpexareRepository spexareRepository;
 
-    public ConsentApiIntegrationTest() {
+    public ToggleApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
                 .randomize(
@@ -76,7 +76,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public static void beforeClass() {
-        basePath = ConsentApi.class.getAnnotation(RequestMapping.class).value()[0];
+        basePath = ToggleApi.class.getAnnotation(RequestMapping.class).value()[0];
     }
 
     @BeforeEach
@@ -119,7 +119,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            final List<ConsentDto> result =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -128,7 +128,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -138,10 +138,10 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_one() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            persistConsent(randomizeConsent(type, spexare));
+            persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            final List<ConsentDto> result =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -150,7 +150,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -161,10 +161,10 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             int size = 42;
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            IntStream.range(0, size).forEach(i -> persistConsent(randomizeConsent(type, spexare)));
+            IntStream.range(0, size).forEach(i -> persistToggle(randomizeToggle(type, spexare)));
 
             //@formatter:off
-            final List<ConsentDto> result =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -174,7 +174,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -189,10 +189,10 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var persisted = persistConsent(randomizeConsent(type, spexare));
+            var persisted = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            final ConsentDto result =
+            final ToggleDto result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -200,7 +200,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                         .get("/{id}", persisted.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(ConsentDto.class);
+                        .extract().body().as(ToggleDto.class);
             //@formatter:on
 
             assertThat(result).isNotNull();
@@ -224,8 +224,8 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Add consent")
-    class AddConsentTests {
+    @DisplayName("Add toggle")
+    class AddToggleTests {
 
         @Test
         public void should_add_and_return_201() {
@@ -244,7 +244,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<ConsentDto> result =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -253,7 +253,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -319,8 +319,8 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Update consent")
-    class UpdateConsentTests {
+    @DisplayName("Update toggle")
+    class UpdateToggleTests {
 
         @Test
         public void should_update_and_return_202() {
@@ -328,14 +328,14 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             var type = persistType(randomizeType());
 
             //@formatter:off
-            final ConsentDto result = given()
+            final ToggleDto result = given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .put("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().as(ConsentDto.class);
+                .extract().body().as(ToggleDto.class);
             //@formatter:on
 
             //@formatter:off
@@ -350,7 +350,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<ConsentDto> result1 =
+            final List<ToggleDto> result1 =
                     given()
                         .contentType(ContentType.JSON)
                          .pathParam("spexareId", spexare.getId())
@@ -359,7 +359,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result1).hasSize(1);
@@ -418,8 +418,8 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Remove consent")
-    class RemoveConsentTests {
+    @DisplayName("Remove toggle")
+    class RemoveToggleTests {
 
         @Test
         public void should_remove_and_return_204() {
@@ -427,7 +427,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             var type = persistType(randomizeType());
 
             //@formatter:off
-            final ConsentDto result =
+            final ToggleDto result =
                 given()
                     .contentType(ContentType.JSON)
                     .pathParam("spexareId", spexare.getId())
@@ -435,7 +435,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .put("/{typeId}/{id}", type.getId(), Boolean.TRUE)
                 .then()
                     .statusCode(HttpStatus.ACCEPTED.value())
-                    .extract().body().as(ConsentDto.class);
+                    .extract().body().as(ToggleDto.class);
             //@formatter:on
 
             //@formatter:off
@@ -450,7 +450,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<ConsentDto> result1 =
+            final List<ToggleDto> result1 =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -459,7 +459,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.consents", ConsentDto.class);
+                        .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
             assertThat(result1).isEmpty();
@@ -513,20 +513,20 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private Consent randomizeConsent(Type type, Spexare spexare) {
-        var consent = random.nextObject(Consent.class);
-        consent.setSpexare(spexare);
-        consent.setType(type);
-        return consent;
+    private Toggle randomizeToggle(Type type, Spexare spexare) {
+        var toggle = random.nextObject(Toggle.class);
+        toggle.setSpexare(spexare);
+        toggle.setType(type);
+        return toggle;
     }
 
-    private Consent persistConsent(Consent consent) {
-        return repository.save(consent);
+    private Toggle persistToggle(Toggle toggle) {
+        return repository.save(toggle);
     }
 
     private Type randomizeType() {
         var type = random.nextObject(Type.class);
-        type.setType(TypeType.CONSENT);
+        type.setType(TypeType.TOGGLE);
         return type;
     }
 

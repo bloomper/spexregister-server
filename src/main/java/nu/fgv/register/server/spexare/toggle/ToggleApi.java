@@ -1,8 +1,7 @@
-package nu.fgv.register.server.spexare.consent;
+package nu.fgv.register.server.spexare.toggle;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,29 +30,29 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/consents")
-public class ConsentApi {
+@RequestMapping("/api/v1/spexare/{spexareId}/toggles")
+public class ToggleApi {
 
-    private final ConsentService service;
-    private final PagedResourcesAssembler<ConsentDto> pagedResourcesAssembler;
+    private final ToggleService service;
+    private final PagedResourcesAssembler<ToggleDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieveConsents(@PathVariable final Long spexareId, @SortDefault(sort = "type", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieveToggles(@PathVariable final Long spexareId, @SortDefault(sort = "type", direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
-            final PagedModel<EntityModel<ConsentDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
+            final PagedModel<EntityModel<ToggleDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));
 
             return ResponseEntity.ok(paged);
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not retrieve consents", e);
+                log.error("Could not retrieve toggles", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<ConsentDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
@@ -62,62 +61,62 @@ public class ConsentApi {
     }
 
     @PutMapping(value = "/{typeId}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<ConsentDto>> addConsent(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Boolean value) {
+    public ResponseEntity<EntityModel<ToggleDto>> addToggle(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Boolean value) {
         try {
             return service
-                    .addConsent(spexareId, typeId, value)
+                    .addToggle(spexareId, typeId, value)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not add value to consents", e);
+                log.error("Could not add value to toggles", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping(value = "/{typeId}/{id}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<ConsentDto>> updateConsent(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @PathVariable final Boolean value) {
+    public ResponseEntity<EntityModel<ToggleDto>> updateToggle(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @PathVariable final Boolean value) {
         try {
             return service
-                    .updateConsent(spexareId, typeId, id, value)
+                    .updateToggle(spexareId, typeId, id, value)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update value in consents", e);
+                log.error("Could not update value in toggles", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeConsent(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
+    public ResponseEntity<?> removeToggle(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
         try {
-            return service.removeConsent(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.removeToggle(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not remove value from consents", e);
+                log.error("Could not remove value from toggles", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    private void addLinks(final EntityModel<ConsentDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<ToggleDto> entity, final Long spexareId) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent(), spexareId));
         }
     }
 
-    void addLinks(final ConsentDto dto, final Long spexareId) {
+    void addLinks(final ToggleDto dto, final Long spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final ConsentDto dto, final Long spexareId) {
+    List<Link> getLinks(final ToggleDto dto, final Long spexareId) {
         final List<Link> links = new ArrayList<>();
 
-        links.add(linkTo(methodOn(ConsentApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(ConsentApi.class).retrieveConsents(dto.getId(), null)).withRel("consents"));
+        links.add(linkTo(methodOn(ToggleApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(ToggleApi.class).retrieveToggles(dto.getId(), null)).withRel("toggles"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;

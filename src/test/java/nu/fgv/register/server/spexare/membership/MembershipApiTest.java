@@ -62,7 +62,7 @@ public class MembershipApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_memberships_by_spexare() throws Exception {
+    public void should_get_paged_memberships() throws Exception {
         var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
         var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
@@ -77,7 +77,7 @@ public class MembershipApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/memberships/get-paged-by-spexare",
+                                "spexare/memberships/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

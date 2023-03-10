@@ -101,12 +101,8 @@ public class MembershipApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-
-        final Link membershipsLink = linkTo(methodOn(MembershipApi.class).retrieveMemberships(dto.getId(), null)).withRel("memberships");
-        links.add(membershipsLink);
-
-        final Link spexareLink = linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare");
-        links.add(spexareLink);
+        links.add(linkTo(methodOn(MembershipApi.class).retrieveMemberships(dto.getId(), null)).withRel("memberships"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;
     }
