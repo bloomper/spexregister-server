@@ -39,7 +39,7 @@ public class Consent extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{consent.value.notEmpty}")
+    @NotNull(message = "{consent.value.notEmpty}")
     @Column(name = "value", nullable = false)
     private Boolean value;
 
