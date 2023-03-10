@@ -31,6 +31,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
@@ -133,19 +134,19 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_consent() throws Exception {
+    public void should_create_consent() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.addConsent(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1, consent.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1, consent.getId(), Boolean.TRUE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/consents/add",
+                                "spexare/consents/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -164,7 +165,7 @@ public class ConsentApiTest extends AbstractApiTest {
     public void should_update_consent() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.updateConsent(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
 
         mockMvc
                 .perform(
@@ -190,8 +191,8 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_consent() throws Exception {
-        when(service.removeConsent(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
+    public void should_delete_consent() throws Exception {
+        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -199,7 +200,7 @@ public class ConsentApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/consents/remove",
+                                "spexare/consents/delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

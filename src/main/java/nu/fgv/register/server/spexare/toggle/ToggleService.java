@@ -44,7 +44,7 @@ public class ToggleService {
         return repository.findById(id).map(TOGGLE_MAPPER::toDto);
     }
 
-    public Optional<ToggleDto> addToggle(final Long spexareId, final String typeId, final Boolean value) {
+    public Optional<ToggleDto> create(final Long spexareId, final String typeId, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -66,7 +66,7 @@ public class ToggleService {
         }
     }
 
-    public Optional<ToggleDto> updateToggle(final Long spexareId, final String typeId, final Long id, final Boolean value) {
+    public Optional<ToggleDto> update(final Long spexareId, final String typeId, final Long id, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -86,7 +86,7 @@ public class ToggleService {
         }
     }
 
-    public boolean removeToggle(final Long spexareId, final String typeId, final Long id) {
+    public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)

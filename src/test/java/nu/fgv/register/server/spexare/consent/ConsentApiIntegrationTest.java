@@ -237,7 +237,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -269,7 +269,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -280,7 +280,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{value}", type.getId(), Boolean.FALSE)
+                .post("/{typeId}/{value}", type.getId(), Boolean.FALSE)
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
@@ -295,7 +295,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", "1")
             .when()
-                .put("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -310,7 +310,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{value}", "dummy", Boolean.TRUE)
+                .post("/{typeId}/{value}", "dummy", Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -332,7 +332,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().as(ConsentDto.class);
@@ -432,7 +432,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                     .contentType(ContentType.JSON)
                     .pathParam("spexareId", spexare.getId())
                 .when()
-                    .put("/{typeId}/{id}", type.getId(), Boolean.TRUE)
+                    .post("/{typeId}/{id}", type.getId(), Boolean.TRUE)
                 .then()
                     .statusCode(HttpStatus.ACCEPTED.value())
                     .extract().body().as(ConsentDto.class);

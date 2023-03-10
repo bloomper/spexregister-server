@@ -31,6 +31,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
@@ -133,19 +134,19 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_toggle() throws Exception {
+    public void should_create_toggle() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.addToggle(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
+        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1, toggle.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1, toggle.getId(), Boolean.TRUE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/toggles/add",
+                                "spexare/toggles/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -164,7 +165,7 @@ public class ToggleApiTest extends AbstractApiTest {
     public void should_update_toggle() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.updateToggle(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(
@@ -190,8 +191,8 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_toggle() throws Exception {
-        when(service.removeToggle(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
+    public void should_delete_toggle() throws Exception {
+        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -199,7 +200,7 @@ public class ToggleApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/toggles/remove",
+                                "spexare/toggles/delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

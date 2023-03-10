@@ -219,8 +219,7 @@ public class SpexCategoryApi {
         if (hasText(dto.getLogo())) {
             links.add(Link.of(dto.getLogo()).withRel("logo"));
         } else {
-            final Link logoLink = linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo");
-            links.add(logoLink);
+            links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
         }
         return links;
     }

@@ -31,7 +31,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
@@ -133,19 +133,19 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_membership() throws Exception {
+    public void should_create_membership() throws Exception {
         var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.addMembership(any(Long.class), any(String.class), any(String.class))).thenReturn(Optional.of(membership));
+        when(service.create(any(Long.class), any(String.class), any(String.class))).thenReturn(Optional.of(membership));
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1, "FGV", "2023")
+                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1, "FGV", "2023")
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/memberships/add",
+                                "spexare/memberships/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -161,8 +161,8 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_membership() throws Exception {
-        when(service.removeMembership(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
+    public void should_delete_membership() throws Exception {
+        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -170,7 +170,7 @@ public class MembershipApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/memberships/remove",
+                                "spexare/memberships/delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

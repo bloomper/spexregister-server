@@ -44,7 +44,7 @@ public class ConsentService {
         return repository.findById(id).map(CONSENT_MAPPER::toDto);
     }
 
-    public Optional<ConsentDto> addConsent(final Long spexareId, final String typeId, final Boolean value) {
+    public Optional<ConsentDto> create(final Long spexareId, final String typeId, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -66,7 +66,7 @@ public class ConsentService {
         }
     }
 
-    public Optional<ConsentDto> updateConsent(final Long spexareId, final String typeId, final Long id, final Boolean value) {
+    public Optional<ConsentDto> update(final Long spexareId, final String typeId, final Long id, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -86,7 +86,7 @@ public class ConsentService {
         }
     }
 
-    public boolean removeConsent(final Long spexareId, final String typeId, final Long id) {
+    public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)

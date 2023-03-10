@@ -269,13 +269,12 @@ public class SpexApi {
         if (hasText(dto.getPoster())) {
             links.add(Link.of(dto.getPoster()).withRel("poster"));
         } else {
-            final Link posterLink = linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster");
-            links.add(posterLink);
+            links.add(linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster"));
         }
         if (dto.getParent() != null) {
             links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getParent().getId())).withRel("parent"));
         } else {
-            links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), null)).withRel("revivals"));
+            links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }
         if (dto.getCategory() != null) {
             spexCategoryApi.addLinks(dto.getCategory());

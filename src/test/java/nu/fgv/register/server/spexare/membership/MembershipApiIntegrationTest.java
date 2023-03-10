@@ -241,7 +241,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -273,7 +273,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .extract().body().asString();
@@ -284,7 +284,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
@@ -299,7 +299,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", "1")
             .when()
-                .put("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -314,7 +314,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{year}", "dummy", "2023")
+                .post("/{typeId}/{year}", "dummy", "2023")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -337,7 +337,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                     .contentType(ContentType.JSON)
                     .pathParam("spexareId", spexare.getId())
                 .when()
-                    .put("/{typeId}/{year}", type.getId(), "2023")
+                    .post("/{typeId}/{year}", type.getId(), "2023")
                 .then()
                     .statusCode(HttpStatus.ACCEPTED.value())
                     .extract().body().as(MembershipDto.class);

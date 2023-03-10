@@ -44,7 +44,7 @@ public class MembershipService {
         return repository.findById(id).map(MEMBERSHIP_MAPPER::toDto);
     }
 
-    public Optional<MembershipDto> addMembership(final Long spexareId, final String typeId, final String year) {
+    public Optional<MembershipDto> create(final Long spexareId, final String typeId, final String year) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -66,7 +66,7 @@ public class MembershipService {
         }
     }
 
-    public boolean removeMembership(final Long spexareId, final String typeId, final Long id) {
+    public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)

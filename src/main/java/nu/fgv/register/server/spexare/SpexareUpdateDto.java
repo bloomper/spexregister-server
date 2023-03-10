@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 @ToString
 @Builder
-@Relation(collectionRelation = "spex", itemRelation = "spex")
+@Relation(collectionRelation = "spexare", itemRelation = "spexare")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexareUpdateDto {
     @JsonProperty("id")
