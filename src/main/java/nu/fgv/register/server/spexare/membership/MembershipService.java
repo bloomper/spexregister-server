@@ -40,20 +40,6 @@ public class MembershipService {
         }
     }
 
-    public Page<MembershipDto> findBySpexareAndType(final Long spexareId, final TypeType type, final Pageable pageable) {
-        if (doSpexareAndTypeExist(spexareId, type)) {
-            return spexareRepository
-                    .findById(spexareId)
-                    .map(spexare -> repository
-                            .findBySpexareAndType(spexare, type, pageable)
-                            .map(MEMBERSHIP_MAPPER::toDto)
-                    )
-                    .orElse(Page.empty());
-        } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, type));
-        }
-    }
-
     public Optional<MembershipDto> findById(final Long id) {
         return repository.findById(id).map(MEMBERSHIP_MAPPER::toDto);
     }
@@ -103,12 +89,8 @@ public class MembershipService {
         return spexareRepository.existsById(id);
     }
 
-    private boolean doSpexareAndTypeExist(final Long spexareId, final TypeType type) {
-        return doesSpexareExist(spexareId) && typeRepository.existsByType(type);
-    }
-
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {
-        return doesSpexareExist(spexareId) && typeRepository.existsById(typeId);
+        return doesSpexareExist(spexareId) && typeRepository.existsByIdAndType(typeId, TypeType.MEMBERSHIP);
     }
 
 }

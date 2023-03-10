@@ -2,7 +2,6 @@ package nu.fgv.register.server.spexare.membership;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,21 +40,6 @@ public class MembershipApi {
     public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMemberships(@PathVariable final Long spexareId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId));
-
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve memberships", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @GetMapping(value = "/type/{type}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieveMembershipsByType(@PathVariable final Long spexareId, @PathVariable final TypeType type, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
-        try {
-            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexareAndType(spexareId, type, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));
 
             return ResponseEntity.ok(paged);

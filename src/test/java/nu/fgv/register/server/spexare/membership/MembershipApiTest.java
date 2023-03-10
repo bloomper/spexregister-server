@@ -104,49 +104,6 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_paged_memberships_by_spexare_and_type() throws Exception {
-        var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
-        var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
-
-        when(service.findBySpexareAndType(any(Long.class), any(TypeType.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(membership1, membership2), PageRequest.of(1, 2, Sort.by("year")), 10));
-
-        mockMvc
-                .perform(
-                        get("/api/v1/spexare/{spexareId}/memberships/type/{type}?page=1&size=2&sort=year,desc", 1, TypeType.MEMBERSHIP)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.memberships", hasSize(2)))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spexare/memberships/get-paged-by-spexare-and-type",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("type").description("The value of the type")
-                                ),
-                                pageLinks.and(
-                                        subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.memberships[]").description("The elements"),
-                                        fieldWithPath("_embedded.memberships[].id").description("The id of the membership"),
-                                        fieldWithPath("_embedded.memberships[].year").description("The year of the membership"),
-                                        fieldWithPath("_embedded.memberships[].type").description("The type of the membership"),
-                                        fieldWithPath("_embedded.memberships[].createdBy").description("Who created the membership"),
-                                        fieldWithPath("_embedded.memberships[].createdAt").description("When was the membership created"),
-                                        fieldWithPath("_embedded.memberships[].lastModifiedBy").description("Who last modified the membership"),
-                                        fieldWithPath("_embedded.memberships[].lastModifiedAt").description("When was the membership last modified"),
-                                        subsectionWithPath("_embedded.memberships[]._links").description("The membership links"),
-                                        linksSubsection
-                                ),
-                                pagingLinks,
-                                pagingQueryParameters,
-                                responseHeaders
-                        )
-                );
-    }
-
-    @Test
     public void should_get_membership() throws Exception {
         var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
@@ -183,7 +140,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/memberships/{type}/{year}", 1, "FGV", "2023")
+                        put("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1, "FGV", "2023")
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -193,7 +150,7 @@ public class MembershipApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("type").description("The type of the membership"),
+                                        parameterWithName("typeId").description("The type id of the membership"),
                                         parameterWithName("year").description("The year of the membership")
                                 ),
                                 responseFields,
@@ -209,7 +166,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/memberships/{type}/{year}", 1, "FGV", "2023")
+                        delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1, "FGV", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -218,8 +175,8 @@ public class MembershipApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("type").description("The type of the membership"),
-                                        parameterWithName("year").description("The year of the membership")
+                                        parameterWithName("typeId").description("The type id of the membership"),
+                                        parameterWithName("id").description("The id of the membership")
                                 )
                         )
                 );

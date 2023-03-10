@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface TypeRepository extends JpaRepository<Type, String>, QuerydslPredicateExecutor<Type> {
 
+    boolean existsByIdAndType(String id, TypeType type);
+
     boolean existsByType(TypeType type);
 
     List<Type> findByType(TypeType type);
