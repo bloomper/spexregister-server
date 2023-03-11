@@ -3,7 +3,10 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.address.AddressApi;
+import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
+import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -187,11 +190,12 @@ public class SpexareApi {
         if (hasText(dto.getImage())) {
             links.add(Link.of(dto.getImage()).withRel("image"));
         } else {
-            final Link imageLink = linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image");
-            links.add(imageLink);
+            links.add(linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image"));
         }
-        final Link membershipsLink = linkTo(methodOn(MembershipApi.class).retrieveMemberships(dto.getId(), null)).withRel("memberships");
-        links.add(membershipsLink);
+        links.add(linkTo(methodOn(MembershipApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("memberships"));
+        links.add(linkTo(methodOn(ConsentApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("consents"));
+        links.add(linkTo(methodOn(ToggleApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("toggles"));
+        links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("addresses"));
 
         return links;
     }
