@@ -228,11 +228,11 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Add membership")
-    class AddMembershipTests {
+    @DisplayName("Create")
+    class CreateTests {
 
         @Test
-        public void should_add_and_return_201() {
+        public void should_create_and_return_201() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -264,7 +264,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_adding_already_existing_year() {
+        public void should_return_409_when_creating_already_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -291,7 +291,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_spexare_not_found() {
+        public void should_return_404_when_creating_and_spexare_not_found() {
             var type = persistType(randomizeType());
 
             //@formatter:off
@@ -306,7 +306,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_type_not_found() {
+        public void should_return_404_when_creating_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -323,11 +323,11 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Remove membership")
-    class RemoveMembershipTests {
+    @DisplayName("Delete")
+    class DeleteTests {
 
         @Test
-        public void should_remove_and_return_204() {
+        public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -371,7 +371,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_removing_non_existing_year() {
+        public void should_return_422_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -387,7 +387,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_spexare_not_found() {
+        public void should_return_404_when_deleting_and_spexare_not_found() {
             var type = persistType(randomizeType());
 
             //@formatter:off
@@ -402,7 +402,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_type_not_found() {
+        public void should_return_404_when_deleting_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off

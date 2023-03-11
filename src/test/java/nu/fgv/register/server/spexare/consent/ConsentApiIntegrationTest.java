@@ -224,11 +224,11 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Add consent")
-    class AddConsentTests {
+    @DisplayName("Create")
+    class CreateTests {
 
         @Test
-        public void should_add_and_return_201() {
+        public void should_create_and_return_201() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -260,7 +260,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_adding_already_existing_value() {
+        public void should_return_409_when_creating_already_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -287,7 +287,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_spexare_not_found() {
+        public void should_return_404_when_creating_and_spexare_not_found() {
             var type = persistType(randomizeType());
 
             //@formatter:off
@@ -302,7 +302,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_type_not_found() {
+        public void should_return_404_when_creating_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -319,8 +319,8 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Update consent")
-    class UpdateConsentTests {
+    @DisplayName("Update")
+    class UpdateTests {
 
         @Test
         public void should_update_and_return_202() {
@@ -401,7 +401,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_type_not_found() {
+        public void should_return_404_when_updating_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -418,11 +418,11 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Remove consent")
-    class RemoveConsentTests {
+    @DisplayName("Delete")
+    class DeleteTests {
 
         @Test
-        public void should_remove_and_return_204() {
+        public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -466,7 +466,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_removing_non_existing_year() {
+        public void should_return_422_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -482,7 +482,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_spexare_not_found() {
+        public void should_return_404_when_deleting_and_spexare_not_found() {
             var type = persistType(randomizeType());
 
             //@formatter:off
@@ -497,7 +497,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_type_not_found() {
+        public void should_return_404_when_deleting_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
