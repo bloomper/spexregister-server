@@ -95,7 +95,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private String imageContentType;
 
     @ManyToOne
-    private Spexare spouse;
+    private Spexare partner;
 
     @OneToOne(mappedBy = "spexare")
     private UserDetails userDetails;

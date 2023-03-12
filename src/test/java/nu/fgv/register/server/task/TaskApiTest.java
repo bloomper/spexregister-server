@@ -322,7 +322,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{id}/category/{categoryId}", 1, 1)
+                        put("/api/v1/tasks/{taskId}/category/{id}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -331,8 +331,8 @@ public class TaskApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the task"),
-                                        parameterWithName("categoryId").description("The id of the task category")
+                                        parameterWithName("taskId").description("The id of the task"),
+                                        parameterWithName("id").description("The id of the task category")
                                 ),
                                 responseFieldsWithCategory,
                                 links,
@@ -345,11 +345,11 @@ public class TaskApiTest extends AbstractApiTest {
     public void should_delete_task_category() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
-        when(service.removeCategory(any(Long.class))).thenReturn(Optional.of(task));
+        when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(task));
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{id}/category", 1)
+                        delete("/api/v1/tasks/{taskId}/category", 1)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -357,7 +357,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the task")
+                                        parameterWithName("taskId").description("The id of the task")
                                 ),
                                 responseFields,
                                 links,

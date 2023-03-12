@@ -15,7 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
@@ -425,7 +424,7 @@ public class SpexApiTest extends AbstractApiTest {
     @Test
     public void should_delete_spex_poster() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.removePoster(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.deletePoster(any(Long.class))).thenReturn(Optional.of(spex));
 
         mockMvc
                 .perform(
@@ -562,8 +561,8 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_spex_revival() throws Exception {
-        when(service.removeRevival(any(Long.class), any(String.class))).thenReturn(true);
+    public void should_delete_spex_revival() throws Exception {
+        when(service.deleteRevival(any(Long.class), any(String.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -571,7 +570,7 @@ public class SpexApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spex/revival-remove",
+                                "spex/revival-delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -591,7 +590,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{id}/category/{categoryId}", 1, 1)
+                        put("/api/v1/spex/{spexId}/category/{id}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -600,8 +599,8 @@ public class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex"),
-                                        parameterWithName("categoryId").description("The id of the spex category")
+                                        parameterWithName("spexId").description("The id of the spex"),
+                                        parameterWithName("id").description("The id of the spex category")
                                 ),
                                 responseFieldsWithCategory,
                                 links,
@@ -614,11 +613,11 @@ public class SpexApiTest extends AbstractApiTest {
     public void should_delete_spex_category() throws Exception {
         var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").build();
 
-        when(service.removeCategory(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(spex));
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{id}/category", 1)
+                        delete("/api/v1/spex/{spexId}/category", 1)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -626,7 +625,7 @@ public class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex")
+                                        parameterWithName("spexId").description("The id of the spex")
                                 ),
                                 responseFields,
                                 links,

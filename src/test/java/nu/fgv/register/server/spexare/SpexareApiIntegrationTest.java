@@ -56,7 +56,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
-                .excludeField(named("spouse").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
+                .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
                 .excludeField(named("userDetails").and(ofType(UserDetails.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))
@@ -524,6 +524,167 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
+    }
+
+    @Nested
+    @DisplayName("Partner")
+    class PartnerTests {
+
+        @Test
+        public void should_return_200() {
+            var partner = persistSpexare(randomizeSpexare());
+            var spexare = persistSpexare(randomizeSpexare());
+            spexare.setPartner(partner);
+            partner.setPartner(spexare);
+            repository.save(spexare);
+            repository.save(partner);
+
+            //@formatter:off
+            final SpexareDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{spexareId}/partner", spexare.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "firstName", "lastName", "nickName")
+                    .contains(partner.getId(), partner.getFirstName(), partner.getLastName(), partner.getNickName());
+        }
+
+        @Test
+        public void should_return_404_when_retrieving_and_spexare_not_found() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexareId}/partner", "123")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_retrieving_and_partner_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexareId}/partner", spexare.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_update_and_return_201() throws Exception {
+            var partner = persistSpexare(randomizeSpexare());
+
+            final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
+
+            //@formatter:off
+            final String json =
+                    given()
+                        .contentType(ContentType.JSON)
+                        .body(dto)
+                    .when()
+                        .post()
+                    .then()
+                        .statusCode(HttpStatus.CREATED.value())
+                        .extract().body().asString();
+            //@formatter:on
+
+            final SpexareDto spexare = objectMapper.readValue(json, SpexareDto.class);
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value())
+                .extract().body().asString();
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_updating_and_spexare_not_found() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{spexareId}/partner/{id}", "123", "321")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_updating_and_partner_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{spexareId}/partner/{id}", spexare.getId(), "321")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_delete_and_return_204() {
+            var partner = persistSpexare(randomizeSpexare());
+            var spexare = persistSpexare(randomizeSpexare());
+            spexare.setPartner(partner);
+            partner.setPartner(spexare);
+            repository.save(spexare);
+            repository.save(partner);
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{spexareId}/partner", spexare.getId())
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .extract().body().asString();
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_422_when_removing_and_no_partner() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{spexareId}/partner", spexare.getId())
+            .then()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_removing_and_spexare_not_found() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{spexareId}/partner", "123")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
     }
 
     private Spexare randomizeSpexare() {

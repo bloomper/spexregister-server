@@ -168,7 +168,7 @@ public class SpexApi {
 
     @DeleteMapping("/{id}/poster")
     public ResponseEntity<?> deletePoster(@PathVariable final Long id) {
-        return service.removePoster(id)
+        return service.deletePoster(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -212,23 +212,23 @@ public class SpexApi {
     }
 
     @DeleteMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeRevival(@PathVariable final Long id, @PathVariable final String year) {
+    public ResponseEntity<?> deleteRevival(@PathVariable final Long id, @PathVariable final String year) {
         try {
-            return service.removeRevival(id, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.deleteRevival(id, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not remove year from revivals", e);
+                log.error("Could not delete year from revivals", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PutMapping(value = "/{id}/category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> updateCategory(@PathVariable final Long id, @PathVariable final Long categoryId) {
+    @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> updateCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
         try {
             return service
-                    .updateCategory(id, categoryId)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                    .updateCategory(spexId, id)
+                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
@@ -238,16 +238,16 @@ public class SpexApi {
         }
     }
 
-    @DeleteMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> removeCategory(@PathVariable final Long id) {
+    @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> deleteCategory(@PathVariable final Long spexId) {
         try {
             return service
-                    .removeCategory(id)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY)); // Unreachable
+                    .deleteCategory(spexId)
+                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not remove category for spex", e);
+                log.error("Could not delete category for spex", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

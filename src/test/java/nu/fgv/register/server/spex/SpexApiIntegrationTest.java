@@ -758,7 +758,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_remove_and_return_204() {
+        public void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -825,8 +825,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Spex category")
-    class SpexCategoryTests {
+    @DisplayName("Category")
+    class CategoryTests {
 
         @Test
         public void should_update_and_return_201() throws Exception {
@@ -894,7 +894,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_remove_and_return_201() throws Exception {
+        public void should_delete_and_return_201() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -912,6 +912,20 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             final SpexDto result = objectMapper.readValue(json, SpexDto.class);
 
             assertThat(result.getCategory()).isNull();
+        }
+
+        @Test
+        public void should_return_422_when_removing_and_no_category() {
+            var spex = persistSpex(randomizeSpex(null));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/category", spex.getId())
+            .then()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            //@formatter:on
         }
 
         @Test

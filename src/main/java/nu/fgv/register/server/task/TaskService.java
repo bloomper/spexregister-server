@@ -89,10 +89,11 @@ public class TaskService {
         }
     }
 
-    public Optional<TaskDto> removeCategory(final Long taskId) {
+    public Optional<TaskDto> deleteCategory(final Long taskId) {
         if (doesTaskExist(taskId)) {
             return repository
                     .findById(taskId)
+                    .filter(task -> task.getCategory() != null)
                     .map(task -> {
                         task.setCategory(null);
                         repository.save(task);

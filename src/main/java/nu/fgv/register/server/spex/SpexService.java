@@ -114,7 +114,7 @@ public class SpexService {
                 });
     }
 
-    public Optional<SpexDto> removePoster(final Long id) {
+    public Optional<SpexDto> deletePoster(final Long id) {
         return repository
                 .findById(id)
                 .map(model -> {
@@ -168,7 +168,7 @@ public class SpexService {
         }
     }
 
-    public boolean removeRevival(final Long id, final String year) {
+    public boolean deleteRevival(final Long id, final String year) {
         if (doesSpexExist(id)) {
             return repository
                     .findById(id)
@@ -199,10 +199,11 @@ public class SpexService {
         }
     }
 
-    public Optional<SpexDto> removeCategory(final Long spexId) {
+    public Optional<SpexDto> deleteCategory(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository
                     .findById(spexId)
+                    .filter(spex -> spex.getDetails().getCategory() != null)
                     .map(spex -> {
                         spex.getDetails().setCategory(null);
                         detailsRepository.save(spex.getDetails());

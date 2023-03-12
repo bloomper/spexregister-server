@@ -66,7 +66,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
-                .excludeField(named("spouse").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
+                .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
                 .excludeField(named("userDetails").and(ofType(UserDetails.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))

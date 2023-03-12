@@ -402,7 +402,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     public void should_delete_spex_category_logo() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
-        when(service.removeLogo(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.deleteLogo(any(Long.class))).thenReturn(Optional.of(category));
 
         mockMvc
                 .perform(

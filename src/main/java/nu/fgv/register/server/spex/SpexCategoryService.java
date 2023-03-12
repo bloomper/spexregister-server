@@ -91,7 +91,7 @@ public class SpexCategoryService {
                 });
     }
 
-    public Optional<SpexCategoryDto> removeLogo(final Long id) {
+    public Optional<SpexCategoryDto> deleteLogo(final Long id) {
         return repository
                 .findById(id)
                 .map(model -> {

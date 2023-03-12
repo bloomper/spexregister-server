@@ -14,12 +14,12 @@ CREATE TABLE IF NOT EXISTS spexare
     comment                LONGTEXT              NULL,
     image                  BLOB                  NULL,
     image_content_type     VARCHAR(255)          NULL,
-    spouse_id              BIGINT                NULL,
+    partner_id             BIGINT                NULL,
     CONSTRAINT pk_spexare PRIMARY KEY (id)
 );
 
 ALTER TABLE spexare
-    ADD CONSTRAINT FK_SPEXARE_ON_SPOUSE FOREIGN KEY (spouse_id) REFERENCES spexare (id);
+    ADD CONSTRAINT FK_SPEXARE_ON_PARTNER FOREIGN KEY (partner_id) REFERENCES spexare (id);
 
 CREATE INDEX IDX_SPEXARE_ON_LAST_NAME ON spexare (last_name);
 

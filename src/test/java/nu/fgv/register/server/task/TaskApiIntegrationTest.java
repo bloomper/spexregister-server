@@ -414,8 +414,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Task category")
-    class TaskCategoryTests {
+    @DisplayName("Category")
+    class CategoryTests {
 
         @Test
         public void should_update_and_return_201() throws Exception {
@@ -442,7 +442,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .put("/{id}/category/{categoryId}", task.getId(), category.getId())
+                        .put("/{taskId}/category/{id}", task.getId(), category.getId())
                     .then()
                         .statusCode(HttpStatus.ACCEPTED.value())
                         .extract().body().asString();
@@ -483,7 +483,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_remove_and_return_201() throws Exception {
+        public void should_delete_and_return_201() throws Exception {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 
@@ -504,12 +504,26 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        public void should_return_422_when_removing_and_no_category() {
+            var task = persistTask(randomizeTask(null));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/category", task.getId())
+            .then()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            //@formatter:on
+        }
+
+        @Test
         public void should_return_404_when_removing_and_task_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/task/category", "123")
+                .delete("/{id}/category", "123")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

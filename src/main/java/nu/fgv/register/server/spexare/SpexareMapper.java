@@ -31,7 +31,7 @@ public interface SpexareMapper {
             @Mapping(target = "comment", ignore = true),
             @Mapping(target = "image", ignore = true),
             @Mapping(target = "imageContentType", ignore = true),
-            @Mapping(target = "spouse", ignore = true),
+            @Mapping(target = "partner", ignore = true),
             @Mapping(target = "userDetails", ignore = true),
             @Mapping(target = "activities", ignore = true),
             @Mapping(target = "tags", ignore = true),
@@ -49,7 +49,7 @@ public interface SpexareMapper {
     @Mappings({
             @Mapping(target = "image", ignore = true),
             @Mapping(target = "imageContentType", ignore = true),
-            @Mapping(target = "spouse", ignore = true),
+            @Mapping(target = "partner", ignore = true),
             @Mapping(target = "userDetails", ignore = true),
             @Mapping(target = "activities", ignore = true),
             @Mapping(target = "tags", ignore = true),

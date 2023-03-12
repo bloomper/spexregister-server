@@ -16,7 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
@@ -87,7 +86,8 @@ public class SpexareApiTest extends AbstractApiTest {
             linkWithRel("memberships").description("Link to the current spexare's memberships").optional(),
             linkWithRel("consents").description("Link to the current spexare's consents").optional(),
             linkWithRel("toggles").description("Link to the current spexare's toggles").optional(),
-            linkWithRel("addresses").description("Link to the current spexare's addresses").optional()
+            linkWithRel("addresses").description("Link to the current spexare's addresses").optional(),
+            linkWithRel("partner").description("Link to the current spexare's partner").optional()
     );
 
     @Test
@@ -336,6 +336,7 @@ public class SpexareApiTest extends AbstractApiTest {
     @Test
     public void should_download_spexare_image() throws Exception {
         var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
+
         when(service.getImage(any(Long.class))).thenReturn(Optional.of(image));
 
         mockMvc
@@ -367,6 +368,7 @@ public class SpexareApiTest extends AbstractApiTest {
     public void should_upload_spex_image() throws Exception {
         var image = new byte[]{10, 12};
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
@@ -397,6 +399,7 @@ public class SpexareApiTest extends AbstractApiTest {
     public void should_upload_spexare_image_via_multipart() throws Exception {
         var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
@@ -424,7 +427,8 @@ public class SpexareApiTest extends AbstractApiTest {
     @Test
     public void should_delete_spexare_image() throws Exception {
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        when(service.removeImage(any(Long.class))).thenReturn(Optional.of(spexare));
+
+        when(service.deleteImage(any(Long.class))).thenReturn(Optional.of(spexare));
 
         mockMvc
                 .perform(
@@ -439,6 +443,81 @@ public class SpexareApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
+                                )
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_partner() throws Exception {
+        var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+
+        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spexare/{id}/partner", 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/get-partner",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_update_partner() throws Exception {
+        var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+
+        when(service.updatePartner(any(Long.class), any(Long.class))).thenReturn(Optional.of(partner));
+
+        mockMvc
+                .perform(
+                        put("/api/v1/spexare/{spexareId}/partner/{id}", 1, 1)
+                )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(document(
+                                "spexare/partner-update",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexareId").description("The id of the spexare"),
+                                        parameterWithName("id").description("The id of the partner")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_delete_partner() throws Exception {
+        when(service.deletePartner(any(Long.class))).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        delete("/api/v1/spexare/{spexareId}/partner", 1)
+                )
+                .andExpect(status().isNoContent())
+                .andDo(document(
+                                "spexare/partner-delete",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 )
                         )
                 );

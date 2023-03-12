@@ -130,12 +130,12 @@ public class TaskApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping(value = "/{id}/category/{categoryId}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long id, @PathVariable final Long categoryId) {
+    @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
             return service
-                    .updateCategory(id, categoryId)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
+                    .updateCategory(taskId, id)
+                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
@@ -145,16 +145,16 @@ public class TaskApi {
         }
     }
 
-    @DeleteMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> removeCategory(@PathVariable final Long id) {
+    @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<TaskDto>> deleteCategory(@PathVariable final Long taskId) {
         try {
             return service
-                    .removeCategory(id)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY)); // Unreachable
+                    .deleteCategory(taskId)
+                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not remove category for task", e);
+                log.error("Could not delete category for task", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

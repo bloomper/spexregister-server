@@ -198,7 +198,7 @@ public class SpexCategoryApi {
 
     @DeleteMapping("/{id}/logo")
     public ResponseEntity<?> deleteLogo(@PathVariable final Long id) {
-        return service.removeLogo(id)
+        return service.deleteLogo(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
