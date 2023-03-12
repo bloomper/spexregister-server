@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -13,16 +12,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "tag")
@@ -44,11 +40,6 @@ public class Tag extends AbstractAuditable implements Serializable {
     @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
     private String name;
-
-    @ManyToMany(mappedBy = "tags")
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @ToString.Exclude
-    private Set<Spexare> spexare = new HashSet<>();
 
     @Override
     public boolean equals(final Object o) {
