@@ -1,6 +1,5 @@
 package nu.fgv.register.server.spexare.address;
 
-import nu.fgv.register.server.settings.SettingsApiTest;
 import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.util.AbstractApiTest;
