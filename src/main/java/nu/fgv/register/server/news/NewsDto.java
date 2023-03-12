@@ -29,8 +29,11 @@ public class NewsDto extends AbstractAuditableDto<NewsDto> {
     @JsonProperty("text")
     private String text;
 
-    @JsonProperty("publicationDate")
-    private LocalDate publicationDate;
+    @JsonProperty("visibleFrom")
+    private LocalDate visibleFrom;
+
+    @JsonProperty("visibleTo")
+    private LocalDate visibleTo;
 
     @JsonProperty("published")
     private Boolean published;
@@ -40,7 +43,8 @@ public class NewsDto extends AbstractAuditableDto<NewsDto> {
             final Long id,
             final String subject,
             final String text,
-            final LocalDate publicationDate,
+            final LocalDate visibleFrom,
+            final LocalDate visibleTo,
             final Boolean published,
             final String createdBy,
             final Instant createdAt,
@@ -51,7 +55,8 @@ public class NewsDto extends AbstractAuditableDto<NewsDto> {
         this.id = id;
         this.subject = subject;
         this.text = text;
-        this.publicationDate = publicationDate;
+        this.visibleFrom = visibleFrom;
+        this.visibleTo = visibleTo;
         this.published = published;
     }
 }

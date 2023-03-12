@@ -40,7 +40,7 @@ public class NewsApi {
     private final PagedResourcesAssembler<NewsDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = "publicationDate", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = "visibleFrom", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
         paged.getContent().forEach(this::addLinks);
 

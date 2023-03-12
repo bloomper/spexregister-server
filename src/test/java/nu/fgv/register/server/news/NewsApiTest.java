@@ -54,7 +54,8 @@ public class NewsApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the news"),
             fieldWithPath("subject").description("The subject of the news"),
             fieldWithPath("text").description("The text of the news"),
-            fieldWithPath("publicationDate").description("The publication date of the news"),
+            fieldWithPath("visibleFrom").description("The visible from of the news"),
+            fieldWithPath("visibleTo").description("The visible to of the news"),
             fieldWithPath("published").description("The flag telling whether the news has been published or not"),
             linksSubsection
     );
@@ -63,14 +64,14 @@ public class NewsApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_paged_news() throws Exception {
-        var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").publicationDate(LocalDate.now()).build();
-        var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").publicationDate(LocalDate.now()).build();
+        var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
+        var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("publicationDate")), 10));
+        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("visibleFrom")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/news?page=1&size=2&sort=publicationDate,desc")
+                        get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.news", hasSize(2)))
@@ -86,7 +87,8 @@ public class NewsApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.news[].id").description("The id of the news"),
                                         fieldWithPath("_embedded.news[].subject").description("The subject of the news"),
                                         fieldWithPath("_embedded.news[].text").description("The text of the news"),
-                                        fieldWithPath("_embedded.news[].publicationDate").description("The publication date of the news"),
+                                        fieldWithPath("_embedded.news[].visibleFrom").description("The visible from of the news"),
+                                        fieldWithPath("_embedded.news[].visibleTo").description("The visible to of the news"),
                                         fieldWithPath("_embedded.news[].createdBy").description("Who created the news"),
                                         fieldWithPath("_embedded.news[].createdAt").description("When was the news created"),
                                         fieldWithPath("_embedded.news[].lastModifiedBy").description("Who last modified the news"),
@@ -104,9 +106,9 @@ public class NewsApiTest extends AbstractApiTest {
     @Test
     public void should_create_news() throws Exception {
         var fields = new ConstrainedFields(NewsCreateDto.class);
-        var dto = NewsCreateDto.builder().subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
+        var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
-        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.getSubject()).text(dto.getText()).publicationDate(dto.getPublicationDate()).build());
+        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.getSubject()).text(dto.getText()).build());
 
         mockMvc
                 .perform(
@@ -123,7 +125,8 @@ public class NewsApiTest extends AbstractApiTest {
                                 requestFields(
                                         fields.withPath("subject").description("The subject of the news"),
                                         fields.withPath("text").description("The text of the news"),
-                                        fields.withPath("publicationDate").description("The publication date of the news")
+                                        fields.withPath("visibleFrom").description("The visible from of the news"),
+                                        fields.withPath("visibleTo").description("The visible to of the news")
                                 ),
                                 responseFields,
                                 links,
@@ -134,7 +137,7 @@ public class NewsApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_news() throws Exception {
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
+        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
 
@@ -163,8 +166,8 @@ public class NewsApiTest extends AbstractApiTest {
     @Test
     public void should_update_news() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
-        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
+        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.update(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
@@ -189,7 +192,8 @@ public class NewsApiTest extends AbstractApiTest {
                                         fields.withPath("id").description("The id of the news"),
                                         fields.withPath("subject").description("The subject of the news"),
                                         fields.withPath("text").description("The text of the news"),
-                                        fields.withPath("publicationDate").description("The publication date of the news")
+                                        fields.withPath("visibleFrom").description("The visible from of the news"),
+                                        fields.withPath("visibleTo").description("The visible to of the news")
                                 ),
                                 responseFields,
                                 links,
@@ -201,8 +205,8 @@ public class NewsApiTest extends AbstractApiTest {
     @Test
     public void should_partial_update_news() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
-        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
+        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
@@ -227,7 +231,8 @@ public class NewsApiTest extends AbstractApiTest {
                                         fields.withPath("id").description("The id of the news"),
                                         fields.withPath("subject").description("The subject of the news").optional(),
                                         fields.withPath("text").description("The text of the news").optional(),
-                                        fields.withPath("publicationDate").description("The publication date of the news").optional()
+                                        fields.withPath("visibleFrom").description("The visible from of the news").optional(),
+                                        fields.withPath("visibleTo").description("The visible to of the news").optional()
                                 ),
                                 responseFields,
                                 links,
@@ -238,7 +243,7 @@ public class NewsApiTest extends AbstractApiTest {
 
     @Test
     public void should_delete_news() throws Exception {
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").publicationDate(LocalDate.now()).build();
+        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
         doNothing().when(service).deleteById(any(Long.class));

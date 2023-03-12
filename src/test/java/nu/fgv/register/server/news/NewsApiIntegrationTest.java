@@ -150,8 +150,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto result = objectMapper.readValue(json, NewsDto.class);
             assertThat(result)
-                    .extracting("subject", "text", "publicationDate")
-                    .contains(dto.getSubject(), dto.getText(), dto.getPublicationDate());
+                    .extracting("subject", "text", "visibleFrom")
+                    .contains(dto.getSubject(), dto.getText(), dto.getVisibleFrom());
         }
 
         @Test
@@ -191,8 +191,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("id", "subject", "text", "publicationDate")
-                    .contains(news.getId(), news.getSubject(), news.getText(), news.getPublicationDate());
+                    .extracting("id", "subject", "text", "visibleFrom")
+                    .contains(news.getId(), news.getSubject(), news.getText(), news.getVisibleFrom());
         }
 
         @Test
@@ -231,7 +231,6 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
                     .text(before.getText())
-                    .publicationDate(before.getPublicationDate())
                     .build();
 
             //@formatter:off
@@ -320,7 +319,6 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
                     .text(before.getText())
-                    .publicationDate(before.getPublicationDate())
                     .build();
 
             //@formatter:off

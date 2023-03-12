@@ -30,8 +30,10 @@ public class NewsCreateDto {
     @JsonProperty("text")
     private String text;
 
-    @NotNull(message = "{news.publicationDate.notEmpty}")
-    @JsonProperty("publicationDate")
-    private LocalDate publicationDate;
+    @JsonProperty("visibleFrom")
+    private LocalDate visibleFrom;
+
+    @JsonProperty("visibleTo")
+    private LocalDate visibleTo;
 
 }

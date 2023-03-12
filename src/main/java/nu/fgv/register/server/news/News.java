@@ -39,9 +39,11 @@ public class News extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "{news.publicationDate.notEmpty}")
-    @Column(name = "publication_date", nullable = false)
-    private LocalDate publicationDate;
+    @Column(name = "visible_from")
+    private LocalDate visibleFrom;
+
+    @Column(name = "visible_to")
+    private LocalDate visibleTo;
 
     @NotBlank(message = "{news.subject.notEmpty}")
     @Size(max = 255, message = "{news.subject.size}")
