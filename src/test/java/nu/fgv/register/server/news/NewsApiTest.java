@@ -61,7 +61,7 @@ public class NewsApiTest extends AbstractApiTest {
     private final LinksSnippet links = baseLinks.and();
 
     @Test
-    public void should_get_paged_news() throws Exception {
+    public void should_get_paged() throws Exception {
         var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
         var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
 
@@ -102,7 +102,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_news() throws Exception {
+    public void should_create() throws Exception {
         var fields = new ConstrainedFields(NewsCreateDto.class);
         var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
@@ -134,7 +134,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_news() throws Exception {
+    public void should_get() throws Exception {
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
@@ -162,7 +162,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_news() throws Exception {
+    public void should_update() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
@@ -201,7 +201,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update_news() throws Exception {
+    public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
@@ -240,7 +240,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_news() throws Exception {
+    public void should_delete() throws Exception {
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));

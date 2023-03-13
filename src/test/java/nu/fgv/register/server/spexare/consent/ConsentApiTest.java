@@ -62,7 +62,7 @@ public class ConsentApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_consents() throws Exception {
+    public void should_get_paged() throws Exception {
         var consent1 = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
         var consent2 = ConsentDto.builder().id(2L).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
 
@@ -104,7 +104,7 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_consent() throws Exception {
+    public void should_get() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(consent));
@@ -133,7 +133,7 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_consent() throws Exception {
+    public void should_create() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
@@ -161,7 +161,7 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_consent() throws Exception {
+    public void should_update() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
@@ -190,7 +190,7 @@ public class ConsentApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_consent() throws Exception {
+    public void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

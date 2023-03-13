@@ -62,7 +62,7 @@ public class ToggleApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_toggles() throws Exception {
+    public void should_get_paged() throws Exception {
         var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
         var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
 
@@ -104,7 +104,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_toggle() throws Exception {
+    public void should_get() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(toggle));
@@ -133,7 +133,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_toggle() throws Exception {
+    public void should_create() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
@@ -161,7 +161,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_toggle() throws Exception {
+    public void should_update() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
@@ -190,7 +190,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_toggle() throws Exception {
+    public void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

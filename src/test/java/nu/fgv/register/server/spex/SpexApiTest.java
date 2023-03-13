@@ -100,7 +100,7 @@ public class SpexApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_spex() throws Exception {
+    public void should_get_paged() throws Exception {
         var spex1 = SpexDto.builder().id(1L).year("2021").build();
         var spex2 = SpexDto.builder().id(2L).year("2022").build();
 
@@ -143,7 +143,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_spex_export() throws Exception {
+    public void should_get_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
@@ -177,7 +177,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_spex() throws Exception {
+    public void should_create() throws Exception {
         var fields = new ConstrainedFields(SpexCreateDto.class);
         var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
 
@@ -207,7 +207,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_spex() throws Exception {
+    public void should_get() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
@@ -235,7 +235,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_spex() throws Exception {
+    public void should_update() throws Exception {
         var fields = new ConstrainedFields(SpexUpdateDto.class);
         var spex = SpexDto.builder().id(1L).year("2021").build();
         var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
@@ -272,7 +272,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update_spex() throws Exception {
+    public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(SpexUpdateDto.class);
         var spex = SpexDto.builder().id(1L).year("2021").build();
         var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
@@ -309,7 +309,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_spex() throws Exception {
+    public void should_delete() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
@@ -334,7 +334,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_download_spex_poster() throws Exception {
+    public void should_download_poster() throws Exception {
         var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
         when(service.getPoster(any(Long.class))).thenReturn(Optional.of(poster));
 
@@ -364,7 +364,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_spex_poster() throws Exception {
+    public void should_upload_poster() throws Exception {
         var poster = new byte[]{10, 12};
         var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
@@ -394,7 +394,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_spex_poster_via_multipart() throws Exception {
+    public void should_upload_poster_via_multipart() throws Exception {
         var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
@@ -422,7 +422,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_spex_poster() throws Exception {
+    public void should_delete_poster() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.deletePoster(any(Long.class))).thenReturn(Optional.of(spex));
 
@@ -445,7 +445,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_paged_spex_revivals() throws Exception {
+    public void should_get_paged_revivals() throws Exception {
         var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
         var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
 
@@ -488,7 +488,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_paged_specific_spex_revivals() throws Exception {
+    public void should_get_paged_specific_revivals() throws Exception {
         var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
         var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
 
@@ -534,7 +534,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_spex_revival() throws Exception {
+    public void should_add_revival() throws Exception {
         var revival = SpexDto.builder().id(1L).year("2021").title("Bojan").revival(true).build();
 
         when(service.addRevival(any(Long.class), any(String.class))).thenReturn(Optional.of(revival));
@@ -561,7 +561,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_spex_revival() throws Exception {
+    public void should_delete_revival() throws Exception {
         when(service.deleteRevival(any(Long.class), any(String.class))).thenReturn(true);
 
         mockMvc
@@ -582,7 +582,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_spex_category() throws Exception {
+    public void should_update_category() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
         var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").category(category).build();
 
@@ -610,7 +610,7 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_spex_category() throws Exception {
+    public void should_delete_category() throws Exception {
         var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").build();
 
         when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(spex));

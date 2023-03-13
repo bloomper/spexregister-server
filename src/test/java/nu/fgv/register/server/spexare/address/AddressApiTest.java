@@ -71,7 +71,7 @@ public class AddressApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_addresses() throws Exception {
+    public void should_get_paged() throws Exception {
         var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
 
@@ -119,7 +119,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_address() throws Exception {
+    public void should_get() throws Exception {
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(address));
@@ -148,7 +148,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_address() throws Exception {
+    public void should_create() throws Exception {
         var fields = new ConstrainedFields(AddressCreateDto.class);
         var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
@@ -187,7 +187,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_address() throws Exception {
+    public void should_update() throws Exception {
         var fields = new ConstrainedFields(AddressUpdateDto.class);
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
@@ -229,7 +229,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update_address() throws Exception {
+    public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(AddressUpdateDto.class);
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
@@ -271,7 +271,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_address() throws Exception {
+    public void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

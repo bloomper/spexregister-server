@@ -87,7 +87,7 @@ public class TaskApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_task() throws Exception {
+    public void should_get_paged() throws Exception {
         var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
         var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
 
@@ -126,7 +126,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_task_export() throws Exception {
+    public void should_get_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
@@ -160,7 +160,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_task() throws Exception {
+    public void should_create() throws Exception {
         var fields = new ConstrainedFields(TaskCreateDto.class);
         var dto = TaskCreateDto.builder().name("Scenmästare").build();
 
@@ -189,7 +189,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_task() throws Exception {
+    public void should_get() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
@@ -217,7 +217,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_task() throws Exception {
+    public void should_update() throws Exception {
         var fields = new ConstrainedFields(TaskUpdateDto.class);
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
@@ -253,7 +253,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update_task() throws Exception {
+    public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(TaskUpdateDto.class);
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
@@ -289,7 +289,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_task() throws Exception {
+    public void should_delete() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
@@ -314,7 +314,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_task_category() throws Exception {
+    public void should_update_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
         var task = TaskDto.builder().id(1L).name("Scenmästare").category(category).build();
 
@@ -342,7 +342,7 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_task_category() throws Exception {
+    public void should_delete_category() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(task));
