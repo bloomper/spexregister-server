@@ -70,6 +70,7 @@ public class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("memberships").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

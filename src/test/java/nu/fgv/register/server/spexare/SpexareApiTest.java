@@ -87,6 +87,7 @@ public class SpexareApiTest extends AbstractApiTest {
             linkWithRel("consents").description("Link to the current spexare's consents").optional(),
             linkWithRel("toggles").description("Link to the current spexare's toggles").optional(),
             linkWithRel("addresses").description("Link to the current spexare's addresses").optional(),
+            linkWithRel("tags").description("Link to the current spexare's tags").optional(),
             linkWithRel("partner").description("Link to the current spexare's partner").optional()
     );
 
