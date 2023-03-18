@@ -130,13 +130,25 @@ public class TaskApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final Long taskId) {
+        try {
+            return service
+                    .findCategoryByTask(taskId)
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, taskCategoryApi.getLinks(dto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve category for task", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
-            return service
-                    .updateCategory(taskId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
+            return service.updateCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add category for task", e);
@@ -146,12 +158,9 @@ public class TaskApi {
     }
 
     @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> deleteCategory(@PathVariable final Long taskId) {
+    public ResponseEntity<?> deleteCategory(@PathVariable final Long taskId) {
         try {
-            return service
-                    .deleteCategory(taskId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+            return service.deleteCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not delete category for task", e);
@@ -172,10 +181,9 @@ public class TaskApi {
 
     List<Link> getLinks(final TaskDto dto) {
         final List<Link> links = new ArrayList<>();
+
         links.add(linkTo(methodOn(TaskApi.class).retrieve(dto.getId())).withSelfRel());
-        if (dto.getCategory() != null) {
-            taskCategoryApi.addLinks(dto.getCategory());
-        }
+        links.add(linkTo(methodOn(TaskApi.class).retrieveCategory(dto.getId())).withRel("category"));
         return links;
     }
 

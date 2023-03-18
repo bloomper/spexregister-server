@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static nu.fgv.register.server.task.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 @Slf4j
@@ -74,22 +75,36 @@ public class TaskService {
         repository.deleteById(id);
     }
 
-    public Optional<TaskDto> updateCategory(final Long taskId, final Long id) {
-        if (doTaskAndCategoryExist(taskId, id)) {
-            repository
+    public Optional<TaskCategoryDto> findCategoryByTask(final Long taskId) {
+        if (doesTaskExist(taskId)) {
+            return repository
                     .findById(taskId)
-                    .ifPresent(task ->
-                            categoryRepository.findById(id).ifPresent(category -> {
+                    .map(Task::getCategory)
+                    .map(TASK_CATEGORY_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Task %s does not exist", taskId));
+        }
+    }
+
+    public boolean updateCategory(final Long taskId, final Long id) {
+        if (doTaskAndCategoryExist(taskId, id)) {
+            return repository
+                    .findById(taskId)
+                    .map(task -> categoryRepository
+                            .findById(id)
+                            .map(category -> {
                                 task.setCategory(category);
                                 repository.save(task);
-                            }));
-            return findById(taskId);
+                                return true;
+                            })
+                            .orElse(false))
+                    .orElse(false);
         } else {
             throw new ResourceNotFoundException(String.format("Task %s and/or category %s do not exist", taskId, id));
         }
     }
 
-    public Optional<TaskDto> deleteCategory(final Long taskId) {
+    public boolean deleteCategory(final Long taskId) {
         if (doesTaskExist(taskId)) {
             return repository
                     .findById(taskId)
@@ -97,9 +112,9 @@ public class TaskService {
                     .map(task -> {
                         task.setCategory(null);
                         repository.save(task);
-                        return task;
+                        return true;
                     })
-                    .map(TASK_MAPPER::toDto);
+                    .orElse(false);
         } else {
             throw new ResourceNotFoundException(String.format("Task %s does not exist", taskId));
         }

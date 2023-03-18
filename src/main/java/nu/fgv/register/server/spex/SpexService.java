@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static nu.fgv.register.server.spex.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -184,22 +185,36 @@ public class SpexService {
         }
     }
 
-    public Optional<SpexDto> updateCategory(final Long spexId, final Long id) {
-        if (doSpexAndCategoryExist(spexId, id)) {
-            repository
+    public Optional<SpexCategoryDto> findCategoryBySpex(final Long spexId) {
+        if (doesSpexExist(spexId)) {
+            return repository
                     .findById(spexId)
-                    .ifPresent(spex ->
-                            categoryRepository.findById(id).ifPresent(category -> {
+                    .map(spex -> spex.getDetails().getCategory())
+                    .map(SPEX_CATEGORY_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
+        }
+    }
+
+    public boolean updateCategory(final Long spexId, final Long id) {
+        if (doSpexAndCategoryExist(spexId, id)) {
+            return repository
+                    .findById(spexId)
+                    .map(spex -> categoryRepository
+                            .findById(id)
+                            .map(category -> {
                                 spex.getDetails().setCategory(category);
                                 detailsRepository.save(spex.getDetails());
-                            }));
-            return findById(spexId);
+                                return true;
+                            })
+                            .orElse(false))
+                    .orElse(false);
         } else {
             throw new ResourceNotFoundException(String.format("Spex %s and/or category %s do not exist", spexId, id));
         }
     }
 
-    public Optional<SpexDto> deleteCategory(final Long spexId) {
+    public boolean deleteCategory(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository
                     .findById(spexId)
@@ -207,9 +222,9 @@ public class SpexService {
                     .map(spex -> {
                         spex.getDetails().setCategory(null);
                         detailsRepository.save(spex.getDetails());
-                        return spex;
+                        return true;
                     })
-                    .map(SPEX_MAPPER::toDto);
+                    .orElse(false);
         } else {
             throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
         }

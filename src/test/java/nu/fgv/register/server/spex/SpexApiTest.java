@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -75,28 +77,26 @@ public class SpexApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the spex"),
             fieldWithPath("year").description("The year of the spex"),
             fieldWithPath("title").description("The title of the spex"),
-            fieldWithPath("poster").description("The poster of the spex").optional(),
-            fieldWithPath("category").description("The spex category of the spex").optional(),
-            fieldWithPath("parent").description("The parent of the spex (if revival)").optional(),
             fieldWithPath("revival").description("The revival flag of the spex"),
             linksSubsection
     );
 
-    private final ResponseFieldsSnippet responseFieldsWithCategory = responseFields.and(
-            fieldWithPath("category.id").description("The id of the spex category"),
-            fieldWithPath("category.name").description("The name of the spex category"),
-            fieldWithPath("category.firstYear").description("The first year of the spex category"),
-            fieldWithPath("category.logo").description("The logo of the spex category").optional(),
-            fieldWithPath("category.createdBy").description("Who created the entity"),
-            fieldWithPath("category.createdAt").description("When was the entity created"),
-            fieldWithPath("category.lastModifiedBy").description("Who last modified the entity"),
-            fieldWithPath("category.lastModifiedAt").description("When was the entity last modified")
-    );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("poster").description("Link to the current spex's poster").optional(),
+            linkWithRel("parent").description("Link to the current spex's parent").optional(),
             linkWithRel("revivals").description("Link to the current spex's revivals").optional(),
             linkWithRel("category").description("Link to the current spex's spex category").optional()
+    );
+
+    private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
+            fieldWithPath("id").description("The id of the spex category"),
+            fieldWithPath("name").description("The name of the spex category"),
+            fieldWithPath("firstYear").description("The first year of the spex category"),
+            linksSubsection
+    );
+
+    private final LinksSnippet categoryLinks = baseLinks.and(
+            linkWithRel("logo").description("Link to the current spex category's logo")
     );
 
     @Test
@@ -124,9 +124,6 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].id").description("The id of the spex"),
                                         fieldWithPath("_embedded.spex[].title").description("The title of the spex"),
                                         fieldWithPath("_embedded.spex[].year").description("The year of the spex"),
-                                        fieldWithPath("_embedded.spex[].poster").description("The poster of the spex"),
-                                        fieldWithPath("_embedded.spex[].category").description("The category of the spex"),
-                                        fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
                                         fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
@@ -469,9 +466,6 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].id").description("The id of the spex"),
                                         fieldWithPath("_embedded.spex[].title").description("The title of the spex"),
                                         fieldWithPath("_embedded.spex[].year").description("The year of the spex"),
-                                        fieldWithPath("_embedded.spex[].poster").description("The poster of the spex"),
-                                        fieldWithPath("_embedded.spex[].category").description("The category of the spex"),
-                                        fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
                                         fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
@@ -515,9 +509,6 @@ public class SpexApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spex[].id").description("The id of the spex"),
                                         fieldWithPath("_embedded.spex[].title").description("The title of the spex"),
                                         fieldWithPath("_embedded.spex[].year").description("The year of the spex"),
-                                        fieldWithPath("_embedded.spex[].poster").description("The poster of the spex"),
-                                        fieldWithPath("_embedded.spex[].category").description("The category of the spex"),
-                                        fieldWithPath("_embedded.spex[].parent").description("The parent of the spex (if revival)"),
                                         fieldWithPath("_embedded.spex[].revival").description("If the spex is a revival"),
                                         fieldWithPath("_embedded.spex[].createdBy").description("Who created the spex"),
                                         fieldWithPath("_embedded.spex[].createdAt").description("When was the spex created"),
@@ -582,18 +573,42 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_category() throws Exception {
-        var category = SpexCategoryDto.builder().id(1L).name("category").logo("logo").build();
-        var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").category(category).build();
+    public void should_get_category() throws Exception {
+        var category = SpexCategoryDto.builder().id(1L).name("category").build();
+        var links = List.of(linkTo(methodOn(SpexCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(SpexCategoryApi.class).downloadLogo(category.getId())).withRel("logo"));
 
-        when(service.updateCategory(any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.findCategoryBySpex(any(Long.class))).thenReturn(Optional.of(category));
+        when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(links);
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spex/{spexId}/category", 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(document(
+                                "spex/category-get",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexId").description("The id of the spex")
+                                ),
+                                categoryResponseFields,
+                                categoryLinks,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_update_category() throws Exception {
+        when(service.updateCategory(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
                         put("/api/v1/spex/{spexId}/category/{id}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex/category-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -601,35 +616,27 @@ public class SpexApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("id").description("The id of the spex category")
-                                ),
-                                responseFieldsWithCategory,
-                                links,
-                                responseHeaders
+                                )
                         )
                 );
     }
 
     @Test
     public void should_delete_category() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("1948").title("Bojan").build();
-
-        when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.deleteCategory(any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
                         delete("/api/v1/spex/{spexId}/category", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(document(
                                 "spex/category-delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
+                                )
                         )
                 );
     }

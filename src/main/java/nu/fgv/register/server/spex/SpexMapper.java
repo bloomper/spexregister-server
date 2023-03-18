@@ -11,8 +11,6 @@ import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -27,9 +25,7 @@ public interface SpexMapper {
     SpexMapper SPEX_MAPPER = Mappers.getMapper(SpexMapper.class);
 
     @Mappings({
-            @Mapping(target = "poster", ignore = true),
             @Mapping(target = "title", source = "details.title"),
-            @Mapping(target = "category", source = "details.category")
     })
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     SpexDto toDto(Spex model);
@@ -68,9 +64,4 @@ public interface SpexMapper {
         dto.revival(model.isRevival());
     }
 
-    @AfterMapping
-    default void setPoster(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {
-        final Link posterLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).withRel("poster");
-        dto.poster(posterLink.getHref());
-    }
 }

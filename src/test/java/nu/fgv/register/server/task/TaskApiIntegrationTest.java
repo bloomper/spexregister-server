@@ -418,6 +418,40 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     class CategoryTests {
 
         @Test
+        public void should_return_found() throws Exception {
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+
+            //@formatter:off
+            final TaskCategoryDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{taskId}/category", task.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(TaskCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "name")
+                    .contains(category.getId(), category.getName());
+        }
+
+        @Test
+        public void should_return_404_when_not_found() {
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{taskId}/category", "123")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
         public void should_update_and_return_201() throws Exception {
             var category = persistTaskCategory(randomizeTaskCategory());
 
@@ -438,21 +472,13 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             final TaskDto task = objectMapper.readValue(json, TaskDto.class);
 
             //@formatter:off
-            final String json1 =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .put("/{taskId}/category/{id}", task.getId(), category.getId())
-                    .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
-                        .extract().body().asString();
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{taskId}/category/{id}", task.getId(), category.getId())
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
-
-            final TaskDto result = objectMapper.readValue(json1, TaskDto.class);
-
-            assertThat(result)
-                    .extracting("name", "category.name")
-                    .contains(result.getName(), result.getCategory().getName());
         }
 
         @Test
@@ -476,31 +502,25 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/category/{categoryId}", task.getId(), "321")
+                .put("/{taskId}/category/{id}", task.getId(), "321")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        public void should_delete_and_return_201() throws Exception {
+        public void should_delete_and_return_201() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 
             //@formatter:off
-            final String json =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .delete("/{id}/category", task.getId())
-                    .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
-                        .extract().body().asString();
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{taskId}/category", task.getId())
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
-
-            final TaskDto result = objectMapper.readValue(json, TaskDto.class);
-
-            assertThat(result.getCategory()).isNull();
         }
 
         @Test
@@ -511,7 +531,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/category", task.getId())
+                .delete("/{taskId}/category", task.getId())
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
@@ -523,7 +543,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/category", "123")
+                .delete("/{taskId}/category", "123")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

@@ -27,6 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -68,23 +70,21 @@ public class TaskApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
-            fieldWithPath("category").description("The task category of the task").optional(),
             linksSubsection
-    );
-
-    private final ResponseFieldsSnippet responseFieldsWithCategory = responseFields.and(
-            fieldWithPath("category.id").description("The id of the task category"),
-            fieldWithPath("category.name").description("The name of the task category"),
-            fieldWithPath("category.hasActor").description("The flag telling whether the task category can have associated actor information"),
-            fieldWithPath("category.createdBy").description("Who created the entity"),
-            fieldWithPath("category.createdAt").description("When was the entity created"),
-            fieldWithPath("category.lastModifiedBy").description("Who last modified the entity"),
-            fieldWithPath("category.lastModifiedAt").description("When was the entity last modified")
     );
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("category").description("Link to the current task's task category").optional()
     );
+
+    private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
+            fieldWithPath("id").description("The id of the task category"),
+            fieldWithPath("name").description("The name of the task category"),
+            fieldWithPath("hasActor").description("The flag telling whether the task category can have associated actor information"),
+            linksSubsection
+    );
+
+    private final LinksSnippet categoryLinks = baseLinks;
 
     @Test
     public void should_get_paged() throws Exception {
@@ -110,7 +110,6 @@ public class TaskApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded.tasks[]").description("The elements"),
                                         fieldWithPath("_embedded.tasks[].id").description("The id of the task"),
                                         fieldWithPath("_embedded.tasks[].name").description("The name of the task"),
-                                        fieldWithPath("_embedded.tasks[].category").description("The category of the task"),
                                         fieldWithPath("_embedded.tasks[].createdBy").description("Who created the task"),
                                         fieldWithPath("_embedded.tasks[].createdAt").description("When was the task created"),
                                         fieldWithPath("_embedded.tasks[].lastModifiedBy").description("Who last modified the task"),
@@ -314,18 +313,42 @@ public class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_category() throws Exception {
+    public void should_get_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        var task = TaskDto.builder().id(1L).name("Scenmästare").category(category).build();
+        var links = List.of(linkTo(methodOn(TaskCategoryApi.class).retrieve(category.getId())).withSelfRel());
 
-        when(service.updateCategory(any(Long.class), any(Long.class))).thenReturn(Optional.of(task));
+        when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
+        when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(links);
+
+        mockMvc
+                .perform(
+                        get("/api/v1/tasks/{taskId}/category", 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(document(
+                                "tasks/category-get",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("taskId").description("The id of the task")
+                                ),
+                                categoryResponseFields,
+                                categoryLinks,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_update_category() throws Exception {
+        when(service.updateCategory(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
                         put("/api/v1/tasks/{taskId}/category/{id}", 1, 1)
                 )
                 .andExpect(status().isAccepted())
-                .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "tasks/category-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -333,35 +356,27 @@ public class TaskApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("taskId").description("The id of the task"),
                                         parameterWithName("id").description("The id of the task category")
-                                ),
-                                responseFieldsWithCategory,
-                                links,
-                                responseHeaders
+                                )
                         )
                 );
     }
 
     @Test
     public void should_delete_category() throws Exception {
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-
-        when(service.deleteCategory(any(Long.class))).thenReturn(Optional.of(task));
+        when(service.deleteCategory(any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
                         delete("/api/v1/tasks/{taskId}/category", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(document(
                                 "tasks/category-delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("taskId").description("The id of the task")
-                                ),
-                                responseFields,
-                                links,
-                                responseHeaders
+                                )
                         )
                 );
     }

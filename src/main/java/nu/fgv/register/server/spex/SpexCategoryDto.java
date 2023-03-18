@@ -34,16 +34,11 @@ public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
     @ExcelCell(header = "First year", position = 2, updatable = true, mandatory = true)
     private String firstYear;
 
-    @JsonProperty("logo")
-    @ExcelCell(header = "Logo", position = 3)
-    private String logo;
-
     @Builder
     public SpexCategoryDto(
             final Long id,
             final String name,
             final String firstYear,
-            final String logo,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -53,6 +48,5 @@ public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
         this.id = id;
         this.name = name;
         this.firstYear = firstYear;
-        this.logo = logo;
     }
 }
