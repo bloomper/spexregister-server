@@ -290,6 +290,8 @@ public class SpexApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(SpexApi.class).retrieve(false, Pageable.unpaged())).withRel("spex"));
+        links.add(linkTo(methodOn(SpexApi.class).retrieve(true, Pageable.unpaged())).withRel("spex-including-revivals"));
         links.add(linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster"));
         links.add(linkTo(methodOn(SpexApi.class).retrieveCategory(dto.getId())).withRel("category"));
         if (dto.isRevival()) {

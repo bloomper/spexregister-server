@@ -177,6 +177,7 @@ public class TaskCategoryApi {
     List<Link> getLinks(final TaskCategoryDto dto) {
         final List<Link> links = new ArrayList<>();
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged())).withRel("task-categories"));
         return links;
     }
 }

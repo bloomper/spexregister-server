@@ -76,6 +76,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     );
 
     private final LinksSnippet links = baseLinks.and(
+            linkWithRel("spex-categories").description("Link to paged spex categories").optional(),
             linkWithRel("logo").description("Link to the current spex category's logo").optional()
     );
 

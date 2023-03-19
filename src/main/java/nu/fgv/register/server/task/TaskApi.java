@@ -183,6 +183,7 @@ public class TaskApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaskApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(TaskApi.class).retrieve(Pageable.unpaged())).withRel("tasks"));
         links.add(linkTo(methodOn(TaskApi.class).retrieveCategory(dto.getId())).withRel("category"));
         return links;
     }

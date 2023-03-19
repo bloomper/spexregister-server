@@ -89,7 +89,7 @@ public class TaggingApi {
     List<Link> getLinks(final TagDto dto, final Long spexareId) {
         final List<Link> links = new ArrayList<>();
 
-        links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
+        links.add(linkTo(methodOn(TaggingApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;

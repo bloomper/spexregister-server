@@ -142,7 +142,7 @@ public class AddressApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(AddressApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("addresses"));
+        links.add(linkTo(methodOn(AddressApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("addresses"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;

@@ -117,7 +117,7 @@ public class ConsentApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ConsentApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(ConsentApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("consents"));
+        links.add(linkTo(methodOn(ConsentApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("consents"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;

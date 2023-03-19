@@ -177,6 +177,7 @@ public class TagApi {
     List<Link> getLinks(final TagDto dto) {
         final List<Link> links = new ArrayList<>();
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged())).withRel("tags"));
         return links;
     }
 }

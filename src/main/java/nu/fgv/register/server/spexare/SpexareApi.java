@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.address.AddressApi;
 import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
@@ -236,6 +237,7 @@ public class SpexareApi {
         } else {
             links.add(linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image"));
         }
+        links.add(linkTo(methodOn(ActivityApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("activities"));
         links.add(linkTo(methodOn(MembershipApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("memberships"));
         links.add(linkTo(methodOn(ConsentApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("consents"));
         links.add(linkTo(methodOn(ToggleApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("toggles"));

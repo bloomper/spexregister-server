@@ -216,6 +216,7 @@ public class SpexCategoryApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged())).withRel("spex-categories"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
 
         return links;

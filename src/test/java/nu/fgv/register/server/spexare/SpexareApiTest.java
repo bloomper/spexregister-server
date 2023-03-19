@@ -83,6 +83,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("image").description("Link to the current spexare's image").optional(),
+            linkWithRel("activities").description("Link to the current spexare's activities").optional(),
             linkWithRel("memberships").description("Link to the current spexare's memberships").optional(),
             linkWithRel("consents").description("Link to the current spexare's consents").optional(),
             linkWithRel("toggles").description("Link to the current spexare's toggles").optional(),

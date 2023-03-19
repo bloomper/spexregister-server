@@ -105,6 +105,7 @@ public class NewsApi {
     List<Link> getLinks(final NewsDto dto) {
         final List<Link> links = new ArrayList<>();
         links.add(linkTo(methodOn(NewsApi.class).retrieve(dto.getId())).withSelfRel());
+        links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged())).withRel("news"));
         return links;
     }
 

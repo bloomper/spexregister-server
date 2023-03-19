@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -58,7 +59,9 @@ public class NewsApiTest extends AbstractApiTest {
             linksSubsection
     );
 
-    private final LinksSnippet links = baseLinks.and();
+    private final LinksSnippet links = baseLinks.and(
+            linkWithRel("news").description("Link to paged news").optional()
+    );
 
     @Test
     public void should_get_paged() throws Exception {

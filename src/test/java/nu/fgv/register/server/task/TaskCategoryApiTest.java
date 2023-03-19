@@ -29,6 +29,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -69,7 +70,9 @@ public class TaskCategoryApiTest extends AbstractApiTest {
             linksSubsection
     );
 
-    private final LinksSnippet links = baseLinks.and();
+    private final LinksSnippet links = baseLinks.and(
+            linkWithRel("task-categories").description("Link to paged task categories").optional()
+    );
 
     @Test
     public void should_get_paged_task_categories() throws Exception {

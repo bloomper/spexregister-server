@@ -85,7 +85,9 @@ public class SpexApiTest extends AbstractApiTest {
             linkWithRel("poster").description("Link to the current spex's poster").optional(),
             linkWithRel("parent").description("Link to the current spex's parent").optional(),
             linkWithRel("revivals").description("Link to the current spex's revivals").optional(),
-            linkWithRel("category").description("Link to the current spex's spex category").optional()
+            linkWithRel("category").description("Link to the current spex's spex category").optional(),
+            linkWithRel("spex").description("Link to paged spex").optional(),
+            linkWithRel("spex-including-revivals").description("Link to paged spex (including revivals)").optional()
     );
 
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
@@ -96,7 +98,8 @@ public class SpexApiTest extends AbstractApiTest {
     );
 
     private final LinksSnippet categoryLinks = baseLinks.and(
-            linkWithRel("logo").description("Link to the current spex category's logo")
+            linkWithRel("spex-categories").description("Link to paged spex categories").optional(),
+            linkWithRel("logo").description("Link to the current spex category's logo").optional()
     );
 
     @Test
@@ -575,7 +578,7 @@ public class SpexApiTest extends AbstractApiTest {
     @Test
     public void should_get_category() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        var links = List.of(linkTo(methodOn(SpexCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(SpexCategoryApi.class).downloadLogo(category.getId())).withRel("logo"));
+        var links = List.of(linkTo(methodOn(SpexCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(SpexCategoryApi.class).downloadLogo(category.getId())).withRel("logo"), linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged())).withRel("spex-categories"));
 
         when(service.findCategoryBySpex(any(Long.class))).thenReturn(Optional.of(category));
         when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(links);

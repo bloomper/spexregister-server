@@ -74,6 +74,7 @@ public class TaskApiTest extends AbstractApiTest {
     );
 
     private final LinksSnippet links = baseLinks.and(
+            linkWithRel("tasks").description("Link to paged tasks").optional(),
             linkWithRel("category").description("Link to the current task's task category").optional()
     );
 
@@ -84,7 +85,9 @@ public class TaskApiTest extends AbstractApiTest {
             linksSubsection
     );
 
-    private final LinksSnippet categoryLinks = baseLinks;
+    private final LinksSnippet categoryLinks = baseLinks.and(
+            linkWithRel("task-categories").description("Link to paged task categories").optional()
+    );
 
     @Test
     public void should_get_paged() throws Exception {
@@ -315,7 +318,7 @@ public class TaskApiTest extends AbstractApiTest {
     @Test
     public void should_get_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        var links = List.of(linkTo(methodOn(TaskCategoryApi.class).retrieve(category.getId())).withSelfRel());
+        var links = List.of(linkTo(methodOn(TaskCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged())).withRel("task-categories"));
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(links);
