@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,10 @@ public class Activity extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToOne(mappedBy = "activity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
+    @ToString.Exclude
+    private SpexActivity spexActivity;
 
     @OneToMany(mappedBy = "activity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
