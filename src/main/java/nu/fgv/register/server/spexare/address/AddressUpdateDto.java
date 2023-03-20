@@ -9,14 +9,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.hateoas.server.core.Relation;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
 @Builder
-@Relation(collectionRelation = "addresses", itemRelation = "address")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddressUpdateDto {
     @JsonProperty("id")

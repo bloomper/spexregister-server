@@ -92,7 +92,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                         get("/api/v1/spex/categories?page=1&size=2&sort=name,asc")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.spexCategories", hasSize(2)))
+                .andExpect(jsonPath("_embedded.spex-categories", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
@@ -101,15 +101,15 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.spexCategories[]").description("The elements"),
-                                        fieldWithPath("_embedded.spexCategories[].id").description("The id of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].name").description("The name of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].firstYear").description("The first year of the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].createdBy").description("Who created the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].createdAt").description("When was the spex category created"),
-                                        fieldWithPath("_embedded.spexCategories[].lastModifiedBy").description("Who last modified the spex category"),
-                                        fieldWithPath("_embedded.spexCategories[].lastModifiedAt").description("When was the spex category last modified"),
-                                        subsectionWithPath("_embedded.spexCategories[]._links").description("The spex category links"),
+                                        subsectionWithPath("_embedded.spex-categories[]").description("The elements"),
+                                        fieldWithPath("_embedded.spex-categories[].id").description("The id of the spex category"),
+                                        fieldWithPath("_embedded.spex-categories[].name").description("The name of the spex category"),
+                                        fieldWithPath("_embedded.spex-categories[].firstYear").description("The first year of the spex category"),
+                                        fieldWithPath("_embedded.spex-categories[].createdBy").description("Who created the spex category"),
+                                        fieldWithPath("_embedded.spex-categories[].createdAt").description("When was the spex category created"),
+                                        fieldWithPath("_embedded.spex-categories[].lastModifiedBy").description("Who last modified the spex category"),
+                                        fieldWithPath("_embedded.spex-categories[].lastModifiedAt").description("When was the spex category last modified"),
+                                        subsectionWithPath("_embedded.spex-categories[]._links").description("The spex category links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,

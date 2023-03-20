@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
-import org.springframework.hateoas.server.core.Relation;
 
 import java.time.LocalDate;
 
@@ -21,7 +20,6 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 @ToString
 @Builder
-@Relation(collectionRelation = "spexare", itemRelation = "spexare")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexareUpdateDto {
     @JsonProperty("id")

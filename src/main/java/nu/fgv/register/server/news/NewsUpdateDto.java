@@ -9,7 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.hateoas.server.core.Relation;
 
 import java.time.LocalDate;
 
@@ -18,7 +17,6 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 @ToString
 @Builder
-@Relation(collectionRelation = "news", itemRelation = "news")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NewsUpdateDto {
     @JsonProperty("id")

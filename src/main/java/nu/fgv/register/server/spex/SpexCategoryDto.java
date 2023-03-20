@@ -18,7 +18,7 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "spexCategories", itemRelation = "spexCategory")
+@Relation(collectionRelation = "spex-categories", itemRelation = "spex-category")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "Spex categories")
 public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {

@@ -18,7 +18,7 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "taskCategories", itemRelation = "taskCategory")
+@Relation(collectionRelation = "task-categories", itemRelation = "task-category")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "Task categories")
 public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {

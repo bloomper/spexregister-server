@@ -27,8 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -318,10 +316,10 @@ public class TaskApiTest extends AbstractApiTest {
     @Test
     public void should_get_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        var links = List.of(linkTo(methodOn(TaskCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged())).withRel("task-categories"));
+        var realCategoryApi = new TaskCategoryApi(null, null, null, null);
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
-        when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(links);
+        when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
                 .perform(

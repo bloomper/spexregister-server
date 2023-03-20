@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
-import org.springframework.hateoas.server.core.Relation;
 
 @Getter
 @Setter
@@ -21,7 +20,6 @@ import org.springframework.hateoas.server.core.Relation;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Relation(collectionRelation = "taskCategories", itemRelation = "taskCategory")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskCategoryUpdateDto {
     @JsonProperty("id")

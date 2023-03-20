@@ -286,7 +286,7 @@ public class SpexApi {
         dto.add(getLinks(dto));
     }
 
-    List<Link> getLinks(final SpexDto dto) {
+    public List<Link> getLinks(final SpexDto dto) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel());

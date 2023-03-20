@@ -86,7 +86,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                         get("/api/v1/tasks/categories?page=1&size=2&sort=name,asc")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.taskCategories", hasSize(2)))
+                .andExpect(jsonPath("_embedded.task-categories", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
@@ -95,15 +95,15 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.taskCategories[]").description("The elements"),
-                                        fieldWithPath("_embedded.taskCategories[].id").description("The id of the task category"),
-                                        fieldWithPath("_embedded.taskCategories[].name").description("The name of the task category"),
-                                        fieldWithPath("_embedded.taskCategories[].hasActor").description("The flag telling whether the task category can have associated actor information"),
-                                        fieldWithPath("_embedded.taskCategories[].createdBy").description("Who created the task category"),
-                                        fieldWithPath("_embedded.taskCategories[].createdAt").description("When was the task category created"),
-                                        fieldWithPath("_embedded.taskCategories[].lastModifiedBy").description("Who last modified the task category"),
-                                        fieldWithPath("_embedded.taskCategories[].lastModifiedAt").description("When was the task category last modified"),
-                                        subsectionWithPath("_embedded.taskCategories[]._links").description("The task category links"),
+                                        subsectionWithPath("_embedded.task-categories[]").description("The elements"),
+                                        fieldWithPath("_embedded.task-categories[].id").description("The id of the task category"),
+                                        fieldWithPath("_embedded.task-categories[].name").description("The name of the task category"),
+                                        fieldWithPath("_embedded.task-categories[].hasActor").description("The flag telling whether the task category can have associated actor information"),
+                                        fieldWithPath("_embedded.task-categories[].createdBy").description("Who created the task category"),
+                                        fieldWithPath("_embedded.task-categories[].createdAt").description("When was the task category created"),
+                                        fieldWithPath("_embedded.task-categories[].lastModifiedBy").description("Who last modified the task category"),
+                                        fieldWithPath("_embedded.task-categories[].lastModifiedAt").description("When was the task category last modified"),
+                                        subsectionWithPath("_embedded.task-categories[]._links").description("The task category links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,

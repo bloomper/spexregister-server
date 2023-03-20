@@ -2,6 +2,9 @@ package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,11 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
-import org.springframework.hateoas.server.core.Relation;
-
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -23,7 +21,6 @@ import jakarta.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Relation(collectionRelation = "spexCategories", itemRelation = "spexCategory")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexCategoryUpdateDto {
     @JsonProperty("id")

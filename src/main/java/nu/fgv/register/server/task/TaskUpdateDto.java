@@ -10,14 +10,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
-import org.springframework.hateoas.server.core.Relation;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
 @Builder
-@Relation(collectionRelation = "tasks", itemRelation = "task")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskUpdateDto {
     @JsonProperty("id")

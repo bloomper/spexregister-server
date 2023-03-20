@@ -29,8 +29,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -578,10 +576,10 @@ public class SpexApiTest extends AbstractApiTest {
     @Test
     public void should_get_category() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        var links = List.of(linkTo(methodOn(SpexCategoryApi.class).retrieve(category.getId())).withSelfRel(), linkTo(methodOn(SpexCategoryApi.class).downloadLogo(category.getId())).withRel("logo"), linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged())).withRel("spex-categories"));
+        var realCategoryApi = new SpexCategoryApi(null, null, null, null);
 
         when(service.findCategoryBySpex(any(Long.class))).thenReturn(Optional.of(category));
-        when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(links);
+        when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
                 .perform(

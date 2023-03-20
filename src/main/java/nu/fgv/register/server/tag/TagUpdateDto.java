@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.hateoas.server.core.Relation;
 
 @Getter
 @Setter
@@ -20,7 +19,6 @@ import org.springframework.hateoas.server.core.Relation;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Relation(collectionRelation = "tags", itemRelation = "tag")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TagUpdateDto {
     @JsonProperty("id")

@@ -16,7 +16,7 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "taskActivities", itemRelation = "taskActivity")
+@Relation(collectionRelation = "task-activities", itemRelation = "task-activity")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskActivityDto extends AbstractAuditableDto<TaskActivityDto> {
     @JsonProperty("id")
