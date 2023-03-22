@@ -235,13 +235,13 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                            .contentType(ContentType.JSON)
-                            .body(dto)
+                        .contentType(ContentType.JSON)
+                        .body(dto)
                     .when()
-                            .put("/{id}", category.getId())
+                        .put("/{id}", category.getId())
                     .then()
-                            .statusCode(HttpStatus.ACCEPTED.value())
-                            .extract().body().asString();
+                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .extract().body().asString();
             //@formatter:on
 
             final TaskCategoryDto updated = objectMapper.readValue(json, TaskCategoryDto.class);

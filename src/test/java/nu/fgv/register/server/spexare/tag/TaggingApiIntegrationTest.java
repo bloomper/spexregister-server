@@ -201,8 +201,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -233,8 +232,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -289,8 +287,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off

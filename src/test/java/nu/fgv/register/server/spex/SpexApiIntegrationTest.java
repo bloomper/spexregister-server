@@ -743,8 +743,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/revivals/{year}", spex.getId(), "2022")
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
@@ -768,8 +767,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/revivals/{year}", spex.getId(), "2022")
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off

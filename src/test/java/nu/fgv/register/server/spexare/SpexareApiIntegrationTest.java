@@ -609,8 +609,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
         }
 
@@ -655,8 +654,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{spexareId}/partner", spexare.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
         }
 

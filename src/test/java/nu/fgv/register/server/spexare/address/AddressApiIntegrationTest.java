@@ -246,8 +246,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -280,8 +279,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -366,8 +364,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
@@ -403,8 +400,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
         }
 
@@ -477,8 +473,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
@@ -514,8 +509,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
         }
 
@@ -585,8 +579,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off

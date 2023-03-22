@@ -244,8 +244,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -276,8 +275,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -351,8 +349,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off

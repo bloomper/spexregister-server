@@ -240,8 +240,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -272,8 +271,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
 
             //@formatter:off
@@ -346,8 +344,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), result.getId(), Boolean.FALSE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
@@ -381,8 +378,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), 1L, Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
         }
 
@@ -446,8 +442,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .extract().body().asString();
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off
