@@ -829,7 +829,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class CategoryTests {
 
         @Test
-        public void should_return_found() throws Exception {
+        public void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 

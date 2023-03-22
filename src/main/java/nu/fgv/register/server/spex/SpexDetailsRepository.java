@@ -5,5 +5,5 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface SpexDetailsRepository extends JpaRepository<SpexDetails, Long>, QuerydslPredicateExecutor<SpexDetails> {
+public interface SpexDetailsRepository extends JpaRepository<SpexDetails, Long>, QuerydslPredicateExecutor<SpexDetails> {
 }

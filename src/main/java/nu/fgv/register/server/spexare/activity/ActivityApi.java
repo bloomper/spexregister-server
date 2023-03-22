@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare.activity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.spexare.activity.spex.SpexActivityApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -101,8 +102,8 @@ public class ActivityApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(ActivityApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("activities"));
-        // TODO: Spex activities
+        links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
+        links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, dto.getId(), Pageable.unpaged())).withRel("spex-activities"));
         // TODO: Task activities
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 

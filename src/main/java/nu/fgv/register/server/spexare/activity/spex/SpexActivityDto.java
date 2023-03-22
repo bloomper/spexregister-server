@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare.activity;
+package nu.fgv.register.server.spexare.activity.spex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -17,14 +16,11 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "spexActivities", itemRelation = "spexActivity")
+@Relation(collectionRelation = "spex-activities", itemRelation = "spex-activity")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexActivityDto extends AbstractAuditableDto<SpexActivityDto> {
     @JsonProperty("id")
     private Long id;
-
-    @JsonProperty("spex")
-    private SpexDto spex;
 
     @Builder
     public SpexActivityDto(
