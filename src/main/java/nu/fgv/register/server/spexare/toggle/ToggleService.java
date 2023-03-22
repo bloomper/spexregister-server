@@ -48,7 +48,7 @@ public class ToggleService {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
-                    .map(type -> spexareRepository
+                    .flatMap(type -> spexareRepository
                             .findById(spexareId)
                             .filter(spexare -> !repository.existsBySpexareAndType(spexare, type))
                             .map(spexare -> {
@@ -58,9 +58,7 @@ public class ToggleService {
                                 toggle.setValue(value);
                                 return repository.save(toggle);
                             })
-                            .map(TOGGLE_MAPPER::toDto)
-                    )
-                    .orElse(null);
+                            .map(TOGGLE_MAPPER::toDto));
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }
@@ -70,7 +68,7 @@ public class ToggleService {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
-                    .map(type -> spexareRepository
+                    .flatMap(type -> spexareRepository
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
@@ -78,9 +76,7 @@ public class ToggleService {
                                 toggle.setValue(value);
                                 return repository.save(toggle);
                             })
-                            .map(TOGGLE_MAPPER::toDto)
-                    )
-                    .orElse(null);
+                            .map(TOGGLE_MAPPER::toDto));
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }

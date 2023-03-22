@@ -48,7 +48,7 @@ public class MembershipService {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
-                    .map(type -> spexareRepository
+                    .flatMap(type -> spexareRepository
                             .findById(spexareId)
                             .filter(spexare -> !repository.existsBySpexareAndTypeAndYear(spexare, type, year))
                             .map(spexare -> {
@@ -58,9 +58,7 @@ public class MembershipService {
                                 membership.setYear(year);
                                 return repository.save(membership);
                             })
-                            .map(MEMBERSHIP_MAPPER::toDto)
-                    )
-                    .orElse(null);
+                            .map(MEMBERSHIP_MAPPER::toDto));
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }
