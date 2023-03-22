@@ -246,7 +246,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -280,7 +280,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -350,7 +350,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().as(AddressDto.class);
             //@formatter:on
 
@@ -463,7 +463,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .post("/{typeId}", type.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.CREATED.value())
                         .extract().body().as(AddressDto.class);
             //@formatter:on
 
@@ -574,7 +574,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .when()
                     .post("/{typeId}", type.getId())
                 .then()
-                    .statusCode(HttpStatus.ACCEPTED.value())
+                    .statusCode(HttpStatus.CREATED.value())
                     .extract().body().as(AddressDto.class);
             //@formatter:on
 

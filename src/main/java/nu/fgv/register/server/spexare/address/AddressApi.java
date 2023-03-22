@@ -70,7 +70,7 @@ public class AddressApi {
         try {
             return service
                     .create(spexareId, typeId, dto)
-                    .map(newDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(newDto, getLinks(newDto, spexareId))))
+                    .map(newDto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

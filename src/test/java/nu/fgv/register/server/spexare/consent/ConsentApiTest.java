@@ -142,7 +142,7 @@ public class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1, consent.getId(), Boolean.TRUE)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/consents/create",

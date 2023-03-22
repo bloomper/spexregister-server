@@ -452,7 +452,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_201() throws Exception {
+        public void should_update_and_return_202() throws Exception {
             var category = persistTaskCategory(randomizeTaskCategory());
 
             final TaskCreateDto dto = random.nextObject(TaskCreateDto.class);
@@ -509,7 +509,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_201() {
+        public void should_delete_and_return_204() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 

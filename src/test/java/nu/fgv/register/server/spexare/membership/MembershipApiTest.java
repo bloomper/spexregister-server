@@ -141,7 +141,7 @@ public class MembershipApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1, "FGV", "2023")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/memberships/create",

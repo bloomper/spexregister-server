@@ -104,7 +104,7 @@ public class TaggingApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/tags/{id}", 1, tag.getId())
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andDo(document(
                                 "spexare/tags/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),

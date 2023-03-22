@@ -231,7 +231,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -282,7 +282,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .when()
                     .post()
                 .then()
-                    .statusCode(HttpStatus.ACCEPTED.value())
+                    .statusCode(HttpStatus.CREATED.value())
                     .extract().body().as(ActivityDto.class);
             //@formatter:on
 

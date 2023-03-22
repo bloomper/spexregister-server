@@ -65,7 +65,7 @@ public class MembershipApi {
         try {
             return service
                     .create(spexareId, typeId, year)
-                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
+                    .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

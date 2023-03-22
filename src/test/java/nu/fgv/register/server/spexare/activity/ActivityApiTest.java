@@ -133,7 +133,7 @@ public class ActivityApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities", 1)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/activities/create",

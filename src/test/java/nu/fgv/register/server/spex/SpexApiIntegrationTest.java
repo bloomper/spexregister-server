@@ -768,7 +768,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/revivals/{year}", spex.getId(), "2022")
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -863,7 +863,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_201() throws Exception {
+        public void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
@@ -920,7 +920,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_201() {
+        public void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 

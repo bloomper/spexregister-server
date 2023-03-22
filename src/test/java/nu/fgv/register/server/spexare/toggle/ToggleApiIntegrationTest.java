@@ -240,7 +240,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -272,7 +272,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().asString();
             //@formatter:on
 
@@ -335,7 +335,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value())
+                .statusCode(HttpStatus.CREATED.value())
                 .extract().body().as(ToggleDto.class);
             //@formatter:on
 
@@ -435,7 +435,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                 .when()
                     .post("/{typeId}/{id}", type.getId(), Boolean.TRUE)
                 .then()
-                    .statusCode(HttpStatus.ACCEPTED.value())
+                    .statusCode(HttpStatus.CREATED.value())
                     .extract().body().as(ToggleDto.class);
             //@formatter:on
 

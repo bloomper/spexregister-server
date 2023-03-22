@@ -160,7 +160,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/addresses/create",

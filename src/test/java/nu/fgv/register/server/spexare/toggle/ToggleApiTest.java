@@ -142,7 +142,7 @@ public class ToggleApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1, toggle.getId(), Boolean.TRUE)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/toggles/create",

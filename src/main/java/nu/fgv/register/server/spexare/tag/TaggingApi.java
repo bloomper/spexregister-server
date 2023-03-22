@@ -55,7 +55,7 @@ public class TaggingApi {
     @PostMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> create(@PathVariable final Long spexareId, @PathVariable final Long id) {
         try {
-            return service.create(spexareId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.create(spexareId, id) ? ResponseEntity.status(HttpStatus.CREATED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create tag {}", id, e);

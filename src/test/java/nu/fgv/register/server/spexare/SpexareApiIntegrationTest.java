@@ -584,7 +584,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_201() throws Exception {
+        public void should_update_and_return_202() throws Exception {
             var partner = persistSpexare(randomizeSpexare());
 
             final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);

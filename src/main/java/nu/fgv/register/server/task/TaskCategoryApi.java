@@ -17,6 +17,7 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -105,11 +106,11 @@ public class TaskCategoryApi {
                     Constants.MediaTypes.APPLICATION_XLSX_VALUE,
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale, final HttpMethod method) {
         try {
             final ImportResultDto result = importService.doImport(file, contentType, locale);
             return ResponseEntity
-                    .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                    .status(result.isSuccess() ? (method == HttpMethod.POST ? HttpStatus.CREATED : HttpStatus.ACCEPTED) : HttpStatus.BAD_REQUEST)
                     .body(result);
         } catch (final Exception e) {
             if (log.isErrorEnabled()) {
@@ -120,9 +121,9 @@ public class TaskCategoryApi {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale, final HttpMethod method) {
         try {
-            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
+            return createAndUpdate(file.getBytes(), file.getContentType(), locale, method);
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not import task categories %s", e);
