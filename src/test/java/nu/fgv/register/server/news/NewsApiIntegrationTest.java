@@ -152,10 +152,11 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("subject", "text", "visibleFrom")
                     .contains(dto.getSubject(), dto.getText(), dto.getVisibleFrom());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
             dto.setSubject(null);
 
@@ -168,6 +169,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -201,7 +204,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -262,10 +265,11 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
             dto.setSubject(null);
 
@@ -278,6 +282,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -290,9 +296,11 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
-        .then()
+            .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -350,6 +358,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -365,6 +374,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -374,7 +385,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var news = persistNews(randomizeNews());
 
             //@formatter:off
@@ -399,6 +410,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 

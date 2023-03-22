@@ -111,7 +111,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
+                .pathParam("spexareId",1L)
             .when()
                 .get()
             .then()
@@ -194,7 +194,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var persisted = persistMembership(randomizeMembership(type, spexare));
+            var memebership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final MembershipDto result =
@@ -202,7 +202,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", memebership.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(MembershipDto.class);
@@ -211,7 +211,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "year")
-                    .contains(persisted.getId(), persisted.getYear());
+                    .contains(memebership.getId(), memebership.getYear());
         }
 
         @Test
@@ -221,7 +221,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -261,6 +261,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -287,6 +288,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -296,12 +299,14 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .post("/{typeId}/{year}", type.getId(), "2023")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -317,6 +322,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -329,31 +336,20 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-
-            //@formatter:off
-            final MembershipDto result =
-                given()
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                .when()
-                    .post("/{typeId}/{year}", type.getId(), "2023")
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(MembershipDto.class);
-            //@formatter:on
+            var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{typeId}/{id}", type.getId(), result.getId())
+                .delete("/{typeId}/{id}", type.getId(), membership.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off
-            final List<MembershipDto> result1 =
+            final List<MembershipDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -365,7 +361,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.memberships", MembershipDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -382,6 +379,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -391,12 +390,14 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -412,6 +413,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }

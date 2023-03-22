@@ -177,10 +177,13 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("title", "year")
                     .contains(dto.getTitle(), dto.getYear());
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
             dto.setTitle(null);
 
@@ -193,6 +196,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
     }
 
@@ -227,7 +233,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -289,10 +295,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
             dto.setTitle(null);
 
@@ -305,6 +313,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
@@ -317,9 +328,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
-        .then()
+            .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
     }
 
@@ -378,6 +392,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -393,6 +409,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
     }
@@ -402,7 +421,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -416,7 +435,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);
-            assertThat(categoryRepository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
@@ -429,6 +448,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
     }
 
@@ -437,9 +459,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class PosterTests {
 
         @Test
-        public void should_update_poster() throws Exception {
+        public void should_update_poster_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
-            var persisted = persistSpex(randomizeSpex(category));
+            var spex = persistSpex(randomizeSpex(category));
             var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
@@ -447,7 +469,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(poster)
             .when()
-                .put("/{id}/poster", persisted.getId())
+                .put("/{id}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -457,7 +479,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/poster", persisted.getId())
+                        .get("/{id}/poster", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -468,7 +490,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_poster_via_multipart() throws Exception {
+        public void should_update_poster_via_multipart_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var poster = ResourceUtils.getFile("classpath:test.png");
@@ -498,7 +520,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_poster() throws Exception {
+        public void should_delete_poster_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
@@ -530,6 +552,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
     }
 
@@ -632,7 +657,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}/revivals", "123")
+                .get("/{id}/revivals", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -642,9 +667,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
-
-            var revival = randomizeRevival(spex);
-            persistRevival(revival);
+            var revival = persistRevival(randomizeRevival(spex));
 
             //@formatter:off
             final List<SpexDto> result =
@@ -685,7 +708,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_add_and_return_201() throws Exception {
+        public void should_create_and_return_201() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -706,7 +729,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .contains(spex.getDetails().getTitle(), "2022");
 
             //@formatter:off
-            final List<SpexDto> result1 =
+            final List<SpexDto> after =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
@@ -717,7 +740,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.spex", SpexDto.class);
             //@formatter:on
 
-            assertThat(result1).hasSize(1);
+            assertThat(after).hasSize(1);
+            assertThat(repository.count()).isEqualTo(2);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -726,58 +751,51 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/revivals/{year}", "123", "2022")
+                .put("/{id}/revivals/{year}", 1L, "2022")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
         public void should_return_409_when_adding_and_year_already_exists() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
+            var revival = persistRevival(randomizeRevival(spex));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/revivals/{year}", spex.getId(), "2022")
-            .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
-            //@formatter:on
-
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-            .when()
-                .put("/{id}/revivals/{year}", spex.getId(), "2022")
+                .put("/{id}/revivals/{year}", spex.getId(), revival.getYear())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(2);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
         public void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
+            var revival = persistRevival(randomizeRevival(spex));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/revivals/{year}", spex.getId(), "2022")
-            .then()
-                .statusCode(HttpStatus.CREATED.value());
-            //@formatter:on
-
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}/revivals/{year}", spex.getId(), "2022")
+                .delete("/{id}/revivals/{year}", spex.getId(), revival.getYear())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -786,10 +804,13 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/revivals/{year}", "123", "2022")
+                .delete("/{id}/revivals/{year}", 1L, "2022")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
@@ -807,7 +828,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<SpexDto> result1 =
+            final List<SpexDto> result =
                     given()
                         .contentType(ContentType.JSON)
                     .when()
@@ -818,7 +839,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.spex", SpexDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
     }
 
@@ -846,6 +869,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("id", "name", "firstYear")
                     .contains(category.getId(), category.getName(), category.getFirstYear());
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -854,31 +879,19 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{spexId}/category", "123")
+                .get("/{spexId}/category", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        public void should_update_and_return_202() {
             var category = persistSpexCategory(randomizeSpexCategory());
-
-            final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
-
-            //@formatter:off
-            final String json =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
-
-            final SpexDto spex = objectMapper.readValue(json, SpexDto.class);
+            var spex = persistSpex(randomizeSpex(category));
 
             //@formatter:off
             given()
@@ -888,6 +901,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -896,10 +912,13 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{spexId}/category/{id}", "123", "321")
+                .put("/{spexId}/category/{id}", 1L, 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
         @Test
@@ -911,10 +930,13 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{spexId}/category/{id}", spex.getId(), "321")
+                .put("/{spexId}/category/{id}", spex.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -930,6 +952,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -944,6 +969,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -952,10 +980,13 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{spexId}/category", "123")
+                .delete("/{spexId}/category", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+            assertThat(detailsRepository.count()).isEqualTo(0);
         }
 
     }

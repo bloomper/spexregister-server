@@ -533,9 +533,9 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{id}/revivals/{year}", 1, "2021")
+                        post("/api/v1/spex/{id}/revivals/{year}", 1, "2021")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spex/revival-add",

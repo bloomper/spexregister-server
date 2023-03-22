@@ -107,7 +107,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
+                .pathParam("spexareId",1L)
             .when()
                 .get()
             .then()
@@ -190,7 +190,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var persisted = persistToggle(randomizeToggle(type, spexare));
+            var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
             final ToggleDto result =
@@ -198,7 +198,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", toggle.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(ToggleDto.class);
@@ -207,7 +207,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "value")
-                    .contains(persisted.getId(), persisted.getValue());
+                    .contains(toggle.getId(), toggle.getValue());
         }
 
         @Test
@@ -217,7 +217,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -257,6 +257,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -283,6 +284,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -292,7 +295,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
@@ -313,6 +316,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -325,30 +330,20 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         public void should_update_and_return_202() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-
-            //@formatter:off
-            final ToggleDto result = given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-            .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
-            .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().as(ToggleDto.class);
-            //@formatter:on
+            var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), result.getId(), Boolean.FALSE)
+                .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.FALSE)
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
-            final List<ToggleDto> result1 =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                          .pathParam("spexareId", spexare.getId())
@@ -360,10 +355,11 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
-            assertThat(result1).hasSize(1);
-            assertThat(result1.get(0))
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0))
                     .extracting("id", "value")
-                    .contains(result.getId(), Boolean.FALSE);
+                    .contains(toggle.getId(), Boolean.FALSE);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -380,6 +376,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -389,12 +387,14 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), 1L, Boolean.TRUE)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -410,6 +410,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -422,31 +424,20 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-
-            //@formatter:off
-            final ToggleDto result =
-                given()
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                .when()
-                    .post("/{typeId}/{id}", type.getId(), Boolean.TRUE)
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(ToggleDto.class);
-            //@formatter:on
+            var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{typeId}/{id}", type.getId(), result.getId())
+                .delete("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off
-            final List<ToggleDto> result1 =
+            final List<ToggleDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -458,7 +449,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.toggles", ToggleDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -475,6 +467,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -484,12 +478,14 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -505,6 +501,8 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }

@@ -80,7 +80,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.taskCategories", TaskCategoryDto.class);
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -99,7 +99,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.taskCategories", TaskCategoryDto.class);
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -120,7 +120,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.taskCategories", TaskCategoryDto.class);
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -151,10 +151,11 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("name", "hasActor")
                     .contains(dto.getName(), dto.isHasActor());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final TaskCategoryCreateDto dto = random.nextObject(TaskCategoryCreateDto.class);
             dto.setName(null);
 
@@ -167,6 +168,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -200,7 +203,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -261,10 +264,11 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
             dto.setName(null);
 
@@ -277,6 +281,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -292,6 +298,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -349,6 +357,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -364,6 +373,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -373,7 +384,7 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
@@ -398,6 +409,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 

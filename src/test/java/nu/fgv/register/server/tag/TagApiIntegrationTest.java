@@ -151,10 +151,11 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("name")
                     .isEqualTo(dto.getName());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final TagCreateDto dto = random.nextObject(TagCreateDto.class);
             dto.setName(null);
 
@@ -167,6 +168,8 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -200,7 +203,7 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -260,10 +263,11 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
             dto.setName(null);
 
@@ -276,6 +280,8 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -291,6 +297,8 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -347,6 +355,7 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -362,6 +371,8 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -371,7 +382,7 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var tag = persistTag(randomizeTag());
 
             //@formatter:off
@@ -396,6 +407,8 @@ public class TagApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 

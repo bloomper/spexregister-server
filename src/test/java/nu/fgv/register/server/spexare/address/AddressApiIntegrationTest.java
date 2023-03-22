@@ -111,7 +111,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
+                .pathParam("spexareId",1L)
             .when()
                 .get()
             .then()
@@ -194,7 +194,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var persisted = persistAddress(randomizeAddress(type, spexare));
+            var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             final AddressDto result =
@@ -202,7 +202,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", address.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(AddressDto.class);
@@ -211,7 +211,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "streetAddress")
-                    .contains(persisted.getId(), persisted.getStreetAddress());
+                    .contains(address.getId(), address.getStreetAddress());
         }
 
         @Test
@@ -221,7 +221,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -263,6 +263,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -292,6 +293,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -302,13 +305,15 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
                 .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -322,10 +327,12 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .post("/{typeId}", "dummy")
+                .post("/{typeId}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -341,7 +348,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
-            final AddressDto result = given()
+            final AddressDto before = given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -352,23 +359,23 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .extract().body().as(AddressDto.class);
             //@formatter:on
 
-            var dto2 = AddressUpdateDto.builder().id(result.getId()).streetAddress(result.getStreetAddress() + "_")
-                    .postalCode(result.getPostalCode()).city(result.getCity()).country(result.getCountry())
-                    .phone(result.getPhone()).phoneMobile(dto.getPhoneMobile()).emailAddress(result.getEmailAddress()).build();
+            var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
+                    .postalCode(before.getPostalCode()).city(before.getCity()).country(before.getCountry())
+                    .phone(before.getPhone()).phoneMobile(dto.getPhoneMobile()).emailAddress(before.getEmailAddress()).build();
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
-                .body(dto2)
+                .body(updateDto)
             .when()
-                .put("/{typeId}/{id}", type.getId(), result.getId())
+                .put("/{typeId}/{id}", type.getId(), before.getId())
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
             //@formatter:off
-            final List<AddressDto> result1 =
+            final List<AddressDto> after =
                     given()
                          .contentType(ContentType.JSON)
                          .pathParam("spexareId", spexare.getId())
@@ -380,10 +387,11 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.addresses", AddressDto.class);
             //@formatter:on
 
-            assertThat(result1).hasSize(1);
-            assertThat(result1.get(0))
+            assertThat(after).hasSize(1);
+            assertThat(after.get(0))
                     .extracting("id", "streetAddress")
-                    .contains(result.getId(), dto2.getStreetAddress());
+                    .contains(before.getId(), updateDto.getStreetAddress());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -402,6 +410,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -412,13 +422,15 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
                 .put("/{typeId}/{id}", type.getId(), dto.getId())
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -436,6 +448,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -463,13 +477,13 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .extract().body().as(AddressDto.class);
             //@formatter:on
 
-            var dto2 = AddressUpdateDto.builder().id(result.getId()).streetAddress(result.getStreetAddress() + "_").build();
+            var updateDto = AddressUpdateDto.builder().id(result.getId()).streetAddress(result.getStreetAddress() + "_").build();
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
-                .body(dto2)
+                .body(updateDto)
             .when()
                 .patch("/{typeId}/{id}", type.getId(), result.getId())
             .then()
@@ -477,7 +491,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<AddressDto> result1 =
+            final List<AddressDto> after =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -489,10 +503,11 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.addresses", AddressDto.class);
             //@formatter:on
 
-            assertThat(result1).hasSize(1);
-            assertThat(result1.get(0))
+            assertThat(after).hasSize(1);
+            assertThat(after.get(0))
                     .extracting("id", "streetAddress", "city")
-                    .contains(result.getId(), dto2.getStreetAddress(), dto.getCity());
+                    .contains(result.getId(), updateDto.getStreetAddress(), dto.getCity());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -511,6 +526,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -521,13 +538,15 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
                 .patch("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -545,6 +564,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -557,33 +578,20 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
-
-            //@formatter:off
-            final AddressDto result =
-                given()
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                    .body(dto)
-                .when()
-                    .post("/{typeId}", type.getId())
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(AddressDto.class);
-            //@formatter:on
+            var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{typeId}/{id}", type.getId(), result.getId())
+                .delete("/{typeId}/{id}", type.getId(), address.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off
-            final List<AddressDto> result1 =
+            final List<AddressDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -595,7 +603,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.addresses", AddressDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -612,6 +621,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -621,12 +632,14 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -642,6 +655,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }

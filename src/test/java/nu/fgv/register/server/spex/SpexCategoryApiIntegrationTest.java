@@ -91,7 +91,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.spexCategories", SpexCategoryDto.class);
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -110,7 +110,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.spexCategories", SpexCategoryDto.class);
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -131,7 +131,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.spexCategories", SpexCategoryDto.class);
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -162,10 +162,11 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("name", "firstYear")
                     .contains(dto.getName(), dto.getFirstYear());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
             dto.setName(null);
 
@@ -178,6 +179,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -211,7 +214,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -272,10 +275,11 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
             dto.setName(null);
 
@@ -288,6 +292,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -303,6 +309,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -360,6 +368,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -375,6 +384,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -384,7 +395,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -409,6 +420,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -417,7 +430,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class LogoTests {
 
         @Test
-        public void should_update_logo() throws Exception {
+        public void should_update_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -447,7 +460,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_logo_via_multipart() throws Exception {
+        public void should_update_logo_via_multipart_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = ResourceUtils.getFile("classpath:test.png");
 
@@ -476,7 +489,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_logo() throws Exception {
+        public void should_delete_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 

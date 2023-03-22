@@ -210,16 +210,16 @@ public class SpexApi {
         }
     }
 
-    @PutMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> addRevival(@PathVariable final Long id, @PathVariable final String year) {
+    @PostMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long id, @PathVariable final String year) {
         try {
             return service
                     .addRevival(id, year)
-                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
+                    .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(dto, getLinks(dto))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not add year to revivals", e);
+                log.error("Could not create year for revivals", e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

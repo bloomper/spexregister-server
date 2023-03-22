@@ -103,7 +103,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
+                .pathParam("spexareId",1L)
             .when()
                 .get()
             .then()
@@ -218,6 +218,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -244,6 +245,8 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -251,12 +254,14 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .post("/{id}", 1)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -291,7 +296,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<TagDto> result1 =
+            final List<TagDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -303,7 +308,8 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.tags", TagDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -319,6 +325,8 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -326,12 +334,14 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .delete("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }

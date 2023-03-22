@@ -177,10 +177,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result)
                     .extracting("firstName", "lastName", "nickName")
                     .contains(dto.getFirstName(), dto.getLastName(), dto.getNickName());
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
             dto.setLastName(null);
 
@@ -193,6 +194,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -226,7 +229,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -288,10 +291,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_fail_when_invalid_input() {
+        public void should_return_400_when_invalid_input() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
             dto.setFirstName(null);
 
@@ -304,6 +308,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -316,9 +322,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
-        .then()
+            .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -377,6 +385,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -392,6 +401,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -401,7 +412,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete() {
+        public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -426,6 +437,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -434,7 +447,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class ImageTests {
 
         @Test
-        public void should_update_image() throws Exception {
+        public void should_update_image_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -464,7 +477,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_image_via_multipart() throws Exception {
+        public void should_update_image_via_multipart_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = ResourceUtils.getFile("classpath:test.png");
 
@@ -493,7 +506,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_image() throws Exception {
+        public void should_delete_image_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -563,7 +576,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{spexareId}/partner", "123")
+                .get("/{spexareId}/partner", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -585,23 +598,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_update_and_return_202() throws Exception {
+            var spexare = persistSpexare(randomizeSpexare());
             var partner = persistSpexare(randomizeSpexare());
-
-            final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
-
-            //@formatter:off
-            final String json =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
-
-            final SpexareDto spexare = objectMapper.readValue(json, SpexareDto.class);
 
             //@formatter:off
             given()
@@ -619,7 +617,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{spexareId}/partner/{id}", "123", "321")
+                .put("/{spexareId}/partner/{id}", 1L, 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -633,7 +631,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{spexareId}/partner/{id}", spexare.getId(), "321")
+                .put("/{spexareId}/partner/{id}", spexare.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -678,7 +676,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{spexareId}/partner", "123")
+                .delete("/{spexareId}/partner", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

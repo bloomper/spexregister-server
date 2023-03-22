@@ -359,7 +359,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/type/{type}/{id}", TypeType.ADDRESS, "dummy")
+                .get("/type/{type}/{id}", TypeType.ADDRESS, 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

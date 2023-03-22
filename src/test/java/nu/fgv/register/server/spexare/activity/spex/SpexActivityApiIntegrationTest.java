@@ -132,8 +132,8 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
-                .pathParam("activityId","1")
+                .pathParam("spexareId",1L)
+                .pathParam("activityId",1L)
             .when()
                 .get()
             .then()
@@ -280,7 +280,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -631,7 +631,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<SpexActivityDto> result1 =
+            final List<SpexActivityDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -644,7 +644,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
             assertThat(repository.count()).isEqualTo(0);
         }
 

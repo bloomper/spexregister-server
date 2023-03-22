@@ -102,7 +102,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId","1")
+                .pathParam("spexareId",1L)
             .when()
                 .get()
             .then()
@@ -182,7 +182,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
-            var persisted = persistActivity(randomizeActivity(spexare));
+            var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final ActivityDto result =
@@ -190,7 +190,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/{id}", persisted.getId())
+                        .get("/{id}", activity.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(ActivityDto.class);
@@ -199,7 +199,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id")
-                    .isEqualTo(persisted.getId());
+                    .isEqualTo(activity.getId());
         }
 
         @Test
@@ -209,7 +209,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1)
             .when()
-                .get("/{id}", "123")
+                .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -248,6 +248,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
@@ -255,12 +256,14 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .post()
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
@@ -272,31 +275,20 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
-
-            //@formatter:off
-            final ActivityDto result =
-                given()
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                .when()
-                    .post()
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(ActivityDto.class);
-            //@formatter:on
+            var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{id}", result.getId())
+                .delete("/{id}", activity.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off
-            final List<ActivityDto> result1 =
+            final List<ActivityDto> result =
                     given()
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
@@ -308,7 +300,8 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.activities", ActivityDto.class);
             //@formatter:on
 
-            assertThat(result1).isEmpty();
+            assertThat(result).isEmpty();
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -324,6 +317,8 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
         @Test
@@ -331,12 +326,14 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", "1")
+                .pathParam("spexareId", 1L)
             .when()
                 .delete("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
         }
 
     }
