@@ -106,7 +106,7 @@ public class MembershipApiTest extends AbstractApiTest {
     public void should_get() throws Exception {
         var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(membership));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(membership));
 
         mockMvc
                 .perform(

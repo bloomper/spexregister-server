@@ -68,9 +68,9 @@ public class SpexCategoryService {
     public Optional<SpexCategoryDto> partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    SPEX_CATEGORY_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(category -> {
+                    SPEX_CATEGORY_MAPPER.toPartialModel(dto, category);
+                    return category;
                 })
                 .map(repository::save)
                 .map(SPEX_CATEGORY_MAPPER::toDto);
@@ -83,28 +83,28 @@ public class SpexCategoryService {
     public Optional<SpexCategoryDto> saveLogo(final Long id, final byte[] logo, final String contentType) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.setLogo(logo);
-                    model.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
-                    repository.save(model);
-                    return SPEX_CATEGORY_MAPPER.toDto(model);
+                .map(category -> {
+                    category.setLogo(logo);
+                    category.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
+                    repository.save(category);
+                    return SPEX_CATEGORY_MAPPER.toDto(category);
                 });
     }
 
     public Optional<SpexCategoryDto> deleteLogo(final Long id) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.setLogo(null);
-                    model.setLogoContentType(null);
-                    repository.save(model);
-                    return SPEX_CATEGORY_MAPPER.toDto(model);
+                .map(category -> {
+                    category.setLogo(null);
+                    category.setLogoContentType(null);
+                    repository.save(category);
+                    return SPEX_CATEGORY_MAPPER.toDto(category);
                 });
     }
 
     public Optional<Pair<byte[], String>> getLogo(final Long id) {
         return repository.findById(id)
-                .filter(model -> model.getLogo() != null && hasText(model.getLogoContentType()))
-                .map(model -> Pair.of(model.getLogo(), model.getLogoContentType()));
+                .filter(category -> category.getLogo() != null && hasText(category.getLogoContentType()))
+                .map(category -> Pair.of(category.getLogo(), category.getLogoContentType()));
     }
 }

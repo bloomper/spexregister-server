@@ -65,9 +65,9 @@ public class TaskCategoryService {
     public Optional<TaskCategoryDto> partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    TASK_CATEGORY_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(category -> {
+                    TASK_CATEGORY_MAPPER.toPartialModel(dto, category);
+                    return category;
                 })
                 .map(repository::save)
                 .map(TASK_CATEGORY_MAPPER::toDto);

@@ -53,9 +53,9 @@ public class NewsService {
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    NEWS_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(news -> {
+                    NEWS_MAPPER.toPartialModel(dto, news);
+                    return news;
                 })
                 .map(repository::save)
                 .map(NEWS_MAPPER::toDto);

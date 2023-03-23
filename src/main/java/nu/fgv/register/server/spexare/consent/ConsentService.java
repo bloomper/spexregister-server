@@ -40,8 +40,15 @@ public class ConsentService {
         }
     }
 
-    public Optional<ConsentDto> findById(final Long id) {
-        return repository.findById(id).map(CONSENT_MAPPER::toDto);
+    public Optional<ConsentDto> findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId)) {
+            return repository
+                    .findById(id)
+                    .filter(consent -> consent.getSpexare().getId().equals(spexareId))
+                    .map(CONSENT_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+        }
     }
 
     public Optional<ConsentDto> create(final Long spexareId, final String typeId, final Boolean value) {
@@ -72,6 +79,7 @@ public class ConsentService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .map(consent -> {
                                 consent.setValue(value);
                                 return repository.save(consent);
@@ -90,6 +98,7 @@ public class ConsentService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .map(consent -> {
                                 repository.deleteById(consent.getId());
                                 return true;

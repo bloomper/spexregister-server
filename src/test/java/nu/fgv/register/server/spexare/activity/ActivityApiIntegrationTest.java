@@ -204,12 +204,30 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1)
+                .pathParam("spexareId", spexare.getId())
             .when()
                 .get("/{id}", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var activity = persistActivity(randomizeActivity(spexare));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", 1L)
+            .when()
+                .get("/{id}", activity.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -323,19 +341,40 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_deleting_and_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var activity = persistActivity(randomizeActivity(spexare));
+
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
-                .delete("/{id}", 1L)
+                .delete("/{id}", activity.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
+        @Test
+        public void should_return_422_when_deleting_and_incorrect_spexare() {
+            var spexare1 = persistSpexare(randomizeSpexare());
+            var spexare2 = persistSpexare(randomizeSpexare());
+            var activity = persistActivity(randomizeActivity(spexare2));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare1.getId())
+            .when()
+                .delete("/{id}", activity.getId())
+            .then()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+        }
     }
 
     private Activity randomizeActivity(Spexare spexare) {

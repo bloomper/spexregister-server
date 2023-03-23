@@ -287,6 +287,26 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        public void should_return_404_when_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", 1L)
+                .pathParam("activityId", activity.getId())
+            .when()
+                .get("/{id}", spexActivity.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
         public void should_return_404_when_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());

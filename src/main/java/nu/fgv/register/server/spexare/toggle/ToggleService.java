@@ -40,8 +40,15 @@ public class ToggleService {
         }
     }
 
-    public Optional<ToggleDto> findById(final Long id) {
-        return repository.findById(id).map(TOGGLE_MAPPER::toDto);
+    public Optional<ToggleDto> findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId)) {
+            return repository
+                    .findById(id)
+                    .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
+                    .map(TOGGLE_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+        }
     }
 
     public Optional<ToggleDto> create(final Long spexareId, final String typeId, final Boolean value) {
@@ -72,6 +79,7 @@ public class ToggleService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
                             .map(toggle -> {
                                 toggle.setValue(value);
                                 return repository.save(toggle);
@@ -90,6 +98,7 @@ public class ToggleService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
                             .map(toggle -> {
                                 repository.deleteById(toggle.getId());
                                 return true;

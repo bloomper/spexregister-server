@@ -58,11 +58,18 @@ public class SpexActivityApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
-        return service
-                .findById(spexareId, activityId, id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
-                .map(ResponseEntity::ok)
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            return service
+                    .findById(spexareId, activityId, id)
+                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
+                    .map(ResponseEntity::ok)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve spex activity", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value = "/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)

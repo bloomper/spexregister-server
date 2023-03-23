@@ -47,10 +47,15 @@ public class SpexActivityService {
     }
 
     public Optional<SpexActivityDto> findById(final Long spexareId, final Long activityId, final Long id) {
-        return repository
-                .findById(id)
-                .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId) && spexActivity.getActivity().getSpexare().getId().equals(spexareId))
-                .map(SPEX_ACTIVITY_MAPPER::toDto);
+        if (doSpexareAndActivityExist(spexareId, activityId)) {
+            return repository
+                    .findById(id)
+                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
+                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .map(SPEX_ACTIVITY_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s and/or activity %s do not exist", spexareId, activityId));
+        }
     }
 
     public Optional<SpexActivityDto> create(final Long spexareId, final Long activityId, final Long spexId) {
@@ -83,7 +88,7 @@ public class SpexActivityService {
                             .filter(spex -> repository.existsByActivityAndId(activity, id))
                             .map(spex -> repository
                                     .findById(id)
-                                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
+                                    .filter(spexActivity -> spexActivity.getActivity().equals(activity))
                                     .map(spexActivity -> {
                                         spexActivity.setSpex(spex);
                                         repository.save(spexActivity);
@@ -107,7 +112,7 @@ public class SpexActivityService {
                     .filter(activity -> repository.existsByActivityAndId(activity, id))
                     .map(activity -> repository
                             .findById(id)
-                            .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
+                            .filter(spexActivity -> spexActivity.getActivity().equals(activity))
                             .map(spexActivity -> {
                                 repository.deleteById(spexActivity.getId());
                                 return true;
@@ -124,7 +129,8 @@ public class SpexActivityService {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {
             return repository
                     .findById(id)
-                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId) && spexActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
+                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getId().equals(spexareId))
                     .map(SpexActivity::getSpex)
                     .map(SPEX_MAPPER::toDto);
         } else {

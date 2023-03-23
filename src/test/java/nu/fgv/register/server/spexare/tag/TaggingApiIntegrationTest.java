@@ -251,12 +251,14 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_creating_and_spexare_not_found() {
+            var tag = persistTag(randomizeTag());
+
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
-                .post("/{id}", 1)
+                .post("/{id}", tag.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -331,12 +333,14 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_deleting_and_spexare_not_found() {
+            var tag = persistTag(randomizeTag());
+
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
-                .delete("/{id}", 1L)
+                .delete("/{id}", tag.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

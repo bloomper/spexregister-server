@@ -107,7 +107,7 @@ public class ToggleApiTest extends AbstractApiTest {
     public void should_get() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(toggle));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(toggle));
 
         mockMvc
                 .perform(

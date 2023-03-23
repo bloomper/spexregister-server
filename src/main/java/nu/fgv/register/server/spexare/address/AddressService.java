@@ -40,8 +40,15 @@ public class AddressService {
         }
     }
 
-    public Optional<AddressDto> findById(final Long id) {
-        return repository.findById(id).map(ADDRESS_MAPPER::toDto);
+    public Optional<AddressDto> findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId)) {
+            return repository
+                    .findById(id)
+                    .filter(address -> address.getSpexare().getId().equals(spexareId))
+                    .map(ADDRESS_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+        }
     }
 
     public Optional<AddressDto> create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
@@ -75,9 +82,10 @@ public class AddressService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
-                            .map(model -> {
-                                ADDRESS_MAPPER.toPartialModel(dto, model);
-                                return model;
+                            .filter(address -> address.getSpexare().getId().equals(spexareId))
+                            .map(address -> {
+                                ADDRESS_MAPPER.toPartialModel(dto, address);
+                                return address;
                             })
                             .map(repository::save)
                             .map(ADDRESS_MAPPER::toDto));
@@ -94,6 +102,7 @@ public class AddressService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(address -> address.getSpexare().getId().equals(spexareId))
                             .map(address -> {
                                 repository.deleteById(address.getId());
                                 return true;

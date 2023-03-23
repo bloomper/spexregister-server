@@ -65,9 +65,9 @@ public class TagService {
     public Optional<TagDto> partialUpdate(final TagUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    TAG_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(tag -> {
+                    TAG_MAPPER.toPartialModel(dto, tag);
+                    return tag;
                 })
                 .map(repository::save)
                 .map(TAG_MAPPER::toDto);

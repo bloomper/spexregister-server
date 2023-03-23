@@ -37,8 +37,15 @@ public class ActivityService {
         }
     }
 
-    public Optional<ActivityDto> findById(final Long id) {
-        return repository.findById(id).map(ACTIVITY_MAPPER::toDto);
+    public Optional<ActivityDto> findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId)) {
+            return repository
+                    .findById(id)
+                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .map(ACTIVITY_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+        }
     }
 
     public Optional<ActivityDto> create(final Long spexareId) {
@@ -62,6 +69,7 @@ public class ActivityService {
                     .findById(spexareId)
                     .filter(spexare -> repository.existsBySpexareAndId(spexare, id))
                     .flatMap(spexare -> repository.findById(id))
+                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> {
                         repository.deleteById(activity.getId());
                         return true;

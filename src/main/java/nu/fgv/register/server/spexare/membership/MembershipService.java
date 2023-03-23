@@ -40,8 +40,15 @@ public class MembershipService {
         }
     }
 
-    public Optional<MembershipDto> findById(final Long id) {
-        return repository.findById(id).map(MEMBERSHIP_MAPPER::toDto);
+    public Optional<MembershipDto> findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId)) {
+            return repository
+                    .findById(id)
+                    .filter(membership -> membership.getSpexare().getId().equals(spexareId))
+                    .map(MEMBERSHIP_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+        }
     }
 
     public Optional<MembershipDto> create(final Long spexareId, final String typeId, final String year) {
@@ -72,6 +79,7 @@ public class MembershipService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
                             .flatMap(spexare -> repository.findById(id))
+                            .filter(membership -> membership.getSpexare().getId().equals(spexareId))
                             .map(membership -> {
                                 repository.deleteById(membership.getId());
                                 return true;

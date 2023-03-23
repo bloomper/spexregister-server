@@ -54,11 +54,18 @@ public class ToggleApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
-                .map(ResponseEntity::ok)
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            return service
+                    .findById(spexareId, id)
+                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
+                    .map(ResponseEntity::ok)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve toggle", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value = "/{typeId}/{value}", produces = MediaTypes.HAL_JSON_VALUE)

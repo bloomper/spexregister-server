@@ -194,7 +194,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
-            var memebership = persistMembership(randomizeMembership(type, spexare));
+            var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final MembershipDto result =
@@ -202,7 +202,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
-                        .get("/{id}", memebership.getId())
+                        .get("/{id}", membership.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(MembershipDto.class);
@@ -211,17 +211,36 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "year")
-                    .contains(memebership.getId(), memebership.getYear());
+                    .contains(membership.getId(), membership.getYear());
         }
 
         @Test
         public void should_return_404_when_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1)
+                .pathParam("spexareId", spexare.getId())
             .when()
                 .get("/{id}", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            var membership = persistMembership(randomizeMembership(type, spexare));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", 1L)
+            .when()
+                .get("/{id}", membership.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -385,38 +404,61 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_deleting_and_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
+            var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
-                .delete("/{typeId}/{id}", type.getId(), 1L)
+                .delete("/{typeId}/{id}", type.getId(), membership.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         public void should_return_404_when_deleting_and_type_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .delete("/{typeId}/{id}", "dummy", 1L)
+                .delete("/{typeId}/{id}", "dummy", membership.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isEqualTo(1);
         }
 
+        @Test
+        public void should_return_422_when_deleting_and_incorrect_spexare() {
+            var spexare1 = persistSpexare(randomizeSpexare());
+            var spexare2 = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            var membership = persistMembership(randomizeMembership(type, spexare2));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare1.getId())
+            .when()
+                .delete("/{typeId}/{id}", type.getId(), membership.getId())
+            .then()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+        }
     }
 
     private Membership randomizeMembership(Type type, Spexare spexare) {

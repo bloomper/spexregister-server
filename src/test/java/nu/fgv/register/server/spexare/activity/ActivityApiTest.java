@@ -99,7 +99,7 @@ public class ActivityApiTest extends AbstractApiTest {
     public void should_get() throws Exception {
         var activity = ActivityDto.builder().id(1L).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(activity));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(activity));
 
         mockMvc
                 .perform(

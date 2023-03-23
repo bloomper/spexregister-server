@@ -83,13 +83,13 @@ public class SpexService {
     public Optional<SpexDto> partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    SPEX_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(spex -> {
+                    SPEX_MAPPER.toPartialModel(dto, spex);
+                    return spex;
                 })
-                .map(model -> {
-                    detailsRepository.save(model.getDetails());
-                    return repository.save(model);
+                .map(spex -> {
+                    detailsRepository.save(spex.getDetails());
+                    return repository.save(spex);
                 })
                 .map(SPEX_MAPPER::toDto);
     }
@@ -107,22 +107,22 @@ public class SpexService {
     public Optional<SpexDto> savePoster(final Long id, final byte[] poster, final String contentType) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.getDetails().setPoster(poster);
-                    model.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
-                    detailsRepository.save(model.getDetails());
-                    return SPEX_MAPPER.toDto(model);
+                .map(spex -> {
+                    spex.getDetails().setPoster(poster);
+                    spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
+                    detailsRepository.save(spex.getDetails());
+                    return SPEX_MAPPER.toDto(spex);
                 });
     }
 
     public Optional<SpexDto> deletePoster(final Long id) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.getDetails().setPoster(null);
-                    model.getDetails().setPosterContentType(null);
-                    detailsRepository.save(model.getDetails());
-                    return SPEX_MAPPER.toDto(model);
+                .map(spex -> {
+                    spex.getDetails().setPoster(null);
+                    spex.getDetails().setPosterContentType(null);
+                    detailsRepository.save(spex.getDetails());
+                    return SPEX_MAPPER.toDto(spex);
                 });
     }
 
@@ -130,8 +130,8 @@ public class SpexService {
         return repository
                 .findById(id)
                 .map(Spex::getDetails)
-                .filter(model -> model.getPoster() != null && hasText(model.getPosterContentType()))
-                .map(model -> Pair.of(model.getPoster(), model.getPosterContentType()));
+                .filter(details -> details.getPoster() != null && hasText(details.getPosterContentType()))
+                .map(details -> Pair.of(details.getPoster(), details.getPosterContentType()));
     }
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {

@@ -65,9 +65,9 @@ public class SpexareService {
     public Optional<SpexareDto> partialUpdate(final SpexareUpdateDto dto) {
         return repository
                 .findById(dto.getId())
-                .map(model -> {
-                    SPEXARE_MAPPER.toPartialModel(dto, model);
-                    return model;
+                .map(spexare -> {
+                    SPEXARE_MAPPER.toPartialModel(dto, spexare);
+                    return spexare;
                 })
                 .map(repository::save)
                 .map(SPEXARE_MAPPER::toDto);
@@ -80,30 +80,30 @@ public class SpexareService {
     public Optional<SpexareDto> saveImage(final Long id, final byte[] image, final String contentType) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.setImage(image);
-                    model.setImageContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(image));
-                    repository.save(model);
-                    return SPEXARE_MAPPER.toDto(model);
+                .map(spexare -> {
+                    spexare.setImage(image);
+                    spexare.setImageContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(image));
+                    repository.save(spexare);
+                    return SPEXARE_MAPPER.toDto(spexare);
                 });
     }
 
     public Optional<SpexareDto> deleteImage(final Long id) {
         return repository
                 .findById(id)
-                .map(model -> {
-                    model.setImage(null);
-                    model.setImageContentType(null);
-                    repository.save(model);
-                    return SPEXARE_MAPPER.toDto(model);
+                .map(spexare -> {
+                    spexare.setImage(null);
+                    spexare.setImageContentType(null);
+                    repository.save(spexare);
+                    return SPEXARE_MAPPER.toDto(spexare);
                 });
     }
 
     public Optional<Pair<byte[], String>> getImage(final Long id) {
         return repository
                 .findById(id)
-                .filter(model -> model.getImage() != null && hasText(model.getImageContentType()))
-                .map(model -> Pair.of(model.getImage(), model.getImageContentType()));
+                .filter(spexare -> spexare.getImage() != null && hasText(spexare.getImageContentType()))
+                .map(spexare -> Pair.of(spexare.getImage(), spexare.getImageContentType()));
     }
 
     public Optional<SpexareDto> findPartnerBySpexare(final Long spexareId) {

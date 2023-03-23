@@ -122,7 +122,7 @@ public class AddressApiTest extends AbstractApiTest {
     public void should_get() throws Exception {
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(address));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(address));
 
         mockMvc
                 .perform(

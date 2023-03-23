@@ -107,7 +107,7 @@ public class ConsentApiTest extends AbstractApiTest {
     public void should_get() throws Exception {
         var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(consent));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(consent));
 
         mockMvc
                 .perform(
