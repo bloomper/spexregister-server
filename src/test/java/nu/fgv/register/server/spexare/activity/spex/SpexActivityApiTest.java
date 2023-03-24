@@ -88,7 +88,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities?page=1&size=2&sort=id,desc", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities?page=1&size=2&sort=id,desc", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex-activities", hasSize(2)))
@@ -128,7 +128,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -158,7 +158,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{spexId}", 1, 1, 1)
+                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{spexId}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -184,7 +184,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1, 1, 1, 1)
+                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1L, 1L, 1L, 1L)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -207,7 +207,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1, 1, 1)
+                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -233,7 +233,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/spex", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/spex", 1L, 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))

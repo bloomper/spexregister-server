@@ -62,7 +62,7 @@ public class TaggingApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/tags?page=1&size=2&sort=name,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/tags?page=1&size=2&sort=name,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.tags", hasSize(2)))
@@ -102,7 +102,7 @@ public class TaggingApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/tags/{id}", 1, tag.getId())
+                        post("/api/v1/spexare/{spexareId}/tags/{id}", 1L, tag.getId())
                 )
                 .andExpect(status().isCreated())
                 .andDo(document(
@@ -124,7 +124,7 @@ public class TaggingApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/tags/{id}", 1, 1)
+                        delete("/api/v1/spexare/{spexareId}/tags/{id}", 1L, 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

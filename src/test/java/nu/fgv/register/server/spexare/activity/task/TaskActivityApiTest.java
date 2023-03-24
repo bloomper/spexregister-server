@@ -82,7 +82,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.task-activities", hasSize(2)))
@@ -122,7 +122,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -152,7 +152,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1, 1, 1)
+                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -178,7 +178,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1, 1, 1, 1)
+                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -201,7 +201,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1, 1, 1)
+                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -227,7 +227,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1L, 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))

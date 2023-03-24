@@ -206,7 +206,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{id}", 1)
+                        get("/api/v1/spexare/{id}", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -236,7 +236,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{id}", 1)
+                        put("/api/v1/spexare/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -278,7 +278,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spexare/{id}", 1)
+                        patch("/api/v1/spexare/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -319,7 +319,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{id}", 1)
+                        delete("/api/v1/spexare/{id}", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -343,7 +343,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{id}/image", 1)
+                        get("/api/v1/spexare/{id}/image", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, image.getSecond()))
@@ -375,7 +375,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{id}/image", 1)
+                        put("/api/v1/spexare/{id}/image", 1L)
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(image)
                 )
@@ -406,7 +406,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spexare/{id}/image", 1)
+                        multipart("/api/v1/spexare/{id}/image", 1L)
                                 .file(image)
                 )
                 .andExpect(status().isNoContent())
@@ -434,7 +434,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{id}/image", 1)
+                        delete("/api/v1/spexare/{id}/image", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -458,7 +458,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{id}/partner", 1)
+                        get("/api/v1/spexare/{id}/partner", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -486,7 +486,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/partner/{id}", 1, 1)
+                        put("/api/v1/spexare/{spexareId}/partner/{id}", 1L, 1L)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -511,7 +511,7 @@ public class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/partner", 1)
+                        delete("/api/v1/spexare/{spexareId}/partner", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

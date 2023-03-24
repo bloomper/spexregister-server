@@ -212,7 +212,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{id}", 1)
+                        get("/api/v1/spex/{id}", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -242,7 +242,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{id}", 1)
+                        put("/api/v1/spex/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -279,7 +279,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spex/{id}", 1)
+                        patch("/api/v1/spex/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -315,7 +315,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{id}", 1)
+                        delete("/api/v1/spex/{id}", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -338,7 +338,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{id}/poster", 1)
+                        get("/api/v1/spex/{id}/poster", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, poster.getSecond()))
@@ -369,7 +369,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{id}/poster", 1)
+                        put("/api/v1/spex/{id}/poster", 1L)
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(poster)
                 )
@@ -399,7 +399,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spex/{id}/poster", 1)
+                        multipart("/api/v1/spex/{id}/poster", 1L)
                                 .file(poster)
                 )
                 .andExpect(status().isNoContent())
@@ -426,7 +426,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{id}/poster", 1)
+                        delete("/api/v1/spex/{id}/poster", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -450,7 +450,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{spexId}/revivals/{id}", 1, 1)
+                        get("/api/v1/spex/{spexId}/revivals/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -520,7 +520,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", 1)
+                        get("/api/v1/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex", hasSize(2)))
@@ -562,7 +562,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spex/{spexId}/revivals/{year}", 1, "2021")
+                        post("/api/v1/spex/{spexId}/revivals/{year}", 1L, "2021")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -587,7 +587,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{spexId}/revivals/{year}", 1, "2021")
+                        delete("/api/v1/spex/{spexId}/revivals/{year}", 1L, "2021")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -612,7 +612,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{spexId}/category", 1)
+                        get("/api/v1/spex/{spexId}/category", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -636,7 +636,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/{spexId}/category/{id}", 1, 1)
+                        put("/api/v1/spex/{spexId}/category/{id}", 1L, 1L)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -657,7 +657,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{spexId}/category", 1)
+                        delete("/api/v1/spex/{spexId}/category", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

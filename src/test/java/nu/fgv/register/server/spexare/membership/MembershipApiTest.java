@@ -69,7 +69,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberships", hasSize(2)))
@@ -110,7 +110,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/memberships/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/memberships/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -139,7 +139,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1, "FGV", "2023")
+                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1L, "FGV", "2023")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -165,7 +165,7 @@ public class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1, "FGV", 1)
+                        delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

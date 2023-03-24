@@ -70,7 +70,7 @@ public class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.toggles", hasSize(2)))
@@ -111,7 +111,7 @@ public class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/toggles/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/toggles/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -140,7 +140,7 @@ public class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1, toggle.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1L, toggle.getId(), Boolean.TRUE)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -168,7 +168,7 @@ public class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
+                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1L, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -195,7 +195,7 @@ public class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1, "DECEASED", 1)
+                        delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

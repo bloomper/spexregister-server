@@ -196,7 +196,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/{id}", 1)
+                        get("/api/v1/tasks/{id}", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -226,7 +226,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{id}", 1)
+                        put("/api/v1/tasks/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -262,7 +262,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/tasks/{id}", 1)
+                        patch("/api/v1/tasks/{id}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -297,7 +297,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{id}", 1)
+                        delete("/api/v1/tasks/{id}", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -323,7 +323,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/{taskId}/category", 1)
+                        get("/api/v1/tasks/{taskId}/category", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -347,7 +347,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{taskId}/category/{id}", 1, 1)
+                        put("/api/v1/tasks/{taskId}/category/{id}", 1L, 1L)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -368,7 +368,7 @@ public class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{taskId}/category", 1)
+                        delete("/api/v1/tasks/{taskId}/category", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

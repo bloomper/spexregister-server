@@ -70,7 +70,7 @@ public class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.consents", hasSize(2)))
@@ -111,7 +111,7 @@ public class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/consents/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -140,7 +140,7 @@ public class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1, consent.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1L, consent.getId(), Boolean.TRUE)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -168,7 +168,7 @@ public class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1, consent.getType().getId(), consent.getId(), Boolean.FALSE)
+                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1L, consent.getType().getId(), consent.getId(), Boolean.FALSE)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -195,7 +195,7 @@ public class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1, "PUBLISH", 1)
+                        delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

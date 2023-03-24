@@ -65,7 +65,7 @@ public class ActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.activities", hasSize(2)))
@@ -104,7 +104,7 @@ public class ActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -133,7 +133,7 @@ public class ActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities", 1)
+                        post("/api/v1/spexare/{spexareId}/activities", 1L)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -157,7 +157,7 @@ public class ActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{id}", 1, 1)
+                        delete("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(

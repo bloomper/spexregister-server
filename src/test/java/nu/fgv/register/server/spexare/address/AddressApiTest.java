@@ -79,7 +79,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc", 1)
+                        get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc", 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.addresses", hasSize(2)))
@@ -126,7 +126,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/addresses/{id}", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/addresses/{id}", 1L, 1L)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -156,7 +156,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/addresses/{typeId}", 1, "HOME")
+                        post("/api/v1/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -196,7 +196,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1, "HOME", dto.getId())
+                        put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -238,7 +238,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1, "HOME", dto.getId())
+                        patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -276,7 +276,7 @@ public class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1, "HOME", 1)
+                        delete("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
