@@ -100,7 +100,7 @@ public class SpexApi {
                 .findById(id)
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .map(ResponseEntity::ok)
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -111,7 +111,7 @@ public class SpexApi {
         return service
                 .update(dto)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -122,7 +122,7 @@ public class SpexApi {
         return service
                 .partialUpdate(dto)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")
@@ -145,14 +145,14 @@ public class SpexApi {
                             .contentType(MediaType.valueOf(tuple.getSecond()))
                             .body(resource);
                 })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
         return service.savePoster(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
@@ -171,7 +171,7 @@ public class SpexApi {
     public ResponseEntity<?> deletePoster(@PathVariable final Long id) {
         return service.deletePoster(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping(value = "/{spexId}/parent", produces = MediaTypes.HAL_JSON_VALUE)
@@ -180,7 +180,7 @@ public class SpexApi {
             return service
                     .findById(spexId)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve parent for spex", e);
@@ -195,7 +195,7 @@ public class SpexApi {
             return service
                     .findRevivalById(spexId, id)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve parent for spex", e);
@@ -237,7 +237,7 @@ public class SpexApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieveRevival(spexId, dto.getId())).toString())
                             .body(EntityModel.of(dto, getLinks(dto)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create year for revivals", e);
@@ -264,7 +264,7 @@ public class SpexApi {
             return service
                     .findCategoryBySpex(spexId)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexCategoryApi.getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve category for spex", e);

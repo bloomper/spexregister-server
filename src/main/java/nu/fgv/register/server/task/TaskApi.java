@@ -97,7 +97,7 @@ public class TaskApi {
                 .findById(id)
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .map(ResponseEntity::ok)
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -108,7 +108,7 @@ public class TaskApi {
         return service
                 .update(dto)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -119,7 +119,7 @@ public class TaskApi {
         return service
                 .partialUpdate(dto)
                 .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")
@@ -139,7 +139,7 @@ public class TaskApi {
             return service
                     .findCategoryByTask(taskId)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, taskCategoryApi.getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve category for task", e);

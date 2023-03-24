@@ -61,7 +61,7 @@ public class ActivityApi {
                     .findById(spexareId, id)
                     .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
                     .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve activity", e);
@@ -80,7 +80,7 @@ public class ActivityApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).toString())
                             .body(EntityModel.of(dto, getLinks(dto, spexareId)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create activity", e);

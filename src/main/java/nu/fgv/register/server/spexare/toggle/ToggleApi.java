@@ -61,7 +61,7 @@ public class ToggleApi {
                     .findById(spexareId, id)
                     .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
                     .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve toggle", e);
@@ -80,7 +80,7 @@ public class ToggleApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(ToggleApi.class).retrieve(spexareId, dto.getId())).toString())
                             .body(EntityModel.of(dto, getLinks(dto, spexareId)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create toggle", e);
@@ -95,7 +95,7 @@ public class ToggleApi {
             return service
                     .update(spexareId, typeId, id, value)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update toggle {}", id, e);

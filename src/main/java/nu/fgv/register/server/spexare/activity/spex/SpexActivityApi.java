@@ -64,7 +64,7 @@ public class SpexActivityApi {
                     .findById(spexareId, activityId, id)
                     .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
                     .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve spex activity", e);
@@ -83,7 +83,7 @@ public class SpexActivityApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toString())
                             .body(EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create spex activity", e);
@@ -122,7 +122,7 @@ public class SpexActivityApi {
             return service
                     .findSpexBySpexActivity(spexareId, activityId, id)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexApi.getLinks(dto))))
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve spex for spex activity", e);

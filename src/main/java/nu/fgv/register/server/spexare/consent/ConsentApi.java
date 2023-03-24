@@ -60,7 +60,7 @@ public class ConsentApi {
                     .findById(spexareId, id)
                     .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
                     .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve consent", e);
@@ -79,7 +79,7 @@ public class ConsentApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(ConsentApi.class).retrieve(spexareId, dto.getId())).toString())
                             .body(EntityModel.of(dto, getLinks(dto, spexareId)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create consent", e);
@@ -94,7 +94,7 @@ public class ConsentApi {
             return service
                     .update(spexareId, typeId, id, value)
                     .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update consent {}", id, e);

@@ -47,7 +47,7 @@ public class SettingsApi {
                         linkTo(methodOn(SettingsApi.class).retrieveLanguage(language.getIsoCode())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveLanguages()).withRel("languages")))
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/country")
@@ -70,7 +70,7 @@ public class SettingsApi {
                         linkTo(methodOn(SettingsApi.class).retrieveCountry(country.getIsoCode())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveCountries()).withRel("countries")))
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/type")
@@ -106,7 +106,7 @@ public class SettingsApi {
                         linkTo(methodOn(SettingsApi.class).retrieveType(type, _type.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

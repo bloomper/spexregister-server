@@ -64,7 +64,7 @@ public class AddressApi {
                     .findById(spexareId, id)
                     .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
                     .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve address", e);
@@ -83,7 +83,7 @@ public class AddressApi {
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(AddressApi.class).retrieve(spexareId, newDto.getId())).toString())
                             .body(EntityModel.of(newDto, getLinks(newDto, spexareId)))
                     )
-                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create address", e);
@@ -101,7 +101,7 @@ public class AddressApi {
             return service
                     .update(spexareId, typeId, id, dto)
                     .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update address {}", id, e);
@@ -119,7 +119,7 @@ public class AddressApi {
             return service
                     .partialUpdate(spexareId, typeId, id, dto)
                     .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId))))
-                    .orElse(new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update address {}", id, e);
