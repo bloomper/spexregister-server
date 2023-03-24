@@ -467,7 +467,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        public void should_update_and_return_202() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 

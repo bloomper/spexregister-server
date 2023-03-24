@@ -2,7 +2,6 @@ package nu.fgv.register.server.spexare.toggle;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
