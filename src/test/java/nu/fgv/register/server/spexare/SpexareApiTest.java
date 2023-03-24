@@ -193,7 +193,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }

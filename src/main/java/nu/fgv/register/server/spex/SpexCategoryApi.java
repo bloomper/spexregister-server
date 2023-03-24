@@ -89,7 +89,10 @@ public class SpexCategoryApi {
     public ResponseEntity<EntityModel<SpexCategoryDto>> create(@Valid @RequestBody final SpexCategoryCreateDto dto) {
         final SpexCategoryDto newDto = service.create(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexCategoryApi.class).retrieve(newDto.getId())).toString())
+                .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

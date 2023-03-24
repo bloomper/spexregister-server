@@ -88,7 +88,10 @@ public class SpexApi {
     public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody final SpexCreateDto dto) {
         final SpexDto newDto = service.create(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieve(newDto.getId())).toString())
+                .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -232,7 +235,8 @@ public class SpexApi {
                     .map(dto -> ResponseEntity
                             .status(HttpStatus.CREATED)
                             .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieveRevival(spexId, dto.getId())).toString())
-                            .body(EntityModel.of(dto, getLinks(dto))))
+                            .body(EntityModel.of(dto, getLinks(dto)))
+                    )
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

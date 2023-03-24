@@ -2,6 +2,7 @@ package nu.fgv.register.server.spexare.toggle;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -12,6 +13,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -73,7 +75,11 @@ public class ToggleApi {
         try {
             return service
                     .create(spexareId, typeId, value)
-                    .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
+                    .map(dto -> ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(ToggleApi.class).retrieve(spexareId, dto.getId())).toString())
+                            .body(EntityModel.of(dto, getLinks(dto, spexareId)))
+                    )
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

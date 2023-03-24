@@ -169,7 +169,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }

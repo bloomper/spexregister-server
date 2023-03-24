@@ -15,6 +15,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -77,7 +78,11 @@ public class TaskActivityApi {
         try {
             return service
                     .create(spexareId, activityId, taskId)
-                    .map(newDto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto, spexareId, activityId))))
+                    .map(dto -> ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toString())
+                            .body(EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
+                    )
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

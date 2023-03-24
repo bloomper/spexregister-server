@@ -181,7 +181,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }

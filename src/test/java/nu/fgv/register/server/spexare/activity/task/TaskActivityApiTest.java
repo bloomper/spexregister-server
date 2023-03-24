@@ -167,7 +167,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }

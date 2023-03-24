@@ -12,6 +12,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -72,7 +73,11 @@ public class MembershipApi {
         try {
             return service
                     .create(spexareId, typeId, year)
-                    .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(dto, getLinks(dto, spexareId))))
+                    .map(dto -> ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).toString())
+                            .body(EntityModel.of(dto, getLinks(dto, spexareId)))
+                    )
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

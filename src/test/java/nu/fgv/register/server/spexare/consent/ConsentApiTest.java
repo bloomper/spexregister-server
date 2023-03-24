@@ -155,7 +155,7 @@ public class ConsentApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }

@@ -75,7 +75,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged_task_categories() throws Exception {
+    public void should_get_paged() throws Exception {
         var category1 = TaskCategoryDto.builder().id(1L).name("category1").build();
         var category2 = TaskCategoryDto.builder().id(2L).name("category2").build();
 
@@ -114,7 +114,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_task_categories_export() throws Exception {
+    public void should_get_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
@@ -148,7 +148,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create_task_category() throws Exception {
+    public void should_create() throws Exception {
         var fields = new ConstrainedFields(TaskCategoryCreateDto.class);
         var dto = TaskCategoryCreateDto.builder().hasActor(false).name("Scenmästare").build();
 
@@ -172,13 +172,13 @@ public class TaskCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }
 
     @Test
-    public void should_get_task_category() throws Exception {
+    public void should_get() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
@@ -206,7 +206,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_task_category() throws Exception {
+    public void should_update() throws Exception {
         var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
         var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(true).name("Scenmästare").build();
@@ -243,7 +243,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update_task_category() throws Exception {
+    public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
         var category = TaskCategoryDto.builder().id(1L).name("category").hasActor(false).build();
         var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(false).build();
@@ -280,7 +280,7 @@ public class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_task_category() throws Exception {
+    public void should_delete() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));

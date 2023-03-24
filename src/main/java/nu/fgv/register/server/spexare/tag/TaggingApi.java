@@ -13,6 +13,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,7 +56,12 @@ public class TaggingApi {
     @PostMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> create(@PathVariable final Long spexareId, @PathVariable final Long id) {
         try {
-            return service.create(spexareId, id) ? ResponseEntity.status(HttpStatus.CREATED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.create(spexareId, id) ?
+                    ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(TaggingApi.class).retrieve(spexareId, Pageable.unpaged())).toString())
+                            .build() :
+                    ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not create tag {}", id, e);

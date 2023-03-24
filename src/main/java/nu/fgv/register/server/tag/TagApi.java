@@ -89,7 +89,10 @@ public class TagApi {
     public ResponseEntity<EntityModel<TagDto>> create(@Valid @RequestBody final TagCreateDto dto) {
         final TagDto newDto = service.create(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, linkTo(methodOn(TagApi.class).retrieve(newDto.getId())).toString())
+                .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

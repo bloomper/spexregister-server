@@ -89,7 +89,10 @@ public class TaskCategoryApi {
     public ResponseEntity<EntityModel<TaskCategoryDto>> create(@Valid @RequestBody final TaskCategoryCreateDto dto) {
         final TaskCategoryDto newDto = service.create(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(newDto, getLinks(newDto)));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, linkTo(methodOn(TaskCategoryApi.class).retrieve(newDto.getId())).toString())
+                .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

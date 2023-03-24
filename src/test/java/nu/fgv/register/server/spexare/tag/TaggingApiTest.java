@@ -112,7 +112,8 @@ public class TaggingApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("id").description("The id of the tag")
-                                )
+                                ),
+                                createOnlyResponseHeaders
                         )
                 );
     }

@@ -74,6 +74,14 @@ public abstract class AbstractApiTest {
             headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header")
     );
 
+    protected static final ResponseHeadersSnippet createResponseHeaders = responseHeaders.and(
+            headerWithName(HttpHeaders.LOCATION).description("The location header")
+    );
+
+    protected static final ResponseHeadersSnippet createOnlyResponseHeaders = responseHeaders(
+            headerWithName(HttpHeaders.LOCATION).description("The location header")
+    );
+
     protected static final List<FieldDescriptor> auditResponseFieldsDescriptors = List.of(
             fieldWithPath("createdBy").description("Who created the entity"),
             fieldWithPath("createdAt").description("When was the entity created"),
