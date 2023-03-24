@@ -632,6 +632,62 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class RevivalTests {
 
         @Test
+        public void should_return_found() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+            var revival = persistRevival(randomizeRevival(spex));
+
+            //@formatter:off
+            final SpexDto result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{spexId}/revivals/{id}", spex.getId(), revival.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(SpexDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "title", "year")
+                    .contains(revival.getId(), revival.getDetails().getTitle(), revival.getYear());
+        }
+
+        @Test
+        public void should_return_404_and_spex_not_found() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+            var revival = persistRevival(randomizeRevival(spex));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexId}/revivals/{id}", 1L, revival.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_409_and_incorrect_spex() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex1 = persistSpex(randomizeSpex(category));
+            var spex2 = persistSpex(randomizeSpex(category));
+            var revival = persistRevival(randomizeRevival(spex2));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexId}/revivals/{id}", spex1.getId(), revival.getId())
+            .then()
+                .statusCode(HttpStatus.CONFLICT.value());
+            //@formatter:on
+        }
+
+        @Test
         public void should_return_zero() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
@@ -717,9 +773,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .put("/{id}/revivals/{year}", spex.getId(), "2022")
+                        .post("/{id}/revivals/{year}", spex.getId(), "2022")
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.CREATED.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -751,7 +807,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/revivals/{year}", 1L, "2022")
+                .post("/{id}/revivals/{year}", 1L, "2022")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -770,7 +826,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{id}/revivals/{year}", spex.getId(), revival.getYear())
+                .post("/{id}/revivals/{year}", spex.getId(), revival.getYear())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on

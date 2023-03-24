@@ -80,9 +80,9 @@ public class SpexCategoryService {
         repository.deleteById(id);
     }
 
-    public Optional<SpexCategoryDto> saveLogo(final Long id, final byte[] logo, final String contentType) {
+    public Optional<SpexCategoryDto> saveLogo(final Long spexId, final byte[] logo, final String contentType) {
         return repository
-                .findById(id)
+                .findById(spexId)
                 .map(category -> {
                     category.setLogo(logo);
                     category.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
@@ -91,9 +91,9 @@ public class SpexCategoryService {
                 });
     }
 
-    public Optional<SpexCategoryDto> deleteLogo(final Long id) {
+    public Optional<SpexCategoryDto> deleteLogo(final Long spexId) {
         return repository
-                .findById(id)
+                .findById(spexId)
                 .map(category -> {
                     category.setLogo(null);
                     category.setLogoContentType(null);
@@ -102,8 +102,8 @@ public class SpexCategoryService {
                 });
     }
 
-    public Optional<Pair<byte[], String>> getLogo(final Long id) {
-        return repository.findById(id)
+    public Optional<Pair<byte[], String>> getLogo(final Long spexId) {
+        return repository.findById(spexId)
                 .filter(category -> category.getLogo() != null && hasText(category.getLogoContentType()))
                 .map(category -> Pair.of(category.getLogo(), category.getLogoContentType()));
     }

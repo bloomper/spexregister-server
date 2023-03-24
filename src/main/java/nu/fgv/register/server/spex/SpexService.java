@@ -104,9 +104,9 @@ public class SpexService {
                 });
     }
 
-    public Optional<SpexDto> savePoster(final Long id, final byte[] poster, final String contentType) {
+    public Optional<SpexDto> savePoster(final Long spexId, final byte[] poster, final String contentType) {
         return repository
-                .findById(id)
+                .findById(spexId)
                 .map(spex -> {
                     spex.getDetails().setPoster(poster);
                     spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
@@ -115,9 +115,9 @@ public class SpexService {
                 });
     }
 
-    public Optional<SpexDto> deletePoster(final Long id) {
+    public Optional<SpexDto> deletePoster(final Long spexId) {
         return repository
-                .findById(id)
+                .findById(spexId)
                 .map(spex -> {
                     spex.getDetails().setPoster(null);
                     spex.getDetails().setPosterContentType(null);
@@ -126,12 +126,23 @@ public class SpexService {
                 });
     }
 
-    public Optional<Pair<byte[], String>> getPoster(final Long id) {
+    public Optional<Pair<byte[], String>> getPoster(final Long spexId) {
         return repository
-                .findById(id)
+                .findById(spexId)
                 .map(Spex::getDetails)
                 .filter(details -> details.getPoster() != null && hasText(details.getPosterContentType()))
                 .map(details -> Pair.of(details.getPoster(), details.getPosterContentType()));
+    }
+
+    public Optional<SpexDto> findRevivalById(final Long spexId, final Long id) {
+        if (doesSpexExist(spexId)) {
+            return repository
+                    .findById(id)
+                    .filter(revival -> revival.getParent() != null && revival.getParent().getId().equals(spexId))
+                    .map(SPEX_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
+        }
     }
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {
@@ -140,21 +151,24 @@ public class SpexService {
                 .map(SPEX_MAPPER::toDto);
     }
 
-    public Page<SpexDto> findRevivalsByParent(final Long id, final Pageable pageable) {
-        if (doesSpexExist(id)) {
+    public Page<SpexDto> findRevivalsByParent(final Long spexId, final Pageable pageable) {
+        if (doesSpexExist(spexId)) {
             return repository
-                    .findById(id)
-                    .map(parent -> repository.findRevivalsByParent(parent, pageable).map(SPEX_MAPPER::toDto))
-                    .orElse(Page.empty());
+                    .findById(spexId)
+                    .map(parent -> repository
+                            .findRevivalsByParent(parent, pageable)
+                            .map(SPEX_MAPPER::toDto)
+                    )
+                    .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException(String.format("Spex %s does not exist", id));
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
         }
     }
 
-    public Optional<SpexDto> addRevival(final Long id, final String year) {
-        if (doesSpexExist(id)) {
+    public Optional<SpexDto> addRevival(final Long spexId, final String year) {
+        if (doesSpexExist(spexId)) {
             return repository
-                    .findById(id)
+                    .findById(spexId)
                     .filter(parent -> !repository.existsRevivalByParentAndYear(parent, year))
                     .map(parent -> {
                         final Spex revival = new Spex();
@@ -165,14 +179,14 @@ public class SpexService {
                     })
                     .map(SPEX_MAPPER::toDto);
         } else {
-            throw new ResourceNotFoundException(String.format("Spex %s does not exist", id));
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
         }
     }
 
-    public boolean deleteRevival(final Long id, final String year) {
-        if (doesSpexExist(id)) {
+    public boolean deleteRevival(final Long spexId, final String year) {
+        if (doesSpexExist(spexId)) {
             return repository
-                    .findById(id)
+                    .findById(spexId)
                     .filter(parent -> repository.existsRevivalByParentAndYear(parent, year))
                     .flatMap(parent -> repository.findRevivalByParentAndYear(parent, year))
                     .map(revival -> {
@@ -181,7 +195,7 @@ public class SpexService {
                     })
                     .orElse(false);
         } else {
-            throw new ResourceNotFoundException(String.format("Spex %s does not exist", id));
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", spexId));
         }
     }
 

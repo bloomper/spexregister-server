@@ -317,7 +317,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories/{id}/logo", 1)
+                        get("/api/v1/spex/categories/{spexId}/logo", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, logo.getSecond()))
@@ -329,7 +329,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
+                                        parameterWithName("spexId").description("The id of the spex category")
                                 ),
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
@@ -348,7 +348,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/categories/{id}/logo", 1)
+                        put("/api/v1/spex/categories/{spexId}/logo", 1)
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(logo)
                 )
@@ -360,7 +360,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
+                                        parameterWithName("spexId").description("The id of the spex category")
                                 ),
                                 requestHeaders(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
@@ -378,7 +378,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spex/categories/{id}/logo", 1)
+                        multipart("/api/v1/spex/categories/{spexId}/logo", 1)
                                 .file(logo)
                 )
                 .andExpect(status().isNoContent())
@@ -389,7 +389,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
+                                        parameterWithName("spexId").description("The id of the spex category")
                                 ),
                                 requestParts(
                                         partWithName("file").description("The logo to upload")
@@ -405,7 +405,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/categories/{id}/logo", 1)
+                        delete("/api/v1/spex/categories/{spexId}/logo", 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -415,7 +415,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex category")
+                                        parameterWithName("spexId").description("The id of the spex category")
                                 )
                         )
                 );

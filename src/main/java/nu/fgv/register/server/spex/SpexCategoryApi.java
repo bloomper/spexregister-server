@@ -165,9 +165,9 @@ public class SpexCategoryApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/logo")
-    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long id) {
-        return service.getLogo(id)
+    @GetMapping("/{spexId}/logo")
+    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long spexId) {
+        return service.getLogo(spexId)
                 .map(tuple -> {
                     final Resource resource = new ByteArrayResource(tuple.getFirst());
                     return ResponseEntity.ok()
@@ -177,28 +177,28 @@ public class SpexCategoryApi {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public ResponseEntity<?> uploadLogo(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
-        return service.saveLogo(id, file, contentType)
+    @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
+        return service.saveLogo(spexId, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    public ResponseEntity<?> uploadLogo(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
+    @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestParam("file") final MultipartFile file) {
         try {
-            return uploadLogo(id, file.getBytes(), file.getContentType());
+            return uploadLogo(spexId, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not save logo for spex category {}", id, e);
+                log.error("Could not save logo for spex category {}", spexId, e);
             }
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
     }
 
-    @DeleteMapping("/{id}/logo")
-    public ResponseEntity<?> deleteLogo(@PathVariable final Long id) {
-        return service.deleteLogo(id)
+    @DeleteMapping("/{spexId}/logo")
+    public ResponseEntity<?> deleteLogo(@PathVariable final Long spexId) {
+        return service.deleteLogo(spexId)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

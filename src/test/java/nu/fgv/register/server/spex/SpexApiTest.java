@@ -443,6 +443,35 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
+    public void should_get_revival() throws Exception {
+        var revival = SpexDto.builder().id(1L).year("2021").build();
+
+        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(Optional.of(revival));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spex/{spexId}/revivals/{id}", 1, 1)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex/revivals-get",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexId").description("The id of the spex"),
+                                        parameterWithName("id").description("The id of the revival")
+                                ),
+                                responseFields,
+                                links,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
     public void should_get_paged_revivals() throws Exception {
         var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
         var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
@@ -491,7 +520,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/{id}/revivals?page=1&size=2&sort=year,desc", 1)
+                        get("/api/v1/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex", hasSize(2)))
@@ -502,7 +531,7 @@ public class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex")
+                                        parameterWithName("spexId").description("The id of the spex")
                                 ),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
@@ -533,7 +562,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spex/{id}/revivals/{year}", 1, "2021")
+                        post("/api/v1/spex/{spexId}/revivals/{year}", 1, "2021")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -542,12 +571,12 @@ public class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex"),
+                                        parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("year").description("The year of the revival")
                                 ),
                                 responseFields,
                                 links,
-                                responseHeaders
+                                createResponseHeaders
                         )
                 );
     }
@@ -558,7 +587,7 @@ public class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{id}/revivals/{year}", 1, "2021")
+                        delete("/api/v1/spex/{spexId}/revivals/{year}", 1, "2021")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -566,7 +595,7 @@ public class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spex"),
+                                        parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("year").description("The year of the revival")
                                 )
                         )

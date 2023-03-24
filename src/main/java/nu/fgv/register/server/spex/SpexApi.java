@@ -174,11 +174,25 @@ public class SpexApi {
     @GetMapping(value = "/{spexId}/parent", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexDto>> retrieveParent(@PathVariable final Long spexId) {
         try {
-            // TODO
             return service
                     .findById(spexId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(dto, getLinks(dto))))
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve parent for spex", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> retrieveRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
+        try {
+            return service
+                    .findRevivalById(spexId, id)
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
+                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve parent for spex", e);
@@ -195,10 +209,10 @@ public class SpexApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{id}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long id, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    @GetMapping(value = "/{spexId}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long spexId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
-            final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(id, pageable));
+            final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(spexId, pageable));
             paged.getContent().forEach(this::addLinks);
 
             return ResponseEntity.ok(paged);
@@ -210,12 +224,15 @@ public class SpexApi {
         }
     }
 
-    @PostMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long id, @PathVariable final String year) {
+    @PostMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         try {
             return service
-                    .addRevival(id, year)
-                    .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(dto, getLinks(dto))))
+                    .addRevival(spexId, year)
+                    .map(dto -> ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieveRevival(spexId, dto.getId())).toString())
+                            .body(EntityModel.of(dto, getLinks(dto))))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
@@ -225,10 +242,10 @@ public class SpexApi {
         }
     }
 
-    @DeleteMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> deleteRevival(@PathVariable final Long id, @PathVariable final String year) {
+    @DeleteMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> deleteRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         try {
-            return service.deleteRevival(id, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.deleteRevival(spexId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not delete year from revivals", e);
