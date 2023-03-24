@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare.activity;
+package nu.fgv.register.server.spexare.activity.task;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -13,7 +13,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.spexare.activity.task.actor.Actor;
 import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -30,7 +33,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class TaskActivity implements Serializable {
+public class TaskActivity extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -15,6 +15,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -29,7 +30,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-public class SpexActivity implements Serializable {
+public class SpexActivity extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

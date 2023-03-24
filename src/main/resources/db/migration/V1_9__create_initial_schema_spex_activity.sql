@@ -1,8 +1,12 @@
 CREATE TABLE IF NOT EXISTS spex_activity
 (
-    id          BIGINT AUTO_INCREMENT NOT NULL,
-    activity_id BIGINT                NOT NULL,
-    spex_id     BIGINT                NOT NULL,
+    id               BIGINT AUTO_INCREMENT NOT NULL,
+    created_by       VARCHAR(50)           NOT NULL,
+    created_at       DATETIME              NOT NULL,
+    last_modified_by VARCHAR(50)           NULL,
+    last_modified_at DATETIME              NULL,
+    activity_id      BIGINT                NOT NULL,
+    spex_id          BIGINT                NOT NULL,
     CONSTRAINT pk_spex_activity PRIMARY KEY (id)
 );
 

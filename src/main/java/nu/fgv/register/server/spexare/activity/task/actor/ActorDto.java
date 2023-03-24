@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spexare.activity;
+package nu.fgv.register.server.spexare.activity.task.actor;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,9 +16,9 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "task-activities", itemRelation = "task-activity")
+@Relation(collectionRelation = "actors", itemRelation = "actor")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TaskActivityDto extends AbstractAuditableDto<TaskActivityDto> {
+public class ActorDto extends AbstractAuditableDto<ActorDto> {
     @JsonProperty("id")
     private Long id;
 
@@ -26,7 +26,7 @@ public class TaskActivityDto extends AbstractAuditableDto<TaskActivityDto> {
     private ActorDto actor;
 
     @Builder
-    public TaskActivityDto(
+    public ActorDto(
             final Long id,
             final String createdBy,
             final Instant createdAt,

@@ -1,7 +1,7 @@
-package nu.fgv.register.server.spexare.activity.spex;
+package nu.fgv.register.server.spexare.activity.task;
 
-import nu.fgv.register.server.spex.SpexApi;
-import nu.fgv.register.server.spex.SpexDto;
+import nu.fgv.register.server.task.TaskApi;
+import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -41,61 +41,55 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = SpexActivityApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
-public class SpexActivityApiTest extends AbstractApiTest {
+@WebMvcTest(value = TaskActivityApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+public class TaskActivityApiTest extends AbstractApiTest {
 
     @MockBean
-    private SpexActivityService service;
+    private TaskActivityService service;
 
     @MockBean
-    private SpexApi spexApi;
+    private TaskApi taskApi;
 
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
-            fieldWithPath("id").description("The id of the spex activity"),
+            fieldWithPath("id").description("The id of the task activity"),
             linksSubsection
     );
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
-            linkWithRel("spex-activities").description("Link to the current spexare's spex activities"),
-            linkWithRel("spex").description("Link to the current spex")
+            linkWithRel("task-activities").description("Link to the current spexare's task activities"),
+            linkWithRel("task").description("Link to the current task")
     );
 
-    private final ResponseFieldsSnippet spexResponseFields = auditResponseFields.and(
-            fieldWithPath("id").description("The id of the spex"),
-            fieldWithPath("year").description("The year of the spex"),
-            fieldWithPath("title").description("The title of the spex"),
-            fieldWithPath("revival").description("The revival flag of the spex"),
+    private final ResponseFieldsSnippet taskResponseFields = auditResponseFields.and(
+            fieldWithPath("id").description("The id of the task"),
+            fieldWithPath("name").description("The name of the task"),
             linksSubsection
     );
 
-    private final LinksSnippet spexLinks = baseLinks.and(
-            linkWithRel("poster").description("Link to the current spex's poster").optional(),
-            linkWithRel("parent").description("Link to the current spex's parent").optional(),
-            linkWithRel("revivals").description("Link to the current spex's revivals").optional(),
-            linkWithRel("category").description("Link to the current spex's spex category").optional(),
-            linkWithRel("spex").description("Link to paged spex").optional(),
-            linkWithRel("spex-including-revivals").description("Link to paged spex (including revivals)").optional()
+    private final LinksSnippet taskLinks = baseLinks.and(
+            linkWithRel("tasks").description("Link to paged tasks").optional(),
+            linkWithRel("category").description("Link to the current task's task category").optional()
     );
 
     @Test
     public void should_get_paged() throws Exception {
-        var spexActivity1 = SpexActivityDto.builder().id(1L).build();
-        var spexActivity2 = SpexActivityDto.builder().id(2L).build();
+        var taskActivity1 = TaskActivityDto.builder().id(1L).build();
+        var taskActivity2 = TaskActivityDto.builder().id(2L).build();
 
-        when(service.findByActivity(any(Long.class), any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexActivity1, spexActivity2), PageRequest.of(1, 2, Sort.by("id")), 10));
+        when(service.findByActivity(any(Long.class), any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(taskActivity1, taskActivity2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities?page=1&size=2&sort=id,desc", 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1, 1)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.spex-activities", hasSize(2)))
+                .andExpect(jsonPath("_embedded.task-activities", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get-paged",
+                                "spexare/activities/tasks/get-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -104,13 +98,13 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                 ),
                                 pageLinks.and(
                                         subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.spex-activities[]").description("The elements"),
-                                        fieldWithPath("_embedded.spex-activities[].id").description("The id of the spex activity"),
-                                        fieldWithPath("_embedded.spex-activities[].createdBy").description("Who created the spex activity"),
-                                        fieldWithPath("_embedded.spex-activities[].createdAt").description("When was the spex activity created"),
-                                        fieldWithPath("_embedded.spex-activities[].lastModifiedBy").description("Who last modified the spex activity"),
-                                        fieldWithPath("_embedded.spex-activities[].lastModifiedAt").description("When was the spex activity last modified"),
-                                        subsectionWithPath("_embedded.spex-activities[]._links").description("The spex activity links"),
+                                        subsectionWithPath("_embedded.task-activities[]").description("The elements"),
+                                        fieldWithPath("_embedded.task-activities[].id").description("The id of the task activity"),
+                                        fieldWithPath("_embedded.task-activities[].createdBy").description("Who created the task activity"),
+                                        fieldWithPath("_embedded.task-activities[].createdAt").description("When was the task activity created"),
+                                        fieldWithPath("_embedded.task-activities[].lastModifiedBy").description("Who last modified the task activity"),
+                                        fieldWithPath("_embedded.task-activities[].lastModifiedAt").description("When was the task activity last modified"),
+                                        subsectionWithPath("_embedded.task-activities[]._links").description("The task activity links"),
                                         linksSubsection
                                 ),
                                 pagingLinks,
@@ -122,26 +116,26 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     public void should_get() throws Exception {
-        var spexActivity = SpexActivityDto.builder().id(1L).build();
+        var taskActivity = TaskActivityDto.builder().id(1L).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
+        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1, 1, 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get",
+                                "spexare/activities/tasks/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
-                                        parameterWithName("id").description("The id of the spex activity")
+                                        parameterWithName("id").description("The id of the task activity")
                                 ),
                                 responseFields,
                                 links,
@@ -152,24 +146,24 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     public void should_create() throws Exception {
-        var spexActivity = SpexActivityDto.builder().id(1L).build();
+        var taskActivity = TaskActivityDto.builder().id(1L).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
+        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{spexId}", 1, 1, 1)
+                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1, 1, 1)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/activities/spex/create",
+                                "spexare/activities/tasks/create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
-                                        parameterWithName("spexId").description("The id of the spex")
+                                        parameterWithName("taskId").description("The id of the task")
                                 ),
                                 responseFields,
                                 links,
@@ -184,18 +178,18 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1, 1, 1, 1)
+                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1, 1, 1, 1)
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
-                                "spexare/activities/spex/update",
+                                "spexare/activities/tasks/update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
-                                        parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("id").description("The id of the spex activity")
+                                        parameterWithName("taskId").description("The id of the task"),
+                                        parameterWithName("id").description("The id of the task activity")
                                 )
                         )
                 );
@@ -207,49 +201,49 @@ public class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1, 1, 1)
+                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1, 1, 1)
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/activities/spex/delete",
+                                "spexare/activities/tasks/delete",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
-                                        parameterWithName("id").description("The id of the spex activity")
+                                        parameterWithName("id").description("The id of the task activity")
                                 )
                         )
                 );
     }
 
     @Test
-    public void should_get_spex() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("2021").build();
-        var realSpexApi = new SpexApi(null, null, null, null);
+    public void should_get_task() throws Exception {
+        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        var realTaskApi = new TaskApi(null, null, null, null);
 
-        when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
-        when(spexApi.getLinks(any(SpexDto.class))).thenReturn(realSpexApi.getLinks(spex));
+        when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(task));
+        when(taskApi.getLinks(any(TaskDto.class))).thenReturn(realTaskApi.getLinks(task));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/spex", 1, 1, 1)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1, 1, 1)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get-spex",
+                                "spexare/activities/tasks/get-task",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
-                                        parameterWithName("id").description("The id of the spex activity")
+                                        parameterWithName("id").description("The id of the task activity")
                                 ),
-                                spexResponseFields,
-                                spexLinks,
+                                taskResponseFields,
+                                taskLinks,
                                 responseHeaders
                         )
                 );
