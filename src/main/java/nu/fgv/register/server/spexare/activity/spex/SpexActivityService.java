@@ -72,7 +72,8 @@ public class SpexActivityService {
                                 spexActivity.setSpex(spex);
                                 return repository.save(spexActivity);
                             })
-                            .map(SPEX_ACTIVITY_MAPPER::toDto));
+                            .map(SPEX_ACTIVITY_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or spex %s do not exist", spexareId, activityId, spexId));
         }

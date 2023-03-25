@@ -72,7 +72,8 @@ public class TaskActivityService {
                                 taskActivity.setTask(task);
                                 return repository.save(taskActivity);
                             })
-                            .map(TASK_ACTIVITY_MAPPER::toDto));
+                            .map(TASK_ACTIVITY_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or task %s do not exist", spexareId, activityId, taskId));
         }

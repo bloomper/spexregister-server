@@ -65,7 +65,8 @@ public class ConsentService {
                                 consent.setValue(value);
                                 return repository.save(consent);
                             })
-                            .map(CONSENT_MAPPER::toDto));
+                            .map(CONSENT_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }
@@ -84,7 +85,8 @@ public class ConsentService {
                                 consent.setValue(value);
                                 return repository.save(consent);
                             })
-                            .map(CONSENT_MAPPER::toDto));
+                            .map(CONSENT_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }

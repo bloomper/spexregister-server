@@ -64,7 +64,8 @@ public class AddressService {
                                 address.setType(type);
                                 return repository.save(address);
                             })
-                            .map(ADDRESS_MAPPER::toDto));
+                            .map(ADDRESS_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }
@@ -88,7 +89,8 @@ public class AddressService {
                                 return address;
                             })
                             .map(repository::save)
-                            .map(ADDRESS_MAPPER::toDto));
+                            .map(ADDRESS_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }

@@ -65,7 +65,8 @@ public class MembershipService {
                                 membership.setYear(year);
                                 return repository.save(membership);
                             })
-                            .map(MEMBERSHIP_MAPPER::toDto));
+                            .map(MEMBERSHIP_MAPPER::toDto)
+                    );
         } else {
             throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
         }
