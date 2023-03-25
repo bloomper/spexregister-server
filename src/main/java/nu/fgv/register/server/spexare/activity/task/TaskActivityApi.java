@@ -86,7 +86,7 @@ public class TaskActivityApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create task activity", e);
+                log.error("Could not create task activity for activity {}, spexare {} and task {}", activityId, spexareId, taskId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -98,7 +98,7 @@ public class TaskActivityApi {
             return service.update(spexareId, activityId, taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update task activity", e);
+                log.error("Could not update task activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -110,7 +110,7 @@ public class TaskActivityApi {
             return service.deleteById(spexareId, activityId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete task activity {}", id, e);
+                log.error("Could not delete task activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

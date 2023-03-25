@@ -240,7 +240,7 @@ public class SpexApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create year for revivals", e);
+                log.error("Could not create year {} for revivals for spex {}", year, spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -252,7 +252,7 @@ public class SpexApi {
             return service.deleteRevival(spexId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete year from revivals", e);
+                log.error("Could not delete year {} from revivals for spex {}", year, spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -279,7 +279,7 @@ public class SpexApi {
             return service.updateCategory(spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update category for spex", e);
+                log.error("Could not update category {} for spex {}", id, spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -291,7 +291,7 @@ public class SpexApi {
             return service.deleteCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete category for spex", e);
+                log.error("Could not delete category for spex {}", spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

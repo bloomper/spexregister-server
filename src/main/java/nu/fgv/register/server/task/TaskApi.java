@@ -166,7 +166,7 @@ public class TaskApi {
             return service.deleteCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete category for task", e);
+                log.error("Could not delete category for task {}", taskId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -204,7 +204,7 @@ public class SpexareApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update partner for spexare", e);
+                log.error("Could not update partner for spexare {}", spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -216,7 +216,7 @@ public class SpexareApi {
             return service.deletePartner(spexareId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete partner for spexare", e);
+                log.error("Could not delete partner for spexare {}", spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -81,7 +81,7 @@ public class MembershipApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create membership", e);
+                log.error("Could not create membership for spexare {}", spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -93,7 +93,7 @@ public class MembershipApi {
             return service.deleteById(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete membership {}", id, e);
+                log.error("Could not delete membership {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

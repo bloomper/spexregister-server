@@ -82,7 +82,7 @@ public class ConsentApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create consent", e);
+                log.error("Could not create consent for spexare {}", spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -97,7 +97,7 @@ public class ConsentApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update consent {}", id, e);
+                log.error("Could not update consent {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -109,7 +109,7 @@ public class ConsentApi {
             return service.deleteById(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete consent {}", id, e);
+                log.error("Could not delete consent {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

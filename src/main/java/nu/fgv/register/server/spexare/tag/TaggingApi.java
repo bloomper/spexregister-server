@@ -64,7 +64,7 @@ public class TaggingApi {
                     ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create tag {}", id, e);
+                log.error("Could not create tag {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -76,7 +76,7 @@ public class TaggingApi {
             return service.deleteById(spexareId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete tag {}", id, e);
+                log.error("Could not delete tag {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -83,7 +83,7 @@ public class ActivityApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create activity", e);
+                log.error("Could not create activity for spexare {}", spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -95,7 +95,7 @@ public class ActivityApi {
             return service.deleteById(spexareId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete activity {}", id, e);
+                log.error("Could not delete activity {} for spexare {}", id, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

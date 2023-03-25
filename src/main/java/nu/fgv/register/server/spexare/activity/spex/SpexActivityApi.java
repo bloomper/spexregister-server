@@ -86,7 +86,7 @@ public class SpexActivityApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not create spex activity", e);
+                log.error("Could not create spex activity for activity {}, spexare {} and spex {}", activityId, spexareId, spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -98,7 +98,7 @@ public class SpexActivityApi {
             return service.update(spexareId, activityId, spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update spex activity", e);
+                log.error("Could not update spex activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -110,7 +110,7 @@ public class SpexActivityApi {
             return service.deleteById(spexareId, activityId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete spex activity {}", id, e);
+                log.error("Could not delete spex activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
