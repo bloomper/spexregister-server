@@ -307,6 +307,26 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        public void should_return_404_when_activity_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", 1L)
+            .when()
+                .get("/{id}", spexActivity.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
         public void should_return_404_when_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
@@ -334,8 +354,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             var spex = persistSpex(randomizeSpex(category));
             var activity1 = persistActivity(randomizeActivity(spexare));
             var activity2 = persistActivity(randomizeActivity(spexare));
-            var spexActivity1 = persistSpexActivity(randomizeSpexActivity(activity1, spex));
-            var spexActivity2 = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
@@ -343,7 +362,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                     .pathParam("spexareId", spexare.getId())
                     .pathParam("activityId", activity1.getId())
                 .when()
-                    .get("/{id}", spexActivity2.getId())
+                    .get("/{id}", spexActivity.getId())
                 .then()
                     .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -392,9 +411,10 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_creating_and_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(null));
+            var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -415,6 +435,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
+            persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -558,7 +579,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_spex_not_found() {
+        public void should_return_404_when_updating_and_spex_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
@@ -580,7 +601,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_updating_and_incorrect_spexare() {
+        public void should_return_422_when_updating_and_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistSpexCategory(randomizeSpexCategory());
@@ -596,31 +617,30 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{spexId}", spexActivity.getId(), spex.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_return_409_when_updating_and_incorrect_activity() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
+        public void should_return_422_when_updating_and_incorrect_activity() {
+            var spexare = persistSpexare(randomizeSpexare());
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
-            var activity1 = persistActivity(randomizeActivity(spexare2));
-            var activity2 = persistActivity(randomizeActivity(spexare2));
+            var activity1 = persistActivity(randomizeActivity(spexare));
+            var activity2 = persistActivity(randomizeActivity(spexare));
             var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
+                .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
             .when()
                 .put("/{id}/{spexId}", spexActivity.getId(), spex.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
@@ -760,21 +780,20 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             var spex = persistSpex(randomizeSpex(category));
             var activity1 = persistActivity(randomizeActivity(spexare));
             var activity2 = persistActivity(randomizeActivity(spexare));
-            var spexActivity1 = persistSpexActivity(randomizeSpexActivity(activity1, spex));
-            var spexActivity2 = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity2.getId())
+                .pathParam("activityId", activity1.getId())
             .when()
-                .delete("/{id}", spexActivity1.getId())
+                .delete("/{id}", spexActivity.getId())
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(2);
+            assertThat(repository.count()).isEqualTo(1);
         }
     }
 

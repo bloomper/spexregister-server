@@ -243,7 +243,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
             var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final TaskActivityDto result =
@@ -252,7 +252,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
                     .when()
-                        .get("/{id}", spexActivity.getId())
+                        .get("/{id}", taskActivity.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TaskActivityDto.class);
@@ -261,7 +261,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id")
-                    .isEqualTo(spexActivity.getId());
+                    .isEqualTo(taskActivity.getId());
         }
 
         @Test
@@ -287,7 +287,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
             var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -295,7 +295,27 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
             .when()
-                .get("/{id}", spexActivity.getId())
+                .get("/{id}", taskActivity.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_activity_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", 1L)
+            .when()
+                .get("/{id}", taskActivity.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -308,7 +328,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
             var activity = persistActivity(randomizeActivity(spexare2));
-            var spexActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -316,7 +336,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
             .when()
-                .get("/{id}", spexActivity.getId())
+                .get("/{id}", taskActivity.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -329,8 +349,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var task = persistTask(randomizeTask(category));
             var activity1 = persistActivity(randomizeActivity(spexare));
             var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity1, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
@@ -338,7 +357,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                     .pathParam("spexareId", spexare.getId())
                     .pathParam("activityId", activity1.getId())
                 .when()
-                    .get("/{id}", taskActivity2.getId())
+                    .get("/{id}", taskActivity.getId())
                 .then()
                     .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -387,9 +406,10 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_404_when_creating_and_spexare_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(null));
+            var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -410,6 +430,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
+            persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -424,7 +445,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_spex_not_found() {
+        public void should_return_404_when_creating_and_task_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -477,7 +498,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var task1 = persistTask(randomizeTask(category));
             var task2 = persistTask(randomizeTask(category));
             var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
 
             //@formatter:off
             given()
@@ -485,7 +506,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
             .when()
-                .put("/{id}/{taskId}", spexActivity.getId(), task2.getId())
+                .put("/{id}/{taskId}", taskActivity.getId(), task2.getId())
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
@@ -553,7 +574,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_spex_not_found() {
+        public void should_return_404_when_updating_and_spex_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -575,7 +596,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_updating_and_incorrect_spexare() {
+        public void should_return_422_when_updating_and_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -591,31 +612,30 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
-        public void should_return_409_when_updating_and_incorrect_activity() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
+        public void should_return_422_when_updating_and_incorrect_activity() {
+            var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare2));
-            var activity2 = persistActivity(randomizeActivity(spexare2));
+            var activity1 = persistActivity(randomizeActivity(spexare));
+            var activity2 = persistActivity(randomizeActivity(spexare));
             var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
+                .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
@@ -755,21 +775,20 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             var task = persistTask(randomizeTask(category));
             var activity1 = persistActivity(randomizeActivity(spexare));
             var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity1, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity2.getId())
+                .pathParam("activityId", activity1.getId())
             .when()
-                .delete("/{id}", taskActivity1.getId())
+                .delete("/{id}", taskActivity.getId())
             .then()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(2);
+            assertThat(repository.count()).isEqualTo(1);
         }
     }
 
