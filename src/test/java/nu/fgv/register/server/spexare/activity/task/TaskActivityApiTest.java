@@ -59,6 +59,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
             linkWithRel("task-activities").description("Link to the current spexare's task activities"),
+            linkWithRel("actors").description("Link to the current spexare's actors"),
             linkWithRel("task").description("Link to the current task")
     );
 

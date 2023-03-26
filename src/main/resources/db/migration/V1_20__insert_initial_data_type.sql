@@ -6,6 +6,7 @@ INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('CIRCULARS',
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('EMAIL_CIRCULARS', 'CONSENT', '{ "en": "Email circulars", "sv": "Utskick via email" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('CING', 'MEMBERSHIP', '{ "en": "CING", "sv": "CING" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('FGV', 'MEMBERSHIP', '{ "en": "FGV", "sv": "FGV" }', 'system', CURRENT_DATE());
+INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('UNKNOWN', 'VOCAL', '{ "en": "Unknown", "sv": "Okänt" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('B1', 'VOCAL', '{ "en": "B1", "sv": "B1" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('B2', 'VOCAL', '{ "en": "B2", "sv": "B2" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('T1', 'VOCAL', '{ "en": "T1", "sv": "T1" }', 'system', CURRENT_DATE());

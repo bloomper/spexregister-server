@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
+import nu.fgv.register.server.spexare.activity.task.actor.ActorApi;
 import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.TaskDto;
 import org.springframework.data.domain.Pageable;
@@ -147,6 +148,7 @@ public class TaskActivityApi {
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieveTask(spexareId, activityId, dto.getId())).withRel("task"));
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, Pageable.unpaged())).withRel("task-activities"));
+        links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, dto.getId(), Pageable.unpaged())).withRel("actors"));
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 

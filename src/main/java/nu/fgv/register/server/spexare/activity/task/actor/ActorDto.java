@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -22,12 +23,17 @@ public class ActorDto extends AbstractAuditableDto<ActorDto> {
     @JsonProperty("id")
     private Long id;
 
-    @JsonProperty("actor")
-    private ActorDto actor;
+    @JsonProperty("role")
+    private String role;
+
+    @JsonProperty("vocal")
+    private TypeDto vocal;
 
     @Builder
     public ActorDto(
             final Long id,
+            final String role,
+            final TypeDto vocal,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -35,5 +41,7 @@ public class ActorDto extends AbstractAuditableDto<ActorDto> {
     ) {
         super(createdBy, createdAt, lastModifiedBy, lastModifiedAt);
         this.id = id;
+        this.role = role;
+        this.vocal = vocal;
     }
 }
