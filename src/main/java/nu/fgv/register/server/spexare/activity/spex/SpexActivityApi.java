@@ -95,7 +95,7 @@ public class SpexActivityApi {
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
         try {
-            return service.update(spexareId, activityId, spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.update(spexareId, activityId, spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update spex activity {} for activity {} and spexare {}", id, activityId, spexareId, e);

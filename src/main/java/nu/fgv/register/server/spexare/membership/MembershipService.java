@@ -73,7 +73,7 @@ public class MembershipService {
     }
 
     public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
-        if (doSpexareAndTypeExist(spexareId, typeId)) {
+        if (doSpexareAndTypeExist(spexareId, typeId) && doesMembershipExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .map(type -> spexareRepository
@@ -88,12 +88,16 @@ public class MembershipService {
                             .orElse(false))
                     .orElse(false);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
+            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or membership %s do not exist", spexareId, typeId, id));
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
         return spexareRepository.existsById(id);
+    }
+
+    private boolean doesMembershipExist(final Long id) {
+        return repository.existsById(id);
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

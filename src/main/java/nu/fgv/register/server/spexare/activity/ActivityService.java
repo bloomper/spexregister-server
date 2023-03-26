@@ -64,7 +64,7 @@ public class ActivityService {
     }
 
     public boolean deleteById(final Long spexareId, final Long id) {
-        if (doesSpexareExist(spexareId)) {
+        if (doesSpexareExist(spexareId) && doesActivityExist(id)) {
             return spexareRepository
                     .findById(spexareId)
                     .filter(spexare -> repository.existsBySpexareAndId(spexare, id))
@@ -82,6 +82,10 @@ public class ActivityService {
 
     private boolean doesSpexareExist(final Long id) {
         return spexareRepository.existsById(id);
+    }
+
+    private boolean doesActivityExist(final Long id) {
+        return repository.existsById(id);
     }
 
 }

@@ -73,7 +73,7 @@ public class ToggleService {
     }
 
     public Optional<ToggleDto> update(final Long spexareId, final String typeId, final Long id, final Boolean value) {
-        if (doSpexareAndTypeExist(spexareId, typeId)) {
+        if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
@@ -88,12 +88,12 @@ public class ToggleService {
                             .map(TOGGLE_MAPPER::toDto)
                     );
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
+            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or toggle %s do not exist", spexareId, typeId, id));
         }
     }
 
     public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
-        if (doSpexareAndTypeExist(spexareId, typeId)) {
+        if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .map(type -> spexareRepository
@@ -108,12 +108,16 @@ public class ToggleService {
                             .orElse(false))
                     .orElse(false);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
+            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or toggle %s do not exist", spexareId, typeId, id));
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
         return spexareRepository.existsById(id);
+    }
+
+    private boolean doesToggleExist(final Long id) {
+        return repository.existsById(id);
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

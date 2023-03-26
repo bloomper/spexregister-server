@@ -385,7 +385,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_non_existing_value() {
+        public void should_return_404_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -396,7 +396,7 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);

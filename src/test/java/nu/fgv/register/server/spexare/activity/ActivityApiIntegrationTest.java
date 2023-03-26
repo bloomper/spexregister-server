@@ -323,7 +323,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_non_existing_value() {
+        public void should_return_404_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -333,7 +333,7 @@ public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);

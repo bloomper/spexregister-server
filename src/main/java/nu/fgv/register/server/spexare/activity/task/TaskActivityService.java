@@ -106,7 +106,7 @@ public class TaskActivityService {
     }
 
     public boolean deleteById(final Long spexareId, final Long activityId, final Long id) {
-        if (doSpexareAndActivityExist(spexareId, activityId)) {
+        if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
             return activityRepository
                     .findById(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
@@ -122,7 +122,7 @@ public class TaskActivityService {
                     )
                     .orElse(false);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or activity %s do not exist", spexareId, activityId));
+            throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or task activity %s do not exist", spexareId, activityId, id));
         }
     }
 

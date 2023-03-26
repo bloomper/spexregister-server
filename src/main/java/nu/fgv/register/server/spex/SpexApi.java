@@ -195,7 +195,7 @@ public class SpexApi {
             return service
                     .findRevivalById(spexId, id)
                     .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not retrieve parent for spex", e);

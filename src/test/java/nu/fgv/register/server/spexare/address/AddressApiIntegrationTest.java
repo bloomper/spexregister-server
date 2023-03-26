@@ -414,7 +414,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_updating_non_existing_value() {
+        public void should_return_404_when_updating_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
             var dto = random.nextObject(AddressUpdateDto.class);
@@ -427,7 +427,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);
@@ -552,7 +552,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_updating_non_existing_value() {
+        public void should_return_404_when_updating_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
             var dto = random.nextObject(AddressUpdateDto.class);
@@ -565,7 +565,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);
@@ -672,7 +672,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_non_existing_value() {
+        public void should_return_404_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var type = persistType(randomizeType());
 
@@ -683,7 +683,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);

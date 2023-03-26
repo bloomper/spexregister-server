@@ -475,7 +475,6 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var activity = persistActivity(randomizeActivity(spexare2));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -483,12 +482,12 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
             .when()
-                .post("/{spexId}", spexActivity.getId())
+                .post("/{spexId}", spex.getId())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(1);
+            assertThat(repository.count()).isEqualTo(0);
         }
     }
 
@@ -689,7 +688,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_non_existing_value() {
+        public void should_return_404_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -701,7 +700,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(0);

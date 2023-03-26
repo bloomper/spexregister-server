@@ -671,7 +671,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_and_incorrect_spex() {
+        public void should_return_409_when_incorrect_spex() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex1 = persistSpex(randomizeSpex(category));
             var spex2 = persistSpex(randomizeSpex(category));
@@ -683,7 +683,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{spexId}/revivals/{id}", spex1.getId(), revival.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
