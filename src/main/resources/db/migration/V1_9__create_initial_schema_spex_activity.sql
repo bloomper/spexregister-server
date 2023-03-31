@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS spex_activity
     last_modified_at DATETIME              NULL,
     activity_id      BIGINT                NOT NULL,
     spex_id          BIGINT                NOT NULL,
-    CONSTRAINT pk_spex_activity PRIMARY KEY (id)
+    CONSTRAINT PK_SPEX_ACTIVITY PRIMARY KEY (id)
 );
 
 ALTER TABLE spex_activity

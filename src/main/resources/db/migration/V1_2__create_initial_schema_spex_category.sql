@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS spex_category
     first_year        VARCHAR(4)            NOT NULL,
     logo              BLOB                  NULL,
     logo_content_type VARCHAR(255)          NULL,
-    CONSTRAINT pk_spex_category PRIMARY KEY (id)
+    CONSTRAINT PK_SPEX_CATEGORY PRIMARY KEY (id)
 );
 
 CREATE INDEX IDX_SPEX_CATEGORY_ON_NAME ON spex_category (name);

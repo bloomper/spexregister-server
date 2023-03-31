@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS toggle
     value            BIT                   NOT NULL,
     type_id          VARCHAR(255)          NOT NULL,
     spexare_id       BIGINT                NULL,
-    CONSTRAINT pk_toggle PRIMARY KEY (id)
+    CONSTRAINT PK_TOGGLE PRIMARY KEY (id)
 );
 
 ALTER TABLE toggle

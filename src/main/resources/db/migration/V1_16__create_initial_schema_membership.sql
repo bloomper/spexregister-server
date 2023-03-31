@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS membership
     year             VARCHAR(4)            NOT NULL,
     type_id          VARCHAR(255)          NOT NULL,
     spexare_id       BIGINT                NULL,
-    CONSTRAINT pk_membership PRIMARY KEY (id)
+    CONSTRAINT PK_MEMBERSHIP PRIMARY KEY (id)
 );
 
 ALTER TABLE membership

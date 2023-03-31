@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS acl_sid
     id        BIGINT       NOT NULL AUTO_INCREMENT,
     principal TINYINT      NOT NULL,
     sid       VARCHAR(100) NOT NULL,
-    CONSTRAINT pk_acl_sid PRIMARY KEY (id)
+    CONSTRAINT PK_ACL_SID PRIMARY KEY (id)
 );
 
 ALTER TABLE acl_sid
@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS acl_class
 (
     id    BIGINT       NOT NULL AUTO_INCREMENT,
     class varchar(255) NOT NULL,
-    CONSTRAINT pk_acl_class PRIMARY KEY (id)
+    CONSTRAINT PK_ACL_CLASS PRIMARY KEY (id)
 );
 
 ALTER TABLE acl_class
-    ADD CONSTRAINT uc_class UNIQUE (class);
+    ADD CONSTRAINT UC_CLASS UNIQUE (class);
 
 CREATE TABLE IF NOT EXISTS acl_entry
 (
@@ -29,11 +29,11 @@ CREATE TABLE IF NOT EXISTS acl_entry
     granting            TINYINT NOT NULL,
     audit_success       TINYINT NOT NULL,
     audit_failure       TINYINT NOT NULL,
-    CONSTRAINT pk_acl_entry PRIMARY KEY (id)
+    CONSTRAINT PK_ACL_ENTRY PRIMARY KEY (id)
 );
 
 ALTER TABLE acl_entry
-    ADD CONSTRAINT uc_acl_object_identity_ace_order UNIQUE (acl_object_identity, ace_order);
+    ADD CONSTRAINT UC_ACL_OBJECT_IDENTITY_ACE_ORDER UNIQUE (acl_object_identity, ace_order);
 
 CREATE TABLE IF NOT EXISTS acl_object_identity
 (
@@ -43,11 +43,11 @@ CREATE TABLE IF NOT EXISTS acl_object_identity
     parent_object      BIGINT DEFAULT NULL,
     owner_sid          BIGINT DEFAULT NULL,
     entries_inheriting TINYINT NOT NULL,
-    CONSTRAINT pk_acl_object_identity PRIMARY KEY (id)
+    CONSTRAINT PK_ACL_OBJECT_IDENTITY PRIMARY KEY (id)
 );
 
 ALTER TABLE acl_object_identity
-    ADD CONSTRAINT uc_object_id_class_object_id_identity UNIQUE (object_id_class, object_id_identity);
+    ADD CONSTRAINT UC_OBJECT_ID_CLASS_OBJECT_ID_IDENTITY UNIQUE (object_id_class, object_id_identity);
 
 ALTER TABLE acl_entry
     ADD CONSTRAINT FK_ACL_OBJECT_IDENTITY_ON_ACL_ENTRY FOREIGN KEY (acl_object_identity) REFERENCES acl_object_identity (id);

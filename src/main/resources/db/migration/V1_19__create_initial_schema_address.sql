@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS address
     email_address          VARCHAR(255)          NULL,
     type_id                VARCHAR(255)          NOT NULL,
     spexare_id             BIGINT                NULL,
-    CONSTRAINT pk_address PRIMARY KEY (id)
+    CONSTRAINT PK_ADDRESS PRIMARY KEY (id)
 );
 
 ALTER TABLE address

@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS news
     subject          VARCHAR(255)          NOT NULL,
     text             LONGTEXT              NOT NULL,
     published        BIT                   NULL,
-    CONSTRAINT pk_news PRIMARY KEY (id)
+    CONSTRAINT PK_NEWS PRIMARY KEY (id)
 );

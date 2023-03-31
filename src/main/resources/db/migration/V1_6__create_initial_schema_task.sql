@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS task
     last_modified_at DATETIME              NULL,
     name             VARCHAR(255)          NOT NULL,
     category_id      BIGINT                NULL,
-    CONSTRAINT pk_task PRIMARY KEY (id)
+    CONSTRAINT PK_TASK PRIMARY KEY (id)
 );
 
 ALTER TABLE task

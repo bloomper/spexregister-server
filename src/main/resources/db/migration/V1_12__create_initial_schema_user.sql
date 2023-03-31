@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS user
     last_name        VARCHAR(50)           NULL,
     password         VARCHAR(254)          NULL,
     activated        BIT                   NOT NULL,
-    CONSTRAINT pk_user PRIMARY KEY (id)
+    CONSTRAINT PK_USER PRIMARY KEY (id)
 );
 
 ALTER TABLE user

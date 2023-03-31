@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS activity
     last_modified_by VARCHAR(50)           NULL,
     last_modified_at DATETIME              NULL,
     spexare_id       BIGINT                NULL,
-    CONSTRAINT pk_activity PRIMARY KEY (id)
+    CONSTRAINT PK_ACTIVITY PRIMARY KEY (id)
 );
 
 ALTER TABLE activity

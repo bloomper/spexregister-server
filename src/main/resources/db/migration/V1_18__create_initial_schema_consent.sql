@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS consent
     value            BIT                   NOT NULL,
     type_id          VARCHAR(255)          NOT NULL,
     spexare_id       BIGINT                NULL,
-    CONSTRAINT pk_consent PRIMARY KEY (id)
+    CONSTRAINT PK_CONSENT PRIMARY KEY (id)
 );
 
 ALTER TABLE consent

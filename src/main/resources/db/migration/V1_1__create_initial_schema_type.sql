@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS type
     last_modified_at       DATETIME              NULL,
     type                   VARCHAR(255)          NOT NULL,
     labels                 JSON                  NOT NULL,
-    CONSTRAINT pk_type PRIMARY KEY (id)
+    CONSTRAINT PK_TYPE PRIMARY KEY (id)
 );

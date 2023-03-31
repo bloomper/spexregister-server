@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS actor
     role             VARCHAR(255)          NULL,
     vocal_id         VARCHAR(255)          NOT NULL,
     task_activity_id BIGINT                NULL,
-    CONSTRAINT pk_actor PRIMARY KEY (id)
+    CONSTRAINT PK_ACTOR PRIMARY KEY (id)
 );
 
 ALTER TABLE actor

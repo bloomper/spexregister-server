@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS spex
     year             VARCHAR(4)            NOT NULL,
     parent_id        BIGINT                NULL,
     details_id       BIGINT                NOT NULL,
-    CONSTRAINT pk_spex PRIMARY KEY (id)
+    CONSTRAINT PK_SPEX PRIMARY KEY (id)
 );
 
 ALTER TABLE spex

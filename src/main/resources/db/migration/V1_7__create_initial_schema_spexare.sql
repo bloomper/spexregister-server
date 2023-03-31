@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS spexare
     image                  BLOB                  NULL,
     image_content_type     VARCHAR(255)          NULL,
     partner_id             BIGINT                NULL,
-    CONSTRAINT pk_spexare PRIMARY KEY (id)
+    CONSTRAINT PK_SPEXARE PRIMARY KEY (id)
 );
 
 ALTER TABLE spexare

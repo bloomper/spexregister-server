@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS task_category
     last_modified_at  DATETIME              NULL,
     name              VARCHAR(255)          NOT NULL,
     has_actor         BIT                   NULL,
-    CONSTRAINT pk_task_category PRIMARY KEY (id)
+    CONSTRAINT PK_TASK_CATEGORY PRIMARY KEY (id)
 );
 
 CREATE INDEX IDX_TASK_CATEGORY_ON_NAME ON task_category (name);

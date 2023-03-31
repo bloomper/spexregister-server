@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS task_activity
     last_modified_at DATETIME              NULL,
     activity_id      BIGINT                NOT NULL,
     task_id          BIGINT                NOT NULL,
-    CONSTRAINT pk_task_activity PRIMARY KEY (id)
+    CONSTRAINT PK_TASK_ACTIVITY PRIMARY KEY (id)
 );
 
 ALTER TABLE task_activity
