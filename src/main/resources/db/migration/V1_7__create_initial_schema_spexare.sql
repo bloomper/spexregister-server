@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS spexare
     social_security_number VARCHAR(4)            NULL,
     graduation             VARCHAR(255)          NULL,
     comment                LONGTEXT              NULL,
-    image                  BLOB                  NULL,
+    image                  MEDIUMBLOB            NULL,
     image_content_type     VARCHAR(255)          NULL,
     partner_id             BIGINT                NULL,
     CONSTRAINT PK_SPEXARE PRIMARY KEY (id)

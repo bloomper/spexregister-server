@@ -88,7 +88,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private String comment;
 
     @Lob
-    @Column(name = "image")
+    @Column(name = "image", columnDefinition = "MEDIUMBLOB")
     private byte[] image;
 
     @Column(name = "image_content_type")

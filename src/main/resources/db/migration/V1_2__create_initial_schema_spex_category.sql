@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS spex_category
     last_modified_at  DATETIME              NULL,
     name              VARCHAR(255)          NOT NULL,
     first_year        VARCHAR(4)            NOT NULL,
-    logo              BLOB                  NULL,
+    logo              MEDIUMBLOB            NULL,
     logo_content_type VARCHAR(255)          NULL,
     CONSTRAINT PK_SPEX_CATEGORY PRIMARY KEY (id)
 );

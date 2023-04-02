@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS spex_details
     last_modified_by    VARCHAR(50)           NULL,
     last_modified_at    DATETIME              NULL,
     title               VARCHAR(255)          NOT NULL,
-    poster              BLOB                  NULL,
+    poster              MEDIUMBLOB            NULL,
     poster_content_type VARCHAR(255)          NULL,
     category_id         BIGINT                NULL,
     CONSTRAINT PK_SPEX_DETAILS PRIMARY KEY (id)

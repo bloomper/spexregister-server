@@ -52,7 +52,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     private String firstYear;
 
     @Lob
-    @Column(name = "logo")
+    @Column(name = "logo", columnDefinition = "MEDIUMBLOB")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
     private byte[] logo;

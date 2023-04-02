@@ -46,7 +46,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     private String title;
 
     @Lob
-    @Column(name = "poster")
+    @Column(name = "poster", columnDefinition = "MEDIUMBLOB")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
     private byte[] poster;
