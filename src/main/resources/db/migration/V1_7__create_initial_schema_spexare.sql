@@ -1,10 +1,6 @@
 CREATE TABLE IF NOT EXISTS spexare
 (
     id                     BIGINT AUTO_INCREMENT NOT NULL,
-    created_by             VARCHAR(50)           NOT NULL,
-    created_at             DATETIME              NOT NULL,
-    last_modified_by       VARCHAR(50)           NULL,
-    last_modified_at       DATETIME              NULL,
     first_name             VARCHAR(255)          NOT NULL,
     last_name              VARCHAR(255)          NOT NULL,
     nick_name              VARCHAR(255)          NULL,
@@ -15,6 +11,10 @@ CREATE TABLE IF NOT EXISTS spexare
     image                  MEDIUMBLOB            NULL,
     image_content_type     VARCHAR(255)          NULL,
     partner_id             BIGINT                NULL,
+    created_by             VARCHAR(255)          NOT NULL,
+    created_at             DATETIME              NOT NULL,
+    last_modified_by       VARCHAR(255)          NULL,
+    last_modified_at       DATETIME              NULL,
     CONSTRAINT PK_SPEXARE PRIMARY KEY (id)
 );
 

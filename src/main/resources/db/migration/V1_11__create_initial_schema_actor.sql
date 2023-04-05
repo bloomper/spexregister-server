@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS actor
 (
     id               BIGINT AUTO_INCREMENT NOT NULL,
-    created_by       VARCHAR(50)           NOT NULL,
-    created_at       DATETIME              NOT NULL,
-    last_modified_by VARCHAR(50)           NULL,
-    last_modified_at DATETIME              NULL,
     role             VARCHAR(255)          NULL,
     vocal_id         VARCHAR(255)          NOT NULL,
     task_activity_id BIGINT                NULL,
+    created_by       VARCHAR(255)          NOT NULL,
+    created_at       DATETIME              NOT NULL,
+    last_modified_by VARCHAR(255)          NULL,
+    last_modified_at DATETIME              NULL,
     CONSTRAINT PK_ACTOR PRIMARY KEY (id)
 );
 
