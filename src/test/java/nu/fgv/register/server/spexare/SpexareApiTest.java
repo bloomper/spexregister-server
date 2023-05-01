@@ -73,7 +73,6 @@ public class SpexareApiTest extends AbstractApiTest {
             fieldWithPath("firstName").description("The first name of the spexare"),
             fieldWithPath("lastName").description("The last name of the spexare"),
             fieldWithPath("nickName").description("The nickname of the spexare"),
-            fieldWithPath("birthDate").description("The birth date of the spexare"),
             fieldWithPath("socialSecurityNumber").description("The social security number of the spexare"),
             fieldWithPath("graduation").description("The graduation of the spexare"),
             fieldWithPath("comment").description("The comment of the spexare"),
@@ -256,7 +255,6 @@ public class SpexareApiTest extends AbstractApiTest {
                                         fields.withPath("firstName").description("The first name of the spexare"),
                                         fields.withPath("lastName").description("The last name of the spexare"),
                                         fields.withPath("nickName").description("The nickname of the spexare"),
-                                        fields.withPath("birthDate").description("The birth date of the spexare"),
                                         fields.withPath("socialSecurityNumber").description("The social security number of the spexare"),
                                         fields.withPath("graduation").description("The graduation of the spexare"),
                                         fields.withPath("comment").description("The comment of the spexare")
@@ -298,7 +296,6 @@ public class SpexareApiTest extends AbstractApiTest {
                                         fields.withPath("firstName").description("The first name of the spexare").optional(),
                                         fields.withPath("lastName").description("The last name of the spexare").optional(),
                                         fields.withPath("nickName").description("The nickname of the spexare").optional(),
-                                        fields.withPath("birthDate").description("The birth date of the spexare").optional(),
                                         fields.withPath("socialSecurityNumber").description("The social security number of the spexare").optional(),
                                         fields.withPath("graduation").description("The graduation of the spexare").optional(),
                                         fields.withPath("comment").description("The comment of the spexare").optional()

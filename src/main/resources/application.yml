@@ -28,3 +28,6 @@ spexregister:
   languages:
     - en
     - sv
+  encryption:
+    secret-key: ${SECRET_KEY}
+    algorithm: "AES/CFB/PKCS5Padding"

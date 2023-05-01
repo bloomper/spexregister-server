@@ -313,6 +313,24 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        public void should_return_400_when_invalid_social_security_number() {
+            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
+            dto.setSocialSecurityNumber("20120606-4658");
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(0);
+        }
+
+        @Test
         public void should_return_404_when_not_found() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
 

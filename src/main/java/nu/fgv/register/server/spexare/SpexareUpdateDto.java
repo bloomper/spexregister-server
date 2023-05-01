@@ -11,9 +11,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.util.Luhn;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
-import java.time.LocalDate;
+import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
 @Getter
 @Setter
@@ -41,11 +42,8 @@ public class SpexareUpdateDto {
     @JsonProperty("nickName")
     private String nickName;
 
-    @JsonProperty("birthDate")
-    private LocalDate birthDate;
-
-    @Size(max = 4, message = "{spexare.socialSecurityNumber.size}")
-    @Pattern(regexp = "^\\d{4}$", message = "{spexare.socialSecurityNumber.size}")
+    @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
+    @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @JsonProperty("socialSecurityNumber")
     private String socialSecurityNumber;
 

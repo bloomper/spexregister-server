@@ -2,6 +2,7 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,12 +30,13 @@ import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.UserDetails;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.CryptoConverter;
+import nu.fgv.register.server.util.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +51,8 @@ import java.util.Set;
 @Setter
 @ToString
 public class Spexare extends AbstractAuditable implements Serializable {
+
+    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?";
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -71,12 +75,10 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "nick_name")
     private String nickName;
 
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
-
-    @Size(max = 4, message = "{spexare.socialSecurityNumber.size}")
-    @Pattern(regexp = "^\\d{4}$", message = "{spexare.socialSecurityNumber.size}")
-    @Column(name = "social_security_number", length = 4)
+    @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
+    @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
+    @Column(name = "social_security_number")
+    @Convert(converter = CryptoConverter.class)
     private String socialSecurityNumber;
 
     @Size(max = 255, message = "{spexare.graduation.size}")

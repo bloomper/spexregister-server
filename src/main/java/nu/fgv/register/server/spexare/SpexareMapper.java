@@ -25,7 +25,6 @@ public interface SpexareMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "birthDate", ignore = true),
             @Mapping(target = "socialSecurityNumber", ignore = true),
             @Mapping(target = "graduation", ignore = true),
             @Mapping(target = "comment", ignore = true),

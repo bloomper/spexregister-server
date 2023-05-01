@@ -2,9 +2,11 @@ package nu.fgv.register.server.util.randomizer;
 
 import com.github.javafaker.service.FakeValuesService;
 import com.github.javafaker.service.RandomService;
+import nu.fgv.register.server.spexare.Spexare;
 import org.jeasy.random.api.Randomizer;
 
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 public class SocialSecurityNumberRandomizer implements Randomizer<String> {
 
@@ -12,6 +14,28 @@ public class SocialSecurityNumberRandomizer implements Randomizer<String> {
 
     @Override
     public String getRandomValue() {
-        return fakeValuesService.regexify("\\d{4}");
+        final String socialSecurityNumber = fakeValuesService.regexify(Spexare.SOCIAL_SECURITY_NUMBER_PATTERN);
+
+        if (socialSecurityNumber.length() == 8) {
+            return socialSecurityNumber;
+        } else {
+            return socialSecurityNumber.substring(0, 12) + recalculateControlNumber(socialSecurityNumber.substring(2, 12).replaceAll("-", ""));
+        }
+    }
+
+    private int recalculateControlNumber(final String value) {
+        int temp;
+        int sum = 0;
+
+        for (int i = 0; i < value.length(); i++) {
+            temp = Character.getNumericValue(value.charAt(i));
+            temp *= 2 - (i % 2);
+            if (temp > 9)
+                temp -= 9;
+
+            sum += temp;
+        }
+
+        return (10 - (sum % 10)) % 10;
     }
 }

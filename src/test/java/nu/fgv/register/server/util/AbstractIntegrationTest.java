@@ -8,6 +8,7 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -18,6 +19,11 @@ import java.util.Optional;
 @Testcontainers
 @DirtiesContext
 @Import({AbstractIntegrationTest.TestConfig.class})
+@TestPropertySource(
+        properties = {
+                "spexregister.encryption.secret-key=7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+"
+        }
+)
 public abstract class AbstractIntegrationTest {
 
     private static final MySQLContainer<?> mysql;
