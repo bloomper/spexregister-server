@@ -28,6 +28,7 @@ spexregister:
   languages:
     - en
     - sv
-  encryption:
+  crypto:
     secret-key: ${SECRET_KEY}
+    initialization-vector: ${IV}
     algorithm: "AES/CFB/PKCS5Padding"

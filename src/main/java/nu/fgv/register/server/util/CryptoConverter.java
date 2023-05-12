@@ -17,12 +17,15 @@ import static org.springframework.util.StringUtils.hasText;
 public class CryptoConverter implements AttributeConverter<String, String> {
 
     private final byte[] secretKey;
+    private final IvParameterSpec iv;
     private final Cipher cipher;
 
     public CryptoConverter(
-            @Value("${spexregister.encryption.algorithm}") final String algorithm,
-            @Value("${spexregister.encryption.secret-key}") final String secretKey) {
+            @Value("${spexregister.crypto.algorithm}") final String algorithm,
+            @Value("${spexregister.crypto.secret-key}") final String secretKey,
+            @Value("${spexregister.crypto.initialization-vector}") final String iv) {
         this.secretKey = secretKey.getBytes(StandardCharsets.UTF_8);
+        this.iv = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
         try {
             cipher = Cipher.getInstance(algorithm);
         } catch (Exception e) {
@@ -32,12 +35,12 @@ public class CryptoConverter implements AttributeConverter<String, String> {
     }
 
     @Override
-    public String convertToDatabaseColumn(final String plainValue) {
+    public synchronized String convertToDatabaseColumn(final String plainValue) {
         if (hasText(plainValue)) {
             final Key key = new SecretKeySpec(secretKey, "AES");
 
             try {
-                cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(new byte[16]));
+                cipher.init(Cipher.ENCRYPT_MODE, key, iv);
                 return Base64.getEncoder().encodeToString(cipher.doFinal(plainValue.getBytes()));
             } catch (Exception e) {
                 log.error("Unexpected error during encryption", e);
@@ -49,12 +52,12 @@ public class CryptoConverter implements AttributeConverter<String, String> {
     }
 
     @Override
-    public String convertToEntityAttribute(final String encryptedValue) {
+    public synchronized String convertToEntityAttribute(final String encryptedValue) {
         if (hasText(encryptedValue)) {
             final Key key = new SecretKeySpec(secretKey, "AES");
 
             try {
-                cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(new byte[16]));
+                cipher.init(Cipher.DECRYPT_MODE, key, iv);
                 return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedValue)));
             } catch (Exception e) {
                 log.error("Unexpected error during decryption", e);
