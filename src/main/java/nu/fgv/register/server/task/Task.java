@@ -16,6 +16,12 @@ import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,9 +46,12 @@ public class Task extends AbstractAuditable implements Serializable {
     @NotNull
     @Size(max = 255)
     @Column(name = "name", nullable = false)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String name;
 
     @ManyToOne
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private TaskCategory category;
 
     @Override

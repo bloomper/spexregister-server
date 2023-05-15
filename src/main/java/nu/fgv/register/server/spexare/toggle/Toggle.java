@@ -17,6 +17,17 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
+import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,13 +51,20 @@ public class Toggle extends AbstractAuditable implements Serializable {
 
     @NotNull(message = "{toggle.value.notEmpty}")
     @Column(name = "value", nullable = false)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private Boolean value;
 
     @NotNull(message = "{toggle.type.notEmpty}")
     @ManyToOne(optional = false)
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type type;
 
     @ManyToOne
+    @AssociationInverseSide(
+            extraction = @ContainerExtraction(BuiltinContainerExtractors.ARRAY_OBJECT),
+            inversePath = @ObjectPath(@PropertyValue(propertyName = "toggles"))
+    )
     private Spexare spexare;
 
     @Override

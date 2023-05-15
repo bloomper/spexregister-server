@@ -19,6 +19,14 @@ import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
+import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -45,13 +53,20 @@ public class TaskActivity extends AbstractAuditable implements Serializable {
     @OneToMany(mappedBy = "taskActivity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private Set<Actor> actors = new HashSet<>();
 
     @ManyToOne(optional = false)
     @NotNull
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Task task;
 
     @ManyToOne
+    @AssociationInverseSide(
+            extraction = @ContainerExtraction(BuiltinContainerExtractors.ARRAY_OBJECT),
+            inversePath = @ObjectPath(@PropertyValue(propertyName = "activity"))
+    )
     private Activity activity;
 
     @Override

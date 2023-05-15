@@ -1,13 +1,5 @@
 package nu.fgv.register.server.spex;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import nu.fgv.register.server.util.AbstractAuditable;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,6 +12,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import nu.fgv.register.server.util.AbstractAuditable;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,6 +49,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spex.title.notEmpty}")
     @Size(max = 255, message = "{spex.title.size}")
     @Column(name = "title", nullable = false)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String title;
 
     @Lob
@@ -55,6 +62,8 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     private String posterContentType;
 
     @ManyToOne
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private SpexCategory category;
 
     @Override

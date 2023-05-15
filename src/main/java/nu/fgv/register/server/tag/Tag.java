@@ -15,6 +15,9 @@ import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,6 +42,7 @@ public class Tag extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{tag.name.notEmpty}")
     @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String name;
 
     @Override

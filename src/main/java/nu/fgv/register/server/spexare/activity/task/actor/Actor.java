@@ -16,6 +16,16 @@ import nu.fgv.register.server.spexare.activity.task.TaskActivity;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
+import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -38,12 +48,19 @@ public class Actor extends AbstractAuditable implements Serializable {
     private Long id;
 
     @Size(max = 255, message = "{actor.role.size}")
+    @FullTextField(searchable = Searchable.YES)
     private String role;
 
     @ManyToOne
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type vocal;
 
     @ManyToOne
+    @AssociationInverseSide(
+            extraction = @ContainerExtraction(BuiltinContainerExtractors.ARRAY_OBJECT),
+            inversePath = @ObjectPath(@PropertyValue(propertyName = "taskActivity"))
+    )
     private TaskActivity taskActivity;
 
     @Override

@@ -34,6 +34,14 @@ import nu.fgv.register.server.util.CryptoConverter;
 import nu.fgv.register.server.util.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -46,6 +54,7 @@ import java.util.Set;
 @Entity
 @Table(name = "spexare")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Indexed(index = "spexare")
 @RequiredArgsConstructor
 @Getter
 @Setter
@@ -64,29 +73,35 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")
     @Column(name = "first_name", nullable = false)
+    @KeywordField(searchable = Searchable.YES)
     private String firstName;
 
     @NotEmpty(message = "{spexare.lastName.notEmpty}")
     @Size(max = 255, message = "{spexare.lastName.size}")
     @Column(name = "last_name", nullable = false)
+    @KeywordField(searchable = Searchable.YES)
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
+    @KeywordField(searchable = Searchable.YES)
     private String nickName;
 
     @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
     @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @Column(name = "social_security_number")
     @Convert(converter = CryptoConverter.class)
+    @GenericField(searchable = Searchable.YES)
     private String socialSecurityNumber;
 
     @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")
+    @GenericField(searchable = Searchable.YES)
     private String graduation;
 
     @Lob
     @Column(name = "comment")
+    @FullTextField(searchable = Searchable.YES)
     private String comment;
 
     @Lob
@@ -105,6 +120,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private Set<Activity> activities = new HashSet<>();
 
     @ManyToMany
@@ -113,26 +129,32 @@ public class Spexare extends AbstractAuditable implements Serializable {
             joinColumns = @JoinColumn(name = "spexare_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     @ToString.Exclude
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private List<Membership> memberships = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private List<Consent> consents = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
+    @IndexedEmbedded
     private List<Toggle> toggles = new ArrayList<>();
 
     @Override

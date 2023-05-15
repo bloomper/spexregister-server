@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.3.2'
     implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'org.hibernate.search:hibernate-search-mapper-orm-orm6:6.1.8.Final'
+    implementation 'org.hibernate.search:hibernate-search-backend-elasticsearch:6.1.8.Final'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -60,7 +62,7 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.mvnsearch:easy-random-junit5-extension:0.3.0'
-    testImplementation ('com.github.javafaker:javafaker:1.0.2') { exclude module: 'org.yaml' }
+    testImplementation('com.github.javafaker:javafaker:1.0.2') { exclude module: 'org.yaml' }
     testImplementation 'org.yaml:snakeyaml:1.33:android'
     testImplementation 'io.rest-assured:rest-assured:5.3.0'
     testImplementation 'io.rest-assured:rest-assured-all:5.3.0'
@@ -93,13 +95,13 @@ tasks.named('asciidoctor') {
 
 asciidoctor {
     sourceDir 'src/main/asciidoc'
-    attributes \
-      'snippets': file('build/generated-snippets')
+    attributes  \
+       'snippets': file('build/generated-snippets')
 }
 
 bootJar {
     dependsOn asciidoctor
-    from ("${asciidoctor.outputDir}") {
+    from("${asciidoctor.outputDir}") {
         into 'static/docs'
     }
 }

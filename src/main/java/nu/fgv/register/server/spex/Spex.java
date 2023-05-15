@@ -18,6 +18,13 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -42,12 +49,15 @@ public class Spex extends AbstractAuditable implements Serializable {
     @Size(max = 4, message = "{spex.year.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @Column(name = "year", length = 4, nullable = false)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String year;
 
     @ManyToOne
     private Spex parent;
 
     @ManyToOne(optional = false)
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private SpexDetails details;
 
     public boolean isRevival() {

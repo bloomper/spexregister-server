@@ -20,6 +20,17 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
+import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -45,13 +56,20 @@ public class Membership extends AbstractAuditable implements Serializable {
     @Size(max = 4, message = "{membership.year.maxSize}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
     @Column(name = "year", length = 4, nullable = false)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String year;
 
     @NotNull(message = "{membership.type.notEmpty}")
     @ManyToOne(optional = false)
+    @IndexedEmbedded
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type type;
 
     @ManyToOne
+    @AssociationInverseSide(
+            extraction = @ContainerExtraction(BuiltinContainerExtractors.ARRAY_OBJECT),
+            inversePath = @ObjectPath(@PropertyValue(propertyName = "memberships"))
+    )
     private Spexare spexare;
 
     @Override

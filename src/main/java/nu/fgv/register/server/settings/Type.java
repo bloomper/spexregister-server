@@ -16,6 +16,8 @@ import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,15 +38,18 @@ public class Type extends AbstractAuditable implements Serializable {
     @Id
     @Size(max = 255, message = "{type.value.size}")
     @Column(name = "id")
+    @GenericField(searchable = Searchable.NO)
     private String id;
 
     @org.hibernate.annotations.Type(JsonType.class)
     @Column(name = "labels", columnDefinition = "json")
+    @GenericField(searchable = Searchable.NO)
     private Map<String, String> labels;
 
     @NotNull(message = "{type.type.notEmpty}")
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
+    @GenericField(searchable = Searchable.NO)
     private TypeType type;
 
 }

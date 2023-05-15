@@ -20,6 +20,10 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,6 +47,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spexCategory.name.notEmpty}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @Column(name = "name", nullable = false)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notEmpty}")
