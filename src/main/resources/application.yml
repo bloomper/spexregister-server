@@ -17,6 +17,11 @@ spring:
     multipart:
       max-file-size: 15MB
 
+  task:
+    scheduling:
+      pool:
+        size: 5
+
   security:
     oauth2:
       resourceserver:
@@ -32,3 +37,6 @@ spexregister:
     secret-key: ${SECRET_KEY}
     initialization-vector: ${IV}
     algorithm: "AES/CFB/PKCS5Padding"
+  jobs:
+    full-index:
+      cron-expression: 0 0 2 * * ? # Every night at 02:00

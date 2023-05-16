@@ -3,9 +3,11 @@ package nu.fgv.register.server.admin;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.Spexare;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,5 +45,11 @@ public class IndexingService {
                 .completedFuture(null)
                 .thenAccept(i -> {
                 }));
+    }
+
+    @Async
+    @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
+    public void scheduledRun() {
+        initiateIndexingFor(Spexare.class, true);
     }
 }
