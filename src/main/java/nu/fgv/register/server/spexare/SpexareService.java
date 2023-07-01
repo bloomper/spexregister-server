@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
-import static nu.fgv.register.server.spexare.SpexareRepository.AGGREGATIONS;
+import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
