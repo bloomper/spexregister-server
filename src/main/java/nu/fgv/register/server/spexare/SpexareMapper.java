@@ -10,6 +10,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
@@ -22,6 +24,8 @@ public interface SpexareMapper {
     SpexareMapper SPEXARE_MAPPER = Mappers.getMapper(SpexareMapper.class);
 
     SpexareDto toDto(Spexare model);
+
+    List<SpexareDto> toDtos(List<Spexare> models);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),

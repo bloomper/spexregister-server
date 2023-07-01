@@ -3,6 +3,12 @@ package nu.fgv.register.server.spexare;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.search.Facet;
+import nu.fgv.register.server.util.search.PageWithFacets;
+import nu.fgv.register.server.util.search.PageWithFacetsImpl;
+import nu.fgv.register.server.util.search.PagedWithFacetsModel;
+import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
+import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -12,6 +18,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -20,6 +29,7 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -67,6 +77,8 @@ public class SpexareApiTest extends AbstractApiTest {
     private SpexareImportService importService;
     @MockBean
     private SpexareExportService exportService;
+    @MockBean
+    private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spexare"),
@@ -127,6 +139,62 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_search_paged() throws Exception {
+        var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
+        var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
+        var facets = List.of(Facet.builder().name("facet").values(Map.of("whatever", 2L)).build());
+        var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
+        var pageWithFacetsModel = PagedWithFacetsModel.of(
+                pageWithFacets.stream().map(EntityModel::of).toList(),
+                new PagedWithFacetsModel.PageMetadata(pageWithFacets.getSize(), pageWithFacets.getNumber(), pageWithFacets.getTotalElements(), pageWithFacets.getTotalPages()), pageWithFacets.getFacets()
+        );
+        pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.FIRST));
+        pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.PREV));
+        pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.SELF));
+        pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.NEXT));
+        pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.LAST));
+
+        when(service.search(any(String.class), any(Pageable.class))).thenReturn(pageWithFacets);
+        when(pagedWithFacetsResourcesAssembler.toModel(any(PageWithFacets.class))).thenReturn(pageWithFacetsModel);
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spexare?q=FirstName&page=1&size=2&sort=firstName,desc")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/search-paged",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pageLinks.and(
+                                        subsectionWithPath("_embedded").description("The embedded section"),
+                                        subsectionWithPath("_embedded.spexare[]").description("The elements"),
+                                        fieldWithPath("_embedded.spexare[].id").description("The id of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].firstName").description("The first name of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].lastName").description("The last name of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].nickName").description("The nickname of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].image").description("The poster of the spexare"),
+                                        fieldWithPath("_embedded.spexare[].createdBy").description("Who created the spexare"),
+                                        fieldWithPath("_embedded.spexare[].createdAt").description("When was the spexare created"),
+                                        fieldWithPath("_embedded.spexare[].lastModifiedBy").description("Who last modified the spexare"),
+                                        fieldWithPath("_embedded.spexare[].lastModifiedAt").description("When was the spexare last modified"),
+                                        subsectionWithPath("_embedded.spexare[]._links").description("The spexare links"),
+                                        subsectionWithPath("_facets").description("The facets"),
+                                        linksSubsection
+                                ),
+                                pagingLinks,
+                                pagingQueryParameters.and(
+                                        parameterWithName("q").description("The query")
+                                ),
                                 responseHeaders
                         )
                 );

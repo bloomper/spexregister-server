@@ -4,6 +4,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.search.Facet;
+import nu.fgv.register.server.util.search.PageWithFacets;
+import nu.fgv.register.server.util.search.PageWithFacetsImpl;
+import org.hibernate.search.engine.search.aggregation.AggregationKey;
+import org.hibernate.search.engine.search.query.SearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,6 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
+import static nu.fgv.register.server.spexare.SpexareRepository.AGGREGATIONS;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -25,6 +31,17 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareService {
 
     private final SpexareRepository repository;
+
+    public PageWithFacets<SpexareDto> search(final String query, final Pageable pageable) {
+        final SearchResult<Spexare> searchResult = repository.search(query, pageable);
+        final List<Facet> facets = AGGREGATIONS.stream().map(a -> Facet.builder()
+                        .name(a)
+                        .values(searchResult.aggregation(AggregationKey.of(a)))
+                        .build())
+                .toList();
+
+        return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
+    }
 
     public List<SpexareDto> findAll(final Sort sort) {
         return repository

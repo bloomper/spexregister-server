@@ -10,6 +10,8 @@ import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.spexare.tag.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.search.PagedWithFacetsModel;
+import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -59,10 +61,19 @@ public class SpexareApi {
     private final SpexareService service;
     private final SpexareExportService exportService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
+    private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
 
-    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = "firstName", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+        paged.getContent().forEach(this::addLinks);
+
+        return ResponseEntity.ok(paged);
+    }
+
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"q"})
+    public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q, @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
+        final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);

@@ -35,6 +35,7 @@ import nu.fgv.register.server.util.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
@@ -73,18 +74,18 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")
     @Column(name = "first_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
     private String firstName;
 
     @NotEmpty(message = "{spexare.lastName.notEmpty}")
     @Size(max = 255, message = "{spexare.lastName.size}")
     @Column(name = "last_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
     private String nickName;
 
     @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
