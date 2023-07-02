@@ -154,6 +154,76 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Search paged")
+    class SearchPagedTests {
+
+        @Test
+        public void should_return_zero() {
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .queryParam("q", "whatever")
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            IntStream.range(0, size).forEach(i -> {
+                var spexare = persistSpexare(randomizeSpexare());
+                spexare.setFirstName("firstName");
+                persistSpexare(spexare);
+            });
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .queryParam("size", size)
+                        .queryParam("q", "firstName")
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
     @DisplayName("Create")
     class CreateTests {
 

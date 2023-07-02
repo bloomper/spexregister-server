@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,12 +22,7 @@ import java.util.Optional;
 @Testcontainers
 @DirtiesContext
 @Import({AbstractIntegrationTest.TestConfig.class})
-@TestPropertySource(
-        properties = {
-                "spexregister.crypto.secret-key=7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+",
-                "spexregister.crypto.initialization-vector=8914343887327891"
-        }
-)
+@ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
     @Container

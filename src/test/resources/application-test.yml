@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        search:
+          automatic_indexing:
+            synchronization:
+              strategy: sync
+
+spexregister:
+  crypto:
+    secret-key: 7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+
+    initialization-vector: 8914343887327891

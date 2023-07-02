@@ -11,7 +11,7 @@ public class PageWithFacetsImpl<T> extends PageImpl<T> implements PageWithFacets
     private final List<Facet> facets;
 
     public PageWithFacetsImpl(final List<T> content, final Pageable pageable, final SearchResultTotal total, final List<Facet> facets) {
-        super(content, pageable, total.hitCountLowerBound());
+        super(content, pageable, total.hitCount());
 
         this.facets = facets;
     }

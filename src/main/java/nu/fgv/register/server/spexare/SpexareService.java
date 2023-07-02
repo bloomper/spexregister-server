@@ -9,6 +9,7 @@ import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
+import org.hibernate.search.util.common.SearchException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,7 +35,16 @@ public class SpexareService {
 
     public PageWithFacets<SpexareDto> search(final String query, final Pageable pageable) {
         final SearchResult<Spexare> searchResult = repository.search(query, pageable);
-        final List<Facet> facets = AGGREGATIONS.stream().map(a -> Facet.builder()
+        final List<Facet> facets = AGGREGATIONS.stream()
+                .filter(a -> {
+                    try {
+                        searchResult.aggregation(AggregationKey.of(a));
+                        return true;
+                    } catch (final SearchException e) {
+                        return false;
+                    }
+                })
+                .map(a -> Facet.builder()
                         .name(a)
                         .values(searchResult.aggregation(AggregationKey.of(a)))
                         .build())
