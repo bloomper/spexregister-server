@@ -12,6 +12,17 @@ spring:
         persistence:
           sharedCache:
             mode: UNSPECIFIED
+      hibernate:
+        search:
+          backend:
+            type: lucene
+            directory:
+              type: local-filesystem
+              root: ./.index
+          schema_management:
+            strategy: create-or-update
+          automatic_indexing:
+            enabled: true
 
   servlet:
     multipart:
