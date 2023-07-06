@@ -8,11 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
-import nu.fgv.register.server.settings.TypeDto;
-import nu.fgv.register.server.util.AbstractAuditableDto;
-import org.springframework.hateoas.server.core.Relation;
-
-import java.time.Instant;
 
 @Getter
 @Setter

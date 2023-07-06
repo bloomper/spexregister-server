@@ -33,7 +33,7 @@ public class PagedWithFacetsResourcesAssembler<T> implements RepresentationModel
     private final EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
 
     private boolean forceFirstAndLastRels = false;
-    private @Nullable MethodParameter parameter;
+    private final @Nullable MethodParameter parameter;
 
     public PagedWithFacetsResourcesAssembler(@Nullable final HateoasPageableHandlerMethodArgumentResolver resolver,
                                              @Nullable final UriComponents baseUri) {

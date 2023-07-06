@@ -13,7 +13,6 @@ import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Getter
 @Setter

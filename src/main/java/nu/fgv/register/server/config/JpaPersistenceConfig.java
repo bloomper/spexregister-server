@@ -2,7 +2,6 @@ package nu.fgv.register.server.config;
 
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository;
-import nu.fgv.register.server.util.search.AbstractSearchEnabledJpaRepository;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;

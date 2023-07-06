@@ -6,7 +6,6 @@ import nu.fgv.register.server.spexare.Spexare;
 import org.jeasy.random.api.Randomizer;
 
 import java.util.Locale;
-import java.util.stream.IntStream;
 
 public class SocialSecurityNumberRandomizer implements Randomizer<String> {
 
