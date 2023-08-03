@@ -3,6 +3,10 @@ package nu.fgv.register.server.spex;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -12,6 +16,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -51,8 +56,10 @@ public class SpexApi {
 
     private final SpexService service;
     private final SpexExportService exportService;
+    private final EventService eventService;
     private final PagedResourcesAssembler<SpexDto> pagedResourcesAssembler;
     private final SpexCategoryApi spexCategoryApi;
+    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@RequestParam(required = false, defaultValue = "false") final boolean includeRevivals, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -297,6 +304,17 @@ public class SpexApi {
         }
     }
 
+    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SPEX).stream()
+                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(events,
+                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+    }
+
     private void addLinks(final EntityModel<SpexDto> entity) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -320,6 +338,8 @@ public class SpexApi {
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }
+        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null)).withRel("events"));
+
         return links;
     }
 

@@ -3,6 +3,10 @@ package nu.fgv.register.server.tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.springframework.core.io.ByteArrayResource;
@@ -12,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -53,7 +58,9 @@ public class TagApi {
     private final TagService service;
     private final TagExportService exportService;
     private final TagImportService importService;
+    private final EventService eventService;
     private final PagedResourcesAssembler<TagDto> pagedResourcesAssembler;
+    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -168,6 +175,17 @@ public class TagApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TAG).stream()
+                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(events,
+                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+    }
+
     private void addLinks(final EntityModel<TagDto> entity) {
         if (entity != null && entity.getContent() != null) {
             addLinks(entity.getContent());
@@ -180,8 +198,11 @@ public class TagApi {
 
     List<Link> getLinks(final TagDto dto) {
         final List<Link> links = new ArrayList<>();
+
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged())).withRel("tags"));
+        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null)).withRel("events"));
+
         return links;
     }
 }

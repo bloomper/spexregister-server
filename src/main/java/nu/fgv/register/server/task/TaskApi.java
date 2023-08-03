@@ -3,6 +3,10 @@ package nu.fgv.register.server.task;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -12,6 +16,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -48,8 +53,10 @@ public class TaskApi {
 
     private final TaskService service;
     private final TaskExportService exportService;
+    private final EventService eventService;
     private final PagedResourcesAssembler<TaskDto> pagedResourcesAssembler;
     private final TaskCategoryApi taskCategoryApi;
+    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<TaskDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -172,6 +179,17 @@ public class TaskApi {
         }
     }
 
+    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TASK).stream()
+                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(events,
+                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+    }
+
     private void addLinks(final EntityModel<TaskDto> entity) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -188,6 +206,8 @@ public class TaskApi {
         links.add(linkTo(methodOn(TaskApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskApi.class).retrieve(Pageable.unpaged())).withRel("tasks"));
         links.add(linkTo(methodOn(TaskApi.class).retrieveCategory(dto.getId())).withRel("category"));
+        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("events"));
+
         return links;
     }
 

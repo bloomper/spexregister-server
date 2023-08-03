@@ -1,6 +1,7 @@
 package nu.fgv.register.server.spexare.activity.task.actor;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spexare.activity.task.TaskActivity;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -33,6 +35,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "actor")
+@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter

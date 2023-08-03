@@ -1,39 +1,33 @@
-package nu.fgv.register.server.tag;
+package nu.fgv.register.server.event;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.event.JpaEntityListener;
-import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
-import org.hibernate.search.engine.backend.types.Searchable;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tag")
-@EntityListeners(JpaEntityListener.class)
+@Table(name = "event")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Tag extends AbstractAuditable implements Serializable {
+public class Event implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -42,11 +36,17 @@ public class Tag extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "{tag.name.notEmpty}")
-    @Size(max = 255, message = "{tag.name.size}")
-    @Column(name = "name", nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private EventType event;
+
+    @Enumerated(EnumType.STRING)
+    private SourceType source;
+
+    @Column(name = "created_by", nullable = false, length = 50, updatable = false)
+    private String createdBy;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 
     @Override
     public boolean equals(final Object o) {
@@ -56,15 +56,33 @@ public class Tag extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Tag tag = (Tag) o;
-        if (tag.getId() == null || getId() == null) {
+        final Event event = (Event) o;
+        if (event.getId() == null || getId() == null) {
             return false;
         }
-        return Objects.equals(getId(), tag.getId());
+        return Objects.equals(getId(), event.getId());
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(this.getClass().hashCode());
+    }
+
+    public enum EventType {
+        CREATE,
+        UPDATE,
+        REMOVE
+    }
+
+    public enum SourceType {
+        NEWS,
+        SPEX,
+        SPEX_CATEGORY,
+        SPEXARE,
+        TAG,
+        TASK,
+        TASK_CATEGORY,
+        USER,
+        SESSION
     }
 }

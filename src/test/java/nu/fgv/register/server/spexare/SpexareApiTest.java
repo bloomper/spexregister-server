@@ -1,5 +1,9 @@
 package nu.fgv.register.server.spexare;
 
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
@@ -57,10 +61,12 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseBody;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParts;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -75,8 +81,16 @@ public class SpexareApiTest extends AbstractApiTest {
 
     @MockBean
     private SpexareImportService importService;
+
     @MockBean
     private SpexareExportService exportService;
+
+    @MockBean
+    private EventService eventService;
+
+    @MockBean
+    private EventApi eventApi;
+
     @MockBean
     private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
 
@@ -100,7 +114,8 @@ public class SpexareApiTest extends AbstractApiTest {
             linkWithRel("toggles").description("Link to the current spexare's toggles").optional(),
             linkWithRel("addresses").description("Link to the current spexare's addresses").optional(),
             linkWithRel("tags").description("Link to the current spexare's tags").optional(),
-            linkWithRel("partner").description("Link to the current spexare's partner").optional()
+            linkWithRel("partner").description("Link to the current spexare's partner").optional(),
+            linkWithRel("events").description("Link to spexare events").optional()
     );
 
     @Test
@@ -586,6 +601,47 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare")
                                 )
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_events() throws Exception {
+        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEXARE.name()).build();
+        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEXARE.name()).build();
+        var realEventApi = new EventApi(null);
+
+        when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
+        when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
+        when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spexare/events?sinceInDays=30")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.events", hasSize(2)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare/get-events",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                responseFields(
+                                        subsectionWithPath("_embedded").description("The embedded section"),
+                                        subsectionWithPath("_embedded.events[]").description("The elements"),
+                                        fieldWithPath("_embedded.events[].id").description("The id of the event"),
+                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
+                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
+                                        fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
+                                        fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
+                                        fieldWithPath("_embedded.events[].lastModifiedBy").description("Who last modified the event"),
+                                        fieldWithPath("_embedded.events[].lastModifiedAt").description("When was the event last modified"),
+                                        subsectionWithPath("_embedded.events[]._links").description("The event links"),
+                                        linksSubsection
+                                ),
+                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                responseHeaders
                         )
                 );
     }

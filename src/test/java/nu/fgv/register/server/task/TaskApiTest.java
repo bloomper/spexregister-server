@@ -1,5 +1,9 @@
 package nu.fgv.register.server.task;
 
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
@@ -43,9 +47,11 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseBody;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,11 +65,18 @@ public class TaskApiTest extends AbstractApiTest {
 
     @MockBean
     private TaskImportService importService;
+
     @MockBean
     private TaskExportService exportService;
 
     @MockBean
     private TaskCategoryApi categoryApi;
+
+    @MockBean
+    private EventService eventService;
+
+    @MockBean
+    private EventApi eventApi;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
@@ -73,7 +86,8 @@ public class TaskApiTest extends AbstractApiTest {
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("tasks").description("Link to paged tasks").optional(),
-            linkWithRel("category").description("Link to the current task's task category").optional()
+            linkWithRel("category").description("Link to the current task's task category").optional(),
+            linkWithRel("events").description("Link to task events").optional()
     );
 
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
@@ -84,7 +98,8 @@ public class TaskApiTest extends AbstractApiTest {
     );
 
     private final LinksSnippet categoryLinks = baseLinks.and(
-            linkWithRel("task-categories").description("Link to paged task categories").optional()
+            linkWithRel("task-categories").description("Link to paged task categories").optional(),
+            linkWithRel("events").description("Link to task category events").optional()
     );
 
     @Test
@@ -316,7 +331,7 @@ public class TaskApiTest extends AbstractApiTest {
     @Test
     public void should_get_category() throws Exception {
         var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        var realCategoryApi = new TaskCategoryApi(null, null, null, null);
+        var realCategoryApi = new TaskCategoryApi(null, null, null, null, null, null);
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
@@ -378,6 +393,47 @@ public class TaskApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("taskId").description("The id of the task")
                                 )
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_events() throws Exception {
+        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.TASK.name()).build();
+        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
+        var realEventApi = new EventApi(null);
+
+        when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
+        when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
+        when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/tasks/events?sinceInDays=30")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.events", hasSize(2)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "tasks/get-events",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                responseFields(
+                                        subsectionWithPath("_embedded").description("The embedded section"),
+                                        subsectionWithPath("_embedded.events[]").description("The elements"),
+                                        fieldWithPath("_embedded.events[].id").description("The id of the event"),
+                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
+                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
+                                        fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
+                                        fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
+                                        fieldWithPath("_embedded.events[].lastModifiedBy").description("Who last modified the event"),
+                                        fieldWithPath("_embedded.events[].lastModifiedAt").description("When was the event last modified"),
+                                        subsectionWithPath("_embedded.events[]._links").description("The event links"),
+                                        linksSubsection
+                                ),
+                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                responseHeaders
                         )
                 );
     }

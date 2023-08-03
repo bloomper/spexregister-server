@@ -2,6 +2,7 @@ package nu.fgv.register.server.spexare.activity.task;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.task.actor.Actor;
 import nu.fgv.register.server.task.Task;
@@ -36,6 +38,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "task_activity")
+@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter

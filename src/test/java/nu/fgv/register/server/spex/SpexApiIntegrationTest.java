@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.apache.http.HttpHeaders;
@@ -52,6 +55,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private SpexCategoryRepository categoryRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     public SpexApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
@@ -81,6 +87,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         repository.deleteAll();
         detailsRepository.deleteAll();
         categoryRepository.deleteAll();
+        eventRepository.deleteAll();
     }
 
     @AfterEach
@@ -1043,6 +1050,36 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(0);
             assertThat(detailsRepository.count()).isEqualTo(0);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Events")
+    class EventTests {
+
+        @Test
+        public void should_return_found() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+
+            //@formatter:off
+            final List<EventDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/events")
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.events", EventDto.class);
+            //@formatter:on
+
+            assertThat(eventRepository.count()).isEqualTo(2);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEX.name());
+            assertThat(result.get(0).getCreatedBy()).isEqualTo(spex.getCreatedBy());
         }
 
     }

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.user.UserDetails;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -50,6 +53,9 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private SpexareRepository repository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     public SpexareApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
@@ -83,6 +89,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         RestAssured.requestSpecification = requestSpecBuilder.build();
         RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
         repository.deleteAll();
+        eventRepository.deleteAll();
     }
 
     @AfterEach
@@ -768,6 +775,35 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Events")
+    class EventTests {
+
+        @Test
+        public void should_return_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final List<EventDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/events")
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.events", EventDto.class);
+            //@formatter:on
+
+            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEXARE.name());
+            assertThat(result.get(0).getCreatedBy()).isEqualTo(spexare.getCreatedBy());
         }
 
     }

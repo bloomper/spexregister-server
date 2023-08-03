@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.apache.http.HttpHeaders;
@@ -46,6 +49,9 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private SpexCategoryRepository repository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     public SpexCategoryApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
@@ -69,6 +75,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         RestAssured.requestSpecification = requestSpecBuilder.build();
         RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
         repository.deleteAll();
+        eventRepository.deleteAll();
     }
 
     @AfterEach
@@ -521,6 +528,35 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
+    }
+
+    @Nested
+    @DisplayName("Events")
+    class EventTests {
+
+        @Test
+        public void should_return_found() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+
+            //@formatter:off
+            final List<EventDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/events")
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.events", EventDto.class);
+            //@formatter:on
+
+            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
+            assertThat(result.get(0).getCreatedBy()).isEqualTo(category.getCreatedBy());
+        }
+
     }
 
     private SpexCategory randomizeSpexCategory() {

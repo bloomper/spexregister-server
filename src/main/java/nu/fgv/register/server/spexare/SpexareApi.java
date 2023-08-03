@@ -3,6 +3,10 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.address.AddressApi;
 import nu.fgv.register.server.spexare.consent.ConsentApi;
@@ -20,6 +24,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -60,8 +65,10 @@ public class SpexareApi {
 
     private final SpexareService service;
     private final SpexareExportService exportService;
+    private final EventService eventService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
     private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
+    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = "firstName", direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -233,6 +240,17 @@ public class SpexareApi {
         }
     }
 
+    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SPEXARE).stream()
+                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(events,
+                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+    }
+
     private void addLinks(final EntityModel<SpexareDto> entity) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -258,6 +276,7 @@ public class SpexareApi {
         links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("addresses"));
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrievePartner(dto.getId())).withRel("partner"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(null)).withRel("events"));
 
         return links;
     }

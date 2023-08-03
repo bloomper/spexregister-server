@@ -69,7 +69,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/language")
+                        .get("/languages")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -86,7 +86,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/language/{isoCode}", "sv")
+                        .get("/languages/{isoCode}", "sv")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(LanguageDto.class);
@@ -106,7 +106,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
                     .when()
-                        .get("/language/{isoCode}", "sv")
+                        .get("/languages/{isoCode}", "sv")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(LanguageDto.class);
@@ -126,7 +126,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                             .contentType(ContentType.JSON)
                             .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                             .when()
-                            .get("/language/{isoCode}", "sv")
+                            .get("/languages/{isoCode}", "sv")
                             .then()
                             .statusCode(HttpStatus.OK.value())
                             .extract().body().as(LanguageDto.class);
@@ -144,7 +144,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/language/{isoCode}", "123")
+                .get("/languages/{isoCode}", "123")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -162,7 +162,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/country")
+                        .get("/countries")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -179,7 +179,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/country/{isoCode}", "SE")
+                        .get("/countries/{isoCode}", "SE")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(CountryDto.class);
@@ -199,7 +199,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
                     .when()
-                        .get("/country/{isoCode}", "SE")
+                        .get("/countries/{isoCode}", "SE")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(CountryDto.class);
@@ -219,7 +219,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     .when()
-                        .get("/country/{isoCode}", "SE")
+                        .get("/countries/{isoCode}", "SE")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(CountryDto.class);
@@ -237,7 +237,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/country/{isoCode}", "123")
+                .get("/countries/{isoCode}", "123")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -255,14 +255,14 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/type")
+                        .get("/types")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
                         .jsonPath().getList("_embedded.types", TypeDto.class);
             //@formatter:on
 
-            assertThat(result).hasSize(18);
+            assertThat(result).hasSize(19);
         }
 
         @Test
@@ -272,7 +272,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/type/{type}", TypeType.ADDRESS)
+                        .get("/types/{type}", TypeType.ADDRESS)
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -288,7 +288,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/type/{type}", "whatever")
+                .get("/types/{type}", "whatever")
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
@@ -301,7 +301,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
+                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -321,7 +321,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
+                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -341,7 +341,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .contentType(ContentType.JSON)
                         .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     .when()
-                        .get("/type/{type}/{id}", TypeType.ADDRESS, "HOME")
+                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body().as(TypeDto.class);
@@ -359,7 +359,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/type/{type}/{id}", TypeType.ADDRESS, 1L)
+                .get("/types/{type}/{id}", TypeType.ADDRESS, 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

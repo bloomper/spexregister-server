@@ -226,7 +226,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     @Test
     public void should_get_spex() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
-        var realSpexApi = new SpexApi(null, null, null, null);
+        var realSpexApi = new SpexApi(null, null, null, null, null, null);
 
         when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
         when(spexApi.getLinks(any(SpexDto.class))).thenReturn(realSpexApi.getLinks(spex));

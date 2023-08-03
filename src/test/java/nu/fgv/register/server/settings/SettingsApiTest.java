@@ -97,7 +97,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/language")
+                            get("/api/v1/settings/languages")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.languages", hasSize(2)))
@@ -129,7 +129,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/language/{isoCode}", "sv")
+                            get("/api/v1/settings/languages/{isoCode}", "sv")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
@@ -163,7 +163,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/country")
+                            get("/api/v1/settings/countries")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.countries", hasSize(2)))
@@ -195,7 +195,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/country/{isoCode}", "SE")
+                            get("/api/v1/settings/countries/{isoCode}", "SE")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
@@ -229,7 +229,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/type")
+                            get("/api/v1/settings/types")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.types", hasSize(2)))
@@ -263,7 +263,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/type/{type}", TypeType.ADDRESS)
+                            get("/api/v1/settings/types/{type}", TypeType.ADDRESS)
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.types", hasSize(2)))
@@ -296,7 +296,7 @@ public class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/type/{type}/{id}", TypeType.ADDRESS, 1L)
+                            get("/api/v1/settings/types/{type}/{id}", TypeType.ADDRESS, 1L)
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("id", is(notNullValue())))

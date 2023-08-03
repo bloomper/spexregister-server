@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -39,6 +42,9 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private NewsRepository repository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     public NewsApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         random = new EasyRandom(parameters);
@@ -58,6 +64,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         RestAssured.requestSpecification = requestSpecBuilder.build();
         RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
         repository.deleteAll();
+        eventRepository.deleteAll();
     }
 
     @AfterEach
@@ -413,6 +420,35 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(0);
         }
+    }
+
+    @Nested
+    @DisplayName("Events")
+    class EventTests {
+
+        @Test
+        public void should_return_found() {
+            var news = persistNews(randomizeNews());
+
+            //@formatter:off
+            final List<EventDto> result =
+                    given()
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/events")
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.events", EventDto.class);
+            //@formatter:on
+
+            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.NEWS.name());
+            assertThat(result.get(0).getCreatedBy()).isEqualTo(news.getCreatedBy());
+        }
+
     }
 
     private News randomizeNews() {

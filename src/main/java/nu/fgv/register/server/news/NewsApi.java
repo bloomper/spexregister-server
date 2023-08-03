@@ -3,10 +3,15 @@ package nu.fgv.register.server.news;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.event.Event;
+import nu.fgv.register.server.event.EventApi;
+import nu.fgv.register.server.event.EventDto;
+import nu.fgv.register.server.event.EventService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -38,7 +44,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class NewsApi {
 
     private final NewsService service;
+    private final EventService eventService;
     private final PagedResourcesAssembler<NewsDto> pagedResourcesAssembler;
+    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = "visibleFrom", direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -100,6 +108,17 @@ public class NewsApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.NEWS).stream()
+                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
+                .toList();
+
+        return ResponseEntity.ok(
+                CollectionModel.of(events,
+                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+    }
+
     private void addLinks(final EntityModel<NewsDto> entity) {
         if (entity != null && entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -108,8 +127,11 @@ public class NewsApi {
 
     List<Link> getLinks(final NewsDto dto) {
         final List<Link> links = new ArrayList<>();
+
         links.add(linkTo(methodOn(NewsApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged())).withRel("news"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(null)).withRel("events"));
+
         return links;
     }
 
