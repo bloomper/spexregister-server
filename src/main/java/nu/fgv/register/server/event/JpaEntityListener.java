@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexCategory;
+import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
@@ -34,7 +35,11 @@ public class JpaEntityListener {
 
     @PrePersist
     private void atCreate(final Object sourceObject) {
-        constructEvent(sourceObject, Event.EventType.CREATE).ifPresent(applicationEventPublisher::publishEvent);
+        if (isSpexareRelatedChange(sourceObject) || isSpexRelatedChange(sourceObject)) {
+            constructEvent(sourceObject, Event.EventType.UPDATE).ifPresent(applicationEventPublisher::publishEvent);
+        } else {
+            constructEvent(sourceObject, Event.EventType.CREATE).ifPresent(applicationEventPublisher::publishEvent);
+        }
     }
 
     @PreUpdate
@@ -44,7 +49,11 @@ public class JpaEntityListener {
 
     @PreRemove
     private void atRemove(final Object sourceObject) {
-        constructEvent(sourceObject, Event.EventType.REMOVE).ifPresent(applicationEventPublisher::publishEvent);
+        if (isSpexareRelatedChange(sourceObject) || isSpexRelatedChange(sourceObject)) {
+            constructEvent(sourceObject, Event.EventType.UPDATE).ifPresent(applicationEventPublisher::publishEvent);
+        } else {
+            constructEvent(sourceObject, Event.EventType.REMOVE).ifPresent(applicationEventPublisher::publishEvent);
+        }
     }
 
     private Optional<SpringEvent> constructEvent(final Object sourceObject, final Event.EventType event) {
@@ -52,19 +61,11 @@ public class JpaEntityListener {
 
         if (sourceObject instanceof News) {
             source = Event.SourceType.NEWS;
-        } else if (sourceObject instanceof Spex) {
+        } else if (sourceObject instanceof SpexDetails || isSpexRelatedChange(sourceObject)) {
             source = Event.SourceType.SPEX;
         } else if (sourceObject instanceof SpexCategory) {
             source = Event.SourceType.SPEX_CATEGORY;
-        } else if (sourceObject instanceof Spexare ||
-                sourceObject instanceof Activity ||
-                sourceObject instanceof SpexActivity ||
-                sourceObject instanceof TaskActivity ||
-                sourceObject instanceof Actor ||
-                sourceObject instanceof Address ||
-                sourceObject instanceof Consent ||
-                sourceObject instanceof Membership ||
-                sourceObject instanceof Toggle) {
+        } else if (sourceObject instanceof Spexare || isSpexareRelatedChange(sourceObject)) {
             source = Event.SourceType.SPEXARE;
         } else if (sourceObject instanceof Tag) {
             source = Event.SourceType.TAG;
@@ -76,5 +77,20 @@ public class JpaEntityListener {
             source = null;
         }
         return Optional.ofNullable(source).map(s -> new SpringEvent(sourceObject, event, s));
+    }
+
+    private boolean isSpexareRelatedChange(final Object sourceObject) {
+        return sourceObject instanceof Activity ||
+                sourceObject instanceof SpexActivity ||
+                sourceObject instanceof TaskActivity ||
+                sourceObject instanceof Actor ||
+                sourceObject instanceof Address ||
+                sourceObject instanceof Consent ||
+                sourceObject instanceof Membership ||
+                sourceObject instanceof Toggle;
+    }
+
+    private boolean isSpexRelatedChange(final Object sourceObject) {
+        return sourceObject instanceof Spex;
     }
 }
