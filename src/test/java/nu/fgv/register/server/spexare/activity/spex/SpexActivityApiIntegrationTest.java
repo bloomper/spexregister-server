@@ -14,7 +14,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
-import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
@@ -84,7 +84,7 @@ public class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
                 .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
-                .excludeField(named("userDetails").and(ofType(UserDetails.class)).and(inClass(Spexare.class)))
+                .excludeField(named("user").and(ofType(User.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("memberships").and(ofType(List.class)).and(inClass(Spexare.class)))

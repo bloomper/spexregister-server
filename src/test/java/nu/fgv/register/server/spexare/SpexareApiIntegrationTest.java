@@ -7,7 +7,7 @@ import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
-import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.apache.http.HttpHeaders;
@@ -63,7 +63,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
                 .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
-                .excludeField(named("userDetails").and(ofType(UserDetails.class)).and(inClass(Spexare.class)))
+                .excludeField(named("user").and(ofType(User.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))
                 .excludeField(named("addresses").and(ofType(List.class)).and(inClass(Spexare.class)))

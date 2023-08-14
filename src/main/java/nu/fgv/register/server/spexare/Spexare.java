@@ -30,7 +30,7 @@ import nu.fgv.register.server.spexare.consent.Consent;
 import nu.fgv.register.server.spexare.membership.Membership;
 import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
-import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.CryptoConverter;
 import nu.fgv.register.server.util.Luhn;
@@ -119,7 +119,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private Spexare partner;
 
     @OneToOne(mappedBy = "spexare")
-    private UserDetails userDetails;
+    private User user;
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

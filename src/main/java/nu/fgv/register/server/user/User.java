@@ -1,9 +1,18 @@
 package nu.fgv.register.server.user;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -20,6 +29,7 @@ import jakarta.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "user")
@@ -39,21 +49,31 @@ public class User extends AbstractAuditable implements Serializable {
 
     @NotNull
     @Email
-    @Size(min = 1, max = 254)
-    @Column(name = "uid", length = 254, unique = true, nullable = false)
+    @Size(min = 1, max = 255)
+    @Column(name = "uid", unique = true, nullable = false)
     private String uid;
 
-    @Size(max = 50)
-    @Column(name = "first_name", length = 50)
-    private String firstName;
+    @Column(name = "password")
+    private String password;
 
-    @Size(max = 50)
-    @Column(name = "last_name", length = 50)
-    private String lastName;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false)
+    private State state;
 
-    @NotNull
-    @Column(name = "activated", nullable = false)
-    private boolean activated = false;
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinTable(name = "user_authority",
+            joinColumns = {
+                    @JoinColumn(name = "user_id", referencedColumnName = "id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "authority_id", referencedColumnName = "id")
+            }
+    )
+    private Set<Authority> authorities;
+
+    @OneToOne
+    @JoinColumn(unique = true)
+    private Spexare spexare;
 
     @Override
     public boolean equals(final Object o) {
@@ -71,5 +91,12 @@ public class User extends AbstractAuditable implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.getClass().hashCode());
+    }
+
+    public enum State {
+        PENDING,
+        ACTIVE,
+        INACTIVE,
+        REJECTED
     }
 }

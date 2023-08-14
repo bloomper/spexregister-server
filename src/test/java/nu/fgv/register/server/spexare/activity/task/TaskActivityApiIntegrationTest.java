@@ -13,7 +13,7 @@ import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.TaskCategory;
 import nu.fgv.register.server.task.TaskCategoryRepository;
 import nu.fgv.register.server.task.TaskRepository;
-import nu.fgv.register.server.user.UserDetails;
+import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
@@ -80,7 +80,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
                 .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
-                .excludeField(named("userDetails").and(ofType(UserDetails.class)).and(inClass(Spexare.class)))
+                .excludeField(named("user").and(ofType(User.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("memberships").and(ofType(List.class)).and(inClass(Spexare.class)))

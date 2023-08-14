@@ -1,48 +1,41 @@
 package nu.fgv.register.server.user;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user_details")
+@Table(name = "authority")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class UserDetails implements Serializable {
+public class Authority extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @OneToOne(optional = false)
-    @NotNull
-    @MapsId
-    @JoinColumn(unique = true)
-    private User user;
-
-    @OneToOne
-    @JoinColumn(unique = true)
-    private Spexare spexare;
+    @Column(unique = true)
+    private String name;
 
     @Override
     public boolean equals(final Object o) {
@@ -52,15 +45,14 @@ public class UserDetails implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final UserDetails userDetails = (UserDetails) o;
-        if (userDetails.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), userDetails.getId());
+
+        final Authority authority = (Authority) o;
+        return !(authority.getId() == null || getId() == null) && Objects.equals(getId(), authority.getId());
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(this.getClass().hashCode());
     }
+
 }

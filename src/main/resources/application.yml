@@ -33,6 +33,10 @@ spring:
       pool:
         size: 5
 
+  flyway:
+    table: flyway_schema_history_spexregister
+    baseline-on-migrate: true
+
   security:
     oauth2:
       resourceserver:
