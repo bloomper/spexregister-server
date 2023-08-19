@@ -14,7 +14,6 @@ import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
@@ -73,7 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = SpexareApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = SpexareApi.class)
 public class SpexareApiTest extends AbstractApiTest {
 
     @MockBean
@@ -635,8 +634,6 @@ public class SpexareApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.events[].source").description("The source of the event"),
                                         fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
                                         fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
-                                        fieldWithPath("_embedded.events[].lastModifiedBy").description("Who last modified the event"),
-                                        fieldWithPath("_embedded.events[].lastModifiedAt").description("When was the event last modified"),
                                         subsectionWithPath("_embedded.events[]._links").description("The event links"),
                                         linksSubsection
                                 ),

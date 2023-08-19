@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = NewsApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = NewsApi.class)
 public class NewsApiTest extends AbstractApiTest {
 
     @MockBean
@@ -104,6 +104,7 @@ public class NewsApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.news[].text").description("The text of the news"),
                                         fieldWithPath("_embedded.news[].visibleFrom").description("The visible from of the news"),
                                         fieldWithPath("_embedded.news[].visibleTo").description("The visible to of the news"),
+                                        fieldWithPath("_embedded.news[].published").description("The flag telling whether the news has been published or not"),
                                         fieldWithPath("_embedded.news[].createdBy").description("Who created the news"),
                                         fieldWithPath("_embedded.news[].createdAt").description("When was the news created"),
                                         fieldWithPath("_embedded.news[].lastModifiedBy").description("Who last modified the news"),
@@ -311,8 +312,6 @@ public class NewsApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.events[].source").description("The source of the event"),
                                         fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
                                         fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
-                                        fieldWithPath("_embedded.events[].lastModifiedBy").description("Who last modified the event"),
-                                        fieldWithPath("_embedded.events[].lastModifiedAt").description("When was the event last modified"),
                                         subsectionWithPath("_embedded.events[]._links").description("The event links"),
                                         linksSubsection
                                 ),

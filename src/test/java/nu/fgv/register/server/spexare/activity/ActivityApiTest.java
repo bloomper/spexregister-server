@@ -2,7 +2,6 @@ package nu.fgv.register.server.spexare.activity;
 
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
@@ -38,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = ActivityApi.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(value = ActivityApi.class)
 public class ActivityApiTest extends AbstractApiTest {
 
     @MockBean
