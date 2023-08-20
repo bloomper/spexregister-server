@@ -122,7 +122,7 @@ public class TaskActivityApi {
         try {
             return service
                     .findTaskByTaskActivity(spexareId, activityId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, taskApi.getLinks(dto))))
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, taskApi.getLinks(dto, false))))
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

@@ -61,7 +61,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     public SearchResult<Spexare> getSearchResult(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
         return searchSession
                 .search(Spexare.class)
-                .where(f -> f.bool(b -> {
+                .where(f -> f.bool().with(b -> {
                             if (query.freeTextQuery() != null) {
                                 b.must(f.match().fields(FIELDS).matching(query.freeTextQuery()));
                             }

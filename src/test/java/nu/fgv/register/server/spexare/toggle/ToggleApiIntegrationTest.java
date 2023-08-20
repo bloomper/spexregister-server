@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare.toggle;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -87,7 +89,10 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         spexareRepository.deleteAll();
         typeRepository.deleteAll();
@@ -106,6 +111,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId",1L)
             .when()
@@ -122,6 +128,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -144,6 +151,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -167,6 +175,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -195,6 +204,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final ToggleDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -216,6 +226,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -233,6 +244,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -254,6 +266,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -265,6 +278,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -286,6 +300,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -296,6 +311,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -313,6 +329,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -328,6 +345,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -353,6 +371,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -364,8 +383,9 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                         .pathParam("spexareId", spexare.getId())
+                        .pathParam("spexareId", spexare.getId())
                     .when()
                         .get()
                     .then()
@@ -388,6 +408,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -407,6 +428,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -426,6 +448,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -446,6 +469,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
             .when()
@@ -471,6 +495,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -482,6 +507,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ToggleDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -503,6 +529,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -522,8 +549,9 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
+                .pathParam("spexareId", -1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
@@ -541,6 +569,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -561,6 +590,7 @@ public class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
             .when()

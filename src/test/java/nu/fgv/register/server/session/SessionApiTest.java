@@ -52,6 +52,7 @@ public class SessionApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/sessions/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -73,6 +74,7 @@ public class SessionApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

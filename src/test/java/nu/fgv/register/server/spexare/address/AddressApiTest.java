@@ -79,6 +79,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.addresses", hasSize(2)))
@@ -112,6 +113,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -126,6 +128,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/addresses/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -141,6 +144,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -156,6 +160,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -180,6 +185,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -196,6 +202,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -222,6 +229,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -238,6 +246,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -264,6 +273,7 @@ public class AddressApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -276,6 +286,7 @@ public class AddressApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -286,7 +297,8 @@ public class AddressApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("typeId").description("The type id of the address"),
                                         parameterWithName("id").description("The id of the address")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }

@@ -3,6 +3,7 @@ package nu.fgv.register.server.spex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -73,7 +74,10 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         eventRepository.deleteAll();
     }
@@ -92,6 +96,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             // @formatter:off
             final List<SpexCategoryDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -111,6 +116,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexCategoryDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -131,6 +137,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexCategoryDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .queryParam("size", size)
@@ -156,6 +163,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -179,6 +187,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -201,6 +210,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexCategoryDto result =
                 given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .contentType(ContentType.JSON)
                 .when()
                     .get("/{id}", category.getId())
@@ -219,6 +229,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -239,6 +250,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexCategoryDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", category.getId())
@@ -256,6 +268,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                             .contentType(ContentType.JSON)
                             .body(dto)
                     .when()
@@ -270,6 +283,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexCategoryDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", category.getId())
@@ -292,6 +306,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -309,6 +324,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -332,6 +348,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexCategoryDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", category.getId())
@@ -349,6 +366,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -363,6 +381,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexCategoryDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", category.getId())
@@ -384,6 +403,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -407,6 +427,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", category.getId())
@@ -421,6 +442,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -443,6 +465,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
@@ -454,6 +477,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/logo", category.getId())
@@ -473,6 +497,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .multiPart("file", logo, MediaType.IMAGE_PNG_VALUE)
             .when()
                 .post("/{id}/logo", category.getId())
@@ -483,6 +508,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/logo", category.getId())
@@ -502,6 +528,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
@@ -512,6 +539,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/logo", category.getId())
@@ -521,6 +549,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}/logo", category.getId())
@@ -541,6 +570,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/events")

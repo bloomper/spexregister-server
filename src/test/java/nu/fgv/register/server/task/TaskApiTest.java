@@ -31,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -111,6 +110,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tasks?page=1&size=2&sort=name,desc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.tasks", hasSize(2)))
@@ -134,6 +134,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -148,6 +149,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tasks?ids=1,2,3")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -161,7 +163,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("ids").description("The ids of the tasks to export").optional()
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
                                 ),
                                 responseHeaders.and(
@@ -183,6 +185,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/tasks")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -197,6 +200,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -211,6 +215,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tasks/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -225,6 +230,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -241,6 +247,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/tasks/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -261,6 +268,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -277,6 +285,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/tasks/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -297,6 +306,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -312,6 +322,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/tasks/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -322,7 +333,8 @@ public class TaskApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the task")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -338,6 +350,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tasks/{taskId}/category", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -350,6 +363,7 @@ public class TaskApiTest extends AbstractApiTest {
                                 ),
                                 categoryResponseFields,
                                 categoryLinks,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -362,6 +376,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/tasks/{taskId}/category/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -371,7 +386,8 @@ public class TaskApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("taskId").description("The id of the task"),
                                         parameterWithName("id").description("The id of the task category")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -383,6 +399,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/tasks/{taskId}/category", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -391,7 +408,8 @@ public class TaskApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("taskId").description("The id of the task")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -409,6 +427,7 @@ public class TaskApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tasks/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -430,6 +449,7 @@ public class TaskApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

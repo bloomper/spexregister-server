@@ -201,12 +201,18 @@ public class TaskApi {
     }
 
     public List<Link> getLinks(final TaskDto dto) {
+        return getLinks(dto, true);
+    }
+
+    public List<Link> getLinks(final TaskDto dto, final boolean includeEvents) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaskApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskApi.class).retrieve(Pageable.unpaged())).withRel("tasks"));
         links.add(linkTo(methodOn(TaskApi.class).retrieveCategory(dto.getId())).withRel("category"));
-        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("events"));
+        if (includeEvents) {
+            links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("events"));
+        }
 
         return links;
     }

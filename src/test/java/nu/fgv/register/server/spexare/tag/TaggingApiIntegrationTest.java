@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare.tag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -84,7 +86,10 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         spexareRepository.deleteAll();
     }
@@ -102,6 +107,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId",1L)
             .when()
@@ -118,6 +124,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -141,6 +148,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -169,6 +177,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -196,6 +205,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -207,6 +217,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -228,6 +239,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -238,6 +250,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -255,6 +268,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -279,6 +293,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -289,6 +304,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -300,6 +316,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -320,6 +337,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -337,8 +355,9 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
+                .pathParam("spexareId", -1L)
             .when()
                 .delete("/{id}", tag.getId())
             .then()

@@ -3,9 +3,10 @@ spring:
     properties:
       hibernate:
         search:
-          automatic_indexing:
-            synchronization:
-              strategy: sync
+          indexing:
+            plan:
+              synchronization:
+                strategy: sync
 
 spexregister:
   crypto:

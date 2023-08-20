@@ -31,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -95,6 +94,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tags?page=1&size=2&sort=name,asc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.tags", hasSize(2)))
@@ -118,6 +118,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -132,6 +133,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tags?ids=1,2,3")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -145,7 +147,7 @@ public class TagApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("ids").description("The ids of the tags to export").optional()
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
                                 ),
                                 responseHeaders.and(
@@ -167,6 +169,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/tags")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -181,6 +184,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -195,6 +199,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tags/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -209,6 +214,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -225,6 +231,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/tags/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -245,6 +252,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -261,6 +269,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/tags/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -281,6 +290,7 @@ public class TagApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -296,6 +306,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/tags/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -306,7 +317,8 @@ public class TagApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the tag")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -324,6 +336,7 @@ public class TagApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/tags/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -345,6 +358,7 @@ public class TagApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

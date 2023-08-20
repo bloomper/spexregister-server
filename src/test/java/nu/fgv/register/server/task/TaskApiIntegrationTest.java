@@ -3,6 +3,7 @@ package nu.fgv.register.server.task;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -49,6 +51,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
     private EventRepository eventRepository;
 
     public TaskApiIntegrationTest() {
+        super();
         final EasyRandomParameters parameters = new EasyRandomParameters();
         random = new EasyRandom(parameters);
     }
@@ -65,7 +68,10 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         categoryRepository.deleteAll();
         eventRepository.deleteAll();
@@ -85,6 +91,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -105,6 +112,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -128,6 +136,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .queryParam("size", size)
@@ -154,6 +163,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -177,6 +187,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -200,6 +211,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", task.getId())
@@ -218,6 +230,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -239,6 +252,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", task.getId())
@@ -255,6 +269,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -269,6 +284,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", task.getId())
@@ -291,6 +307,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -308,6 +325,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -332,6 +350,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", task.getId())
@@ -348,6 +367,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -362,6 +382,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", task.getId())
@@ -383,6 +404,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -407,6 +429,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", task.getId())
@@ -421,6 +444,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -444,6 +468,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final TaskCategoryDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{taskId}/category", task.getId())
@@ -463,6 +488,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{taskId}/category", 1L)
@@ -480,6 +506,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{taskId}/category/{id}", task.getId(), category.getId())
@@ -494,6 +521,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_updating_and_task_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{id}/category/{categoryId}", 1L, 1L)
@@ -511,6 +539,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{taskId}/category/{id}", task.getId(), 1L)
@@ -528,6 +557,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{taskId}/category", task.getId())
@@ -544,6 +574,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{taskId}/category", task.getId())
@@ -558,6 +589,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_removing_and_task_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{taskId}/category", 1L)
@@ -582,6 +614,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/events")

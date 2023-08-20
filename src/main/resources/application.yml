@@ -16,13 +16,15 @@ spring:
         search:
           backend:
             type: lucene
+            lucene_version: LATEST
             directory:
               type: local-filesystem
               root: ./.index
           schema_management:
             strategy: create-or-update
-          automatic_indexing:
-            enabled: true
+          indexing:
+            listeners:
+              enabled: true
 
   servlet:
     multipart:

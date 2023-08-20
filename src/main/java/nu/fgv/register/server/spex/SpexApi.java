@@ -98,7 +98,7 @@ public class SpexApi {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieve(newDto.getId())).toString())
-                .body(EntityModel.of(newDto, getLinks(newDto)));
+                .body(EntityModel.of(newDto, getLinks(newDto, true)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -326,6 +326,10 @@ public class SpexApi {
     }
 
     public List<Link> getLinks(final SpexDto dto) {
+        return getLinks(dto, true);
+    }
+
+    public List<Link> getLinks(final SpexDto dto, final boolean includeEvents) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel());
@@ -338,7 +342,9 @@ public class SpexApi {
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }
-        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null)).withRel("events"));
+        if (includeEvents) {
+            links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null)).withRel("events"));
+        }
 
         return links;
     }

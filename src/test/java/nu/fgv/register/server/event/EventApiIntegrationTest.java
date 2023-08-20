@@ -3,6 +3,7 @@ package nu.fgv.register.server.event;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.jeasy.random.EasyRandom;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -56,7 +58,10 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         eventRepository.deleteAll();
     }
 
@@ -74,6 +79,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -94,6 +100,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -115,6 +122,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -140,6 +148,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final EventDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", event.getId())
@@ -158,6 +167,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)

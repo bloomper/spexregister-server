@@ -69,6 +69,7 @@ public class MembershipApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberships", hasSize(2)))
@@ -96,6 +97,7 @@ public class MembershipApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -110,6 +112,7 @@ public class MembershipApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/memberships/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -125,6 +128,7 @@ public class MembershipApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -139,6 +143,7 @@ public class MembershipApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1L, "FGV", "2023")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -153,6 +158,7 @@ public class MembershipApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -165,6 +171,7 @@ public class MembershipApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -175,7 +182,8 @@ public class MembershipApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("typeId").description("The type id of the membership"),
                                         parameterWithName("id").description("The id of the membership")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }

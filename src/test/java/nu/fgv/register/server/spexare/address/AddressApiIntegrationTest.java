@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare.address;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -91,7 +93,10 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         spexareRepository.deleteAll();
         typeRepository.deleteAll();
@@ -110,6 +115,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId",1L)
             .when()
@@ -126,6 +132,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -148,6 +155,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -171,6 +179,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -199,6 +208,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final AddressDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -220,6 +230,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -237,6 +248,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -259,6 +271,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -271,6 +284,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -293,6 +307,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -304,6 +319,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -323,6 +339,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .body(dto)
@@ -342,6 +359,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -368,6 +386,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final AddressDto before = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -384,6 +403,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(updateDto)
@@ -396,8 +416,9 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> after =
                     given()
-                         .contentType(ContentType.JSON)
-                         .pathParam("spexareId", spexare.getId())
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
                     .when()
                         .get()
                     .then()
@@ -421,6 +442,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -440,6 +462,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .body(dto)
@@ -459,6 +482,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -482,6 +506,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .body(dto)
@@ -508,6 +533,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final AddressDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .body(dto)
@@ -522,6 +548,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(updateDto)
@@ -534,6 +561,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -559,6 +587,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -578,6 +607,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .body(dto)
@@ -597,6 +627,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
@@ -620,6 +651,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .body(dto)
@@ -646,6 +678,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -657,6 +690,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<AddressDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -678,6 +712,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -697,8 +732,9 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
+                .pathParam("spexareId", -1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), address.getId())
             .then()
@@ -716,6 +752,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -736,6 +773,7 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
             .when()

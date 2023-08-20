@@ -70,6 +70,7 @@ public class ToggleApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.toggles", hasSize(2)))
@@ -97,6 +98,7 @@ public class ToggleApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -111,6 +113,7 @@ public class ToggleApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/toggles/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -126,6 +129,7 @@ public class ToggleApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -140,6 +144,7 @@ public class ToggleApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1L, toggle.getId(), Boolean.TRUE)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -154,6 +159,7 @@ public class ToggleApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -168,6 +174,7 @@ public class ToggleApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1L, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -183,6 +190,7 @@ public class ToggleApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -195,6 +203,7 @@ public class ToggleApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -205,7 +214,8 @@ public class ToggleApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("typeId").description("The type id of the toggle"),
                                         parameterWithName("id").description("The id of the toggle")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }

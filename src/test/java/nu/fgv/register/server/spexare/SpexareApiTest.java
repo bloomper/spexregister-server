@@ -43,7 +43,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -127,6 +126,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare?page=1&size=2&sort=firstName,desc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
@@ -153,6 +153,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -180,6 +181,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare?q=FirstName&page=1&size=2&sort=firstName,desc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
@@ -209,6 +211,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pagingQueryParameters.and(
                                         parameterWithName("q").description("The query")
                                 ),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -223,6 +226,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare?ids=1,2,3")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -236,7 +240,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("ids").description("The ids of the spexare to export").optional()
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
                                 ),
                                 responseHeaders.and(
@@ -258,6 +262,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -274,6 +279,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -288,6 +294,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -302,6 +309,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -318,6 +326,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -343,6 +352,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -359,6 +369,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/spexare/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -384,6 +395,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -399,6 +411,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{id}", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -409,7 +422,8 @@ public class SpexareApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -423,6 +437,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{id}/image", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, image.getSecond()))
@@ -436,6 +451,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
+                                secureRequestHeaders,
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
@@ -455,6 +471,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{id}/image", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(image)
                 )
@@ -468,7 +485,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody()
@@ -487,6 +504,7 @@ public class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         multipart("/api/v1/spexare/{id}/image", 1L)
                                 .file(image)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -498,6 +516,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
+                                secureRequestHeaders,
                                 requestParts(
                                         partWithName("file").description("The image to upload")
                                 )
@@ -514,6 +533,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{id}/image", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -524,7 +544,8 @@ public class SpexareApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -538,6 +559,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{id}/partner", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -552,6 +574,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -566,6 +589,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/partner/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -579,6 +603,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -591,6 +616,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/partner", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -599,7 +625,8 @@ public class SpexareApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -617,6 +644,7 @@ public class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -638,6 +666,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

@@ -121,7 +121,7 @@ public class SpexActivityApi {
         try {
             return service
                     .findSpexBySpexActivity(spexareId, activityId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexApi.getLinks(dto))))
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexApi.getLinks(dto, false))))
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

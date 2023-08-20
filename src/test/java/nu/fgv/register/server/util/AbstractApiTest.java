@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.constraints.ConstraintDescriptions;
+import org.springframework.restdocs.headers.RequestHeadersSnippet;
 import org.springframework.restdocs.headers.ResponseHeadersSnippet;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.FieldDescriptor;
@@ -24,6 +25,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.List;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.halLinks;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -68,6 +70,10 @@ public abstract class AbstractApiTest {
             parameterWithName("page").description("The page to be requested"),
             parameterWithName("size").description("Parameter determining the size of the requested page"),
             parameterWithName("sort").description("Information about sorting elements")
+    );
+
+    protected static final RequestHeadersSnippet secureRequestHeaders = requestHeaders(
+            headerWithName(HttpHeaders.AUTHORIZATION).description("The authorization header")
     );
 
     protected static final ResponseHeadersSnippet responseHeaders = responseHeaders(

@@ -4,10 +4,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
-import nu.fgv.register.server.spex.SpexCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
@@ -87,6 +85,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.news", hasSize(2)))
@@ -114,6 +113,7 @@ public class NewsApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -129,6 +129,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/news")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -146,6 +147,7 @@ public class NewsApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -160,6 +162,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/news/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -174,6 +177,7 @@ public class NewsApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -190,6 +194,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/news/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -213,6 +218,7 @@ public class NewsApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -229,6 +235,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/news/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -252,6 +259,7 @@ public class NewsApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -267,6 +275,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/news/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -277,7 +286,8 @@ public class NewsApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the news")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -295,6 +305,7 @@ public class NewsApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/news/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -316,6 +327,7 @@ public class NewsApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

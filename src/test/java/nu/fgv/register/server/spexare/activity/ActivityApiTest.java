@@ -65,6 +65,7 @@ public class ActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.activities", hasSize(2)))
@@ -90,6 +91,7 @@ public class ActivityApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -104,6 +106,7 @@ public class ActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -119,6 +122,7 @@ public class ActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -133,6 +137,7 @@ public class ActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -145,6 +150,7 @@ public class ActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -157,6 +163,7 @@ public class ActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -166,7 +173,8 @@ public class ActivityApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("id").description("The id of the activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }

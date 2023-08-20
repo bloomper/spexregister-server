@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -83,6 +84,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.task-activities", hasSize(2)))
@@ -109,6 +111,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -123,6 +126,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -139,6 +143,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -153,6 +158,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -167,6 +173,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -179,6 +186,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -190,7 +198,8 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("taskId").description("The id of the task"),
                                         parameterWithName("id").description("The id of the task activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -202,6 +211,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -212,7 +222,8 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("id").description("The id of the task activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -223,11 +234,12 @@ public class TaskActivityApiTest extends AbstractApiTest {
         var realTaskApi = new TaskApi(null, null, null, null, null, null);
 
         when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(task));
-        when(taskApi.getLinks(any(TaskDto.class))).thenReturn(realTaskApi.getLinks(task));
+        when(taskApi.getLinks(any(TaskDto.class), eq(false))).thenReturn(realTaskApi.getLinks(task, false));
 
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -244,6 +256,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
                                 ),
                                 taskResponseFields,
                                 taskLinks,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -87,7 +88,10 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         eventRepository.deleteAll();
     }
@@ -106,6 +110,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -125,6 +130,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -145,6 +151,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .queryParam("size", size)
@@ -169,6 +176,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .queryParam("q", "whatever")
@@ -189,6 +197,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
 
@@ -214,6 +223,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .queryParam("size", size)
@@ -241,6 +251,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -264,6 +275,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -286,6 +298,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -304,6 +317,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -324,6 +338,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -342,6 +357,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -356,6 +372,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -378,6 +395,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -396,6 +414,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -413,6 +432,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -436,6 +456,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto before =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -454,6 +475,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -468,6 +490,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -489,6 +512,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -512,6 +536,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", spexare.getId())
@@ -526,6 +551,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -548,6 +574,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
@@ -559,6 +586,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/image", spexare.getId())
@@ -578,6 +606,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .multiPart("file", image, MediaType.IMAGE_PNG_VALUE)
             .when()
                 .post("/{id}/image", spexare.getId())
@@ -588,6 +617,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/image", spexare.getId())
@@ -607,6 +637,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
@@ -617,6 +648,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/image", spexare.getId())
@@ -626,6 +658,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}/image", spexare.getId())
@@ -651,6 +684,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{spexareId}/partner", spexare.getId())
@@ -669,6 +703,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_retrieving_and_spexare_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{spexareId}/partner", 1L)
@@ -683,6 +718,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{spexareId}/partner", spexare.getId())
@@ -698,6 +734,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
@@ -710,6 +747,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_updating_and_spexare_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", 1L, 1L)
@@ -724,6 +762,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), 1L)
@@ -743,6 +782,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", spexare.getId())
@@ -757,6 +797,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", spexare.getId())
@@ -769,6 +810,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404_when_removing_and_spexare_not_found() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", 1L)
@@ -790,6 +832,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/events")

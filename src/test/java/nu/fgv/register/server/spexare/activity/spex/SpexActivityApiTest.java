@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -88,6 +89,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities?page=1&size=2&sort=id,desc", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex-activities", hasSize(2)))
@@ -114,6 +116,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -128,6 +131,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -144,6 +148,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -158,6 +163,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{spexId}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -172,6 +178,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -184,6 +191,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1L, 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -195,7 +203,8 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("id").description("The id of the spex activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -207,6 +216,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -217,7 +227,8 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("id").description("The id of the spex activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -228,11 +239,12 @@ public class SpexActivityApiTest extends AbstractApiTest {
         var realSpexApi = new SpexApi(null, null, null, null, null, null);
 
         when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
-        when(spexApi.getLinks(any(SpexDto.class))).thenReturn(realSpexApi.getLinks(spex));
+        when(spexApi.getLinks(any(SpexDto.class), eq(false))).thenReturn(realSpexApi.getLinks(spex, false));
 
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/spex", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -249,6 +261,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
                                 ),
                                 spexResponseFields,
                                 spexLinks,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

@@ -32,7 +32,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -102,6 +101,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spex/categories?page=1&size=2&sort=name,asc")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex-categories", hasSize(2)))
@@ -126,6 +126,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -140,6 +141,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spex/categories?ids=1,2,3")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -153,7 +155,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("ids").description("The ids of the spex categories to export").optional()
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
                                 ),
                                 responseHeaders.and(
@@ -175,6 +177,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spex/categories")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -190,6 +193,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -204,6 +208,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spex/categories/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -218,6 +223,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -234,6 +240,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spex/categories/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -255,6 +262,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -271,6 +279,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/spex/categories/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -292,6 +301,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -307,6 +317,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spex/categories/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -317,7 +328,8 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -330,6 +342,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spex/categories/{spexId}/logo", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, logo.getSecond()))
@@ -343,6 +356,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex category")
                                 ),
+                                secureRequestHeaders,
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
@@ -361,6 +375,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spex/categories/{spexId}/logo", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(logo)
                 )
@@ -374,7 +389,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex category")
                                 ),
-                                requestHeaders(
+                                secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody()
@@ -392,6 +407,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         multipart("/api/v1/spex/categories/{spexId}/logo", 1)
                                 .file(logo)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -403,6 +419,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex category")
                                 ),
+                                secureRequestHeaders,
                                 requestParts(
                                         partWithName("file").description("The logo to upload")
                                 )
@@ -418,6 +435,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spex/categories/{spexId}/logo", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
@@ -428,7 +446,8 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex category")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
@@ -446,6 +465,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spex/categories/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -467,6 +487,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

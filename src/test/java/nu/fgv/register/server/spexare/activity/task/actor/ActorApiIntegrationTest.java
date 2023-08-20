@@ -3,6 +3,7 @@ package nu.fgv.register.server.spexare.activity.task.actor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -116,7 +118,10 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
+        RestAssured.config = config()
+                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
+                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+
         repository.deleteAll();
         spexareRepository.deleteAll();
         activityRepository.deleteAll();
@@ -139,6 +144,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_404() {
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId",1L)
                 .pathParam("activityId",1L)
@@ -161,6 +167,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -189,6 +196,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -218,6 +226,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -246,6 +255,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare1.getId())
                         .pathParam("activityId", activity.getId())
@@ -274,6 +284,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare2.getId())
                         .pathParam("activityId", activity1.getId())
@@ -306,6 +317,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final ActorDto result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -333,6 +345,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -356,6 +369,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -379,6 +393,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -402,6 +417,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -426,6 +442,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -450,6 +467,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                     .pathParam("spexareId", spexare.getId())
                     .pathParam("activityId", activity1.getId())
@@ -474,6 +492,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -502,6 +521,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -516,6 +536,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -544,6 +565,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -557,6 +579,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -583,6 +606,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -609,6 +633,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -633,6 +658,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -656,6 +682,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -683,6 +710,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -710,6 +738,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
@@ -740,23 +769,26 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            final ActorDto before = given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract().body().as(ActorDto.class);
+            final ActorDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                    .pathParam("spexareId", spexare.getId())
+                    .pathParam("activityId", activity.getId())
+                    .pathParam("taskActivityId", taskActivity.getId())
+                    .body(dto)
+                .when()
+                    .post("/{vocalId}", vocal.getId())
+                .then()
+                    .statusCode(HttpStatus.CREATED.value())
+                    .extract().body().as(ActorDto.class);
             //@formatter:on
 
             var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -771,6 +803,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -802,6 +835,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -828,6 +862,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -854,6 +889,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -880,6 +916,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -906,6 +943,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -935,6 +973,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -964,6 +1003,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
@@ -993,6 +1033,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1023,7 +1064,9 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            final ActorDto before = given()
+            final ActorDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .contentType(ContentType.JSON)
                     .pathParam("spexareId", spexare.getId())
                     .pathParam("activityId", activity.getId())
@@ -1040,6 +1083,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1054,6 +1098,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> after =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -1085,6 +1130,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1111,6 +1157,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -1137,6 +1184,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -1163,6 +1211,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1189,6 +1238,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1218,6 +1268,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -1247,6 +1298,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
@@ -1276,6 +1328,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1307,6 +1360,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1320,6 +1374,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<ActorDto> result =
                     given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -1347,6 +1402,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1372,8 +1428,9 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
+                .pathParam("spexareId", -1L)
                 .pathParam("activityId", activity.getId())
                 .pathParam("taskActivityId", taskActivity.getId())
             .when()
@@ -1397,6 +1454,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -1422,6 +1480,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -1448,6 +1507,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -1474,6 +1534,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
@@ -1500,6 +1561,7 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())

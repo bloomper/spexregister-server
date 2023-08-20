@@ -57,7 +57,8 @@ public class EventApiTest extends AbstractApiTest {
             linkWithRel("spexare-events").description("Link to spexare events").optional(),
             linkWithRel("tag-events").description("Link to tag events").optional(),
             linkWithRel("task-events").description("Link to task events").optional(),
-            linkWithRel("task-category-events").description("Link to task category events").optional()
+            linkWithRel("task-category-events").description("Link to task category events").optional(),
+            linkWithRel("user-events").description("Link to user events").optional()
     );
 
     @Test
@@ -70,6 +71,7 @@ public class EventApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/events?sinceInDays=30")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
@@ -91,6 +93,7 @@ public class EventApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -105,6 +108,7 @@ public class EventApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/events/{id}", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -119,6 +123,7 @@ public class EventApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );

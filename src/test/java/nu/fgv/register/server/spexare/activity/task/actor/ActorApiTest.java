@@ -75,6 +75,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors?page=1&size=2&sort=id,desc", 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.actors", hasSize(2)))
@@ -103,6 +104,7 @@ public class ActorApiTest extends AbstractApiTest {
                                 ),
                                 pagingLinks,
                                 pagingQueryParameters,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -117,6 +119,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{id}", 1L, 1L, 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -134,6 +137,7 @@ public class ActorApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -150,6 +154,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}", 1L, 1L, 1L, "B1")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -170,6 +175,7 @@ public class ActorApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 createResponseHeaders
                         )
                 );
@@ -186,6 +192,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -207,6 +214,7 @@ public class ActorApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -223,6 +231,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         patch("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(this.objectMapper.writeValueAsString(dto))
                 )
@@ -244,6 +253,7 @@ public class ActorApiTest extends AbstractApiTest {
                                 ),
                                 responseFields,
                                 links,
+                                secureRequestHeaders,
                                 responseHeaders
                         )
                 );
@@ -256,6 +266,7 @@ public class ActorApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
@@ -268,7 +279,8 @@ public class ActorApiTest extends AbstractApiTest {
                                         parameterWithName("taskActivityId").description("The id of the task activity"),
                                         parameterWithName("vocalId").description("The vocal id of the actor"),
                                         parameterWithName("id").description("The id of the task activity")
-                                )
+                                ),
+                                secureRequestHeaders
                         )
                 );
     }
