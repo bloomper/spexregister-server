@@ -10,6 +10,7 @@ import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.tag.TagApi;
 import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.TaskCategoryApi;
+import nu.fgv.register.server.user.UserApi;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -68,6 +69,7 @@ public class EventApi {
         links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null)).withRel("tag-events"));
         links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("task-events"));
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(null)).withRel("task-category-events"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("user-events"));
 
         return links;
     }

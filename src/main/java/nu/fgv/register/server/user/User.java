@@ -1,31 +1,33 @@
 package nu.fgv.register.server.user;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -33,6 +35,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "user")
+@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
@@ -47,11 +50,11 @@ public class User extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Email
-    @Size(min = 1, max = 255)
-    @Column(name = "uid", unique = true, nullable = false)
-    private String uid;
+    @NotBlank(message = "{user.username.notEmpty}")
+    @Size(max = 255, message = "{user.username.size}")
+    @Email(message = "{user.username.valid}")
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
 
     @Column(name = "password")
     private String password;
@@ -74,6 +77,9 @@ public class User extends AbstractAuditable implements Serializable {
     @OneToOne
     @JoinColumn(unique = true)
     private Spexare spexare;
+
+    @Column(name = "federated")
+    private boolean federated;
 
     @Override
     public boolean equals(final Object o) {

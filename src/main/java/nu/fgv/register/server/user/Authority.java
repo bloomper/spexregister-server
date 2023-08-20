@@ -32,9 +32,9 @@ public class Authority extends AbstractAuditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(unique = true)
+    @Column(name = "name", unique = true, nullable = false)
     private String name;
 
     @Override

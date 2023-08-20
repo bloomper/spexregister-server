@@ -21,6 +21,7 @@ import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.TaskCategory;
+import nu.fgv.register.server.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +74,8 @@ public class JpaEntityListener {
             source = Event.SourceType.TASK;
         } else if (sourceObject instanceof TaskCategory) {
             source = Event.SourceType.TASK_CATEGORY;
+        } else if (sourceObject instanceof User) {
+            source = Event.SourceType.USER;
         } else {
             source = null;
         }
