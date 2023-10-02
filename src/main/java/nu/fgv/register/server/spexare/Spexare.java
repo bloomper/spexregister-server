@@ -32,7 +32,7 @@ import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
-import nu.fgv.register.server.util.CryptoConverter;
+import nu.fgv.register.server.util.security.CryptoConverter;
 import nu.fgv.register.server.util.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;

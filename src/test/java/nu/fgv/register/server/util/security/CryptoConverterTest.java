@@ -1,4 +1,4 @@
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.security;
 
 import org.junit.jupiter.api.Test;
 

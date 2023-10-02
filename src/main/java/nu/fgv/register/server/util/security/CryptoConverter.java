@@ -1,4 +1,4 @@
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.security;
 
 import jakarta.persistence.AttributeConverter;
 import lombok.extern.slf4j.Slf4j;
