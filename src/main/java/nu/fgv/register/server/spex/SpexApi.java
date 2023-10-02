@@ -7,6 +7,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.spex.category.SpexCategoryApi;
+import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.Constants;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;

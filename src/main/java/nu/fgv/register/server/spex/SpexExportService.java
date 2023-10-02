@@ -2,6 +2,8 @@ package nu.fgv.register.server.spex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spex.category.SpexCategoryDto;
+import nu.fgv.register.server.spex.category.SpexCategoryService;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExcelWriter;
 import org.apache.poi.ss.usermodel.IndexedColors;

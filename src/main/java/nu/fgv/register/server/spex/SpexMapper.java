@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spex;
 
+import nu.fgv.register.server.spex.category.SpexCategoryMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.InheritConfiguration;

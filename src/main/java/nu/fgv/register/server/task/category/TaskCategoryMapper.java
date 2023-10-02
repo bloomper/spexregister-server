@@ -1,6 +1,5 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.task.category;
 
-import org.mapstruct.BeanMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -18,35 +17,30 @@ import org.mapstruct.factory.Mappers;
         unmappedTargetPolicy = ReportingPolicy.ERROR,
         unmappedSourcePolicy = ReportingPolicy.ERROR
 )
-public interface SpexCategoryMapper {
+public interface TaskCategoryMapper {
 
-    SpexCategoryMapper SPEX_CATEGORY_MAPPER = Mappers.getMapper(SpexCategoryMapper.class);
+    TaskCategoryMapper TASK_CATEGORY_MAPPER = Mappers.getMapper(TaskCategoryMapper.class);
 
-    @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
-    SpexCategoryDto toDto(SpexCategory model);
+    TaskCategoryDto toDto(TaskCategory model);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "logo", ignore = true),
-            @Mapping(target = "logoContentType", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
             @Mapping(target = "lastModifiedAt", ignore = true)
     })
-    SpexCategory toModel(SpexCategoryCreateDto dto);
+    TaskCategory toModel(TaskCategoryCreateDto dto);
 
     @Mappings({
-            @Mapping(target = "logo", ignore = true),
-            @Mapping(target = "logoContentType", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "lastModifiedBy", ignore = true),
             @Mapping(target = "lastModifiedAt", ignore = true)
     })
-    SpexCategory toModel(SpexCategoryUpdateDto dto);
+    TaskCategory toModel(TaskCategoryUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")
-    void toPartialModel(SpexCategoryUpdateDto dto, @MappingTarget SpexCategory model);
+    void toPartialModel(TaskCategoryUpdateDto dto, @MappingTarget TaskCategory model);
 
 }

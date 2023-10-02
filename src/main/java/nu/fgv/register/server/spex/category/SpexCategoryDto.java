@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.spex.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

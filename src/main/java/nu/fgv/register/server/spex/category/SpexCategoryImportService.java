@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.spex.category;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

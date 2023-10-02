@@ -1,4 +1,4 @@
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.task.category;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nu.fgv.register.server.task.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
+import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 
 @Slf4j
 @RequiredArgsConstructor

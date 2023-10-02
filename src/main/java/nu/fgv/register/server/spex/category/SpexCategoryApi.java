@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.spex.category;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -234,7 +234,7 @@ public class SpexCategoryApi {
         dto.add(getLinks(dto));
     }
 
-    List<Link> getLinks(final SpexCategoryDto dto) {
+    public List<Link> getLinks(final SpexCategoryDto dto) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());

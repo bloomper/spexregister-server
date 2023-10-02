@@ -1,4 +1,4 @@
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.task.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

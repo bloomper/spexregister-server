@@ -1,5 +1,9 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.task.category;
 
+import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.task.category.TaskCategoryDto;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
+import nu.fgv.register.server.task.category.TaskCategoryService;
 import org.jeasy.random.EasyRandomExtension;
 import org.jeasy.random.Random;
 import org.junit.jupiter.api.Test;
@@ -21,19 +25,19 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(EasyRandomExtension.class)
-public class SpexCategoryServiceTest {
+public class TaskCategoryServiceTest {
 
     @InjectMocks
-    private SpexCategoryService service;
+    private TaskCategoryService service;
 
     @Mock
-    private SpexCategoryRepository repository;
+    private TaskCategoryRepository repository;
 
     @Random
-    private SpexCategory category1;
+    private TaskCategory category1;
 
     @Random
-    private SpexCategory category2;
+    private TaskCategory category2;
 
     @Test
     public void givenNoModels_whenFind_thenReturnEmptyPagedDtos() {
@@ -41,7 +45,7 @@ public class SpexCategoryServiceTest {
         when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
         // when
-        final Page<SpexCategoryDto> page = service.find(Pageable.unpaged());
+        final Page<TaskCategoryDto> page = service.find(Pageable.unpaged());
 
         // then
         assertThat(page.getTotalElements(), is(0L));
@@ -53,12 +57,10 @@ public class SpexCategoryServiceTest {
         when(repository.findAll(Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(category1, category2)));
 
         // when
-        final Page<SpexCategoryDto> page = service.find(Pageable.unpaged());
+        final Page<TaskCategoryDto> page = service.find(Pageable.unpaged());
 
         // then
         assertThat(page.getTotalElements(), is(2L));
-        assertThat(page.getContent().get(0).getFirstYear(), is(category1.getFirstYear()));
-        assertThat(page.getContent().get(1).getFirstYear(), is(category2.getFirstYear()));
     }
 
     @Test
@@ -67,7 +69,7 @@ public class SpexCategoryServiceTest {
         when(repository.findById(any(Long.class))).thenReturn(Optional.empty());
 
         // when
-        final Optional<SpexCategoryDto> dto = service.findById(1L);
+        final Optional<TaskCategoryDto> dto = service.findById(1L);
 
         // then
         assertThat(dto.isPresent(), is(false));
@@ -79,11 +81,10 @@ public class SpexCategoryServiceTest {
         when(repository.findById(any(Long.class))).thenReturn(Optional.of(category1));
 
         // when
-        final Optional<SpexCategoryDto> dto = service.findById(1L);
+        final Optional<TaskCategoryDto> dto = service.findById(1L);
 
         // then
         assertThat(dto.isPresent(), is(true));
-        assertThat(dto.get().getFirstYear(), is(category1.getFirstYear()));
     }
 
 }

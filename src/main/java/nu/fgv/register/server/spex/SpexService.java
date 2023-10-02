@@ -3,6 +3,8 @@ package nu.fgv.register.server.spex;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spex.category.SpexCategoryDto;
+import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.FileUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nu.fgv.register.server.spex.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
+import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 

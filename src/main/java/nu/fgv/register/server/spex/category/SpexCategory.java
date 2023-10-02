@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.spex.category;
 
 import jakarta.persistence.EntityListeners;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.task.category;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

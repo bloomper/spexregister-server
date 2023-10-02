@@ -1,4 +1,4 @@
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.task.category;
 
 import jakarta.persistence.EntityListeners;
 import lombok.Getter;

@@ -1,5 +1,6 @@
 package nu.fgv.register.server.spex;
 
+import nu.fgv.register.server.spex.category.SpexCategory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;

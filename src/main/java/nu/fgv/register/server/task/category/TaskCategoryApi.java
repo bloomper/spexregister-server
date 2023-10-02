@@ -1,4 +1,4 @@
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.task.category;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -196,7 +196,7 @@ public class TaskCategoryApi {
         dto.add(getLinks(dto));
     }
 
-    List<Link> getLinks(final TaskCategoryDto dto) {
+    public List<Link> getLinks(final TaskCategoryDto dto) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(dto.getId())).withSelfRel());

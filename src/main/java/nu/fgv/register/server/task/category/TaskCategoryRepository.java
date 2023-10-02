@@ -1,4 +1,4 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.task.category;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,11 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SpexCategoryRepository extends JpaRepository<SpexCategory, Long>, QuerydslPredicateExecutor<SpexCategory> {
+public interface TaskCategoryRepository extends JpaRepository<TaskCategory, Long>, QuerydslPredicateExecutor<TaskCategory> {
 
     @Query("""
-              SELECT s FROM SpexCategory s
-              WHERE s.id IN :ids
+              SELECT t FROM TaskCategory t
+              WHERE t.id IN :ids
             """)
-    List<SpexCategory> findByIds(@Param("ids") List<Long> ids, Sort sort);
+    List<TaskCategory> findByIds(@Param("ids") List<Long> ids, Sort sort);
 }

@@ -3,6 +3,8 @@ package nu.fgv.register.server.task;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.task.category.TaskCategoryDto;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nu.fgv.register.server.task.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
+import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 @Slf4j

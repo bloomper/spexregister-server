@@ -1,32 +1,25 @@
-package nu.fgv.register.server.spex;
+package nu.fgv.register.server.spex.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpexCategoryUpdateDto {
-    @JsonProperty("id")
-    @ExcelImportCell(position = 0, primaryKey = true)
-    private Long id;
-
+public class SpexCategoryCreateDto {
     @NotBlank(message = "{spexCategory.name.notEmpty}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @JsonProperty("name")
