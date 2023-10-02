@@ -64,7 +64,6 @@ public class UserApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the user"),
             fieldWithPath("username").description("The username of the user"),
             fieldWithPath("state").description("The state of the user"),
-            fieldWithPath("federated").description("The flag telling whether the user is federated or not"),
             linksSubsection
     );
 
@@ -75,8 +74,8 @@ public class UserApiTest extends AbstractApiTest {
 
     @Test
     public void should_get_paged() throws Exception {
-        var user1 = UserDto.builder().id(1L).username("email1@somewhere.com").state(User.State.ACTIVE).federated(false).build();
-        var user2 = UserDto.builder().id(1L).username("email2@somewhere.com").state(User.State.ACTIVE).federated(false).build();
+        var user1 = UserDto.builder().id(1L).username("email1@somewhere.com").state(User.State.ACTIVE).build();
+        var user2 = UserDto.builder().id(1L).username("email2@somewhere.com").state(User.State.ACTIVE).build();
 
         when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
 
@@ -99,7 +98,6 @@ public class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.users[].id").description("The id of the user"),
                                         fieldWithPath("_embedded.users[].username").description("The username of the user"),
                                         fieldWithPath("_embedded.users[].state").description("The state of the user"),
-                                        fieldWithPath("_embedded.users[].federated").description("The flag telling whether the user is federated or not"),
                                         fieldWithPath("_embedded.users[].createdBy").description("Who created the user"),
                                         fieldWithPath("_embedded.users[].createdAt").description("When was the user created"),
                                         fieldWithPath("_embedded.users[].lastModifiedBy").description("Who last modified the user"),
@@ -120,7 +118,7 @@ public class UserApiTest extends AbstractApiTest {
         var fields = new ConstrainedFields(UserCreateDto.class);
         var dto = UserCreateDto.builder().username("email@somewhere.com").build();
 
-        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).username(dto.getUsername()).state(User.State.PENDING).federated(false).build());
+        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).username(dto.getUsername()).state(User.State.PENDING).build());
 
         mockMvc
                 .perform(
@@ -148,7 +146,7 @@ public class UserApiTest extends AbstractApiTest {
 
     @Test
     public void should_get() throws Exception {
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).federated(false).build();
+        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
 
@@ -179,7 +177,7 @@ public class UserApiTest extends AbstractApiTest {
     @Test
     public void should_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).federated(false).build();
+        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).build();
         var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
 
         when(service.update(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
@@ -217,7 +215,7 @@ public class UserApiTest extends AbstractApiTest {
     @Test
     public void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).federated(false).build();
+        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).build();
         var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
 
         when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
@@ -254,7 +252,7 @@ public class UserApiTest extends AbstractApiTest {
 
     @Test
     public void should_delete() throws Exception {
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).federated(false).build();
+        var user = UserDto.builder().id(1L).username("email@somewhere.com").state(User.State.ACTIVE).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
         doNothing().when(service).deleteById(any(Long.class));

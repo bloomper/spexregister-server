@@ -28,15 +28,11 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
     @JsonProperty("state")
     private String state;
 
-    @JsonProperty("federated")
-    private boolean federated;
-
     @Builder
     public UserDto(
             final Long id,
             final String username,
             final User.State state,
-            final boolean federated,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -46,6 +42,5 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
         this.id = id;
         this.username = username;
         this.state = state.toString();
-        this.federated = federated;
     }
 }

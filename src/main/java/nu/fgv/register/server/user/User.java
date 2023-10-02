@@ -56,9 +56,6 @@ public class User extends AbstractAuditable implements Serializable {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(name = "password")
-    private String password;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false)
     private State state;
@@ -77,9 +74,6 @@ public class User extends AbstractAuditable implements Serializable {
     @OneToOne
     @JoinColumn(unique = true)
     private Spexare spexare;
-
-    @Column(name = "federated")
-    private boolean federated;
 
     @Override
     public boolean equals(final Object o) {

@@ -25,10 +25,8 @@ public interface UserMapper {
 
     @Mappings({
             @Mapping(target = "state", expression = "java(User.State.PENDING)"),
-            @Mapping(target = "federated", expression = "java(Boolean.FALSE)"),
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "authorities", ignore = true),
-            @Mapping(target = "password", ignore = true),
             @Mapping(target = "spexare", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
@@ -39,9 +37,7 @@ public interface UserMapper {
 
     @Mappings({
             @Mapping(target = "state", ignore = true),
-            @Mapping(target = "federated", ignore = true),
             @Mapping(target = "authorities", ignore = true),
-            @Mapping(target = "password", ignore = true),
             @Mapping(target = "spexare", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "createdAt", ignore = true),

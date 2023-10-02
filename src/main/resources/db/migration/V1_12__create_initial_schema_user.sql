@@ -2,10 +2,8 @@ CREATE TABLE IF NOT EXISTS user
 (
     id                          BIGINT AUTO_INCREMENT NOT NULL,
     username                    VARCHAR(255)          NOT NULL,
-    password                    VARCHAR(255)          NULL,
     state                       VARCHAR(255)          NOT NULL,
     spexare_id                  BIGINT                NULL,
-    federated                   BIT                   NOT NULL DEFAULT 0,
     created_by                  VARCHAR(255)          NOT NULL,
     created_at                  DATETIME              NOT NULL,
     last_modified_by            VARCHAR(255)          NULL,
