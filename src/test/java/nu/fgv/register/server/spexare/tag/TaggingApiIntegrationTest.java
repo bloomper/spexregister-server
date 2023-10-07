@@ -370,8 +370,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Tag randomizeTag() {
-        var tag = random.nextObject(Tag.class);
-        return tag;
+        return random.nextObject(Tag.class);
     }
 
     private Tag persistTag(Tag tag) {

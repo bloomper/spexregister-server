@@ -32,7 +32,7 @@ public class CountryService {
     }
 
     private CountryDto mapDto(final String isoCode) {
-        final Locale l = new Locale("", isoCode);
+        final Locale l = new Locale.Builder().setRegion(isoCode).build();
 
         return CountryDto.builder()
                 .isoCode(isoCode)

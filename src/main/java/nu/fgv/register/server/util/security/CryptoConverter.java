@@ -1,6 +1,7 @@
 package nu.fgv.register.server.util.security;
 
 import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -14,6 +15,7 @@ import java.util.Base64;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
+@Converter
 public class CryptoConverter implements AttributeConverter<String, String> {
 
     private final byte[] secretKey;

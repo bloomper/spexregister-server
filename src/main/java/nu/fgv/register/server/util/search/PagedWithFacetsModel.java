@@ -2,6 +2,7 @@ package nu.fgv.register.server.util.search;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.hateoas.CollectionModel;
@@ -189,6 +190,7 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
         return super.hashCode() + Objects.hash(metadata);
     }
 
+    @Getter
     public static class PageMetadata {
 
         @JsonProperty
@@ -217,22 +219,6 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
         public PageMetadata(final long size, final long number, final long totalElements) {
             this(size, number, totalElements, size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
-        }
-
-        public long getSize() {
-            return size;
-        }
-
-        public long getTotalElements() {
-            return totalElements;
-        }
-
-        public long getTotalPages() {
-            return totalPages;
-        }
-
-        public long getNumber() {
-            return number;
         }
 
         @Override

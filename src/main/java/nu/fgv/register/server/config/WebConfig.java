@@ -57,8 +57,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public LocaleResolver localeResolver(final SpexregisterConfig spexregisterConfig) {
         final AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
-        resolver.setSupportedLocales(spexregisterConfig.getLanguages().stream().map(Locale::new).collect(Collectors.toList()));
-        resolver.setDefaultLocale(new Locale(spexregisterConfig.getDefaultLanguage()));
+        resolver.setSupportedLocales(spexregisterConfig.getLanguages().stream()
+                .map(l -> new Locale.Builder().setLanguage(l).build())
+                .collect(Collectors.toList())
+        );
+        resolver.setDefaultLocale(new Locale.Builder().setLanguage(spexregisterConfig.getDefaultLanguage()).build());
         return resolver;
     }
 

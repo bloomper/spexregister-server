@@ -217,6 +217,7 @@ public class ExcelValidator {
                                 try {
                                     field.set(dto, cell.getStringCellValue());
                                 } catch (IllegalAccessException e) {
+                                    // TODO: Fix logging
                                     e.printStackTrace();
                                 }
                             }

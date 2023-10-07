@@ -29,7 +29,7 @@ public class IndexingService {
         final SearchSession searchSession = Search.session(entityManager);
         final long count = searchSession
                 .search(clazz)
-                .where(f -> f.bool(b -> b.must(f.matchAll())))
+                .where(f -> f.bool().with(b -> b.must(f.matchAll())))
                 .fetchTotalHitCount();
 
         if (force || count == 0) {

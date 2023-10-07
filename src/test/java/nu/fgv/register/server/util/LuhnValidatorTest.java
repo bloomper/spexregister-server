@@ -44,7 +44,7 @@ public class LuhnValidatorTest {
         assertThat(validator.isValid("20120606", constraintValidatorContext), is(true));
     }
 
-    private class SocialSecurityNumberTestClass implements Luhn {
+    private static class SocialSecurityNumberTestClass implements Luhn {
 
         @Override
         public String regexp() {
