@@ -8,7 +8,7 @@ plugins {
 
 group = 'nu.fgv.register'
 version = '2.0.0-SNAPSHOT'
-sourceCompatibility = '20'
+sourceCompatibility = '21'
 
 configurations {
     compileOnly {
@@ -22,6 +22,11 @@ repositories {
 
 ext {
     set('snippetsDir', file('build/generated-snippets'))
+}
+
+// Remove once io.freefair.lombok 8.4 has been released
+lombok {
+    version = "1.18.30"
 }
 
 dependencies {
