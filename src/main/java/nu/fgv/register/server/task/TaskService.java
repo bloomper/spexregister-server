@@ -88,7 +88,7 @@ public class TaskService {
         }
     }
 
-    public boolean updateCategory(final Long taskId, final Long id) {
+    public boolean addCategory(final Long taskId, final Long id) {
         if (doTaskAndCategoryExist(taskId, id)) {
             return repository
                     .findById(taskId)
@@ -106,7 +106,7 @@ public class TaskService {
         }
     }
 
-    public boolean deleteCategory(final Long taskId) {
+    public boolean removeCategory(final Long taskId) {
         if (doesTaskExist(taskId)) {
             return repository
                     .findById(taskId)

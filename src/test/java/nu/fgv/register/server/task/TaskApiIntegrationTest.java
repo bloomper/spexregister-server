@@ -503,7 +503,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_202() {
+        public void should_add_and_return_202() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 
@@ -521,7 +521,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_task_not_found() {
+        public void should_return_404_when_adding_and_task_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -536,7 +536,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_category_not_found() {
+        public void should_return_404_when_adding_and_category_not_found() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 
@@ -554,7 +554,7 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_204() {
+        public void should_remove_and_return_204() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
 

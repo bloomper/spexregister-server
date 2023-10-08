@@ -283,24 +283,24 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> updateCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<?> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
         try {
-            return service.updateCategory(spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not update category {} for spex {}", id, spexId, e);
+                log.error("Could not add category {} for spex {}", id, spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> deleteCategory(@PathVariable final Long spexId) {
+    public ResponseEntity<?> removeCategory(@PathVariable final Long spexId) {
         try {
-            return service.deleteCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.removeCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete category for spex {}", spexId, e);
+                log.error("Could not remove category for spex {}", spexId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

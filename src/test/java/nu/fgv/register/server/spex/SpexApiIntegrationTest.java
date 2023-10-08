@@ -1004,7 +1004,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_202() {
+        public void should_add_and_return_202() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1023,7 +1023,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_spex_not_found() {
+        public void should_return_404_when_adding_and_spex_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1039,7 +1039,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_category_not_found() {
+        public void should_return_404_when_adding_and_category_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1058,7 +1058,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_204() {
+        public void should_remove_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 

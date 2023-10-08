@@ -158,9 +158,9 @@ public class TaskApi {
     }
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> updateCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TaskDto>> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
-            return service.updateCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add category for task", e);
@@ -170,12 +170,12 @@ public class TaskApi {
     }
 
     @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> deleteCategory(@PathVariable final Long taskId) {
+    public ResponseEntity<?> removeCategory(@PathVariable final Long taskId) {
         try {
-            return service.deleteCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.removeCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not delete category for task {}", taskId, e);
+                log.error("Could not remove category for task {}", taskId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

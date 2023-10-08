@@ -212,7 +212,7 @@ public class SpexService {
         }
     }
 
-    public boolean updateCategory(final Long spexId, final Long id) {
+    public boolean addCategory(final Long spexId, final Long id) {
         if (doSpexAndCategoryExist(spexId, id)) {
             return repository
                     .findById(spexId)
@@ -230,7 +230,7 @@ public class SpexService {
         }
     }
 
-    public boolean deleteCategory(final Long spexId) {
+    public boolean removeCategory(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository
                     .findById(spexId)

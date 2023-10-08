@@ -678,8 +678,8 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_category() throws Exception {
-        when(service.updateCategory(any(Long.class), any(Long.class))).thenReturn(true);
+    public void should_add_category() throws Exception {
+        when(service.addCategory(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -688,7 +688,7 @@ public class SpexApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
-                                "spex/category-update",
+                                "spex/category-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -701,8 +701,8 @@ public class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_category() throws Exception {
-        when(service.deleteCategory(any(Long.class))).thenReturn(true);
+    public void should_remove_category() throws Exception {
+        when(service.removeCategory(any(Long.class))).thenReturn(true);
 
         mockMvc
                 .perform(
@@ -711,7 +711,7 @@ public class SpexApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spex/category-delete",
+                                "spex/category-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
