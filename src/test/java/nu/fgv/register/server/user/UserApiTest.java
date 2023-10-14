@@ -4,6 +4,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -55,6 +57,9 @@ public class UserApiTest extends AbstractApiTest {
     private UserService service;
 
     @MockBean
+    private AuthorityApi authorityApi;
+
+    @MockBean
     private EventService eventService;
 
     @MockBean
@@ -69,6 +74,7 @@ public class UserApiTest extends AbstractApiTest {
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("users").description("Link to paged users").optional(),
+            linkWithRel("authorities").description("Link to user authorities").optional(),
             linkWithRel("events").description("Link to user events").optional()
     );
 
@@ -271,6 +277,112 @@ public class UserApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the user")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_add_authority() throws Exception {
+        when(service.addAuthority(any(Long.class), any(String.class))).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        put("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isAccepted())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/authorities/add",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user"),
+                                        parameterWithName("id").description("The id of the authority")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_add_authorities() throws Exception {
+        when(service.addAuthorities(any(Long.class), anyList())).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        put("/api/v1/users/{userId}/authorities", 1)
+                                .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isAccepted())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/authorities/add-multiple",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user")
+                                ),
+                                queryParameters(
+                                        parameterWithName("ids").description("The ids of the authorities")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_remove_authority() throws Exception {
+        when(service.removeAuthority(any(Long.class), any(String.class))).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        delete("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/authorities/remove",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user"),
+                                        parameterWithName("id").description("The id of the authority")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_remove_authorities() throws Exception {
+        when(service.removeAuthorities(any(Long.class), anyList())).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        delete("/api/v1/users/{userId}/authorities", 1)
+                                .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/authorities/remove-multiple",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user")
+                                ),
+                                queryParameters(
+                                        parameterWithName("ids").description("The ids of the authorities")
                                 ),
                                 secureRequestHeaders
                         )

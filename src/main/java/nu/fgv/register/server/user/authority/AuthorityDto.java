@@ -1,4 +1,4 @@
-package nu.fgv.register.server.user;
+package nu.fgv.register.server.user.authority;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,19 +16,19 @@ import java.time.Instant;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@Relation(collectionRelation = "users", itemRelation = "users")
+@Relation(collectionRelation = "authorities", itemRelation = "authorities")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthorityDto extends AbstractAuditableDto<AuthorityDto> {
     @JsonProperty("id")
-    private Long id;
+    private String id;
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("label")
+    private String label;
 
     @Builder
     public AuthorityDto(
-            final Long id,
-            final String name,
+            final String id,
+            final String label,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -36,6 +36,6 @@ public class AuthorityDto extends AbstractAuditableDto<AuthorityDto> {
     ) {
         super(createdBy, createdAt, lastModifiedBy, lastModifiedAt);
         this.id = id;
-        this.name = name;
+        this.label = label;
     }
 }

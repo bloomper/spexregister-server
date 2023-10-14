@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;

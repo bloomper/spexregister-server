@@ -9,6 +9,9 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.user.authority.Authority;
+import nu.fgv.register.server.user.authority.AuthorityDto;
+import nu.fgv.register.server.user.authority.AuthorityRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -25,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -49,6 +53,9 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
 
     @Autowired
     private EventRepository eventRepository;
@@ -83,6 +90,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
         repository.deleteAll();
+        authorityRepository.deleteAll();
         eventRepository.deleteAll();
     }
 
@@ -458,6 +466,348 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Authorities")
+    class AuthorityTests {
+
+        @Test
+        public void should_return_404() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_zero() {
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            final List<AuthorityDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{userId}/authorities", user.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var authority = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority));
+
+            //@formatter:off
+            final List<AuthorityDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{userId}/authorities", user.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            var authority1 = persistAuthority(randomizeAuthority());
+            var authority2 = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority1, authority2));
+
+            //@formatter:off
+            final List<AuthorityDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{userId}/authorities", user.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(2);
+        }
+
+        @Test
+        public void should_add_and_return_202() {
+            var authority = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/authorities/{id}", user.getId(), authority.getId())
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(1);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(1);
+        }
+
+        @Test
+        public void should_return_404_when_adding_and_user_not_found() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/authorities/{id}", 1L, "ROLE_USER")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+        }
+
+        @Test
+        public void should_return_404_when_adding_and_authority_not_found() {
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/authorities/{id}", user.getId(), "ROLE_USER")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_add_multiple_and_return_202() {
+            var authority1 = persistAuthority(randomizeAuthority());
+            var authority2 = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+            .when()
+                .put("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(2);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(2);
+        }
+
+        @Test
+        public void should_return_404_when_adding_multiple_and_user_not_found() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+            .when()
+                .put("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+        }
+
+        @Test
+        public void should_return_404_when_adding_multiple_and_authorities_not_found() {
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+            .when()
+                .put("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_return_404_when_adding_multiple_and_authority_not_found() {
+            var authority = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authority.getId(), "ROLE_USER"))
+            .when()
+                .put("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(1);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_remove_and_return_204() {
+            var authority = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/authorities/{id}", user.getId(), authority.getId())
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(1);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_return_404_when_removing_and_user_not_found() {
+            var authority = persistAuthority(randomizeAuthority());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/authorities/{id}", 1L, authority.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(1);
+        }
+
+        @Test
+        public void should_return_404_when_removing_and_authority_not_found() {
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/authorities/{id}", user.getId(), "ROLE_USER")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_remove_multiple_and_return_202() {
+            var authority1 = persistAuthority(randomizeAuthority());
+            var authority2 = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority1, authority2));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+            .when()
+                .delete("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(2);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_return_404_when_removing_multiple_and_user_not_found() {
+            var authority1 = persistAuthority(randomizeAuthority());
+            var authority2 = persistAuthority(randomizeAuthority());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+            .when()
+                .delete("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(2);
+        }
+
+        @Test
+        public void should_return_404_when_removing_multiple_and_authorities_not_found() {
+            var user = persistUser(randomizeUser());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+            .when()
+                .delete("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+        }
+
+        @Test
+        public void should_return_404_when_removing_multiple_and_authority_not_found() {
+            var authority = persistAuthority(randomizeAuthority());
+            var user = persistUser(randomizeUser(authority));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authority.getId(), "ROLE_USER"))
+            .when()
+                .delete("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(authorityRepository.count()).isEqualTo(1);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(1);
+        }
+    }
+
+    @Nested
     @DisplayName("Events")
     class EventTests {
 
@@ -487,12 +837,23 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private User randomizeUser() {
-        return random.nextObject(User.class);
+    private User randomizeUser(Authority... authorities) {
+        var user = random.nextObject(User.class);
+        if (authorities.length != 0) {
+            user.setAuthorities(Set.copyOf(Arrays.asList(authorities)));
+        }
+        return user;
     }
 
     private User persistUser(User user) {
         return repository.save(user);
     }
 
+    private Authority randomizeAuthority() {
+        return random.nextObject(Authority.class);
+    }
+
+    private Authority persistAuthority(Authority authority) {
+        return authorityRepository.save(authority);
+    }
 }

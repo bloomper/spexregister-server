@@ -1,9 +1,8 @@
-package nu.fgv.register.server.user;
+package nu.fgv.register.server.user.authority;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -16,6 +15,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Objects;
 
 @Entity
@@ -31,11 +31,12 @@ public class Authority extends AbstractAuditable implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id")
+    private String id;
 
-    @Column(name = "name", unique = true, nullable = false)
-    private String name;
+    @org.hibernate.annotations.Type(JsonType.class)
+    @Column(name = "labels", columnDefinition = "json")
+    private Map<String, String> labels;
 
     @Override
     public boolean equals(final Object o) {

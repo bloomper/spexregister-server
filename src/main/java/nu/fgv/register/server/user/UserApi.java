@@ -7,8 +7,11 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.user.authority.AuthorityApi;
+import nu.fgv.register.server.user.authority.AuthorityDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.CollectionModel;
@@ -33,6 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -46,6 +51,7 @@ public class UserApi {
     private final UserService service;
     private final EventService eventService;
     private final PagedResourcesAssembler<UserDto> pagedResourcesAssembler;
+    private final AuthorityApi authorityApi;
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -108,6 +114,72 @@ public class UserApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long userId) {
+        try {
+            final Set<EntityModel<AuthorityDto>> authorities = service.findAuthoritiesByUser(userId).stream()
+                    .map(dto -> EntityModel.of(dto, authorityApi.getLinks(dto)))
+                    .collect(Collectors.toSet());
+
+            return ResponseEntity.ok(
+                    CollectionModel.of(authorities,
+                            linkTo(methodOn(AuthorityApi.class).retrieve(Sort.unsorted())).withSelfRel()));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve authorities for user", e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+        try {
+            return service.addAuthority(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not add authority {} for user {}", id, userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+        try {
+            return service.addAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not add authorities {} for user {}", String.join(",", ids), userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> removeAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+        try {
+            return service.removeAuthority(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not remove authority {} for user {}", id, userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> removeAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+        try {
+            return service.removeAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not remove authorities {} for user {}", String.join(",", ids), userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.USER).stream()
@@ -134,6 +206,7 @@ public class UserApi {
 
         links.add(linkTo(methodOn(UserApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(UserApi.class).retrieve(Pageable.unpaged())).withRel("users"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));
         links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("events"));
 
         return links;

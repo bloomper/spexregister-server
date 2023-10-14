@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS authority
 (
-    id                          BIGINT AUTO_INCREMENT NOT NULL,
-    name                        VARCHAR(255)          NOT NULL,
+    id                          VARCHAR(255)          NOT NULL,
+    labels                      JSON                  NOT NULL,
     created_by                  VARCHAR(255)          NOT NULL,
     created_at                  DATETIME              NOT NULL,
     last_modified_by            VARCHAR(255)          NULL,
