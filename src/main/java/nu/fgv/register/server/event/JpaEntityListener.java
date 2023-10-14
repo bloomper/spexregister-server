@@ -22,6 +22,8 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.user.authority.Authority;
+import nu.fgv.register.server.user.state.State;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -76,6 +78,10 @@ public class JpaEntityListener {
             source = Event.SourceType.TASK_CATEGORY;
         } else if (sourceObject instanceof User) {
             source = Event.SourceType.USER;
+        } else if (sourceObject instanceof Authority) {
+            source = Event.SourceType.AUTHORITY;
+        } else if (sourceObject instanceof State) {
+            source = Event.SourceType.STATE;
         } else {
             source = null;
         }

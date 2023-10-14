@@ -1,4 +1,4 @@
-package nu.fgv.register.server.user.authority;
+package nu.fgv.register.server.user.state;
 
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
@@ -8,7 +8,6 @@ import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
@@ -38,11 +37,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = AuthorityApi.class)
-public class AuthorityApiTest extends AbstractApiTest {
+@WebMvcTest(value = StateApi.class)
+public class StateApiTest extends AbstractApiTest {
 
     @MockBean
-    private AuthorityService service;
+    private StateService service;
 
     @MockBean
     private EventService eventService;
@@ -51,45 +50,45 @@ public class AuthorityApiTest extends AbstractApiTest {
     private EventApi eventApi;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
-            fieldWithPath("id").description("The id of the authority"),
-            fieldWithPath("label").description("The label of the authority"),
+            fieldWithPath("id").description("The id of the state"),
+            fieldWithPath("label").description("The label of the state"),
             linksSubsection
     );
 
     private final LinksSnippet links = baseLinks.and(
-            linkWithRel("authorities").description("Link to authorities").optional()
+            linkWithRel("states").description("Link to states").optional()
     );
 
     @Test
     public void should_get_all() throws Exception {
-        var authority1 = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
-        var authority2 = AuthorityDto.builder().id("ROLE_USER").label("User").build();
+        var state1 = StateDto.builder().id("PENDING").label("Pending").build();
+        var state2 = StateDto.builder().id("ACTIVE").label("Active").build();
 
-        when(service.findAll(any(Sort.class))).thenReturn(List.of(authority1, authority2));
+        when(service.findAll()).thenReturn(List.of(state1, state2));
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities")
+                        get("/api/v1/users/states")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.authorities", hasSize(2)))
+                .andExpect(jsonPath("_embedded.states", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get-all",
+                                "users/states/get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(
                                         subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.authorities[]").description("The elements"),
-                                        fieldWithPath("_embedded.authorities[].id").description("The id of the authority"),
-                                        fieldWithPath("_embedded.authorities[].label").description("The type of the authority"),
-                                        fieldWithPath("_embedded.authorities[].createdBy").description("Who created the authority"),
-                                        fieldWithPath("_embedded.authorities[].createdAt").description("When was the authority created"),
-                                        fieldWithPath("_embedded.authorities[].lastModifiedBy").description("Who last modified the authority"),
-                                        fieldWithPath("_embedded.authorities[].lastModifiedAt").description("When was the authority last modified"),
-                                        subsectionWithPath("_embedded.authorities[]._links").description("The event links"),
+                                        subsectionWithPath("_embedded.states[]").description("The elements"),
+                                        fieldWithPath("_embedded.states[].id").description("The id of the state"),
+                                        fieldWithPath("_embedded.states[].label").description("The type of the state"),
+                                        fieldWithPath("_embedded.states[].createdBy").description("Who created the state"),
+                                        fieldWithPath("_embedded.states[].createdAt").description("When was the state created"),
+                                        fieldWithPath("_embedded.states[].lastModifiedBy").description("Who last modified the state"),
+                                        fieldWithPath("_embedded.states[].lastModifiedAt").description("When was the state last modified"),
+                                        subsectionWithPath("_embedded.states[]._links").description("The event links"),
                                         linksSubsection
                                 ),
                                 secureRequestHeaders,
@@ -100,13 +99,13 @@ public class AuthorityApiTest extends AbstractApiTest {
 
     @Test
     public void should_get() throws Exception {
-        var authority = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
+        var state = StateDto.builder().id("PENDING").label("Pending").build();
 
-        when(service.findById(any(String.class))).thenReturn(Optional.of(authority));
+        when(service.findById(any(String.class))).thenReturn(Optional.of(state));
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities/{id}", 1)
+                        get("/api/v1/users/states/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -114,11 +113,11 @@ public class AuthorityApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get",
+                                "users/states/get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the authority")
+                                        parameterWithName("id").description("The id of the state")
                                 ),
                                 responseFields,
                                 links,
@@ -140,7 +139,7 @@ public class AuthorityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities/events?sinceInDays=30")
+                        get("/api/v1/users/states/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -168,5 +167,4 @@ public class AuthorityApiTest extends AbstractApiTest {
                         )
                 );
     }
-
 }

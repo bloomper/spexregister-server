@@ -1,5 +1,6 @@
 package nu.fgv.register.server.user;
 
+import nu.fgv.register.server.user.state.StateMapper;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -11,7 +12,8 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        uses = {StateMapper.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -24,8 +26,8 @@ public interface UserMapper {
     UserDto toDto(User model);
 
     @Mappings({
-            @Mapping(target = "state", expression = "java(User.State.PENDING)"),
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "state", ignore = true),
             @Mapping(target = "authorities", ignore = true),
             @Mapping(target = "spexare", ignore = true),
             @Mapping(target = "createdBy", ignore = true),

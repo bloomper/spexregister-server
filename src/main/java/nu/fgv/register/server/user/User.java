@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -25,6 +26,7 @@ import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.user.authority.Authority;
+import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -57,8 +59,7 @@ public class User extends AbstractAuditable implements Serializable {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state", nullable = false)
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     private State state;
 
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
@@ -94,10 +95,4 @@ public class User extends AbstractAuditable implements Serializable {
         return Objects.hashCode(this.getClass().hashCode());
     }
 
-    public enum State {
-        PENDING,
-        ACTIVE,
-        INACTIVE,
-        REJECTED
-    }
 }

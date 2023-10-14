@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.authority.AuthorityRepository;
+import nu.fgv.register.server.user.state.StateDto;
+import nu.fgv.register.server.user.state.StateRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 
@@ -27,6 +30,7 @@ public class UserService {
 
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
+    private final StateRepository stateRepository;
 
     public Page<UserDto> find(final Pageable pageable) {
         return repository
@@ -64,7 +68,7 @@ public class UserService {
         repository.deleteById(id);
     }
 
-    public Set<AuthorityDto> findAuthoritiesByUser(final Long userId) {
+    public Set<AuthorityDto> getAuthoritiesByUser(final Long userId) {
         if (doesUserExist(userId)) {
             return repository
                     .findById(userId)
@@ -148,6 +152,33 @@ public class UserService {
         }
     }
 
+    public StateDto getStateByUser(final Long id) {
+        return repository
+                .findById(id)
+                .map(User::getState)
+                .map(STATE_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist", id)));
+    }
+
+    public boolean setState(final Long userId, final String id) {
+        if (doUserAndStateExist(userId, id)) {
+            return repository
+                    .findById(userId)
+                    .map(user -> stateRepository
+                            .findById(id)
+                            .map(state -> {
+                                user.setState(state);
+                                repository.save(user);
+                                return true;
+                            })
+                            .orElse(false)
+                    )
+                    .orElse(false);
+        } else {
+            throw new ResourceNotFoundException(String.format("User %s and/or state %s does not exist", userId, id));
+        }
+    }
+
     private boolean doesUserExist(final Long id) {
         return repository.existsById(id);
     }
@@ -160,4 +191,7 @@ public class UserService {
         return doesUserExist(userId) && authorityIds.stream().allMatch(authorityRepository::existsById);
     }
 
+    private boolean doUserAndStateExist(final Long userId, final String stateId) {
+        return doesUserExist(userId) && stateRepository.existsById(stateId);
+    }
 }

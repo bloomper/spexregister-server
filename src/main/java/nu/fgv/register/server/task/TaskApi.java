@@ -151,19 +151,19 @@ public class TaskApi {
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not retrieve category for task", e);
+                log.error("Could not retrieve category for task {}", taskId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<TaskDto>> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
+    public ResponseEntity<?> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
             return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
-                log.error("Could not add category for task", e);
+                log.error("Could not add category {} for task {}", id, taskId, e);
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

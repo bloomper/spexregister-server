@@ -1,4 +1,4 @@
-package nu.fgv.register.server.user.authority;
+package nu.fgv.register.server.user.state;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
@@ -31,7 +31,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
+public class StateApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;
@@ -42,19 +42,19 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private AuthorityRepository repository;
+    private StateRepository repository;
 
     @Autowired
     private EventRepository eventRepository;
 
-    public AuthorityApiIntegrationTest() {
+    public StateApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         random = new EasyRandom(parameters);
     }
 
     @BeforeAll
     public static void beforeClass() {
-        basePath = AuthorityApi.class.getAnnotation(RequestMapping.class).value()[0];
+        basePath = StateApi.class.getAnnotation(RequestMapping.class).value()[0];
     }
 
     @BeforeEach
@@ -84,7 +84,7 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_zero() {
             //@formatter:off
-            final List<AuthorityDto> result =
+            final List<StateDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
@@ -93,7 +93,7 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+                        .jsonPath().getList("_embedded.states", StateDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -101,10 +101,10 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            persistAuthority(randomizeAuthority());
+            persistState(randomizeState());
 
             //@formatter:off
-            final List<AuthorityDto> result =
+            final List<StateDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
@@ -113,7 +113,7 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+                        .jsonPath().getList("_embedded.states", StateDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -122,10 +122,10 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> persistAuthority(randomizeAuthority()));
+            IntStream.range(0, size).forEach(i -> persistState(randomizeState()));
 
             //@formatter:off
-            final List<AuthorityDto> result =
+            final List<StateDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
@@ -135,7 +135,7 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
-                        .jsonPath().getList("_embedded.authorities", AuthorityDto.class);
+                        .jsonPath().getList("_embedded.states", StateDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -148,18 +148,18 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         public void should_return_found() {
-            var authority = persistAuthority(randomizeAuthority());
+            var state = persistState(randomizeState());
 
             //@formatter:off
-            final AuthorityDto result =
+            final StateDto result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}", authority.getId())
+                        .get("/{id}", state.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(AuthorityDto.class);
+                        .extract().body().as(StateDto.class);
             //@formatter:on
 
             assertThat(result).isNotNull();
@@ -188,7 +188,7 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_found() {
-            var authority = persistAuthority(randomizeAuthority());
+            var state = persistState(randomizeState());
 
             //@formatter:off
             final List<EventDto> result =
@@ -203,21 +203,21 @@ public class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(4);
-            assertThat(result).hasSize(4);
+            assertThat(eventRepository.count()).isEqualTo(5);
+            assertThat(result).hasSize(5);
             assertThat(result.get(result.size() - 1).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(result.size() - 1).getSource()).isEqualTo(Event.SourceType.AUTHORITY.name());
-            assertThat(result.get(result.size() - 1).getCreatedBy()).isEqualTo(authority.getCreatedBy());
+            assertThat(result.get(result.size() - 1).getSource()).isEqualTo(Event.SourceType.STATE.name());
+            assertThat(result.get(result.size() - 1).getCreatedBy()).isEqualTo(state.getCreatedBy());
         }
 
     }
 
-    private Authority randomizeAuthority() {
-        return random.nextObject(Authority.class);
+    private State randomizeState() {
+        return random.nextObject(State.class);
     }
 
-    private Authority persistAuthority(Authority authority) {
-        return repository.save(authority);
+    private State persistState(State state) {
+        return repository.save(state);
     }
 
 }

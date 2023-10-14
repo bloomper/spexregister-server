@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS user
 (
     id                          BIGINT AUTO_INCREMENT NOT NULL,
     username                    VARCHAR(255)          NOT NULL,
-    state                       VARCHAR(255)          NOT NULL,
+    state_id                    VARCHAR(255)          DEFAULT 'PENDING',
     spexare_id                  BIGINT                NULL,
     created_by                  VARCHAR(255)          NOT NULL,
     created_at                  DATETIME              NOT NULL,
@@ -20,3 +20,6 @@ CREATE INDEX IX_USER_ON_SPEXARE_ID ON user (spexare_id);
 
 ALTER TABLE user
     ADD CONSTRAINT FK_USER_ON_SPEXARE FOREIGN KEY (spexare_id) REFERENCES spexare (id);
+
+ALTER TABLE user
+    ADD CONSTRAINT FK_USER_ON_STATE FOREIGN KEY (state_id) REFERENCES state (id);

@@ -83,6 +83,8 @@ public class Event implements Serializable {
         TASK,
         TASK_CATEGORY,
         USER,
+        AUTHORITY,
+        STATE,
         SESSION
     }
 }

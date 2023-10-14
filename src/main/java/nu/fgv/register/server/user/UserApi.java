@@ -9,6 +9,8 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.user.authority.AuthorityDto;
+import nu.fgv.register.server.user.state.StateApi;
+import nu.fgv.register.server.user.state.StateDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,6 +55,7 @@ public class UserApi {
     private final EventService eventService;
     private final PagedResourcesAssembler<UserDto> pagedResourcesAssembler;
     private final AuthorityApi authorityApi;
+    private final StateApi stateApi;
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -117,7 +121,7 @@ public class UserApi {
     @GetMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long userId) {
         try {
-            final Set<EntityModel<AuthorityDto>> authorities = service.findAuthoritiesByUser(userId).stream()
+            final Set<EntityModel<AuthorityDto>> authorities = service.getAuthoritiesByUser(userId).stream()
                     .map(dto -> EntityModel.of(dto, authorityApi.getLinks(dto)))
                     .collect(Collectors.toSet());
 
@@ -180,6 +184,32 @@ public class UserApi {
         }
     }
 
+    @GetMapping(value = "/{userId}/state", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final Long userId) {
+        try {
+            return Optional.of(service.getStateByUser(userId))
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, stateApi.getLinks(dto))))
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve state for user {}", userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "/{userId}/state/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> setState(@PathVariable final Long userId, @PathVariable final String id) {
+        try {
+            return service.setState(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not set state {} for user {}", id, userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.USER).stream()
@@ -206,6 +236,7 @@ public class UserApi {
 
         links.add(linkTo(methodOn(UserApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(UserApi.class).retrieve(Pageable.unpaged())).withRel("users"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveState(dto.getId())).withRel("state"));
         links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));
         links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("events"));
 

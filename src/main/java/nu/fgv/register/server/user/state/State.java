@@ -1,4 +1,4 @@
-package nu.fgv.register.server.user.authority;
+package nu.fgv.register.server.user.state;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
@@ -21,14 +21,14 @@ import java.util.Map;
 import java.util.Objects;
 
 @Entity
-@Table(name = "authority")
+@Table(name = "state")
 @EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Authority extends AbstractAuditable implements Serializable {
+public class State extends AbstractAuditable implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -50,13 +50,12 @@ public class Authority extends AbstractAuditable implements Serializable {
             return false;
         }
 
-        final Authority authority = (Authority) o;
-        return !(authority.getId() == null || getId() == null) && Objects.equals(getId(), authority.getId());
+        final State state = (State) o;
+        return !(state.getId() == null || getId() == null) && Objects.equals(getId(), state.getId());
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(this.getClass().hashCode());
     }
-
 }
