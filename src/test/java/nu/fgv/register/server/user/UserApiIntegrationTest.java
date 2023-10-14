@@ -9,6 +9,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareDto;
+import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.authority.AuthorityRepository;
@@ -16,6 +18,7 @@ import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.EmailRandomizer;
@@ -64,6 +67,9 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     private StateRepository stateRepository;
 
     @Autowired
+    private SpexareRepository spexareRepository;
+
+    @Autowired
     private EventRepository eventRepository;
 
     public UserApiIntegrationTest() {
@@ -75,6 +81,18 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("password").and(ofType(String.class)).and(inClass(User.class)))
                 .excludeField(named("spexare").and(ofType(Spexare.class)).and(inClass(User.class)))
                 .excludeField(named("authorities").and(ofType(Set.class)).and(inClass(User.class)))
+                .randomize(
+                        named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
+                )
+                .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
+                .excludeField(named("user").and(ofType(User.class)).and(inClass(Spexare.class)))
+                .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("tags").and(ofType(Set.class)).and(inClass(Spexare.class)))
+                .excludeField(named("addresses").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("memberships").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -98,6 +116,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         repository.deleteAll();
         authorityRepository.deleteAll();
         stateRepository.deleteAll();
+        spexareRepository.deleteAll();
         eventRepository.deleteAll();
     }
 
@@ -882,7 +901,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/state/{state}", user.getId(), newState.getId())
+                .put("/{userId}/state/{id}", user.getId(), newState.getId())
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
@@ -899,7 +918,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/state/{state}", 1L, state.getId())
+                .put("/{userId}/state/{id}", 1L, state.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -915,7 +934,100 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/state/{state}", user.getId(), "WHATEVER")
+                .put("/{userId}/state/{id}", user.getId(), "WHATEVER")
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Spexare")
+    class SpexareTests {
+
+        @Test
+        public void should_return_404() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{userId}/spexare", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return() {
+            var state = persistState(randomizeState());
+            var user = persistUser(randomizeUser(state));
+            var spexare = persistSpexare(randomizeSpexare());
+            user.setSpexare(spexare);
+            repository.save(user);
+
+            //@formatter:off
+            final SpexareDto result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{userId}/spexare", user.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(spexare.getId());
+        }
+
+        @Test
+        public void should_add_and_return_202() {
+            var state = persistState(randomizeState());
+            var user = persistUser(randomizeUser(state));
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/spexare/{id}", user.getId(), spexare.getId())
+            .then()
+                .statusCode(HttpStatus.ACCEPTED.value());
+            //@formatter:on
+
+            assertThat(repository.findById(user.getId()).map(User::getSpexare).orElseThrow(() -> new RuntimeException("User not found"))).isEqualTo(spexare);
+        }
+
+        @Test
+        public void should_return_404_when_adding_and_user_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/spexare/{id}", 1L, spexare.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_404_when_adding_and_spexare_not_found() {
+            var state = persistState(randomizeState());
+            var user = persistUser(randomizeUser(state));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/spexare/{id}", user.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -945,7 +1057,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(7L);
+            assertThat(eventRepository.count()).isEqualTo(3L);
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.USER.name());
@@ -983,5 +1095,13 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private State persistState(State state) {
         return stateRepository.save(state);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(Spexare spexare) {
+        return spexareRepository.save(spexare);
     }
 }

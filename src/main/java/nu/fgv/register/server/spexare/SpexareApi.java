@@ -261,7 +261,7 @@ public class SpexareApi {
         dto.add(getLinks(dto));
     }
 
-    List<Link> getLinks(final SpexareDto dto) {
+    public List<Link> getLinks(final SpexareDto dto) {
         final List<Link> links = new ArrayList<>();
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(dto.getId())).withSelfRel());
         if (hasText(dto.getImage())) {

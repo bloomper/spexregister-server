@@ -4,6 +4,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateApi;
@@ -67,6 +69,9 @@ public class UserApiTest extends AbstractApiTest {
     private StateApi stateApi;
 
     @MockBean
+    private SpexareApi spexareApi;
+
+    @MockBean
     private EventService eventService;
 
     @MockBean
@@ -82,17 +87,8 @@ public class UserApiTest extends AbstractApiTest {
             linkWithRel("users").description("Link to paged users").optional(),
             linkWithRel("authorities").description("Link to user authorities").optional(),
             linkWithRel("state").description("Link to user state").optional(),
+            linkWithRel("spexare").description("Link to user spexare").optional(),
             linkWithRel("events").description("Link to user events").optional()
-    );
-
-    private final LinksSnippet authorityLinks = baseLinks.and(
-            linkWithRel("authorities").description("Link to authorities").optional(),
-            linkWithRel("events").description("Link to authority events").optional()
-    );
-
-    private final LinksSnippet stateLinks = baseLinks.and(
-            linkWithRel("states").description("Link to paged states").optional(),
-            linkWithRel("events").description("Link to state events").optional()
     );
 
     @Test
@@ -332,7 +328,6 @@ public class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.authorities[].lastModifiedAt").description("When was the authority last modified"),
                                         linksSubsection
                                 ),
-                                authorityLinks,
                                 secureRequestHeaders,
                                 responseHeaders
                         )
@@ -473,7 +468,6 @@ public class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("lastModifiedBy").description("Who last modified the state"),
                                         fieldWithPath("lastModifiedAt").description("When was the state last modified")
                                 ),
-                                stateLinks,
                                 secureRequestHeaders,
                                 responseHeaders
                         )
@@ -499,6 +493,95 @@ public class UserApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("userId").description("The id of the user"),
                                         parameterWithName("id").description("The id of the state")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_get_spexare() throws Exception {
+        when(service.findSpexareByUser(any(Long.class))).thenReturn(Optional.of(SpexareDto.builder().id(1L).build()));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/users/{userId}/spexare", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/spexare-get",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user")
+                                ),
+                                responseFields(
+                                        fieldWithPath("id").description("The id of the spexare"),
+                                        fieldWithPath("firstName").description("The first name of the spexare"),
+                                        fieldWithPath("lastName").description("The last name of the spexare"),
+                                        fieldWithPath("nickName").description("The nickname of the spexare"),
+                                        fieldWithPath("image").description("The image of the spexare"),
+                                        fieldWithPath("socialSecurityNumber").description("The social security number of the spexare"),
+                                        fieldWithPath("graduation").description("The graduation of the spexare"),
+                                        fieldWithPath("comment").description("The comment of the spexare"),
+                                        fieldWithPath("createdBy").description("Who created the spexare"),
+                                        fieldWithPath("createdAt").description("When was the spexare created"),
+                                        fieldWithPath("lastModifiedBy").description("Who last modified the spexare"),
+                                        fieldWithPath("lastModifiedAt").description("When was the spexare last modified")
+                                ),
+                                secureRequestHeaders,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_add_spexare() throws Exception {
+        when(service.addSpexare(any(Long.class), any(Long.class))).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        put("/api/v1/users/{userId}/spexare/{id}", 1, 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isAccepted())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/spexare-add",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user"),
+                                        parameterWithName("id").description("The id of the spexare")
+                                ),
+                                secureRequestHeaders
+                        )
+                );
+    }
+
+    @Test
+    public void should_remove_spexare() throws Exception {
+        when(service.removeSpexare(any(Long.class))).thenReturn(true);
+
+        mockMvc
+                .perform(
+                        delete("/api/v1/users/{userId}/spexare", 1)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                )
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "users/spexare-remove",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("userId").description("The id of the user")
                                 ),
                                 secureRequestHeaders
                         )

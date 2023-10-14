@@ -7,6 +7,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateApi;
@@ -56,6 +58,7 @@ public class UserApi {
     private final PagedResourcesAssembler<UserDto> pagedResourcesAssembler;
     private final AuthorityApi authorityApi;
     private final StateApi stateApi;
+    private final SpexareApi spexareApi;
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -210,6 +213,44 @@ public class UserApi {
         }
     }
 
+    @GetMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long userId) {
+        try {
+            return service.findSpexareByUser(userId)
+                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexareApi.getLinks(dto))))
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not retrieve spexare for user {}", userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "/{userId}/spexare/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
+        try {
+            return service.addSpexare(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not add spexare {} for user {}", id, userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<?> removeSpexare(@PathVariable final Long userId) {
+        try {
+            return service.removeSpexare(userId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        } catch (final ResourceNotFoundException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not remove spexare for user {}", userId, e);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.USER).stream()
@@ -236,6 +277,7 @@ public class UserApi {
 
         links.add(linkTo(methodOn(UserApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(UserApi.class).retrieve(Pageable.unpaged())).withRel("users"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveSpexare(dto.getId())).withRel("spexare"));
         links.add(linkTo(methodOn(UserApi.class).retrieveState(dto.getId())).withRel("state"));
         links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));
         links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("events"));

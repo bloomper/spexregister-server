@@ -3,6 +3,8 @@ package nu.fgv.register.server.user;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.SpexareDto;
+import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.authority.AuthorityRepository;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
@@ -31,6 +34,7 @@ public class UserService {
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
+    private final SpexareRepository spexareRepository;
 
     public Page<UserDto> find(final Pageable pageable) {
         return repository
@@ -179,6 +183,52 @@ public class UserService {
         }
     }
 
+    public Optional<SpexareDto> findSpexareByUser(final Long userId) {
+        if (doesUserExist(userId)) {
+            return repository
+                    .findById(userId)
+                    .map(User::getSpexare)
+                    .map(SPEXARE_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("User %s does not exist", userId));
+        }
+    }
+
+    public boolean addSpexare(final Long userId, final Long id) {
+        if (doUserAndSpexareExist(userId, id)) {
+            return repository
+                    .findById(userId)
+                    .map(user -> spexareRepository
+                            .findById(id)
+                            .map(spexare -> {
+                                user.setSpexare(spexare);
+                                repository.save(user);
+                                return true;
+                            })
+                            .orElse(false))
+                    .orElse(false);
+        } else {
+            throw new ResourceNotFoundException(String.format("User %s and/or spexare %s do not exist", userId, id));
+        }
+    }
+
+    public boolean removeSpexare(final Long userId) {
+        if (doesUserExist(userId)) {
+            return repository
+                    .findById(userId)
+                    .filter(user -> user.getSpexare() != null)
+                    .map(user -> {
+                        user.setSpexare(null);
+                        repository.save(user);
+                        return true;
+                    })
+                    .orElse(false);
+        } else {
+            throw new ResourceNotFoundException(String.format("User %s does not exist", userId));
+        }
+    }
+
+
     private boolean doesUserExist(final Long id) {
         return repository.existsById(id);
     }
@@ -193,5 +243,9 @@ public class UserService {
 
     private boolean doUserAndStateExist(final Long userId, final String stateId) {
         return doesUserExist(userId) && stateRepository.existsById(stateId);
+    }
+
+    private boolean doUserAndSpexareExist(final Long userId, final Long spexareId) {
+        return doesUserExist(userId) && spexareRepository.existsById(spexareId);
     }
 }
