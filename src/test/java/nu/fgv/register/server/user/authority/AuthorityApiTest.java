@@ -77,7 +77,7 @@ public class AuthorityApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get-all",
+                                "users/authorities-get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(
@@ -114,7 +114,7 @@ public class AuthorityApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get",
+                                "users/authorities-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -148,7 +148,7 @@ public class AuthorityApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/get-events",
+                                "users/authorities/get-events",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

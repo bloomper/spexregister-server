@@ -147,7 +147,7 @@ public class StateApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/get-events",
+                                "users/states/get-events",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

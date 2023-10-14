@@ -315,7 +315,7 @@ public class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get",
+                                "users/authorities-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -352,7 +352,7 @@ public class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/add",
+                                "users/authorities-add",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -378,7 +378,7 @@ public class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/add-multiple",
+                                "users/authorities-add-multiple",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -405,7 +405,7 @@ public class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/remove",
+                                "users/authorities-remove",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -493,7 +493,7 @@ public class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/state/set",
+                                "users/state-set",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
