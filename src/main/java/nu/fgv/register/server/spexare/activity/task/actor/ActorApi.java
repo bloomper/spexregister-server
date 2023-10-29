@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -45,9 +46,13 @@ public class ActorApi {
     private final PagedResourcesAssembler<ActorDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<ActorDto>>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @SortDefault(sort = "id", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ActorDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                      @PathVariable final Long activityId,
+                                                                      @PathVariable final Long taskActivityId,
+                                                                      @SortDefault(sort = Actor_.ID, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                      @RequestParam(required = false, defaultValue = "") final String filter) {
         try {
-            final PagedModel<EntityModel<ActorDto>> paged = pagedResourcesAssembler.toModel(service.findByTaskActivity(spexareId, activityId, taskActivityId, pageable));
+            final PagedModel<EntityModel<ActorDto>> paged = pagedResourcesAssembler.toModel(service.findByTaskActivity(spexareId, activityId, taskActivityId, filter, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId, activityId, taskActivityId));
 
             return ResponseEntity.ok(paged);
@@ -156,7 +161,7 @@ public class ActorApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, Pageable.unpaged())).withRel("actors"));
+        links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, Pageable.unpaged(), "")).withRel("actors"));
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, Pageable.unpaged())).withRel("task-activities"));
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));

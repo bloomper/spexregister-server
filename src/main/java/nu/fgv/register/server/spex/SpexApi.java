@@ -10,6 +10,7 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.filter.FilterOperation;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -64,8 +65,9 @@ public class SpexApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@RequestParam(required = false, defaultValue = "false") final boolean includeRevivals, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.find(includeRevivals, pageable));
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                     @RequestParam(required = false, defaultValue = Spex_.PARENT + ":" + FilterOperation.NULL) final String filter) {
+        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -214,7 +216,7 @@ public class SpexApi {
     }
 
     @GetMapping(value = "/revivals", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivals(pageable));
         paged.getContent().forEach(this::addLinks);
 
@@ -222,7 +224,8 @@ public class SpexApi {
     }
 
     @GetMapping(value = "/{spexId}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long spexId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long spexId,
+                                                                                     @SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(spexId, pageable));
             paged.getContent().forEach(this::addLinks);
@@ -335,8 +338,8 @@ public class SpexApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(SpexApi.class).retrieve(false, Pageable.unpaged())).withRel("spex"));
-        links.add(linkTo(methodOn(SpexApi.class).retrieve(true, Pageable.unpaged())).withRel("spex-including-revivals"));
+        links.add(linkTo(methodOn(SpexApi.class).retrieve(Pageable.unpaged(), Spex_.PARENT + ":NULL")).withRel("spex"));
+        links.add(linkTo(methodOn(SpexApi.class).retrieve(Pageable.unpaged(), Spex_.PARENT + "!NULL")).withRel("spex-including-revivals"));
         links.add(linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster"));
         links.add(linkTo(methodOn(SpexApi.class).retrieveCategory(dto.getId())).withRel("category"));
         if (dto.isRevival()) {

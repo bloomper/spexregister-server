@@ -40,7 +40,8 @@ public class ActivityApi {
     private final PagedResourcesAssembler<ActivityDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<ActivityDto>>> retrieve(@PathVariable final Long spexareId, @SortDefault(sort = "id", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ActivityDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                         @SortDefault(sort = Activity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<ActivityDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));

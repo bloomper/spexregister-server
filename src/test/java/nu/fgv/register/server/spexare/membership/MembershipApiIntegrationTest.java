@@ -182,8 +182,8 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -192,6 +192,105 @@ public class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_404() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId",1L)
+                .queryParam("filter", Membership_.YEAR + ":whatever")
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_zero() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final List<MembershipDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Membership_.YEAR + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.memberships", MembershipDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            var membership = persistMembership(randomizeMembership(type, spexare));
+
+            //@formatter:off
+            final List<MembershipDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Membership_.YEAR + ":" + membership.getYear())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.memberships", MembershipDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            IntStream.range(0, size).forEach(i -> {
+                var membership = randomizeMembership(type, spexare);
+                if (i % 2 == 0) {
+                    membership.setYear("whatever");
+                }
+                persistMembership(membership);
+            });
+
+            //@formatter:off
+            final List<MembershipDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Membership_.YEAR + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.memberships", MembershipDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
 
     }

@@ -8,12 +8,6 @@ import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
-import nu.fgv.register.server.task.category.TaskCategory;
-import nu.fgv.register.server.task.category.TaskCategoryApi;
-import nu.fgv.register.server.task.category.TaskCategoryCreateDto;
-import nu.fgv.register.server.task.category.TaskCategoryDto;
-import nu.fgv.register.server.task.category.TaskCategoryRepository;
-import nu.fgv.register.server.task.category.TaskCategoryUpdateDto;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -135,8 +129,8 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -145,6 +139,82 @@ public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_zero() {
+            persistTaskCategory(randomizeTaskCategory());
+
+            // @formatter:off
+            final List<TaskCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", TaskCategory_.NAME + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var task = persistTaskCategory(randomizeTaskCategory());
+
+            //@formatter:off
+            final List<TaskCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", TaskCategory_.NAME + ":" + task.getName())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            IntStream.range(0, size).forEach(i -> {
+                var taskCategory = randomizeTaskCategory();
+                if (i % 2 == 0) {
+                    taskCategory.setName("whatever");
+                }
+                persistTaskCategory(taskCategory);
+            });
+
+            //@formatter:off
+            final List<TaskCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", TaskCategory_.NAME + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.task-categories", TaskCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
     }
 

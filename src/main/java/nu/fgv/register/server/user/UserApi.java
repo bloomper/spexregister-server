@@ -62,8 +62,9 @@ public class UserApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<UserDto>>> retrieve(@SortDefault(sort = "username", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<UserDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<UserDto>>> retrieve(@SortDefault(sort = User_.USERNAME, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                     @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<UserDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -276,7 +277,7 @@ public class UserApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(UserApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(UserApi.class).retrieve(Pageable.unpaged())).withRel("users"));
+        links.add(linkTo(methodOn(UserApi.class).retrieve(Pageable.unpaged(), "")).withRel("users"));
         links.add(linkTo(methodOn(UserApi.class).retrieveSpexare(dto.getId())).withRel("spexare"));
         links.add(linkTo(methodOn(UserApi.class).retrieveState(dto.getId())).withRel("state"));
         links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));

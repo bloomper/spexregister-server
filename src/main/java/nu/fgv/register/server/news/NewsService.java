@@ -3,6 +3,8 @@ package nu.fgv.register.server.news;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,10 +33,14 @@ public class NewsService {
                 .collect(Collectors.toList());
     }
 
-    public Page<NewsDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(NEWS_MAPPER::toDto);
+    public Page<NewsDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<News>builder().build(FilterParser.parse(filter), NewsSpecification::new), pageable)
+                        .map(NEWS_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(NEWS_MAPPER::toDto);
     }
 
     public Optional<NewsDto> findById(final Long id) {

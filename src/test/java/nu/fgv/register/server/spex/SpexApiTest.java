@@ -31,7 +31,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -120,11 +119,11 @@ public class SpexApiTest extends AbstractApiTest {
         var spex1 = SpexDto.builder().id(1L).year("2021").build();
         var spex2 = SpexDto.builder().id(2L).year("2022").build();
 
-        when(service.find(eq(false), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spex1, spex2), PageRequest.of(1, 2, Sort.by("year")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spex1, spex2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex?page=1&size=2&sort=year,desc")
+                        get("/api/v1/spex?page=1&size=2&sort=year,desc&filter=parent:NULL")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -150,7 +149,7 @@ public class SpexApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

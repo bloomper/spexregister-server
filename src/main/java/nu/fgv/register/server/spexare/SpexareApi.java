@@ -71,15 +71,17 @@ public class SpexareApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
-    public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = "firstName", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                        @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
     }
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"q"})
-    public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q, @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q,
+                                                                                @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
         paged.getContent().forEach(this::addLinks);
 
@@ -270,10 +272,10 @@ public class SpexareApi {
             links.add(linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image"));
         }
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("activities"));
-        links.add(linkTo(methodOn(MembershipApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("memberships"));
+        links.add(linkTo(methodOn(MembershipApi.class).retrieve(dto.getId(), Pageable.unpaged(), "")).withRel("memberships"));
         links.add(linkTo(methodOn(ConsentApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("consents"));
         links.add(linkTo(methodOn(ToggleApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("toggles"));
-        links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("addresses"));
+        links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged(), "")).withRel("addresses"));
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrievePartner(dto.getId())).withRel("partner"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(null)).withRel("events"));

@@ -69,7 +69,7 @@ public class AuthorityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities")
+                        get("/api/v1/users/authorities?sort=name,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -92,6 +92,7 @@ public class AuthorityApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded.authorities[]._links").description("The event links"),
                                         linksSubsection
                                 ),
+                                sortQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders
                         )

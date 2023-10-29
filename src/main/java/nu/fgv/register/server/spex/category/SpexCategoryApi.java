@@ -63,8 +63,9 @@ public class SpexCategoryApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<SpexCategoryDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<SpexCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<SpexCategoryDto>>> retrieve(@SortDefault(sort = SpexCategory_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                             @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<SpexCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -238,7 +239,7 @@ public class SpexCategoryApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged())).withRel("spex-categories"));
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("spex-categories"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(null)).withRel("events"));
 

@@ -16,6 +16,9 @@ import java.util.Optional;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spexare.activity.spex.SpexActivityMapper.SPEX_ACTIVITY_MAPPER;
+import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasActivity;
+import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasId;
+import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasSpex;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class SpexActivityService {
                     .findById(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> repository
-                            .findByActivity(activity, pageable)
+                            .findAll(hasActivity(activity), pageable)
                             .map(SPEX_ACTIVITY_MAPPER::toDto)
                     )
                     .orElseGet(Page::empty);
@@ -65,7 +68,7 @@ public class SpexActivityService {
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .flatMap(activity -> spexRepository
                             .findById(spexId)
-                            .filter(spex -> !repository.existsByActivityAndSpex(activity, spex))
+                            .filter(spex -> !repository.exists(hasActivity(activity).and(hasSpex(spex))))
                             .map(spex -> {
                                 final SpexActivity spexActivity = new SpexActivity();
                                 spexActivity.setActivity(activity);
@@ -86,7 +89,7 @@ public class SpexActivityService {
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> spexRepository
                             .findById(spexId)
-                            .filter(spex -> repository.existsByActivityAndId(activity, id))
+                            .filter(spex -> repository.exists(hasActivity(activity).and(hasId(id))))
                             .map(spex -> repository
                                     .findById(id)
                                     .filter(spexActivity -> spexActivity.getActivity().equals(activity))
@@ -110,7 +113,7 @@ public class SpexActivityService {
             return activityRepository
                     .findById(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .filter(activity -> repository.existsByActivityAndId(activity, id))
+                    .filter(activity -> repository.exists(hasActivity(activity).and(hasId(id))))
                     .map(activity -> repository
                             .findById(id)
                             .filter(spexActivity -> spexActivity.getActivity().equals(activity))

@@ -10,6 +10,8 @@ import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.authority.AuthorityRepository;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -21,9 +23,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
-import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
+import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,10 +39,14 @@ public class UserService {
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
 
-    public Page<UserDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(USER_MAPPER::toDto);
+    public Page<UserDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), pageable)
+                        .map(USER_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(USER_MAPPER::toDto);
     }
 
     public Optional<UserDto> findById(final Long id) {

@@ -182,8 +182,8 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -192,6 +192,107 @@ public class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_404() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId",1L)
+                .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_zero() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            persistAddress(randomizeAddress(type, spexare));
+
+            //@formatter:off
+            final List<AddressDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.addresses", AddressDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            var address = persistAddress(randomizeAddress(type, spexare));
+
+            //@formatter:off
+            final List<AddressDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Address_.STREET_ADDRESS + ":" + address.getStreetAddress())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.addresses", AddressDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var spexare = persistSpexare(randomizeSpexare());
+            var type = persistType(randomizeType());
+            IntStream.range(0, size).forEach(i -> {
+                var address = randomizeAddress(type, spexare);
+                if (i % 2 == 0) {
+                    address.setStreetAddress("whatever");
+                }
+                persistAddress(address);
+            });
+
+            //@formatter:off
+            final List<AddressDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.addresses", AddressDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
 
     }

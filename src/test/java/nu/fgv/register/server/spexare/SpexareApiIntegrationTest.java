@@ -153,8 +153,8 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -163,6 +163,83 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrieveWithFilteringPagedTests {
+
+        @Test
+        public void should_return_zero() {
+            persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spexare_.FIRST_NAME + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spexare_.FIRST_NAME + ":" + spexare.getFirstName())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            IntStream.range(0, size).forEach(i -> {
+                var spexare = randomizeSpexare();
+                if (i % 2 == 0) {
+                    spexare.setFirstName("whatever");
+                }
+                persistSpexare(spexare);
+            });
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spexare_.FIRST_NAME + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
 
     }
@@ -225,9 +302,9 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
                         .queryParam("q", "firstName")
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 import static nu.fgv.register.server.spexare.activity.ActivityMapper.ACTIVITY_MAPPER;
+import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasId;
+import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasSpexare;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,7 +30,7 @@ public class ActivityService {
             return spexareRepository
                     .findById(spexareId)
                     .map(spexare -> repository
-                            .findBySpexare(spexare, pageable)
+                            .findAll(hasSpexare(spexare), pageable)
                             .map(ACTIVITY_MAPPER::toDto)
                     )
                     .orElseGet(Page::empty);
@@ -67,7 +69,7 @@ public class ActivityService {
         if (doesSpexareExist(spexareId) && doesActivityExist(id)) {
             return spexareRepository
                     .findById(spexareId)
-                    .filter(spexare -> repository.existsBySpexareAndId(spexare, id))
+                    .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasId(id))))
                     .flatMap(spexare -> repository.findById(id))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> {

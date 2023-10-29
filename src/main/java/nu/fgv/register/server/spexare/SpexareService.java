@@ -4,6 +4,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
+import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -61,10 +64,14 @@ public class SpexareService {
                 .collect(Collectors.toList());
     }
 
-    public Page<SpexareDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(SPEXARE_MAPPER::toDto);
+    public Page<SpexareDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new), pageable)
+                        .map(SPEXARE_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(SPEXARE_MAPPER::toDto);
     }
 
     public Optional<SpexareDto> findById(final Long id) {
@@ -75,7 +82,7 @@ public class SpexareService {
 
     public List<SpexareDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEXARE_MAPPER::toDto)
                 .collect(Collectors.toList());

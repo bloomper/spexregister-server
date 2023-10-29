@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.tag.TagDto;
+import nu.fgv.register.server.tag.Tag_;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -39,7 +40,8 @@ public class TaggingApi {
     private final PagedResourcesAssembler<TagDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@PathVariable final Long spexareId, @SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                    @SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));

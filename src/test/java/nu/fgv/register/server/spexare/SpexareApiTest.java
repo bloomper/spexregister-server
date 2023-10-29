@@ -121,11 +121,11 @@ public class SpexareApiTest extends AbstractApiTest {
         var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
         var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare?page=1&size=2&sort=firstName,desc")
+                        get("/api/v1/spexare?page=1&size=2&sort=firstName,desc&filter=firstName:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -152,7 +152,7 @@ public class SpexareApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

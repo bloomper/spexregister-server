@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,8 +17,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
+import static nu.fgv.register.server.task.TaskSpecification.hasIds;
+import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,10 +39,14 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public Page<TaskDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(TASK_MAPPER::toDto);
+    public Page<TaskDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new), pageable)
+                        .map(TASK_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(TASK_MAPPER::toDto);
     }
 
     public Optional<TaskDto> findById(final Long id) {
@@ -49,7 +57,7 @@ public class TaskService {
 
     public List<TaskDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream().map(TASK_MAPPER::toDto)
                 .collect(Collectors.toList());
     }

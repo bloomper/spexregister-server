@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -38,9 +39,11 @@ public class MembershipApi {
     private final PagedResourcesAssembler<MembershipDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieve(@PathVariable final Long spexareId, @SortDefault(sort = "year", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                           @SortDefault(sort = Membership_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                           @RequestParam(required = false, defaultValue = "") final String filter) {
         try {
-            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
+            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));
 
             return ResponseEntity.ok(paged);
@@ -113,7 +116,7 @@ public class MembershipApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("memberships"));
+        links.add(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, Pageable.unpaged(), "")).withRel("memberships"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
         return links;

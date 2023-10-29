@@ -3,6 +3,8 @@ package nu.fgv.register.server.task.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +15,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
+import static nu.fgv.register.server.task.category.TaskCategorySpecification.hasIds;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,10 +34,14 @@ public class TaskCategoryService {
                 .collect(Collectors.toList());
     }
 
-    public Page<TaskCategoryDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(TASK_CATEGORY_MAPPER::toDto);
+    public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), pageable)
+                        .map(TASK_CATEGORY_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
     public Optional<TaskCategoryDto> findById(final Long id) {
@@ -44,7 +52,7 @@ public class TaskCategoryService {
 
     public List<TaskCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream()
                 .map(TASK_CATEGORY_MAPPER::toDto)
                 .collect(Collectors.toList());

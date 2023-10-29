@@ -179,8 +179,88 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.users", UserDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_zero() {
+            var state = persistState(randomizeState());
+            persistUser(randomizeUser(state));
+
+            //@formatter:off
+            final List<UserDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", User_.USERNAME + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.users", UserDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var state = persistState(randomizeState());
+            var user = persistUser(randomizeUser(state));
+
+            //@formatter:off
+            final List<UserDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", User_.USERNAME + ":" + user.getUsername())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.users", UserDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var state = persistState(randomizeState());
+            IntStream.range(0, size).forEach(i -> {
+                var user = randomizeUser(state);
+                if (i % 2 == 0) {
+                    user.setUsername("whatever" + i + "@wherever.com");
+                }
+                persistUser(user);
+            });
+
+            //@formatter:off
+            final List<UserDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", User_.USERNAME + "=whatever*")
+                        .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())

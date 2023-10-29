@@ -12,6 +12,7 @@ import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.apache.http.HttpHeaders;
 import org.jeasy.random.EasyRandom;
@@ -149,15 +150,22 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         public void should_return_many() {
             int size = 42;
             var category = persistSpexCategory(randomizeSpexCategory());
-            IntStream.range(0, size).forEach(i -> persistSpex(randomizeSpex(category)));
+            IntStream.range(0, size).forEach(i -> {
+                var spex = randomizeSpex(category);
+                persistSpex(spex);
+                if (i % 2 == 0) {
+                    var revival = randomizeRevival(spex);
+                    persistRevival(revival);
+                }
+            });
 
             //@formatter:off
             final List<SpexDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -166,6 +174,90 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_zero() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            persistSpex(randomizeSpex(category));
+
+            //@formatter:off
+            final List<SpexDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spex_.YEAR + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var category = persistSpexCategory(randomizeSpexCategory());
+            var spex = persistSpex(randomizeSpex(category));
+
+            //@formatter:off
+            final List<SpexDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spex_.YEAR + ":" + spex.getYear())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var category = persistSpexCategory(randomizeSpexCategory());
+            IntStream.range(0, size).forEach(i -> {
+                var spex = randomizeSpex(category);
+                if (i % 2 == 0) {
+                    spex.setYear("1996");
+                }
+                persistSpex(spex);
+                if (i % 4 == 0) {
+                    var revival = randomizeRevival(spex);
+                    persistRevival(revival);
+                }
+            });
+
+            //@formatter:off
+            final List<SpexDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Spex_.YEAR + ":1996 AND " + Spex_.PARENT + ":" + FilterOperation.NULL)
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
 
     }
@@ -655,8 +747,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get("/revivals")
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -800,8 +892,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get("/{id}/revivals", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -1135,7 +1227,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(eventRepository.count()).isEqualTo(3);
-            assertThat(result).hasSize(1);
+            assertThat(result).hasSize(2);
             assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEX.name());
             assertThat(result.get(0).getCreatedBy()).isEqualTo(spex.getCreatedBy());

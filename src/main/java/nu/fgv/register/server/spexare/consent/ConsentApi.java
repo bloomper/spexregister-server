@@ -39,7 +39,8 @@ public class ConsentApi {
     private final PagedResourcesAssembler<ConsentDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieve(@PathVariable final Long spexareId, @SortDefault(sort = "type", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                        @SortDefault(sort = Consent_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<ConsentDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));

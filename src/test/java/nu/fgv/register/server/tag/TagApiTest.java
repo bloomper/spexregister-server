@@ -89,11 +89,11 @@ public class TagApiTest extends AbstractApiTest {
         var tag1 = TagDto.builder().id(1L).name("tag1").build();
         var tag2 = TagDto.builder().id(2L).name("tag2").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/tags?page=1&size=2&sort=name,asc")
+                        get("/api/v1/tags?page=1&size=2&sort=name,asc&filter=name:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ public class TagApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

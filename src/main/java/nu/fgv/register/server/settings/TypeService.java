@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
+import static nu.fgv.register.server.settings.TypeSpecification.hasType;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class TypeService {
 
     public List<TypeDto> findByType(final TypeType type) {
         return repository
-                .findByType(type)
+                .findAll(hasType(type))
                 .stream()
                 .map(TYPE_MAPPER::toDto)
                 .collect(Collectors.toList());
@@ -37,6 +38,14 @@ public class TypeService {
         return repository
                 .findById(id)
                 .map(TYPE_MAPPER::toDto);
+    }
+
+    public boolean existsByIdAndType(final String id, final TypeType type) {
+        return repository
+                .findOne(TypeSpecification.hasId(id).and(TypeSpecification.hasType(type)))
+                .map(t -> Boolean.TRUE)
+                .orElse(Boolean.FALSE);
+
     }
 
 }

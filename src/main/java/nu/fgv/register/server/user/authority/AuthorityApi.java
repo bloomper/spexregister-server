@@ -37,7 +37,7 @@ public class AuthorityApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieve(@SortDefault(sort = "id", direction = Sort.Direction.ASC) final Sort sort) {
+    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieve(@SortDefault(sort = Authority_.ID, direction = Sort.Direction.ASC) final Sort sort) {
         final List<EntityModel<AuthorityDto>> authorities = service.findAll(sort).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .toList();

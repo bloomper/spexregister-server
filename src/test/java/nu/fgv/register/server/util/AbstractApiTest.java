@@ -17,6 +17,7 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.restdocs.payload.SubsectionDescriptor;
+import org.springframework.restdocs.request.ParameterDescriptor;
 import org.springframework.restdocs.request.QueryParametersSnippet;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -70,6 +71,14 @@ public abstract class AbstractApiTest {
             parameterWithName("page").description("The page to be requested"),
             parameterWithName("size").description("Parameter determining the size of the requested page"),
             parameterWithName("sort").description("Information about sorting elements")
+    );
+
+    protected static final QueryParametersSnippet sortQueryParameters = queryParameters(
+            parameterWithName("sort").description("Information about sorting elements")
+    );
+
+    protected static final List<ParameterDescriptor> filterQueryParameterDescriptors = List.of(
+            parameterWithName("filter").description("Parameter determining the filtering").optional()
     );
 
     protected static final RequestHeadersSnippet secureRequestHeaders = requestHeaders(

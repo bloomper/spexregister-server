@@ -16,9 +16,9 @@ import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.spexare.activity.task.TaskActivity;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityRepository;
 import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
-import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -231,8 +231,8 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
                         .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -289,6 +289,185 @@ public class ActorApiIntegrationTest extends AbstractIntegrationTest {
                         .pathParam("spexareId", spexare2.getId())
                         .pathParam("activityId", activity1.getId())
                         .pathParam("taskActivityId", taskActivity.getId())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.actors", ActorDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_404() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId",1L)
+                .pathParam("activityId",1L)
+                .pathParam("taskActivityId",1L)
+                .queryParam("filter", Actor_.ROLE + ":whatever")
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        public void should_return_zero() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var vocal = persistVocal(randomizeVocal());
+            persistActor(randomizeActor(vocal, taskActivity));
+
+            //@formatter:off
+            final List<ActorDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .pathParam("activityId", activity.getId())
+                        .pathParam("taskActivityId", taskActivity.getId())
+                        .queryParam("filter", Actor_.ROLE + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.actors", ActorDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var vocal = persistVocal(randomizeVocal());
+            var actor = persistActor(randomizeActor(vocal, taskActivity));
+
+            //@formatter:off
+            final List<ActorDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .pathParam("activityId", activity.getId())
+                        .pathParam("taskActivityId", taskActivity.getId())
+                        .queryParam("filter", Actor_.ROLE + ":" + actor.getRole())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.actors", ActorDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var spexare = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity = persistActivity(randomizeActivity(spexare));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            var vocal = persistVocal(randomizeVocal());
+            IntStream.range(0, size).forEach(i -> {
+                var actor = randomizeActor(vocal, taskActivity);
+                if (i % 2 == 0) {
+                    actor.setRole("whatever");
+                }
+                persistActor(actor);
+            });
+
+            //@formatter:off
+            final List<ActorDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare.getId())
+                        .pathParam("activityId", activity.getId())
+                        .pathParam("taskActivityId", taskActivity.getId())
+                        .queryParam("filter", Actor_.ROLE + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.actors", ActorDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
+        }
+
+        @Test
+        public void should_return_zero_when_incorrect_spexare() {
+            var spexare1 = persistSpexare(randomizeSpexare());
+            var spexare2 = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity = persistActivity(randomizeActivity(spexare2));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+
+            //@formatter:off
+            final List<ActorDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare1.getId())
+                        .pathParam("activityId", activity.getId())
+                        .pathParam("taskActivityId", taskActivity.getId())
+                        .queryParam("filter", Actor_.ROLE + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.actors", ActorDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_zero_when_incorrect_activity() {
+            var spexare1 = persistSpexare(randomizeSpexare());
+            var spexare2 = persistSpexare(randomizeSpexare());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+            var activity1 = persistActivity(randomizeActivity(spexare1));
+            var activity2 = persistActivity(randomizeActivity(spexare2));
+            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+
+            //@formatter:off
+            final List<ActorDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .pathParam("spexareId", spexare2.getId())
+                        .pathParam("activityId", activity1.getId())
+                        .pathParam("taskActivityId", taskActivity.getId())
+                        .queryParam("filter", Actor_.ROLE + ":whatever")
                     .when()
                         .get()
                     .then()

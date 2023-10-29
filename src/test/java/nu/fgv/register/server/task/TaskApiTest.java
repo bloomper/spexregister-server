@@ -107,11 +107,11 @@ public class TaskApiTest extends AbstractApiTest {
         var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
         var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(task1, task2), PageRequest.of(1, 2, Sort.by("name")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(task1, task2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks?page=1&size=2&sort=name,desc")
+                        get("/api/v1/tasks?page=1&size=2&sort=name,desc&filter=name:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -135,7 +135,7 @@ public class TaskApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

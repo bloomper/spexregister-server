@@ -74,11 +74,11 @@ public class AddressApiTest extends AbstractApiTest {
         var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(address1, address2), PageRequest.of(1, 2, Sort.by("type")), 10));
+        when(service.findBySpexare(any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(address1, address2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc", 1L)
+                        get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc&filter=streetAddress:whatever", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -112,7 +112,7 @@ public class AddressApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

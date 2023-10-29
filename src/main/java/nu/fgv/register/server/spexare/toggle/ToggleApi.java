@@ -39,7 +39,8 @@ public class ToggleApi {
     private final PagedResourcesAssembler<ToggleDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieve(@PathVariable final Long spexareId, @SortDefault(sort = "type", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                       @SortDefault(sort = Toggle_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<ToggleDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId));

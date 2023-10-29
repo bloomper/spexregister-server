@@ -4,6 +4,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,6 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
+import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -33,10 +36,14 @@ public class SpexCategoryService {
                 .collect(Collectors.toList());
     }
 
-    public Page<SpexCategoryDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(SPEX_CATEGORY_MAPPER::toDto);
+    public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), pageable)
+                        .map(SPEX_CATEGORY_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     public Optional<SpexCategoryDto> findById(final Long id) {
@@ -47,7 +54,7 @@ public class SpexCategoryService {
 
     public List<SpexCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEX_CATEGORY_MAPPER::toDto)
                 .collect(Collectors.toList());

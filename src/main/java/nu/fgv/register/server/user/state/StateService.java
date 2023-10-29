@@ -3,6 +3,7 @@ package nu.fgv.register.server.user.state;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,9 +20,9 @@ public class StateService {
 
     private final StateRepository repository;
 
-    public List<StateDto> findAll() {
+    public List<StateDto> findAll(final Sort sort) {
         return repository
-                .findAll()
+                .findAll(sort)
                 .stream().map(STATE_MAPPER::toDto)
                 .collect(Collectors.toList());
     }

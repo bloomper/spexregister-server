@@ -80,11 +80,11 @@ public class NewsApiTest extends AbstractApiTest {
         var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
         var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("visibleFrom")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("visibleFrom")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc")
+                        get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc&filter=subject~test")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -112,7 +112,7 @@ public class NewsApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

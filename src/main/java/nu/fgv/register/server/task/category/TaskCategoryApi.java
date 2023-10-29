@@ -63,8 +63,9 @@ public class TaskCategoryApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<TaskCategoryDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<TaskCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<TaskCategoryDto>>> retrieve(@SortDefault(sort = TaskCategory_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                             @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<TaskCategoryDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -200,7 +201,7 @@ public class TaskCategoryApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged())).withRel("task-categories"));
+        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged(), null)).withRel("task-categories"));
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(null)).withRel("events"));
 
         return links;

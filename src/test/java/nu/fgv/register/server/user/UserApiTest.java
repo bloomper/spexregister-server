@@ -96,11 +96,11 @@ public class UserApiTest extends AbstractApiTest {
         var user1 = UserDto.builder().id(1L).username("email1@somewhere.com").build();
         var user2 = UserDto.builder().id(1L).username("email2@somewhere.com").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/users?page=1&size=2&sort=username,desc")
+                        get("/api/v1/users?page=1&size=2&sort=username,desc&filter=username:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -124,7 +124,7 @@ public class UserApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

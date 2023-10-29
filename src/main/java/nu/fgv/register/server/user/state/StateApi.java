@@ -6,6 +6,9 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.user.authority.Authority_;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -35,14 +38,14 @@ public class StateApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<CollectionModel<EntityModel<StateDto>>> retrieve() {
-        final List<EntityModel<StateDto>> states = service.findAll().stream()
+    public ResponseEntity<CollectionModel<EntityModel<StateDto>>> retrieve(@SortDefault(sort = Authority_.ID, direction = Sort.Direction.ASC) final Sort sort) {
+        final List<EntityModel<StateDto>> states = service.findAll(sort).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(states,
-                        linkTo(methodOn(StateApi.class).retrieve()).withSelfRel()));
+                        linkTo(methodOn(StateApi.class).retrieve(Sort.unsorted())).withSelfRel()));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -79,7 +82,7 @@ public class StateApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(StateApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(StateApi.class).retrieve()).withRel("states"));
+        links.add(linkTo(methodOn(StateApi.class).retrieve(Sort.unsorted())).withRel("states"));
 
         return links;
     }

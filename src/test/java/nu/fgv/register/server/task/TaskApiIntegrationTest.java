@@ -141,8 +141,8 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -151,6 +151,86 @@ public class TaskApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_zero() {
+            var category = persistTaskCategory(randomizeTaskCategory());
+            persistTask(randomizeTask(category));
+
+            //@formatter:off
+            final List<TaskDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Task_.NAME + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var category = persistTaskCategory(randomizeTaskCategory());
+            var task = persistTask(randomizeTask(category));
+
+            //@formatter:off
+            final List<TaskDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Task_.NAME + ":" + task.getName())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            var category = persistTaskCategory(randomizeTaskCategory());
+            IntStream.range(0, size).forEach(i -> {
+                var task = randomizeTask(category);
+                if (i % 2 == 0) {
+                    task.setName("whatever");
+                }
+                persistTask(task);
+            });
+
+            //@formatter:off
+            final List<TaskDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", Task_.NAME + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.tasks", TaskDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
 
     }

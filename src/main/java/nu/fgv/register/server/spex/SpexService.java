@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,8 +19,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
+import static nu.fgv.register.server.spex.SpexSpecification.hasIds;
+import static nu.fgv.register.server.spex.SpexSpecification.hasParent;
+import static nu.fgv.register.server.spex.SpexSpecification.hasParentIds;
+import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
+import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
+import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
+import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
@@ -33,21 +41,19 @@ public class SpexService {
 
     public List<SpexDto> findAll(final Sort sort) {
         return repository
-                .findByParentIsNull(sort)
+                .findAll(isNotRevival(), sort)
                 .stream().map(SPEX_MAPPER::toDto)
                 .collect(Collectors.toList());
     }
 
-    public Page<SpexDto> find(final boolean includeRevivals, final Pageable pageable) {
-        if (includeRevivals) {
-            return repository
-                    .findAll(pageable)
-                    .map(SPEX_MAPPER::toDto);
-        } else {
-            return repository
-                    .findByParentIsNull(pageable)
-                    .map(SPEX_MAPPER::toDto);
-        }
+    public Page<SpexDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new), pageable)
+                        .map(SPEX_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(SPEX_MAPPER::toDto);
     }
 
     public Optional<SpexDto> findById(final Long id) {
@@ -58,15 +64,15 @@ public class SpexService {
 
     public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEX_MAPPER::toDto)
                 .collect(Collectors.toList());
     }
 
-    public List<SpexDto> findRevivalsByParentIds(final List<Long> ids, final Sort sort) {
+    public List<SpexDto> findRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
         return repository
-                .findRevivalsByParentIds(ids, sort)
+                .findAll(hasParentIds(parentIds), sort)
                 .stream()
                 .map(SPEX_MAPPER::toDto)
                 .collect(Collectors.toList());
@@ -99,10 +105,10 @@ public class SpexService {
     public void deleteById(final Long id) {
         repository
                 .findById(id)
-                .ifPresent(model -> {
-                    repository.findAllRevivalsByParent(model).forEach(revival -> repository.deleteById(revival.getId()));
-                    repository.deleteById(model.getId());
-                    detailsRepository.deleteById(model.getDetails().getId());
+                .ifPresent(spex -> {
+                    repository.findAll(hasParent(spex)).forEach(revival -> repository.deleteById(revival.getId()));
+                    repository.deleteById(spex.getId());
+                    detailsRepository.deleteById(spex.getDetails().getId());
                 });
     }
 
@@ -149,7 +155,7 @@ public class SpexService {
 
     public Page<SpexDto> findRevivals(final Pageable pageable) {
         return repository
-                .findByParentIsNotNull(pageable)
+                .findAll(isRevival(), pageable)
                 .map(SPEX_MAPPER::toDto);
     }
 
@@ -158,7 +164,7 @@ public class SpexService {
             return repository
                     .findById(spexId)
                     .map(parent -> repository
-                            .findRevivalsByParent(parent, pageable)
+                            .findAll(hasParent(parent), pageable)
                             .map(SPEX_MAPPER::toDto)
                     )
                     .orElseGet(Page::empty);
@@ -171,7 +177,7 @@ public class SpexService {
         if (doesSpexExist(spexId)) {
             return repository
                     .findById(spexId)
-                    .filter(parent -> !repository.existsRevivalByParentAndYear(parent, year))
+                    .filter(parent -> !repository.exists(hasParent(parent).and(hasYear(year))))
                     .map(parent -> {
                         final Spex revival = new Spex();
                         revival.setDetails(parent.getDetails());
@@ -189,8 +195,8 @@ public class SpexService {
         if (doesSpexExist(spexId)) {
             return repository
                     .findById(spexId)
-                    .filter(parent -> repository.existsRevivalByParentAndYear(parent, year))
-                    .flatMap(parent -> repository.findRevivalByParentAndYear(parent, year))
+                    .filter(parent -> repository.exists(hasParent(parent).and(hasYear(year))))
+                    .flatMap(parent -> repository.findOne(hasParent(parent).and(hasYear(year))))
                     .map(revival -> {
                         repository.deleteById(revival.getId());
                         return true;

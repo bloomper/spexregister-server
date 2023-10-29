@@ -103,11 +103,11 @@ public class SpexCategoryApiTest extends AbstractApiTest {
         var category1 = SpexCategoryDto.builder().id(1L).name("category1").build();
         var category2 = SpexCategoryDto.builder().id(2L).name("category2").build();
 
-        when(service.find(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(category1, category2), PageRequest.of(1, 2, Sort.by("name")), 10));
+        when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(category1, category2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories?page=1&size=2&sort=name,asc")
+                        get("/api/v1/spex/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -132,7 +132,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

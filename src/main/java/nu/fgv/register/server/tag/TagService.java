@@ -3,6 +3,8 @@ package nu.fgv.register.server.tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +15,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
+import static nu.fgv.register.server.tag.TagSpecification.hasIds;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,10 +34,14 @@ public class TagService {
                 .collect(Collectors.toList());
     }
 
-    public Page<TagDto> find(final Pageable pageable) {
-        return repository
-                .findAll(pageable)
-                .map(TAG_MAPPER::toDto);
+    public Page<TagDto> find(final String filter, final Pageable pageable) {
+        return hasText(filter) ?
+                repository
+                        .findAll(SpecificationsBuilder.<Tag>builder().build(FilterParser.parse(filter), TagSpecification::new), pageable)
+                        .map(TAG_MAPPER::toDto) :
+                repository
+                        .findAll(pageable)
+                        .map(TAG_MAPPER::toDto);
     }
 
     public Optional<TagDto> findById(final Long id) {
@@ -44,7 +52,7 @@ public class TagService {
 
     public List<TagDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
-                .findByIds(ids, sort)
+                .findAll(hasIds(ids), sort)
                 .stream()
                 .map(TAG_MAPPER::toDto)
                 .collect(Collectors.toList());

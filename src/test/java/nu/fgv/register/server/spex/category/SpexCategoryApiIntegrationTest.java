@@ -8,12 +8,6 @@ import io.restassured.http.ContentType;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
-import nu.fgv.register.server.spex.category.SpexCategory;
-import nu.fgv.register.server.spex.category.SpexCategoryApi;
-import nu.fgv.register.server.spex.category.SpexCategoryCreateDto;
-import nu.fgv.register.server.spex.category.SpexCategoryDto;
-import nu.fgv.register.server.spex.category.SpexCategoryRepository;
-import nu.fgv.register.server.spex.category.SpexCategoryUpdateDto;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.apache.http.HttpHeaders;
@@ -145,8 +139,8 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                    .when()
                         .queryParam("size", size)
+                    .when()
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -155,6 +149,82 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(size);
+        }
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged with filtering")
+    class RetrievePagedWithFilteringTests {
+
+        @Test
+        public void should_return_zero() {
+            persistSpexCategory(randomizeSpexCategory());
+
+            // @formatter:off
+            final List<SpexCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", SpexCategory_.NAME + ":whatever")
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_return_one() {
+            var spexCategory = persistSpexCategory(randomizeSpexCategory());
+
+            //@formatter:off
+            final List<SpexCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", SpexCategory_.NAME + ":" + spexCategory.getName())
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        public void should_return_many() {
+            int size = 42;
+            IntStream.range(0, size).forEach(i -> {
+                var spexCategory = randomizeSpexCategory();
+                if (i % 2 == 0) {
+                    spexCategory.setName("whatever");
+                }
+                persistSpexCategory(spexCategory);
+            });
+
+            //@formatter:off
+            final List<SpexCategoryDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                        .queryParam("filter", SpexCategory_.NAME + ":whatever")
+                        .queryParam("size", size)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(size / 2);
         }
     }
 

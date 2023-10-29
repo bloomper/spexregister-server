@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static nu.fgv.register.server.event.EventMapper.EVENT_MAPPER;
+import static nu.fgv.register.server.event.EventSpecification.hasCreatedAtGreaterThanEqual;
+import static nu.fgv.register.server.event.EventSpecification.hasSource;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,10 +32,10 @@ public class EventService {
     public List<EventDto> find(final Integer sinceInDays) {
         final List<EventDto> events = new ArrayList<>();
 
-        Arrays.stream(Event.SourceType.values()).forEach(s ->
+        Arrays.stream(Event.SourceType.values()).forEach(source ->
                 events.addAll(
                         repository
-                                .findAllBySourceSince(getInstantFromSinceInDays(sinceInDays), s, Sort.by("createdAt").descending())
+                                .findAll(hasCreatedAtGreaterThanEqual(getInstantFromSinceInDays(sinceInDays)).and(hasSource(source)), Sort.by("createdAt").descending())
                                 .stream()
                                 .map(EVENT_MAPPER::toDto)
                                 .toList()
@@ -45,7 +47,7 @@ public class EventService {
 
     public List<EventDto> findBySource(final Integer sinceInDays, final Event.SourceType source) {
         return repository
-                .findAllBySourceSince(getInstantFromSinceInDays(sinceInDays), source, Sort.by("createdAt").descending())
+                .findAll(hasCreatedAtGreaterThanEqual(getInstantFromSinceInDays(sinceInDays)).and(hasSource(source)), Sort.by("createdAt").descending())
                 .stream()
                 .map(EVENT_MAPPER::toDto)
                 .toList();

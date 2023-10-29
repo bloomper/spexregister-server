@@ -49,14 +49,16 @@ public class NewsApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = "visibleFrom", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = News_.VISIBLE_FROM, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                     @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> create(@Valid @RequestBody final NewsCreateDto dto) {
         final NewsDto newDto = service.create(dto);
 
@@ -76,6 +78,7 @@ public class NewsApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable Long id, @Valid @RequestBody NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -87,6 +90,7 @@ public class NewsApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -98,6 +102,7 @@ public class NewsApi {
     }
 
     @DeleteMapping("/{id}")
+    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -129,7 +134,7 @@ public class NewsApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(NewsApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged())).withRel("news"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged(), "")).withRel("news"));
         links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(null)).withRel("events"));
 
         return links;

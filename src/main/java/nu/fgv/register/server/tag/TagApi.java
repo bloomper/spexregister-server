@@ -63,8 +63,9 @@ public class TagApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@SortDefault(sort = "name", direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.find(pageable));
+    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
+                                                                    @RequestParam(required = false, defaultValue = "") final String filter) {
+        final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -200,7 +201,7 @@ public class TagApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged())).withRel("tags"));
+        links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged(), "")).withRel("tags"));
         links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null)).withRel("events"));
 
         return links;

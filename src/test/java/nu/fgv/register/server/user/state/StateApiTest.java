@@ -8,6 +8,7 @@ import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
@@ -64,11 +65,11 @@ public class StateApiTest extends AbstractApiTest {
         var state1 = StateDto.builder().id("PENDING").label("Pending").build();
         var state2 = StateDto.builder().id("ACTIVE").label("Active").build();
 
-        when(service.findAll()).thenReturn(List.of(state1, state2));
+        when(service.findAll(any(Sort.class))).thenReturn(List.of(state1, state2));
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/states")
+                        get("/api/v1/users/states?sort=name,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -91,6 +92,7 @@ public class StateApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded.states[]._links").description("The event links"),
                                         linksSubsection
                                 ),
+                                sortQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders
                         )

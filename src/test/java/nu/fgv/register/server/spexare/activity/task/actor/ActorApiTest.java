@@ -70,11 +70,11 @@ public class ActorApiTest extends AbstractApiTest {
         var actor1 = ActorDto.builder().id(1L).build();
         var actor2 = ActorDto.builder().id(2L).build();
 
-        when(service.findByTaskActivity(any(Long.class), any(Long.class), any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(actor1, actor2), PageRequest.of(1, 2, Sort.by("id")), 10));
+        when(service.findByTaskActivity(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(actor1, actor2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors?page=1&size=2&sort=id,desc", 1L, 1L, 1L)
+                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors?page=1&size=2&sort=id,desc&filter=role:whatever", 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
                 .andExpect(status().isOk())
@@ -103,7 +103,7 @@ public class ActorApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 pagingLinks,
-                                pagingQueryParameters,
+                                pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders
                         )

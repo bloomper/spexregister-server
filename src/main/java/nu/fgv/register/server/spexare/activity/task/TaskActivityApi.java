@@ -44,7 +44,9 @@ public class TaskActivityApi {
     private final TaskApi taskApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<TaskActivityDto>>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @SortDefault(sort = "id", direction = Sort.Direction.ASC) final Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<TaskActivityDto>>> retrieve(@PathVariable final Long spexareId,
+                                                                             @PathVariable final Long activityId,
+                                                                             @SortDefault(sort = TaskActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
         try {
             final PagedModel<EntityModel<TaskActivityDto>> paged = pagedResourcesAssembler.toModel(service.findByActivity(spexareId, activityId, pageable));
             paged.getContent().forEach(p -> addLinks(p, spexareId, activityId));
@@ -148,7 +150,7 @@ public class TaskActivityApi {
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieveTask(spexareId, activityId, dto.getId())).withRel("task"));
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, Pageable.unpaged())).withRel("task-activities"));
-        links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, dto.getId(), Pageable.unpaged())).withRel("actors"));
+        links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, dto.getId(), Pageable.unpaged(), "")).withRel("actors"));
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 

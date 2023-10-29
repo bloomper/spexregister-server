@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.settings.TypeRepository;
+import nu.fgv.register.server.settings.TypeService;
 import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 import static nu.fgv.register.server.spexare.toggle.ToggleMapper.TOGGLE_MAPPER;
+import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasId;
+import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasSpexare;
+import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasType;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,13 +29,14 @@ public class ToggleService {
 
     private final SpexareRepository spexareRepository;
     private final TypeRepository typeRepository;
+    private final TypeService typeService;
 
     public Page<ToggleDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
                     .findById(spexareId)
                     .map(spexare -> repository
-                            .findBySpexare(spexare, pageable)
+                            .findAll(hasSpexare(spexare), pageable)
                             .map(TOGGLE_MAPPER::toDto)
                     )
                     .orElseGet(Page::empty);
@@ -57,7 +62,7 @@ public class ToggleService {
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById(spexareId)
-                            .filter(spexare -> !repository.existsBySpexareAndType(spexare, type))
+                            .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
                                 final Toggle toggle = new Toggle();
                                 toggle.setSpexare(spexare);
@@ -78,7 +83,7 @@ public class ToggleService {
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById(spexareId)
-                            .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
+                            .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
                             .flatMap(spexare -> repository.findById(id))
                             .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
                             .map(toggle -> {
@@ -98,7 +103,7 @@ public class ToggleService {
                     .findById(typeId)
                     .map(type -> spexareRepository
                             .findById(spexareId)
-                            .filter(spexare -> repository.existsBySpexareAndTypeAndId(spexare, type, id))
+                            .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
                             .flatMap(spexare -> repository.findById(id))
                             .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
                             .map(toggle -> {
@@ -121,7 +126,7 @@ public class ToggleService {
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {
-        return doesSpexareExist(spexareId) && typeRepository.existsByIdAndType(typeId, TypeType.TOGGLE);
+        return doesSpexareExist(spexareId) && typeService.existsByIdAndType(typeId, TypeType.TOGGLE);
     }
 
 }
