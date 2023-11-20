@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS acl_sid
 );
 
 ALTER TABLE acl_sid
-    ADD CONSTRAINT uc_sid_principal UNIQUE (sid, principal);
+    ADD CONSTRAINT UC_SID_PRINCIPAL UNIQUE (sid, principal);
 
 CREATE TABLE IF NOT EXISTS acl_class
 (
