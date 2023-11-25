@@ -1,7 +1,7 @@
 package nu.fgv.register.server.util.randomizer;
 
-import com.github.javafaker.service.FakeValuesService;
-import com.github.javafaker.service.RandomService;
+import net.datafaker.service.FakeValuesService;
+import net.datafaker.service.RandomService;
 import nu.fgv.register.server.spexare.Spexare;
 import org.jeasy.random.api.Randomizer;
 

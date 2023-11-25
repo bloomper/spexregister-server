@@ -169,6 +169,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         criteriaQuery.orderBy(Collections.emptyList());
+
         return entityManager.createQuery(criteriaQuery);
     }
 
@@ -184,7 +185,6 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
         if (null == spec) {
             query.where(filterPermitted(root, query, domainClass, sid, permission));
-            return root;
         } else {
             final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             final Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
@@ -195,8 +195,9 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                 query.where(filterPermitted(root, query, domainClass, sid, permission));
             }
 
-            return root;
         }
+
+        return root;
     }
 
     private <S, U extends T> Predicate filterPermitted(final Root<U> root,

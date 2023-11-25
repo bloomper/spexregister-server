@@ -3,12 +3,10 @@ package nu.fgv.register.server.event;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreRemove;
 import jakarta.persistence.PreUpdate;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.SpexDetails;
+import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
@@ -24,17 +22,24 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.user.state.State;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Component
 public class JpaEntityListener {
 
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    public JpaEntityListener(final ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    public JpaEntityListener() {
+    }
 
     @PrePersist
     private void atCreate(final Object sourceObject) {
