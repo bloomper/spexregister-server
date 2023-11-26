@@ -14,10 +14,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.MediaType;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -37,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 @DirtiesContext
 @Import({AbstractIntegrationTest.TestConfig.class})
 @ActiveProfiles("test")
+@DisabledInAotMode
 public abstract class AbstractIntegrationTest {
 
     private static final String TEST_REALM = "spexregister";
@@ -44,12 +49,19 @@ public abstract class AbstractIntegrationTest {
     private static final String TEST_CLIENT_ID = "spexregister";
     private static final String TEST_DOMAIN = "@spexregister.com";
     private static final String TEST_PASSWORD = "s3cr3t";
+    protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
+    protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
+    protected static final String TEST_USER = "user" + TEST_DOMAIN;
+    protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
+    protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
+    protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
+    protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMINISTRATOR");
 
     private static URI authorizationURI;
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.34");
+    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.35");
 
     /*
     @Container
@@ -127,15 +139,15 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected String obtainUserAccessToken() {
-        return obtainAccessToken("user" + TEST_DOMAIN, TEST_PASSWORD);
+        return obtainAccessToken(TEST_USER, TEST_PASSWORD);
     }
 
     protected String obtainEditorAccessToken() {
-        return obtainAccessToken("editor" + TEST_DOMAIN, TEST_PASSWORD);
+        return obtainAccessToken(TEST_EDITOR, TEST_PASSWORD);
     }
 
     protected String obtainAdminAccessToken() {
-        return obtainAccessToken("admin" + TEST_DOMAIN, TEST_PASSWORD);
+        return obtainAccessToken(TEST_ADMIN, TEST_PASSWORD);
     }
 
 }

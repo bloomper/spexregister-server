@@ -23,12 +23,13 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserClaim;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements AclJpaRepository<T, ID> {
@@ -71,8 +72,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
             throw new IllegalStateException("Permission filtering not possible for anonymous user");
         }
 
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final PrincipalSid sid = new PrincipalSid(userDetails.getUsername());
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserClaim());
 
         return getQuery(spec, sort, sid, permission).getResultList();
     }
@@ -97,8 +97,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
             throw new IllegalStateException("Permission filtering not possible for anonymous user");
         }
 
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final PrincipalSid sid = new PrincipalSid(userDetails.getUsername());
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserClaim());
         final TypedQuery<T> query = getQuery(spec, pageable, sid, permission);
 
         return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) :
@@ -217,11 +216,12 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         final Subquery<Long> aclEntryQuery = query.subquery(Long.class);
         final Root<AclEntry> root = aclEntryQuery.from(AclEntry.class);
         final Join<AclEntry, AclObjectIdentity> aclObjectIdentityJoin = root.join(AclEntry_.ACL_OBJECT_IDENTITY);
+        final Join<AclEntry, AclObjectIdentity> aclSidJoin = root.join(AclEntry_.ACL_SID);
 
         return aclEntryQuery.select(aclObjectIdentityJoin.get(AclObjectIdentity_.OBJECT_ID_IDENTITY))
                 .where(criteriaBuilder.and(
-                        root.<Long>get(AclEntry_.ACL_OBJECT_IDENTITY).in(selectAclObjectIdentityId(aclEntryQuery, targetType)),
-                        criteriaBuilder.equal(root.<Long>get(AclEntry_.ACL_SID), selectAclSidId(aclEntryQuery, sid)),
+                        aclObjectIdentityJoin.<Long>get(AclObjectIdentity_.ID).in(selectAclObjectIdentityId(aclEntryQuery, targetType)),
+                        criteriaBuilder.equal(aclSidJoin.<Long>get(AclSid_.ID), selectAclSidId(aclEntryQuery, sid)),
                         criteriaBuilder.equal(root.<Integer>get(AclEntry_.MASK), permission.getMask())));
     }
 
@@ -230,9 +230,10 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         final Subquery<Long> aclObjectIdentityQuery = query.subquery(Long.class);
         final Root<AclObjectIdentity> root = aclObjectIdentityQuery.from(AclObjectIdentity.class);
+        final Join<AclObjectIdentity, AclClass> aclClassJoin = root.join(AclObjectIdentity_.OBJECT_ID_CLASS);
 
         return aclObjectIdentityQuery.select(root.get(AclObjectIdentity_.ID))
-                .where(criteriaBuilder.equal(root.<Long>get(AclObjectIdentity_.OBJECT_ID_CLASS),
+                .where(criteriaBuilder.equal(aclClassJoin.get(AclClass_.ID),
                         selectAclClassId(aclObjectIdentityQuery, targetType)));
     }
 

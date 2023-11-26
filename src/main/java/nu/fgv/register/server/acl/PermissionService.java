@@ -46,7 +46,8 @@ public class PermissionService {
             final List<AccessControlEntry> aclEntries = acl.getEntries();
 
             for (int i = aclEntries.size() - 1; i >= 0; i--) {
-                AccessControlEntry ace = aclEntries.get(i);
+                final AccessControlEntry ace = aclEntries.get(i);
+
                 if (ace.getSid().equals(recipient) && ace.getPermission().equals(permission)) {
                     acl.deleteAce(i);
                 }
@@ -66,7 +67,8 @@ public class PermissionService {
             final List<AccessControlEntry> aclEntries = acl.getEntries();
 
             for (int i = aclEntries.size() - 1; i >= 0; i--) {
-                AccessControlEntry ace = aclEntries.get(i);
+                final AccessControlEntry ace = aclEntries.get(i);
+
                 if (ace.getSid().equals(recipient)) {
                     acl.deleteAce(i);
                 }

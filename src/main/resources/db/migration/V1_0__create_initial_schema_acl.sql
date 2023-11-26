@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS acl_object_identity
     id                 BIGINT  NOT NULL AUTO_INCREMENT,
     object_id_class    BIGINT  NOT NULL,
     object_id_identity BIGINT  NOT NULL,
-    parent_object      BIGINT DEFAULT NULL,
-    owner_sid          BIGINT DEFAULT NULL,
+    parent_object      BIGINT  DEFAULT NULL,
+    owner_sid          BIGINT  DEFAULT NULL,
     entries_inheriting TINYINT NOT NULL,
     CONSTRAINT PK_ACL_OBJECT_IDENTITY PRIMARY KEY (id)
 );

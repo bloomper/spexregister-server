@@ -66,6 +66,11 @@ public class AclSecurityConfig {
 
     @Bean
     public JdbcMutableAclService aclService() {
-        return new JdbcMutableAclService(dataSource, lookupStrategy(), aclCache());
+        final JdbcMutableAclService aclService = new JdbcMutableAclService(dataSource, lookupStrategy(), aclCache());
+
+        aclService.setClassIdentityQuery("SELECT @@IDENTITY");
+        aclService.setSidIdentityQuery("SELECT @@IDENTITY");
+
+        return aclService;
     }
 }

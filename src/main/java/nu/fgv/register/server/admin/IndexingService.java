@@ -9,7 +9,6 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -21,7 +20,6 @@ public class IndexingService {
 
     private final EntityManager entityManager;
 
-    @Transactional
     @Async
     public CompletableFuture<CompletionStage<Void>> initiateIndexingFor(final Class<?> clazz, final boolean force) {
         log.info("Initiating indexing for {}", clazz.getSimpleName());
@@ -47,7 +45,6 @@ public class IndexingService {
                 }));
     }
 
-    @Async
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
     public void scheduledRun() {
         initiateIndexingFor(Spexare.class, true);
