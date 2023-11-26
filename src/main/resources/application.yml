@@ -50,6 +50,10 @@ spring:
         jwt:
           issuer-uri: http://localhost:9000
 
+  threads:
+    virtual:
+      enabled: true
+
 spexregister:
   default-language: sv
   languages:
