@@ -19,6 +19,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -58,7 +59,7 @@ public class NewsApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> create(@Valid @RequestBody final NewsCreateDto dto) {
         final NewsDto newDto = service.create(dto);
 
@@ -78,7 +79,7 @@ public class NewsApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable Long id, @Valid @RequestBody NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -90,7 +91,7 @@ public class NewsApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -102,7 +103,7 @@ public class NewsApi {
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -114,6 +115,7 @@ public class NewsApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.NEWS).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

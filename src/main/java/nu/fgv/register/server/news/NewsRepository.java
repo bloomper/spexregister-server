@@ -1,9 +1,9 @@
 package nu.fgv.register.server.news;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import nu.fgv.register.server.acl.AclJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface NewsRepository extends JpaRepository<News, Long>, JpaSpecificationExecutor<News> {
+public interface NewsRepository extends AclJpaRepository<News, Long>, JpaSpecificationExecutor<News> {
 }

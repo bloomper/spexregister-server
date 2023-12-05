@@ -66,6 +66,8 @@ spexregister:
   jobs:
     full-index:
       cron-expression: 0 0 2 * * ? # Every night at 02:00
+    publish-unpublish-news:
+      cron-expression: 5 0 0 * * ? # Every night at 00:00:05
   default-password-encoder-prefix: "bcrypt"
   password-encodings:
     bcrypt:

@@ -4,8 +4,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import nu.fgv.register.server.acl.PermissionService;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -14,9 +18,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.AclCache;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -35,6 +46,8 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -58,6 +71,15 @@ public abstract class AbstractIntegrationTest {
     protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMINISTRATOR");
 
     private static URI authorizationURI;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private AclCache aclCache;
+
+    @Autowired
+    protected PermissionService permissionService;
 
     @Container
     @ServiceConnection
@@ -99,6 +121,21 @@ public abstract class AbstractIntegrationTest {
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/" + TEST_REALM);
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
+    }
+
+    @BeforeEach
+    public void baseSetUp() {
+        SecurityContextHolder.getContext().setAuthentication(TEST_AUTH); // Needed when manually granting permissions
+    }
+
+    @AfterEach
+    public void baseTearDown() {
+        jdbcTemplate.execute("DELETE FROM acl_entry");
+        jdbcTemplate.execute("DELETE FROM acl_object_identity");
+        jdbcTemplate.execute("DELETE FROM acl_class");
+        jdbcTemplate.execute("DELETE FROM acl_sid");
+        SecurityContextHolder.clearContext();
+        aclCache.clearCache();
     }
 
     @TestConfiguration
@@ -148,6 +185,18 @@ public abstract class AbstractIntegrationTest {
 
     protected String obtainAdminAccessToken() {
         return obtainAccessToken(TEST_ADMIN, TEST_PASSWORD);
+    }
+
+    protected void grantPermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {
+        permissionService.grantPermission(oid, sid, permission);
+    }
+
+    protected void grantReadPermissionToUser(final ObjectIdentity oid) {
+        grantPermission(oid, TEST_USER_SID, BasePermission.READ);
+    }
+
+    protected void grantReadPermissionToRoleUser(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
     }
 
 }

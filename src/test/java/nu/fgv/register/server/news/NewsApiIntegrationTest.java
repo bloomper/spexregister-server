@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewsApiIntegrationTest extends AbstractIntegrationTest {
@@ -101,7 +102,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_one() {
-            persistNews(randomizeNews());
+            var news = persistNews(randomizeNews());
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -274,6 +276,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_found() {
             var news = persistNews(randomizeNews());
+            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto result =

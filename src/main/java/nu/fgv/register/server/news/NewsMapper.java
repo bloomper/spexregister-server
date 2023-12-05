@@ -1,5 +1,6 @@
 package nu.fgv.register.server.news;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -9,6 +10,8 @@ import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+
+import java.time.LocalDate;
 
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
@@ -45,4 +48,20 @@ public interface NewsMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(NewsUpdateDto dto, @MappingTarget News model);
 
+    @AfterMapping
+    default void setPublished(NewsCreateDto dto, final @MappingTarget News model) {
+        model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
+    }
+
+    @AfterMapping
+    default void setPublished(NewsUpdateDto dto, final @MappingTarget News model) {
+        model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
+    }
+
+    default boolean isPublished(final LocalDate visibleFrom, final LocalDate visibleTo) {
+        final LocalDate today = LocalDate.now();
+
+        return visibleFrom.isEqual(today) || visibleFrom.isBefore(today) &&
+                visibleTo.isEqual(today) || visibleTo.isAfter(today);
+    }
 }
