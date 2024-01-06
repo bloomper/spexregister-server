@@ -54,6 +54,9 @@ spring:
     virtual:
       enabled: true
 
+server:
+  port: 8081
+
 spexregister:
   default-language: sv
   languages:
@@ -68,8 +71,3 @@ spexregister:
       cron-expression: 0 0 2 * * ? # Every night at 02:00
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
-  default-password-encoder-prefix: "bcrypt"
-  password-encodings:
-    bcrypt:
-      settings:
-        strength: 10

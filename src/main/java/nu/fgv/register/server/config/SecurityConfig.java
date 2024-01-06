@@ -59,24 +59,4 @@ public class SecurityConfig {
         return jwtAuthenticationConverter;
     }
 
-    @Bean
-    public PasswordEncoder delegatingPasswordEncoder() {
-        final Map<String, PasswordEncoder> encoders = new HashMap<>();
-        final PasswordEncodersHolder holder = new PasswordEncodersHolder(spexregisterConfig);
-
-        encoders.put(spexregisterConfig.getDefaultPasswordEncoderPrefix(), holder.defaultPasswordEncoder());
-
-        return new DelegatingPasswordEncoder(spexregisterConfig.getDefaultPasswordEncoderPrefix(), encoders);
-    }
-
-    // Workaround as there must only be one password encoder bean
-    @RequiredArgsConstructor
-    public static final class PasswordEncodersHolder {
-
-        private final SpexregisterConfig spexregisterConfig;
-
-        public PasswordEncoder defaultPasswordEncoder() {
-            return new BCryptPasswordEncoder((int) spexregisterConfig.getPasswordEncodings().get("bcrypt").getSettings().get("strength"), new SecureRandom());
-        }
-    }
 }

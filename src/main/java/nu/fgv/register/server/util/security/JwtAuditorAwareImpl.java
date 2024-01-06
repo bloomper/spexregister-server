@@ -8,7 +8,7 @@ public class JwtAuditorAwareImpl implements AuditorAware<String> {
 
     @Override
     public Optional<String> getCurrentAuditor() {
-        return Optional.of(SecurityUtil.getCurrentUserClaim());
+        return Optional.of(SecurityUtil.getCurrentUserSubClaim());
     }
 
 }

@@ -103,7 +103,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_one() {
             var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -124,7 +124,10 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> persistNews(randomizeNews()));
+            IntStream.range(0, size).forEach(i -> {
+                var news = persistNews(randomizeNews());
+                grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+            });
 
             //@formatter:off
             final List<NewsDto> result =
@@ -151,7 +154,8 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         public void should_return_zero() {
-            persistNews(randomizeNews());
+            var news = persistNews(randomizeNews());
+            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -173,6 +177,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         public void should_return_one() {
             var news = persistNews(randomizeNews());
+            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -199,7 +204,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     news.setSubject("whatever");
                 }
-                persistNews(news);
+                grantReadPermissionToUser(toObjectIdentity(News.class, persistNews(news).getId()));
             });
 
             //@formatter:off

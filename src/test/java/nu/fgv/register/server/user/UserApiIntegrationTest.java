@@ -78,7 +78,6 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .randomize(
                         named("username"), new EmailRandomizer()
                 )
-                .excludeField(named("password").and(ofType(String.class)).and(inClass(User.class)))
                 .excludeField(named("spexare").and(ofType(Spexare.class)).and(inClass(User.class)))
                 .excludeField(named("authorities").and(ofType(Set.class)).and(inClass(User.class)))
                 .randomize(

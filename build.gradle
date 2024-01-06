@@ -3,6 +3,8 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.4'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'io.freefair.lombok' version '8.4'
+    id 'org.sonarqube' version '4.4.1.3373'
+    id 'com.gradle.enterprise' version '3.16.1'
     id 'org.graalvm.buildtools.native' version '0.9.28'
     id 'java'
 }
@@ -113,5 +115,23 @@ bootJar {
     dependsOn asciidoctor
     from("${asciidoctor.outputDir}") {
         into 'static/docs'
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'bloomper_spexregister-server'
+        property 'sonar.organization', 'bloomper'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+    }
+}
+
+gradleEnterprise {
+    if (System.getenv("CI") != null) {
+        buildScan {
+            publishAlways()
+            termsOfServiceUrl = "https://gradle.com/terms-of-service"
+            termsOfServiceAgree = "yes"
+        }
     }
 }

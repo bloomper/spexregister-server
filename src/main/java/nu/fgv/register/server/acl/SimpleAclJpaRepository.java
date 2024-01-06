@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserClaim;
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements AclJpaRepository<T, ID> {
@@ -72,7 +72,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
             throw new IllegalStateException("Permission filtering not possible for anonymous user");
         }
 
-        final PrincipalSid sid = new PrincipalSid(getCurrentUserClaim());
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
 
         return getQuery(spec, sort, sid, permission).getResultList();
     }
@@ -97,7 +97,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
             throw new IllegalStateException("Permission filtering not possible for anonymous user");
         }
 
-        final PrincipalSid sid = new PrincipalSid(getCurrentUserClaim());
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
         final TypedQuery<T> query = getQuery(spec, pageable, sid, permission);
 
         return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) :
@@ -252,6 +252,6 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         final Root<AclClass> root = aclClassQuery.from(AclClass.class);
 
         return aclClassQuery.select(root.get(AclClass_.ID))
-                .where(criteriaBuilder.equal(root.<String>get(AclClass_.CLASS_NAME), targetType.getSimpleName()));
+                .where(criteriaBuilder.equal(root.<String>get(AclClass_.CLASS_NAME), targetType.getName()));
     }
 }

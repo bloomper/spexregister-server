@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.AclCache;
@@ -73,7 +73,7 @@ public abstract class AbstractIntegrationTest {
     private static URI authorizationURI;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private JdbcClient jdbcClient;
 
     @Autowired
     private AclCache aclCache;
@@ -90,7 +90,7 @@ public abstract class AbstractIntegrationTest {
     private static final OpensearchContainer opensearch;
 
     static {
-        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:2.0.0"));
+        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:2.0.1"));
         opensearch.start();
     }
     */
@@ -130,10 +130,10 @@ public abstract class AbstractIntegrationTest {
 
     @AfterEach
     public void baseTearDown() {
-        jdbcTemplate.execute("DELETE FROM acl_entry");
-        jdbcTemplate.execute("DELETE FROM acl_object_identity");
-        jdbcTemplate.execute("DELETE FROM acl_class");
-        jdbcTemplate.execute("DELETE FROM acl_sid");
+        jdbcClient.sql("DELETE FROM acl_entry").update();
+        jdbcClient.sql("DELETE FROM acl_object_identity").update();
+        jdbcClient.sql("DELETE FROM acl_class").update();
+        jdbcClient.sql("DELETE FROM acl_sid").update();
         SecurityContextHolder.clearContext();
         aclCache.clearCache();
     }
