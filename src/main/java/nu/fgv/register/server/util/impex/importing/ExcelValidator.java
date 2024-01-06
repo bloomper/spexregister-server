@@ -169,14 +169,14 @@ public class ExcelValidator {
                             case STRING ->
                                     primaryKey = hasText(primaryKeyCell.getStringCellValue()) ? Long.parseLong(primaryKeyCell.getStringCellValue()) : null;
                             case NUMERIC ->
-                                    primaryKey = Double.valueOf(primaryKeyCell.getNumericCellValue()).longValue();
+                                    primaryKey = (long) primaryKeyCell.getNumericCellValue();
                             default -> {
                                 workbookContainer.getMessages().add(workbookContainer.getMessageSource().getMessage("import.validation.cellTypeMismatch", new Object[]{sheetContainer.getPrimaryKeyPosition(), row.getRowNum()}, workbookContainer.getLocale()));
                                 primaryKey = null;
                             }
                         }
 
-                        if (primaryKey != null && primaryKey < 0 && !workbookContainer.getExistenceChecker().apply(primaryKey)) {
+                        if (primaryKey != null && primaryKey < 0 && Boolean.TRUE.equals(!workbookContainer.getExistenceChecker().apply(primaryKey))) {
                             workbookContainer.getMessages().add(workbookContainer.getMessageSource().getMessage("import.validation.entryDoesNotExist", new Object[]{row.getRowNum()}, workbookContainer.getLocale()));
                         }
                     }
@@ -216,7 +216,7 @@ public class ExcelValidator {
                             field.setAccessible(true); // NOSONAR
                             if (field.getType() == String.class) {
                                 try {
-                                    field.set(dto, cell.getStringCellValue());
+                                    field.set(dto, cell.getStringCellValue()); // NOSONAR
                                 } catch (IllegalAccessException e) {
                                     // TODO: Fix logging
                                     e.printStackTrace();

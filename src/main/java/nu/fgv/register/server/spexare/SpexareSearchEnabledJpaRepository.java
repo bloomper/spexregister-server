@@ -82,6 +82,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                 .aggregation(AggregationKey.of(AGGREGATION_TOGGLES_VALUE), f -> f.terms().field(AGGREGATION_TOGGLES_VALUE, Boolean.class))
                 .aggregation(AggregationKey.of(AGGREGATION_TOGGLES_TYPE_ID), f -> f.terms().field(AGGREGATION_TOGGLES_TYPE_ID, String.class))
                 .sort(f -> determineSort(Spexare.class, f, pageable.getSort()))
-                .fetch(Long.valueOf(pageable.getOffset()).intValue(), pageable.getPageSize());
+                .fetch((int) pageable.getOffset(), pageable.getPageSize());
     }
 }

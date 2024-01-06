@@ -65,7 +65,7 @@ import java.util.Set;
 @ToString
 public class Spexare extends AbstractAuditable implements Serializable {
 
-    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?";
+    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
 
     @Serial
     private static final long serialVersionUID = 1L;

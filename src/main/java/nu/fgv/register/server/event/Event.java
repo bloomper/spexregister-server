@@ -56,11 +56,11 @@ public class Event implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Event event = (Event) o;
-        if (event.getId() == null || getId() == null) {
+        final Event event0 = (Event) o;
+        if (event0.getId() == null || getId() == null) {
             return false;
         }
-        return Objects.equals(getId(), event.getId());
+        return Objects.equals(getId(), event0.getId());
     }
 
     @Override

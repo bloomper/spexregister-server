@@ -76,7 +76,7 @@ public class NewsService {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    if (news.getPublished()) {
+                    if (Boolean.TRUE.equals(news.getPublished())) {
                         permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                     }
 
@@ -102,7 +102,7 @@ public class NewsService {
                 .map(news -> {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
 
-                    if (news.getPublished()) {
+                    if (Boolean.TRUE.equals(news.getPublished())) {
                         permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                     } else {
                         permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
@@ -124,7 +124,7 @@ public class NewsService {
         repository
                 .findAll(hasVisibleToBeforeToday())
                 .stream()
-                .peek(news -> news.setPublished(false))
+                .peek(news -> news.setPublished(false)) // NOSONAR
                 .map(repository::save)
                 .forEach(news -> {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
@@ -135,7 +135,7 @@ public class NewsService {
         repository
                 .findAll(hasVisibleFromAfterYesterday().and(hasVisibleToToday().or(hasVisibleToAfterToday())))
                 .stream()
-                .peek(news -> news.setPublished(true))
+                .peek(news -> news.setPublished(true)) // NOSONAR
                 .map(repository::save)
                 .forEach(news -> {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());

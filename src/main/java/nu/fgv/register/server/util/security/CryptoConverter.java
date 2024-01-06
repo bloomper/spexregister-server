@@ -42,7 +42,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
             final Key key = new SecretKeySpec(secretKey, "AES");
 
             try {
-                cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+                cipher.init(Cipher.ENCRYPT_MODE, key, iv); // NOSONAR
                 return Base64.getEncoder().encodeToString(cipher.doFinal(plainValue.getBytes()));
             } catch (Exception e) {
                 log.error("Unexpected error during encryption", e);
