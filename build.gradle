@@ -4,7 +4,6 @@ plugins {
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'io.freefair.lombok' version '8.4'
     id 'org.sonarqube' version '4.4.1.3373'
-    id 'com.gradle.enterprise' version '3.16.1'
     id 'org.graalvm.buildtools.native' version '0.9.28'
     id 'java'
 }
@@ -95,14 +94,21 @@ compileJava {
     options.annotationProcessorPath = configurations.annotationProcessor
 }
 
+tasks.register('createSnippetsDir') {
+    doLast {
+        project.mkdir snippetsDir
+    }
+}
+
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
+    dependsOn createSnippetsDir
 }
 
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
-    dependsOn test
+    dependsOn createSnippetsDir, test
 }
 
 asciidoctor {
@@ -126,12 +132,3 @@ sonar {
     }
 }
 
-gradleEnterprise {
-    if (System.getenv("CI") != null) {
-        buildScan {
-            publishAlways()
-            termsOfServiceUrl = "https://gradle.com/terms-of-service"
-            termsOfServiceAgree = "yes"
-        }
-    }
-}
