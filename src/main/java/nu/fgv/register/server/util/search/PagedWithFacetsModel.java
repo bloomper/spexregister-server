@@ -23,7 +23,7 @@ import java.util.Optional;
 
 public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
-    public static PagedWithFacetsModel<?> NO_PAGE = new PagedWithFacetsModel<>();
+    public static final PagedWithFacetsModel<?> NO_PAGE = new PagedWithFacetsModel<>();
 
     private final PageMetadata metadata;
     private final @Nullable ResolvableType fallbackType;

@@ -31,8 +31,7 @@ public class FilterCriteria {
     public FilterCriteria(final String key, final String operation, final String prefix, final String value, final String suffix) {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 
-        if (op != null) {
-            if (op == FilterOperation.EQUALITY) {
+        if (op == FilterOperation.EQUALITY) {
                 final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
                 final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
 
@@ -43,7 +42,6 @@ public class FilterCriteria {
                 } else if (endWithAsterisk) {
                     op = FilterOperation.STARTS_WITH;
                 }
-            }
         }
         this.key = key;
         this.operation = op;

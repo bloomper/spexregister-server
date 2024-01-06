@@ -6,7 +6,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -25,27 +24,23 @@ public interface UserMapper {
 
     UserDto toDto(User model);
 
-    @Mappings({
-            @Mapping(target = "id", ignore = true),
-            @Mapping(target = "state", ignore = true),
-            @Mapping(target = "authorities", ignore = true),
-            @Mapping(target = "spexare", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "spexare", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     User toModel(UserCreateDto dto);
 
-    @Mappings({
-            @Mapping(target = "state", ignore = true),
-            @Mapping(target = "authorities", ignore = true),
-            @Mapping(target = "spexare", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "state", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "spexare", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     User toModel(UserUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

@@ -9,6 +9,9 @@ public class Constants {
 
     public static class MediaTypes {
 
+        private MediaTypes() {
+        }
+
         public static final String APPLICATION_XLSX_VALUE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
         public static final MediaType APPLICATION_XLSX = MediaType.parseMediaType(APPLICATION_XLSX_VALUE);

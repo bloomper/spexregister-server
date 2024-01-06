@@ -8,6 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class ToggleSpecification {
 
+    private ToggleSpecification() {
+    }
+
     public static Specification<Toggle> hasId(final Long id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Toggle_.id), id);
     }

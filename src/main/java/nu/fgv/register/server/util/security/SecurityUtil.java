@@ -56,7 +56,7 @@ public class SecurityUtil {
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)
-                .filter(token -> token instanceof Jwt)
+                .filter(Jwt.class::isInstance)
                 .map(Jwt.class::cast);
     }
 

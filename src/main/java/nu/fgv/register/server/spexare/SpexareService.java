@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
@@ -61,7 +60,7 @@ public class SpexareService {
                 .findAll(sort)
                 .stream()
                 .map(SPEXARE_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<SpexareDto> find(final String filter, final Pageable pageable) {
@@ -85,7 +84,7 @@ public class SpexareService {
                 .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEXARE_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public SpexareDto create(final SpexareCreateDto dto) {

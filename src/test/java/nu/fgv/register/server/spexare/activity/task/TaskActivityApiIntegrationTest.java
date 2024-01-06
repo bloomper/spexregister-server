@@ -101,7 +101,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -119,7 +119,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -128,7 +128,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_404() {
+        void should_return_404() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -143,7 +143,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -166,7 +166,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -192,7 +192,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -220,7 +220,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_zero_when_incorrect_spexare() {
+        void should_return_zero_when_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare2));
@@ -248,7 +248,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -276,7 +276,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -294,7 +294,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_spexare_not_found() {
+        void should_return_404_when_spexare_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -315,7 +315,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_activity_not_found() {
+        void should_return_404_when_activity_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -336,7 +336,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_incorrect_spexare() {
+        void should_return_404_when_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -358,7 +358,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_incorrect_activity() {
+        void should_return_404_when_incorrect_activity() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -385,7 +385,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() {
+        void should_create_and_return_201() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -423,7 +423,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_spexare_not_found() {
+        void should_return_404_when_creating_and_spexare_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -441,11 +441,11 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_creating_and_activity_not_found() {
+        void should_return_404_when_creating_and_activity_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -465,7 +465,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_task_not_found() {
+        void should_return_404_when_creating_and_task_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -481,11 +481,11 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_409_when_creating_and_incorrect_spexare() {
+        void should_return_409_when_creating_and_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -504,7 +504,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.CONFLICT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -513,7 +513,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() {
+        void should_update_and_return_202() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task1 = persistTask(randomizeTask(category));
@@ -553,7 +553,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_spexare_not_found() {
+        void should_return_404_when_updating_and_spexare_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -576,7 +576,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_activity_not_found() {
+        void should_return_404_when_updating_and_activity_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -599,7 +599,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_spex_not_found() {
+        void should_return_404_when_updating_and_spex_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -622,7 +622,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_updating_and_incorrect_spexare() {
+        void should_return_422_when_updating_and_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -646,7 +646,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_updating_and_incorrect_activity() {
+        void should_return_422_when_updating_and_incorrect_activity() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -675,7 +675,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -710,11 +710,11 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).isEmpty();
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_deleting_non_existing_value() {
+        void should_return_404_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var activity = persistActivity(randomizeActivity(spexare));
 
@@ -730,11 +730,11 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_deleting_and_spexare_not_found() {
+        void should_return_404_when_deleting_and_spexare_not_found() {
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
             var activity = persistActivity(randomizeActivity(null));
@@ -756,7 +756,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_deleting_and_activity_not_found() {
+        void should_return_404_when_deleting_and_activity_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));
@@ -779,7 +779,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_and_incorrect_spexare() {
+        void should_return_422_when_deleting_and_incorrect_spexare() {
             var spexare1 = persistSpexare(randomizeSpexare());
             var spexare2 = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
@@ -803,7 +803,7 @@ public class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_and_incorrect_activity() {
+        void should_return_422_when_deleting_and_incorrect_activity() {
             var spexare = persistSpexare(randomizeSpexare());
             var category = persistTaskCategory(randomizeTaskCategory());
             var task = persistTask(randomizeTask(category));

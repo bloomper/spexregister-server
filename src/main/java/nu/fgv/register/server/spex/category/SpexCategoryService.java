@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
@@ -33,7 +32,7 @@ public class SpexCategoryService {
                 .findAll(sort)
                 .stream()
                 .map(SPEX_CATEGORY_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
@@ -57,7 +56,7 @@ public class SpexCategoryService {
                 .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEX_CATEGORY_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public SpexCategoryDto create(final SpexCategoryCreateDto dto) {

@@ -82,7 +82,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -97,7 +97,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -106,7 +106,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
@@ -124,7 +124,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -144,7 +144,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> persistSpexare(randomizeSpexare()));
 
@@ -172,7 +172,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveWithFilteringPagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -193,7 +193,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -214,7 +214,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var spexare = randomizeSpexare();
@@ -249,7 +249,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class SearchPagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<SpexareDto> result =
                     given()
@@ -268,7 +268,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -289,7 +289,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var spexare = persistSpexare(randomizeSpexare());
@@ -322,7 +322,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
 
             //@formatter:off
@@ -346,7 +346,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
             dto.setLastName(null);
 
@@ -361,7 +361,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -369,7 +369,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -391,7 +391,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -409,7 +409,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -466,7 +466,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
             dto.setFirstName(null);
 
@@ -481,11 +481,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_400_when_invalid_social_security_number() {
+        void should_return_400_when_invalid_social_security_number() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
             dto.setSocialSecurityNumber("20120606-4658");
 
@@ -500,11 +500,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
 
             //@formatter:off
@@ -518,7 +518,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -527,7 +527,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -584,7 +584,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
 
             //@formatter:off
@@ -598,7 +598,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }
@@ -608,7 +608,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -621,11 +621,11 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -636,7 +636,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -645,7 +645,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class ImageTests {
 
         @Test
-        public void should_update_image_and_return_204() throws Exception {
+        void should_update_image_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -677,7 +677,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_image_via_multipart_and_return_204() throws Exception {
+        void should_update_image_via_multipart_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = ResourceUtils.getFile("classpath:test.png");
 
@@ -708,7 +708,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_image_and_return_204() throws Exception {
+        void should_delete_image_and_return_204() throws Exception {
             var spexare = persistSpexare(randomizeSpexare());
             var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -750,7 +750,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class PartnerTests {
 
         @Test
-        public void should_return_200() {
+        void should_return_200() {
             var partner = persistSpexare(randomizeSpexare());
             var spexare = persistSpexare(randomizeSpexare());
             spexare.setPartner(partner);
@@ -777,7 +777,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_retrieving_and_spexare_not_found() {
+        void should_return_404_when_retrieving_and_spexare_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -790,7 +790,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_retrieving_and_partner_not_found() {
+        void should_return_404_when_retrieving_and_partner_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -805,7 +805,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_and_return_202() {
+        void should_update_and_return_202() {
             var spexare = persistSpexare(randomizeSpexare());
             var partner = persistSpexare(randomizeSpexare());
 
@@ -821,7 +821,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_spexare_not_found() {
+        void should_return_404_when_updating_and_spexare_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -834,7 +834,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_updating_and_partner_not_found() {
+        void should_return_404_when_updating_and_partner_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -849,7 +849,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var partner = persistSpexare(randomizeSpexare());
             var spexare = persistSpexare(randomizeSpexare());
             spexare.setPartner(partner);
@@ -869,7 +869,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_removing_and_no_partner() {
+        void should_return_422_when_removing_and_no_partner() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -884,7 +884,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_spexare_not_found() {
+        void should_return_404_when_removing_and_spexare_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -903,7 +903,7 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -921,9 +921,9 @@ public class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEXARE.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(spexare.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEXARE.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spexare.getCreatedBy());
         }
 
     }

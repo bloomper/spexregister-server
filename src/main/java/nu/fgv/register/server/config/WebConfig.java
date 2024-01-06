@@ -15,7 +15,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -41,6 +40,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    @Override
     public LocalValidatorFactoryBean getValidator() {
         final LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSource());
@@ -59,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
         final AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
         resolver.setSupportedLocales(spexregisterConfig.getLanguages().stream()
                 .map(l -> new Locale.Builder().setLanguage(l).build())
-                .collect(Collectors.toList())
+                .toList()
         );
         resolver.setDefaultLocale(new Locale.Builder().setLanguage(spexregisterConfig.getDefaultLanguage()).build());
         return resolver;

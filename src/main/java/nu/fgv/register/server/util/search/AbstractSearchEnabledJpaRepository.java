@@ -30,12 +30,12 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
 
     private final EntityManager entityManager;
 
-    public AbstractSearchEnabledJpaRepository(final Class<T> domainClass, final EntityManager entityManager) {
+    protected AbstractSearchEnabledJpaRepository(final Class<T> domainClass, final EntityManager entityManager) {
         super(domainClass, entityManager);
         this.entityManager = entityManager;
     }
 
-    public AbstractSearchEnabledJpaRepository(final JpaEntityInformation<T, ID> entityInformation, final EntityManager entityManager) {
+    protected AbstractSearchEnabledJpaRepository(final JpaEntityInformation<T, ID> entityInformation, final EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityManager = entityManager;
     }

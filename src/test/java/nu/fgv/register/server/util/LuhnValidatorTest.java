@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(MockitoExtension.class)
-public class LuhnValidatorTest {
+class LuhnValidatorTest {
 
     private final LuhnValidator validator = new LuhnValidator();
 
@@ -30,17 +30,17 @@ public class LuhnValidatorTest {
     }
 
     @Test
-    public void should_return_true_if_correct_social_security_number() {
+    void should_return_true_if_correct_social_security_number() {
         assertThat(validator.isValid("20120606-4659", constraintValidatorContext), is(true));
     }
 
     @Test
-    public void should_return_false_if_incorrect_social_security_number() {
+    void should_return_false_if_incorrect_social_security_number() {
         assertThat(validator.isValid("20120606-4658", constraintValidatorContext), is(false));
     }
 
     @Test
-    public void should_return_true_if_last_part_of_social_security_number_is_missing() {
+    void should_return_true_if_last_part_of_social_security_number_is_missing() {
         assertThat(validator.isValid("20120606", constraintValidatorContext), is(true));
     }
 

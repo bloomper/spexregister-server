@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -21,7 +20,7 @@ public class CountryService {
         return Stream.of(Locale.getISOCountries())
                 .map(this::mapDto)
                 .sorted(Comparator.comparing(CountryDto::getLabel))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<CountryDto> findByIsoCode(final String isoCode) {

@@ -5,7 +5,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -24,9 +23,7 @@ public interface StateMapper {
 
     StateMapper STATE_MAPPER = Mappers.getMapper(StateMapper.class);
 
-    @Mappings({
-            @Mapping(target = "label", ignore = true),
-    })
+    @Mapping(target = "label", ignore = true)
     StateDto toDto(State model);
 
     Set<StateDto> toDtos(Set<State> models);

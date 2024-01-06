@@ -54,7 +54,7 @@ public class SessionApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -68,7 +68,7 @@ public class SessionApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -77,7 +77,7 @@ public class SessionApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var event = persistEvent(randomizeEvent());
 
             //@formatter:off
@@ -95,9 +95,9 @@ public class SessionApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getEvent()).isEqualTo(event.getEvent().name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SESSION.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(event.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(event.getEvent().name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SESSION.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(event.getCreatedBy());
         }
 
     }

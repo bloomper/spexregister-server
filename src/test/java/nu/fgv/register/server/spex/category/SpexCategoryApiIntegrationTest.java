@@ -68,7 +68,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -83,7 +83,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -92,7 +92,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             // @formatter:off
             final List<SpexCategoryDto> result =
                     given()
@@ -110,7 +110,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -130,7 +130,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> persistSpexCategory(randomizeSpexCategory()));
 
@@ -157,7 +157,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedWithFilteringTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             persistSpexCategory(randomizeSpexCategory());
 
             // @formatter:off
@@ -178,7 +178,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var spexCategory = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -199,7 +199,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var spexCategory = randomizeSpexCategory();
@@ -233,7 +233,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
 
             //@formatter:off
@@ -257,7 +257,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
             dto.setName(null);
 
@@ -272,7 +272,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -280,7 +280,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -302,7 +302,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -320,7 +320,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -376,7 +376,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
             dto.setName(null);
 
@@ -391,11 +391,11 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
             //@formatter:off
@@ -409,7 +409,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -418,7 +418,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -474,7 +474,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
             //@formatter:off
@@ -488,7 +488,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }
@@ -498,7 +498,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -511,11 +511,11 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -526,7 +526,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -535,7 +535,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class LogoTests {
 
         @Test
-        public void should_update_logo_and_return_204() throws Exception {
+        void should_update_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -567,7 +567,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_logo_via_multipart_and_return_204() throws Exception {
+        void should_update_logo_via_multipart_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = ResourceUtils.getFile("classpath:test.png");
 
@@ -598,7 +598,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_logo_and_return_204() throws Exception {
+        void should_delete_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
@@ -640,7 +640,7 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
 
             //@formatter:off
@@ -658,9 +658,9 @@ public class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(category.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(category.getCreatedBy());
         }
 
     }

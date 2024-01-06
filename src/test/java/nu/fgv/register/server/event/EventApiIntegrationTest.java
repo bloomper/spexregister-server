@@ -52,7 +52,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -66,7 +66,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -75,7 +75,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveAllTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<EventDto> result =
                     given()
@@ -89,12 +89,12 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(0);
+            assertThat(eventRepository.count()).isZero();
             assertThat(result).isEmpty();
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             persistEvent(randomizeEvent());
 
             //@formatter:off
@@ -115,7 +115,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> persistEvent(randomizeEvent()));
 
@@ -142,7 +142,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var event = persistEvent(randomizeEvent());
 
             //@formatter:off
@@ -164,7 +164,7 @@ public class EventApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())

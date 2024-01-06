@@ -34,7 +34,7 @@ public class IndexingService {
             return CompletableFuture
                     .completedFuture(searchSession.massIndexer()
                     .start()
-                    .thenAccept((action) -> log.info("All entities indexed")));
+                    .thenAccept(action -> log.info("All entities indexed")));
         }
 
         log.info("Not starting index due to existing documents (count: {})", count);

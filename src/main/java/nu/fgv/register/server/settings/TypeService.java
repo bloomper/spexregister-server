@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
 import static nu.fgv.register.server.settings.TypeSpecification.hasType;
@@ -23,7 +22,7 @@ public class TypeService {
                 .findAll()
                 .stream()
                 .map(TYPE_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<TypeDto> findByType(final TypeType type) {
@@ -31,7 +30,7 @@ public class TypeService {
                 .findAll(hasType(type))
                 .stream()
                 .map(TYPE_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<TypeDto> findById(final String id) {

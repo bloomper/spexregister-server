@@ -6,7 +6,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -25,25 +24,21 @@ public interface AddressMapper {
 
     AddressDto toDto(Address model);
 
-    @Mappings({
-            @Mapping(target = "id", ignore = true),
-            @Mapping(target = "type", ignore = true),
-            @Mapping(target = "spexare", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "type", ignore = true)
+    @Mapping(target = "spexare", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     Address toModel(AddressCreateDto dto);
 
-    @Mappings({
-            @Mapping(target = "type", ignore = true),
-            @Mapping(target = "spexare", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "type", ignore = true)
+    @Mapping(target = "spexare", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     Address toModel(AddressUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

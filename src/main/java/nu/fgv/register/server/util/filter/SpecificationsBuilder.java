@@ -57,7 +57,7 @@ public class SpecificationsBuilder<T> {
                 .map(converter)
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        Specification<T> result = specifications.get(0);
+        Specification<T> result = specifications.getFirst();
 
         for (int i = 1; i < specifications.size(); i++) {
             result = params.get(i).isOrPredicate()

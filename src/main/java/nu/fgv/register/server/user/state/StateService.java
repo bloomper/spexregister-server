@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 
@@ -24,7 +23,7 @@ public class StateService {
         return repository
                 .findAll(sort)
                 .stream().map(STATE_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<StateDto> findById(final String id) {

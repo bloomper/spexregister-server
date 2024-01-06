@@ -6,6 +6,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class SpexActivitySpecification {
 
+    private SpexActivitySpecification() {
+    }
+
     public static Specification<SpexActivity> hasId(final Long id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(SpexActivity_.id), id);
     }

@@ -5,7 +5,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -24,9 +23,7 @@ public interface AuthorityMapper {
 
     AuthorityMapper AUTHORITY_MAPPER = Mappers.getMapper(AuthorityMapper.class);
 
-    @Mappings({
-            @Mapping(target = "label", ignore = true),
-    })
+    @Mapping(target = "label", ignore = true)
     AuthorityDto toDto(Authority model);
 
     Set<AuthorityDto> toDtos(Set<Authority> models);

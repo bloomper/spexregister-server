@@ -27,7 +27,7 @@ public class SpexCategoryImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        return validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, SpexCategoryCreateDto.class, SpexCategoryUpdateDto.class, (id) -> service.findById(id).isPresent());
+        return validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, SpexCategoryCreateDto.class, SpexCategoryUpdateDto.class, id -> service.findById(id).isPresent());
     }
 
 }

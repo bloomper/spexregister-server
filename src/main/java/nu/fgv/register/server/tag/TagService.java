@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 import static nu.fgv.register.server.tag.TagSpecification.hasIds;
@@ -31,7 +30,7 @@ public class TagService {
                 .findAll(sort)
                 .stream()
                 .map(TAG_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<TagDto> find(final String filter, final Pageable pageable) {
@@ -55,7 +54,7 @@ public class TagService {
                 .findAll(hasIds(ids), sort)
                 .stream()
                 .map(TAG_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public TagDto create(final TagCreateDto dto) {

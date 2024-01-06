@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,16 +32,16 @@ public class SpexExportService extends AbstractExportService {
     @Override
     protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
         var dtos = retrieveDtos(ids);
-        var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).collect(Collectors.toList()));
+        var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).toList());
         var categoryDtos = retrieveCategoryDtos();
 
         writer.createSheet(messageSource, locale, workbook, dtos);
         writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
         writer.createSheet(messageSource, locale, workbook, categoryDtos)
                 .ifPresent(sheet -> {
-                    if (sheet instanceof XSSFSheet) {
+                    if (sheet instanceof XSSFSheet sheet0) {
                         final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
-                        ((XSSFSheet) sheet).setTabColor(new XSSFColor(red));
+                        sheet0.setTabColor(new XSSFColor(red));
                     }
                     sheet.protectSheet("");
                 });

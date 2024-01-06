@@ -24,7 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
@@ -68,11 +69,11 @@ public class ExcelWriter {
         sheetContainer.setSheet(workbookContainer.getWorkbook().createSheet());
         sheetContainer.setData(data);
 
-        final Class<?> clazz = data.get(0).getClass();
+        final Class<?> clazz = data.getFirst().getClass();
         sheetContainer.setAnnotatedFields(
                 Arrays.stream(FieldUtils.getAllFields(clazz))
                         .filter(field -> {
-                            field.setAccessible(true);
+                            field.setAccessible(true); // NOSONAR
                             return field.isAnnotationPresent(ExcelCell.class);
                         }).toList()
         );
@@ -80,11 +81,11 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> generateSheetName = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> generateSheetName = (final SheetContainer sheetContainer) -> {
         final Workbook workbook = workbookContainer.getWorkbook();
         final Sheet sheet = sheetContainer.getSheet();
         final String sheetName;
-        final Class<?> clazz = sheetContainer.getData().get(0).getClass();
+        final Class<?> clazz = sheetContainer.getData().getFirst().getClass();
 
         if (hasText(sheetContainer.getOverrideSheetName())) {
             sheetName = sheetContainer.getOverrideSheetName();
@@ -101,13 +102,13 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> addColumns = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> addColumns = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
         final Row row = sheet.createRow(0);
 
         try {
             final BiConsumer<Cell, String> columnWriter = workbookContainer.getWriterFactory().getHeaderWriter();
-            final BiConsumer<String, Integer> addColumn = (final String header, final Integer position) -> {
+            final ObjIntConsumer<String> addColumn = (final String header, final int position) -> {
                 final Cell cell = row.createCell(position);
                 columnWriter.accept(cell, header);
                 sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
@@ -133,7 +134,7 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> writeData = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> writeData = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
         final List<?> data = sheetContainer.getData();
 
@@ -190,7 +191,7 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> autoSizeColumns = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> autoSizeColumns = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
         final int lastColumn = sheet.getRow(sheet.getLastRowNum()).getLastCellNum();
 
@@ -201,7 +202,7 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> freezePane = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> freezePane = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
 
         sheet.createFreezePane(0, 1);
@@ -209,7 +210,7 @@ public class ExcelWriter {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> attachFilters = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> attachFilters = (final SheetContainer sheetContainer) -> {
         final Sheet sheet = sheetContainer.getSheet();
         final int lastColumn = sheet.getRow(sheet.getLastRowNum()).getLastCellNum() - 1;
 

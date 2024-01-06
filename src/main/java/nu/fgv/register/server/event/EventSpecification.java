@@ -6,6 +6,9 @@ import java.time.Instant;
 
 public class EventSpecification {
 
+    private EventSpecification() {
+    }
+
     public static Specification<Event> hasSource(final Event.SourceType source) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Event_.source), source);
     }

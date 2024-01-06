@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spex.SpexSpecification.hasIds;
@@ -43,7 +42,7 @@ public class SpexService {
         return repository
                 .findAll(isNotRevival(), sort)
                 .stream().map(SPEX_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<SpexDto> find(final String filter, final Pageable pageable) {
@@ -67,7 +66,7 @@ public class SpexService {
                 .findAll(hasIds(ids), sort)
                 .stream()
                 .map(SPEX_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<SpexDto> findRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
@@ -75,7 +74,7 @@ public class SpexService {
                 .findAll(hasParentIds(parentIds), sort)
                 .stream()
                 .map(SPEX_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public SpexDto create(final SpexCreateDto dto) {

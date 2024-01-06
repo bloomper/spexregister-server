@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.category.TaskCategorySpecification.hasIds;
@@ -31,7 +30,7 @@ public class TaskCategoryService {
                 .findAll(sort)
                 .stream()
                 .map(TASK_CATEGORY_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
@@ -55,7 +54,7 @@ public class TaskCategoryService {
                 .findAll(hasIds(ids), sort)
                 .stream()
                 .map(TASK_CATEGORY_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public TaskCategoryDto create(final TaskCategoryCreateDto dto) {

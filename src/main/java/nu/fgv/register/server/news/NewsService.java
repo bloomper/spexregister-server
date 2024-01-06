@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleFromAfterYesterday;
@@ -45,7 +44,7 @@ public class NewsService {
                 .findAll(sort, BasePermission.READ)
                 .stream()
                 .map(NEWS_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<NewsDto> find(final String filter, final Pageable pageable) {

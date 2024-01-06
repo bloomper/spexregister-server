@@ -80,7 +80,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -95,7 +95,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -104,7 +104,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_404() {
+        void should_return_404() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -118,7 +118,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -139,7 +139,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var spexare = persistSpexare(randomizeSpexare());
             var tag = persistTag(randomizeTag());
             spexare.setTags(Set.of(tag));
@@ -163,7 +163,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var spexare = persistSpexare(randomizeSpexare());
             var taggings = new ArrayList<Tag>();
@@ -199,7 +199,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() {
+        void should_create_and_return_201() {
             var spexare = persistSpexare(randomizeSpexare());
             var tag = persistTag(randomizeTag());
 
@@ -233,7 +233,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_creating_already_existing_value() {
+        void should_return_409_when_creating_already_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
             var tag = persistTag(randomizeTag());
 
@@ -263,7 +263,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_creating_and_spexare_not_found() {
+        void should_return_404_when_creating_and_spexare_not_found() {
             var tag = persistTag(randomizeTag());
 
             //@formatter:off
@@ -277,7 +277,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }
@@ -287,7 +287,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var spexare = persistSpexare(randomizeSpexare());
             var tag = persistTag(randomizeTag());
 
@@ -332,7 +332,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_deleting_non_existing_value() {
+        void should_return_422_when_deleting_non_existing_value() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -346,11 +346,11 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_deleting_and_spexare_not_found() {
+        void should_return_404_when_deleting_and_spexare_not_found() {
             var tag = persistTag(randomizeTag());
 
             //@formatter:off
@@ -364,7 +364,7 @@ public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }

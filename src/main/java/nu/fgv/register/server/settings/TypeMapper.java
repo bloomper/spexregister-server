@@ -5,7 +5,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -22,9 +21,7 @@ public interface TypeMapper {
 
     TypeMapper TYPE_MAPPER = Mappers.getMapper(TypeMapper.class);
 
-    @Mappings({
-            @Mapping(target = "label", ignore = true),
-    })
+    @Mapping(target = "label", ignore = true)
     TypeDto toDto(Type model);
 
     @AfterMapping

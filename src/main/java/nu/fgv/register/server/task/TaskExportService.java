@@ -37,9 +37,9 @@ public class TaskExportService extends AbstractExportService {
         writer.createSheet(messageSource, locale, workbook, dtos);
         writer.createSheet(messageSource, locale, workbook, categoryDtos)
                 .ifPresent(sheet -> {
-                    if (sheet instanceof XSSFSheet) {
+                    if (sheet instanceof XSSFSheet sheet0) {
                         final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
-                        ((XSSFSheet) sheet).setTabColor(new XSSFColor(red));
+                        sheet0.setTabColor(new XSSFColor(red));
                     }
                     sheet.protectSheet("");
                 });

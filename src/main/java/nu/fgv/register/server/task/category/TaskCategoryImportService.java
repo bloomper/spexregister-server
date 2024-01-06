@@ -27,7 +27,7 @@ public class TaskCategoryImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        return validator.validateSheet(messageSource, locale, workbook, TaskCategoryDto.class, TaskCategoryCreateDto.class, TaskCategoryUpdateDto.class, (id) -> service.findById(id).isPresent());
+        return validator.validateSheet(messageSource, locale, workbook, TaskCategoryDto.class, TaskCategoryCreateDto.class, TaskCategoryUpdateDto.class, id -> service.findById(id).isPresent());
     }
 
 }

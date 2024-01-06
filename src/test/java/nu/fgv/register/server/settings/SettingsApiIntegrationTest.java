@@ -45,7 +45,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -57,7 +57,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -66,7 +66,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveLanguageTests {
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             //@formatter:off
             final List<LanguageDto> result =
                     given()
@@ -83,7 +83,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             //@formatter:off
             final LanguageDto result =
                     given()
@@ -102,7 +102,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_sv() {
+        void should_return_found_in_sv() {
             //@formatter:off
             final LanguageDto result =
                     given()
@@ -122,7 +122,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_en() {
+        void should_return_found_in_en() {
             //@formatter:off
             final LanguageDto result =
                     given()
@@ -142,7 +142,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
@@ -159,7 +159,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveCountryTests {
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             //@formatter:off
             final List<CountryDto> result =
                     given()
@@ -176,7 +176,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             //@formatter:off
             final CountryDto result =
                     given()
@@ -195,7 +195,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_sv() {
+        void should_return_found_in_sv() {
             //@formatter:off
             final CountryDto result =
                     given()
@@ -215,7 +215,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_en() {
+        void should_return_found_in_en() {
             //@formatter:off
             final CountryDto result =
                     given()
@@ -235,7 +235,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
@@ -252,7 +252,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTypeTests {
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             //@formatter:off
             final List<TypeDto> result =
                     given()
@@ -269,7 +269,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many_of_type() {
+        void should_return_many_of_type() {
             //@formatter:off
             final List<TypeDto> result =
                     given()
@@ -286,7 +286,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_unknown_type() {
+        void should_return_400_when_unknown_type() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
@@ -298,7 +298,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             //@formatter:off
             final TypeDto result =
                     given()
@@ -317,7 +317,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_sv() {
+        void should_return_found_in_sv() {
             //@formatter:off
             final TypeDto result =
                     given()
@@ -337,7 +337,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_found_in_en() {
+        void should_return_found_in_en() {
             //@formatter:off
             final TypeDto result =
                     given()
@@ -357,7 +357,7 @@ public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)

@@ -24,7 +24,7 @@ public class ValidationHandler extends ResponseEntityExceptionHandler {
             final WebRequest request
     ) {
         final Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        ex.getBindingResult().getAllErrors().forEach(error -> {
             final String fieldName = ((FieldError) error).getField();
             final String message = error.getDefaultMessage();
             errors.put(fieldName, message);

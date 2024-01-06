@@ -82,7 +82,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -99,7 +99,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -108,7 +108,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<SpexDto> result =
                     given()
@@ -126,7 +126,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
             persistSpex(randomizeSpex(category));
 
@@ -147,7 +147,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var category = persistSpexCategory(randomizeSpexCategory());
             IntStream.range(0, size).forEach(i -> {
@@ -183,7 +183,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedWithFilteringTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var category = persistSpexCategory(randomizeSpexCategory());
             persistSpex(randomizeSpex(category));
 
@@ -205,7 +205,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -227,7 +227,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var category = persistSpexCategory(randomizeSpexCategory());
             IntStream.range(0, size).forEach(i -> {
@@ -267,7 +267,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
 
             //@formatter:off
@@ -293,7 +293,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
             dto.setTitle(null);
 
@@ -308,8 +308,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
     }
 
@@ -317,7 +317,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -340,7 +340,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -358,7 +358,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -416,7 +416,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
             dto.setTitle(null);
 
@@ -431,12 +431,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
 
             //@formatter:off
@@ -450,8 +450,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
     }
 
@@ -460,7 +460,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -518,7 +518,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
 
             //@formatter:off
@@ -532,8 +532,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
     }
@@ -543,7 +543,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -557,12 +557,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -573,8 +573,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
     }
 
@@ -583,7 +583,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class PosterTests {
 
         @Test
-        public void should_update_poster_and_return_204() throws Exception {
+        void should_update_poster_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
@@ -616,7 +616,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_update_poster_via_multipart_and_return_204() throws Exception {
+        void should_update_poster_via_multipart_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var poster = ResourceUtils.getFile("classpath:test.png");
@@ -648,7 +648,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_poster_and_return_204() throws Exception {
+        void should_delete_poster_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
@@ -694,7 +694,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class AllRevivalTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<SpexDto> result =
                     given()
@@ -712,7 +712,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             persistRevival(randomizeRevival(spex));
@@ -734,7 +734,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var category = persistSpexCategory(randomizeSpexCategory());
             IntStream.range(0, size).forEach(i -> {
@@ -766,7 +766,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class RevivalTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var revival = persistRevival(randomizeRevival(spex));
@@ -790,7 +790,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_and_spex_not_found() {
+        void should_return_404_and_spex_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var revival = persistRevival(randomizeRevival(spex));
@@ -807,7 +807,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_409_when_incorrect_spex() {
+        void should_return_409_when_incorrect_spex() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex1 = persistSpex(randomizeSpex(category));
             var spex2 = persistSpex(randomizeSpex(category));
@@ -825,7 +825,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -846,7 +846,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_non_existent_spex() {
+        void should_return_404_when_non_existent_spex() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -859,7 +859,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var revival = persistRevival(randomizeRevival(spex));
@@ -881,7 +881,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
@@ -905,7 +905,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -945,7 +945,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_spex_not_found() {
+        void should_return_404_when_adding_and_spex_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -956,12 +956,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_409_when_adding_and_year_already_exists() {
+        void should_return_409_when_adding_and_year_already_exists() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var revival = persistRevival(randomizeRevival(spex));
@@ -981,7 +981,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
             var revival = persistRevival(randomizeRevival(spex));
@@ -1001,7 +1001,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_spex_not_found() {
+        void should_return_404_when_removing_and_spex_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1012,12 +1012,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_422_when_removing_and_year_not_found() {
+        void should_return_422_when_removing_and_year_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1055,7 +1055,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class CategoryTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1080,7 +1080,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1091,12 +1091,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_add_and_return_202() {
+        void should_add_and_return_202() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1115,7 +1115,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_spex_not_found() {
+        void should_return_404_when_adding_and_spex_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1126,12 +1126,12 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_adding_and_category_not_found() {
+        void should_return_404_when_adding_and_category_not_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1150,7 +1150,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_remove_and_return_204() {
+        void should_remove_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1169,7 +1169,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_422_when_removing_and_no_category() {
+        void should_return_422_when_removing_and_no_category() {
             var spex = persistSpex(randomizeSpex(null));
 
             //@formatter:off
@@ -1187,7 +1187,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_spex_not_found() {
+        void should_return_404_when_removing_and_spex_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1198,8 +1198,8 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
-            assertThat(detailsRepository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
+            assertThat(detailsRepository.count()).isZero();
         }
 
     }
@@ -1209,7 +1209,7 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
             var spex = persistSpex(randomizeSpex(category));
 
@@ -1228,9 +1228,9 @@ public class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(3);
             assertThat(result).hasSize(2);
-            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.SPEX.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(spex.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEX.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spex.getCreatedBy());
         }
 
     }

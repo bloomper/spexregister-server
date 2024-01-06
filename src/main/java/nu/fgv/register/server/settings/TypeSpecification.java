@@ -4,6 +4,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class TypeSpecification {
 
+    private TypeSpecification() {
+    }
+
     public static Specification<Type> hasId(final String id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Type_.id), id);
     }

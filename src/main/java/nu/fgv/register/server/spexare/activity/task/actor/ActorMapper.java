@@ -6,7 +6,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -25,25 +24,21 @@ public interface ActorMapper {
 
     ActorDto toDto(Actor model);
 
-    @Mappings({
-            @Mapping(target = "id", ignore = true),
-            @Mapping(target = "vocal", ignore = true),
-            @Mapping(target = "taskActivity", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "vocal", ignore = true)
+    @Mapping(target = "taskActivity", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     Actor toModel(ActorCreateDto dto);
 
-    @Mappings({
-            @Mapping(target = "vocal", ignore = true),
-            @Mapping(target = "taskActivity", ignore = true),
-            @Mapping(target = "createdBy", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "lastModifiedBy", ignore = true),
-            @Mapping(target = "lastModifiedAt", ignore = true)
-    })
+    @Mapping(target = "vocal", ignore = true)
+    @Mapping(target = "taskActivity", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     Actor toModel(ActorUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

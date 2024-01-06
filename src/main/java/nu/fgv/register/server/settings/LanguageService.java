@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class LanguageService {
                 .stream()
                 .map(this::mapDto)
                 .sorted(Comparator.comparing(LanguageDto::getLabel))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<LanguageDto> findByIsoCode(final String isoCode) {

@@ -23,7 +23,7 @@ public class SpexareExportService extends AbstractExportService {
 
     @Override
     protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
-        return null;
+        return new byte[0];
     }
 
 }

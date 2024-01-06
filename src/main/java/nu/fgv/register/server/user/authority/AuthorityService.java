@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 
@@ -24,7 +23,7 @@ public class AuthorityService {
         return repository
                 .findAll(sort)
                 .stream().map(AUTHORITY_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<AuthorityDto> findById(final String id) {

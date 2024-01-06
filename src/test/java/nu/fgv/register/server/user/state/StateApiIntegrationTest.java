@@ -58,7 +58,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -73,7 +73,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -82,7 +82,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveAllTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<StateDto> result =
                     given()
@@ -100,7 +100,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             persistState(randomizeState());
 
             //@formatter:off
@@ -120,7 +120,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> persistState(randomizeState()));
 
@@ -147,7 +147,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var state = persistState(randomizeState());
 
             //@formatter:off
@@ -169,7 +169,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -187,7 +187,7 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var state = persistState(randomizeState());
 
             //@formatter:off
@@ -205,9 +205,9 @@ public class StateApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(5);
             assertThat(result).hasSize(5);
-            assertThat(result.get(result.size() - 1).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(result.size() - 1).getSource()).isEqualTo(Event.SourceType.STATE.name());
-            assertThat(result.get(result.size() - 1).getCreatedBy()).isEqualTo(state.getCreatedBy());
+            assertThat(result.getLast().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getLast().getSource()).isEqualTo(Event.SourceType.STATE.name());
+            assertThat(result.getLast().getCreatedBy()).isEqualTo(state.getCreatedBy());
         }
 
     }

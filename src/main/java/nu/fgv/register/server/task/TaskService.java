@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 import static nu.fgv.register.server.task.TaskSpecification.hasIds;
@@ -36,7 +35,7 @@ public class TaskService {
                 .findAll(sort)
                 .stream()
                 .map(TASK_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Page<TaskDto> find(final String filter, final Pageable pageable) {
@@ -59,7 +58,7 @@ public class TaskService {
         return repository
                 .findAll(hasIds(ids), sort)
                 .stream().map(TASK_MAPPER::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public TaskDto create(final TaskCreateDto dto) {

@@ -59,7 +59,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -74,7 +74,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -83,7 +83,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<NewsDto> result =
                     given()
@@ -101,7 +101,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var news = persistNews(randomizeNews());
             grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
@@ -122,7 +122,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var news = persistNews(randomizeNews());
@@ -153,7 +153,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedWithFilteringTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var news = persistNews(randomizeNews());
             grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
@@ -175,7 +175,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var news = persistNews(randomizeNews());
             grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
@@ -197,7 +197,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var news = randomizeNews();
@@ -232,7 +232,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
 
             //@formatter:off
@@ -256,7 +256,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
             dto.setSubject(null);
 
@@ -271,7 +271,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -279,7 +279,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var news = persistNews(randomizeNews());
             grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
 
@@ -302,7 +302,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -320,7 +320,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
 
             //@formatter:off
@@ -376,7 +376,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
             dto.setSubject(null);
 
@@ -391,11 +391,11 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
             //@formatter:off
@@ -409,7 +409,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -418,7 +418,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
 
             //@formatter:off
@@ -474,7 +474,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
             //@formatter:off
@@ -488,7 +488,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }
@@ -498,7 +498,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var news = persistNews(randomizeNews());
 
             //@formatter:off
@@ -511,11 +511,11 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -526,7 +526,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -535,7 +535,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var news = persistNews(randomizeNews());
 
             //@formatter:off
@@ -553,9 +553,9 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.NEWS.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(news.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.NEWS.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(news.getCreatedBy());
         }
 
     }

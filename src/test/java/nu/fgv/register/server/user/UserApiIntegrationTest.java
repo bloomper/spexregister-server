@@ -102,7 +102,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         RestAssured.port = localPort;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
@@ -120,7 +120,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         RestAssured.reset();
     }
 
@@ -129,7 +129,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             //@formatter:off
             final List<UserDto> result =
                     given()
@@ -147,7 +147,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var state = persistState(randomizeState());
             persistUser(randomizeUser(state));
 
@@ -168,7 +168,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> persistUser(randomizeUser(state)));
@@ -197,7 +197,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class RetrievePagedWithFilteringTests {
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var state = persistState(randomizeState());
             persistUser(randomizeUser(state));
 
@@ -219,7 +219,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -241,7 +241,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             int size = 42;
             var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
@@ -277,7 +277,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        public void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() throws Exception {
             final UserCreateDto dto = random.nextObject(UserCreateDto.class);
 
             //@formatter:off
@@ -301,7 +301,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final UserCreateDto dto = random.nextObject(UserCreateDto.class);
             dto.setUsername(null);
 
@@ -316,7 +316,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -324,7 +324,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Retrieve")
     class RetrieveTests {
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -347,7 +347,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -365,7 +365,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -421,7 +421,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_400_when_invalid_input() {
+        void should_return_400_when_invalid_input() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
             dto.setUsername(null);
 
@@ -436,11 +436,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.BAD_REQUEST.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
@@ -454,7 +454,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -463,7 +463,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        public void should_update_and_return_202() throws Exception {
+        void should_update_and_return_202() throws Exception {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -519,7 +519,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
@@ -533,7 +533,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
     }
@@ -543,7 +543,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        public void should_delete_and_return_204() {
+        void should_delete_and_return_204() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -557,11 +557,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_not_found() {
+        void should_return_404_when_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -572,7 +572,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(repository.count()).isEqualTo(0);
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -581,7 +581,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class AuthorityTests {
 
         @Test
-        public void should_return_404() {
+        void should_return_404() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -594,7 +594,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_zero() {
+        void should_return_zero() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -615,7 +615,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_one() {
+        void should_return_one() {
             var state = persistState(randomizeState());
             var authority = persistAuthority(randomizeAuthority());
             var user = persistUser(randomizeUser(state, authority));
@@ -637,7 +637,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_many() {
+        void should_return_many() {
             var state = persistState(randomizeState());
             var authority1 = persistAuthority(randomizeAuthority());
             var authority2 = persistAuthority(randomizeAuthority());
@@ -660,7 +660,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_add_and_return_202() {
+        void should_add_and_return_202() {
             var state = persistState(randomizeState());
             var authority = persistAuthority(randomizeAuthority());
             var user = persistUser(randomizeUser(state, authority));
@@ -680,7 +680,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_user_not_found() {
+        void should_return_404_when_adding_and_user_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -691,11 +691,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(authorityRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_adding_and_authority_not_found() {
+        void should_return_404_when_adding_and_authority_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -709,12 +709,12 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(authorityRepository.count()).isZero();
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_add_multiple_and_return_202() {
+        void should_add_multiple_and_return_202() {
             var state = persistState(randomizeState());
             var authority1 = persistAuthority(randomizeAuthority());
             var authority2 = persistAuthority(randomizeAuthority());
@@ -736,7 +736,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_multiple_and_user_not_found() {
+        void should_return_404_when_adding_multiple_and_user_not_found() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -748,11 +748,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
+            assertThat(authorityRepository.count()).isZero();
         }
 
         @Test
-        public void should_return_404_when_adding_multiple_and_authorities_not_found() {
+        void should_return_404_when_adding_multiple_and_authorities_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -767,12 +767,12 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(authorityRepository.count()).isZero();
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_return_404_when_adding_multiple_and_authority_not_found() {
+        void should_return_404_when_adding_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
             var authority = persistAuthority(randomizeAuthority());
             var user = persistUser(randomizeUser(state));
@@ -789,11 +789,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_remove_and_return_204() {
+        void should_remove_and_return_204() {
             var state = persistState(randomizeState());
             var authority = persistAuthority(randomizeAuthority());
             var user = persistUser(randomizeUser(state, authority));
@@ -809,11 +809,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_return_404_when_removing_and_user_not_found() {
+        void should_return_404_when_removing_and_user_not_found() {
             var authority = persistAuthority(randomizeAuthority());
 
             //@formatter:off
@@ -830,7 +830,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_and_authority_not_found() {
+        void should_return_404_when_removing_and_authority_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -844,12 +844,12 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(authorityRepository.count()).isZero();
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_remove_multiple_and_return_202() {
+        void should_remove_multiple_and_return_202() {
             var state = persistState(randomizeState());
             var authority1 = persistAuthority(randomizeAuthority());
             var authority2 = persistAuthority(randomizeAuthority());
@@ -867,11 +867,11 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(2);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_return_404_when_removing_multiple_and_user_not_found() {
+        void should_return_404_when_removing_multiple_and_user_not_found() {
             var authority1 = persistAuthority(randomizeAuthority());
             var authority2 = persistAuthority(randomizeAuthority());
 
@@ -890,7 +890,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_removing_multiple_and_authorities_not_found() {
+        void should_return_404_when_removing_multiple_and_authorities_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -905,12 +905,12 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(0);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(0);
+            assertThat(authorityRepository.count()).isZero();
+            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
         }
 
         @Test
-        public void should_return_404_when_removing_multiple_and_authority_not_found() {
+        void should_return_404_when_removing_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
             var authority = persistAuthority(randomizeAuthority());
             var user = persistUser(randomizeUser(state, authority));
@@ -936,7 +936,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class StateTests {
 
         @Test
-        public void should_return_404() {
+        void should_return_404() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -949,7 +949,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return() {
+        void should_return() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -970,7 +970,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_set_and_return_202() {
+        void should_set_and_return_202() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
             var newState = persistState(randomizeState());
@@ -989,7 +989,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_setting_and_user_not_found() {
+        void should_return_404_when_setting_and_user_not_found() {
             var state = persistState(randomizeState());
 
             //@formatter:off
@@ -1004,7 +1004,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_setting_and_state_not_found() {
+        void should_return_404_when_setting_and_state_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -1026,7 +1026,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class SpexareTests {
 
         @Test
-        public void should_return_404() {
+        void should_return_404() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1039,7 +1039,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return() {
+        void should_return() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
             var spexare = persistSpexare(randomizeSpexare());
@@ -1063,7 +1063,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_add_and_return_202() {
+        void should_add_and_return_202() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
             var spexare = persistSpexare(randomizeSpexare());
@@ -1082,7 +1082,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_user_not_found() {
+        void should_return_404_when_adding_and_user_not_found() {
             var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -1097,7 +1097,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        public void should_return_404_when_adding_and_spexare_not_found() {
+        void should_return_404_when_adding_and_spexare_not_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -1119,7 +1119,7 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
     class EventTests {
 
         @Test
-        public void should_return_found() {
+        void should_return_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
 
@@ -1138,9 +1138,9 @@ public class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(3L);
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.get(0).getSource()).isEqualTo(Event.SourceType.USER.name());
-            assertThat(result.get(0).getCreatedBy()).isEqualTo(user.getCreatedBy());
+            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
+            assertThat(result.getFirst().getCreatedBy()).isEqualTo(user.getCreatedBy());
         }
 
     }

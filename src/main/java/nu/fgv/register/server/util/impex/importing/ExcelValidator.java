@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition;
@@ -87,7 +88,7 @@ public class ExcelValidator {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> doesSheetExist = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> doesSheetExist = (final SheetContainer sheetContainer) -> {
         final Class<?> clazz = sheetContainer.getClazz();
         final String sheetName;
 
@@ -111,13 +112,13 @@ public class ExcelValidator {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> doAllColumnsExist = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> doAllColumnsExist = (final SheetContainer sheetContainer) -> {
         if (sheetContainer.getSheetIndex() != -1) {
             final Sheet sheet = workbookContainer.getWorkbook().getSheetAt(sheetContainer.getSheetIndex());
             final Field[] fields = FieldUtils.getAllFields(sheetContainer.getClazz());
             final List<Field> annotatedFields = Arrays.stream(fields)
                     .filter(field -> {
-                        field.setAccessible(true);
+                        field.setAccessible(true); // NOSONAR
                         return field.isAnnotationPresent(ExcelCell.class);
                     }).toList();
             final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
@@ -142,13 +143,13 @@ public class ExcelValidator {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> doAllExistingEntriesReallyExist = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> doAllExistingEntriesReallyExist = (final SheetContainer sheetContainer) -> {
         if (sheetContainer.getSheetIndex() != -1) {
             final Sheet sheet = workbookContainer.getWorkbook().getSheetAt(sheetContainer.getSheetIndex());
             final Field[] fields = FieldUtils.getAllFields(workbookContainer.getUpdateClazz());
             final Field primaryKeyField = Arrays.stream(fields)
                     .filter(field -> {
-                        field.setAccessible(true);
+                        field.setAccessible(true); // NOSONAR
                         return field.isAnnotationPresent(ExcelImportCell.class);
                     })
                     .filter(field -> field.getAnnotation(ExcelImportCell.class).primaryKey())
@@ -186,13 +187,13 @@ public class ExcelValidator {
         return sheetContainer;
     };
 
-    private final Function<SheetContainer, SheetContainer> areUpdatedEntriesValid = (final SheetContainer sheetContainer) -> {
+    private final UnaryOperator<SheetContainer> areUpdatedEntriesValid = (final SheetContainer sheetContainer) -> {
         if (sheetContainer.getSheetIndex() != -1) {
             final Sheet sheet = workbookContainer.getWorkbook().getSheetAt(sheetContainer.getSheetIndex());
             final Field[] fields = FieldUtils.getAllFields(workbookContainer.getUpdateClazz());
             final List<Field> annotatedFields = Arrays.stream(fields)
                     .filter(field -> {
-                        field.setAccessible(true);
+                        field.setAccessible(true); // NOSONAR
                         return field.isAnnotationPresent(ExcelImportCell.class);
                     }).toList();
 
@@ -212,7 +213,7 @@ public class ExcelValidator {
                             final ExcelImportCell excelCell = field.getAnnotation(ExcelImportCell.class);
                             final Cell cell = row.getCell(excelCell.position());
 
-                            field.setAccessible(true);
+                            field.setAccessible(true); // NOSONAR
                             if (field.getType() == String.class) {
                                 try {
                                     field.set(dto, cell.getStringCellValue());

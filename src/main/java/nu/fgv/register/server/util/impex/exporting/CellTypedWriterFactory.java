@@ -8,6 +8,9 @@ import java.util.function.BiConsumer;
 
 class CellTypedWriterFactory {
 
+    private CellTypedWriterFactory() {
+    }
+
     public static BiConsumer<Cell, Object> getTypedWriter(final Class<?> clazz) {
         final CellTypedWriter cellTypedWriter = new CellTypedWriter();
 

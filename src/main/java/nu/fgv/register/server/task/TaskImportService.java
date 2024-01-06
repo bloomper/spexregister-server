@@ -33,8 +33,8 @@ public class TaskImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, TaskDto.class, SpexCreateDto.class, TaskUpdateDto.class, (id) -> service.findById(id).isPresent());
-        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, (id) -> categoryService.findById(id).isPresent());
+        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, TaskDto.class, SpexCreateDto.class, TaskUpdateDto.class, id -> service.findById(id).isPresent());
+        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> categoryService.findById(id).isPresent());
         final List<String> messages = Stream.concat(
                         validationResult.getMessages().stream(),
                         categoryValidationResult.getMessages().stream())

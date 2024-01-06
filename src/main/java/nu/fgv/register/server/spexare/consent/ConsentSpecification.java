@@ -8,6 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class ConsentSpecification {
 
+    private ConsentSpecification() {
+    }
+
     public static Specification<Consent> hasId(final Long id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Consent_.id), id);
     }
