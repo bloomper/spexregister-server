@@ -89,4 +89,15 @@ public class PermissionService {
             // Ignore
         }
     }
+
+    public boolean hasPermission(final ObjectIdentity oid, final Sid recipient, final Permission permission) {
+        try {
+            final MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);
+            return acl.getEntries().stream()
+                    .anyMatch(e -> e.getSid().equals(recipient) && e.getPermission().equals(permission));
+        } catch (final NotFoundException e) {
+            // Ignore
+            return false;
+        }
+    }
 }
