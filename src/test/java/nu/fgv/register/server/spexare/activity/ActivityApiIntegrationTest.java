@@ -37,7 +37,7 @@ import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 
-public class ActivityApiIntegrationTest extends AbstractIntegrationTest {
+class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;

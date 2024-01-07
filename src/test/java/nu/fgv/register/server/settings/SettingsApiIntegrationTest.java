@@ -26,7 +26,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SettingsApiIntegrationTest extends AbstractIntegrationTest {
+class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     @LocalServerPort

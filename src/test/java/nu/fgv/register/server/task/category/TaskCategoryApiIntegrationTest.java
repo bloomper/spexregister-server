@@ -31,7 +31,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
+class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;

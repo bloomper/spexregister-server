@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = ToggleApi.class)
-public class ToggleApiTest extends AbstractApiTest {
+class ToggleApiTest extends AbstractApiTest {
 
     @MockBean
     private ToggleService service;
@@ -61,7 +61,7 @@ public class ToggleApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
         var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
 
@@ -105,7 +105,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(toggle));
@@ -136,7 +136,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
@@ -166,7 +166,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
@@ -197,7 +197,7 @@ public class ToggleApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

@@ -41,7 +41,7 @@ import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.named;
 
-public class SpexApiIntegrationTest extends AbstractIntegrationTest {
+class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;

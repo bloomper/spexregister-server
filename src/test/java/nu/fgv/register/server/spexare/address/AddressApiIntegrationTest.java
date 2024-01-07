@@ -40,7 +40,7 @@ import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 
-public class AddressApiIntegrationTest extends AbstractIntegrationTest {
+class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;

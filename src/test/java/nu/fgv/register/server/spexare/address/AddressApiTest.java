@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = AddressApi.class)
-public class AddressApiTest extends AbstractApiTest {
+class AddressApiTest extends AbstractApiTest {
 
     @MockBean
     private AddressService service;
@@ -70,7 +70,7 @@ public class AddressApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
 
@@ -120,7 +120,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(address));
@@ -151,7 +151,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(AddressCreateDto.class);
         var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
@@ -192,7 +192,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(AddressUpdateDto.class);
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
@@ -236,7 +236,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(AddressUpdateDto.class);
         var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
@@ -280,7 +280,7 @@ public class AddressApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

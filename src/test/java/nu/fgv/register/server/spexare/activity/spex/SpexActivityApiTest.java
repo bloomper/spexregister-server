@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = SpexActivityApi.class)
-public class SpexActivityApiTest extends AbstractApiTest {
+class SpexActivityApiTest extends AbstractApiTest {
 
     @MockBean
     private SpexActivityService service;
@@ -80,7 +80,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var spexActivity1 = SpexActivityDto.builder().id(1L).build();
         var spexActivity2 = SpexActivityDto.builder().id(2L).build();
 
@@ -123,7 +123,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var spexActivity = SpexActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
@@ -155,7 +155,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var spexActivity = SpexActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
@@ -185,7 +185,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -210,7 +210,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -234,7 +234,7 @@ public class SpexActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_spex() throws Exception {
+    void should_get_spex() throws Exception {
         var spex = SpexDto.builder().id(1L).year("2021").build();
         var realSpexApi = new SpexApi(null, null, null, null, null, null);
 

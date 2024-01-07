@@ -49,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = NewsApi.class)
-public class NewsApiTest extends AbstractApiTest {
+class NewsApiTest extends AbstractApiTest {
 
     @MockBean
     private NewsService service;
@@ -76,7 +76,7 @@ public class NewsApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
         var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
 
@@ -120,7 +120,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(NewsCreateDto.class);
         var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
@@ -154,7 +154,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
@@ -184,7 +184,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
@@ -225,7 +225,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(NewsUpdateDto.class);
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
@@ -266,7 +266,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
@@ -293,7 +293,7 @@ public class NewsApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.NEWS.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.NEWS.name()).build();
         var realEventApi = new EventApi(null);

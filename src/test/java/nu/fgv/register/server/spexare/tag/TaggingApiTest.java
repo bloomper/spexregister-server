@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = TaggingApi.class)
-public class TaggingApiTest extends AbstractApiTest {
+class TaggingApiTest extends AbstractApiTest {
 
     @MockBean
     private TaggingService service;
@@ -53,7 +53,7 @@ public class TaggingApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var tag1 = TagDto.builder().id(1L).name("tag1").build();
         var tag2 = TagDto.builder().id(2L).name("tag2").build();
 
@@ -96,7 +96,7 @@ public class TaggingApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var tag = TagDto.builder().id(1L).name("tag").build();
 
         when(service.create(any(Long.class), any(Long.class))).thenReturn(true);
@@ -122,7 +122,7 @@ public class TaggingApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc

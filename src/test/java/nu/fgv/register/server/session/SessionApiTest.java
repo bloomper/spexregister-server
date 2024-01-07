@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = SessionApi.class)
-public class SessionApiTest extends AbstractApiTest {
+class SessionApiTest extends AbstractApiTest {
 
     @MockBean
     private EventService eventService;
@@ -40,7 +40,7 @@ public class SessionApiTest extends AbstractApiTest {
     private EventApi eventApi;
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
         var realEventApi = new EventApi(null);

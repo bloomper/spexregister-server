@@ -68,7 +68,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = SpexCategoryApi.class)
-public class SpexCategoryApiTest extends AbstractApiTest {
+class SpexCategoryApiTest extends AbstractApiTest {
 
     @MockBean
     private SpexCategoryService service;
@@ -99,7 +99,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var category1 = SpexCategoryDto.builder().id(1L).name("category1").build();
         var category2 = SpexCategoryDto.builder().id(2L).name("category2").build();
 
@@ -140,7 +140,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_export() throws Exception {
+    void should_get_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
@@ -175,7 +175,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(SpexCategoryCreateDto.class);
         var dto = SpexCategoryCreateDto.builder().firstYear("1948").name("Chalmersspexet").build();
 
@@ -207,7 +207,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
@@ -237,7 +237,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(SpexCategoryUpdateDto.class);
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
         var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").name("Chalmersspexet").build();
@@ -276,7 +276,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(SpexCategoryUpdateDto.class);
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
         var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").build();
@@ -315,7 +315,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
@@ -342,7 +342,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_download_logo() throws Exception {
+    void should_download_logo() throws Exception {
         var logo = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
         when(service.getLogo(any(Long.class))).thenReturn(Optional.of(logo));
 
@@ -374,7 +374,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_logo() throws Exception {
+    void should_upload_logo() throws Exception {
         var logo = new byte[]{10, 12};
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
         when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
@@ -405,7 +405,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_logo_via_multipart() throws Exception {
+    void should_upload_logo_via_multipart() throws Exception {
         var logo = new MockMultipartFile("file", "logo.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
         when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
@@ -435,7 +435,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_logo() throws Exception {
+    void should_delete_logo() throws Exception {
         var category = SpexCategoryDto.builder().id(1L).name("category").build();
         when(service.deleteLogo(any(Long.class))).thenReturn(Optional.of(category));
 
@@ -460,7 +460,7 @@ public class SpexCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX_CATEGORY.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEX_CATEGORY.name()).build();
         var realEventApi = new EventApi(null);

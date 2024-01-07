@@ -39,7 +39,7 @@ import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 
-public class TaggingApiIntegrationTest extends AbstractIntegrationTest {
+class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
     private final EasyRandom random;

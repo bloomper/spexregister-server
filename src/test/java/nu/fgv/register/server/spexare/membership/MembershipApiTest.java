@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = MembershipApi.class)
-public class MembershipApiTest extends AbstractApiTest {
+class MembershipApiTest extends AbstractApiTest {
 
     @MockBean
     private MembershipService service;
@@ -60,7 +60,7 @@ public class MembershipApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
         var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
@@ -104,7 +104,7 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(membership));
@@ -135,7 +135,7 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(String.class))).thenReturn(Optional.of(membership));
@@ -165,7 +165,7 @@ public class MembershipApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

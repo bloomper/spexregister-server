@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = EventApi.class)
-public class EventApiTest extends AbstractApiTest {
+class EventApiTest extends AbstractApiTest {
 
     @MockBean
     private EventService service;
@@ -62,7 +62,7 @@ public class EventApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_all() throws Exception {
+    void should_get_all() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
 
@@ -100,7 +100,7 @@ public class EventApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var event = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(event));

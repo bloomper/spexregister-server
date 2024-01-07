@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = UserApi.class)
-public class UserApiTest extends AbstractApiTest {
+class UserApiTest extends AbstractApiTest {
 
     @MockBean
     private UserService service;
@@ -92,7 +92,7 @@ public class UserApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var user1 = UserDto.builder().id(1L).username("email1@somewhere.com").build();
         var user2 = UserDto.builder().id(1L).username("email2@somewhere.com").build();
 
@@ -132,7 +132,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(UserCreateDto.class);
         var dto = UserCreateDto.builder().username("email@somewhere.com").build();
 
@@ -163,7 +163,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
@@ -193,7 +193,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
         var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
         var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
@@ -231,7 +231,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
         var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
         var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
@@ -269,7 +269,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
@@ -296,7 +296,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_retrieve_authorities() throws Exception {
+    void should_retrieve_authorities() throws Exception {
         var authority1 = AuthorityDto.builder().id("ROLE_USER").build();
         var authority2 = AuthorityDto.builder().id("ROLE_EDITOR").build();
         when(service.getAuthoritiesByUser(any(Long.class))).thenReturn(Set.of(authority1, authority2));
@@ -335,7 +335,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_authority() throws Exception {
+    void should_add_authority() throws Exception {
         when(service.addAuthority(any(Long.class), any(String.class))).thenReturn(true);
 
         mockMvc
@@ -360,7 +360,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_authorities() throws Exception {
+    void should_add_authorities() throws Exception {
         when(service.addAuthorities(any(Long.class), anyList())).thenReturn(true);
 
         mockMvc
@@ -388,7 +388,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_authority() throws Exception {
+    void should_remove_authority() throws Exception {
         when(service.removeAuthority(any(Long.class), any(String.class))).thenReturn(true);
 
         mockMvc
@@ -413,7 +413,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_authorities() throws Exception {
+    void should_remove_authorities() throws Exception {
         when(service.removeAuthorities(any(Long.class), anyList())).thenReturn(true);
 
         mockMvc
@@ -441,7 +441,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_state() throws Exception {
+    void should_get_state() throws Exception {
         when(service.getStateByUser(any(Long.class))).thenReturn(StateDto.builder().id("PENDING").build());
 
         mockMvc
@@ -475,7 +475,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_set_state() throws Exception {
+    void should_set_state() throws Exception {
         when(service.setState(any(Long.class), any(String.class))).thenReturn(true);
 
         mockMvc
@@ -500,7 +500,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_spexare() throws Exception {
+    void should_get_spexare() throws Exception {
         when(service.findSpexareByUser(any(Long.class))).thenReturn(Optional.of(SpexareDto.builder().id(1L).build()));
 
         mockMvc
@@ -540,7 +540,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_add_spexare() throws Exception {
+    void should_add_spexare() throws Exception {
         when(service.addSpexare(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -565,7 +565,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_remove_spexare() throws Exception {
+    void should_remove_spexare() throws Exception {
         when(service.removeSpexare(any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -589,7 +589,7 @@ public class UserApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.USER.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.USER.name()).build();
         var realEventApi = new EventApi(null);

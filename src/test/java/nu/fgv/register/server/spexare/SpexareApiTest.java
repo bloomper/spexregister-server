@@ -72,7 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = SpexareApi.class)
-public class SpexareApiTest extends AbstractApiTest {
+class SpexareApiTest extends AbstractApiTest {
 
     @MockBean
     private SpexareService service;
@@ -117,7 +117,7 @@ public class SpexareApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
         var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
 
@@ -160,7 +160,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_search_paged() throws Exception {
+    void should_search_paged() throws Exception {
         var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
         var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
         var facets = List.of(Facet.builder().name("facet").values(Map.of("whatever", 2L)).build());
@@ -218,7 +218,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_export() throws Exception {
+    void should_get_export() throws Exception {
         var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
@@ -253,7 +253,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(SpexareCreateDto.class);
         var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").build();
 
@@ -286,7 +286,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
@@ -316,7 +316,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(SpexareUpdateDto.class);
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
         var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
@@ -359,7 +359,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(SpexUpdateDto.class);
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
         var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
@@ -402,7 +402,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
@@ -429,7 +429,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_download_image() throws Exception {
+    void should_download_image() throws Exception {
         var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
 
         when(service.getImage(any(Long.class))).thenReturn(Optional.of(image));
@@ -462,7 +462,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_image() throws Exception {
+    void should_upload_image() throws Exception {
         var image = new byte[]{10, 12};
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
@@ -494,7 +494,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_upload_image_via_multipart() throws Exception {
+    void should_upload_image_via_multipart() throws Exception {
         var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
@@ -525,7 +525,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_image() throws Exception {
+    void should_delete_image() throws Exception {
         var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.deleteImage(any(Long.class))).thenReturn(Optional.of(spexare));
@@ -551,7 +551,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_partner() throws Exception {
+    void should_get_partner() throws Exception {
         var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
@@ -581,7 +581,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update_partner() throws Exception {
+    void should_update_partner() throws Exception {
         var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.updatePartner(any(Long.class), any(Long.class))).thenReturn(Optional.of(partner));
@@ -610,7 +610,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete_partner() throws Exception {
+    void should_delete_partner() throws Exception {
         when(service.deletePartner(any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -632,7 +632,7 @@ public class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEXARE.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEXARE.name()).build();
         var realEventApi = new EventApi(null);

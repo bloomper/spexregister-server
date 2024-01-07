@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = StateApi.class)
-public class StateApiTest extends AbstractApiTest {
+class StateApiTest extends AbstractApiTest {
 
     @MockBean
     private StateService service;
@@ -61,7 +61,7 @@ public class StateApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_all() throws Exception {
+    void should_get_all() throws Exception {
         var state1 = StateDto.builder().id("PENDING").label("Pending").build();
         var state2 = StateDto.builder().id("ACTIVE").label("Active").build();
 
@@ -100,7 +100,7 @@ public class StateApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var state = StateDto.builder().id("PENDING").label("Pending").build();
 
         when(service.findById(any(String.class))).thenReturn(Optional.of(state));
@@ -130,7 +130,7 @@ public class StateApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_events() throws Exception {
+    void should_get_events() throws Exception {
         var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
         var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
         var realEventApi = new EventApi(null);

@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = TaskActivityApi.class)
-public class TaskActivityApiTest extends AbstractApiTest {
+class TaskActivityApiTest extends AbstractApiTest {
 
     @MockBean
     private TaskActivityService service;
@@ -75,7 +75,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var taskActivity1 = TaskActivityDto.builder().id(1L).build();
         var taskActivity2 = TaskActivityDto.builder().id(2L).build();
 
@@ -118,7 +118,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var taskActivity = TaskActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
@@ -150,7 +150,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var taskActivity = TaskActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
@@ -180,7 +180,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -205,7 +205,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
@@ -229,7 +229,7 @@ public class TaskActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get_task() throws Exception {
+    void should_get_task() throws Exception {
         var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         var realTaskApi = new TaskApi(null, null, null, null, null, null);
 

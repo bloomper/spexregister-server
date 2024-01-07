@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = ActorApi.class)
-public class ActorApiTest extends AbstractApiTest {
+class ActorApiTest extends AbstractApiTest {
 
     @MockBean
     private ActorService service;
@@ -66,7 +66,7 @@ public class ActorApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var actor1 = ActorDto.builder().id(1L).build();
         var actor2 = ActorDto.builder().id(2L).build();
 
@@ -111,7 +111,7 @@ public class ActorApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(actor));
@@ -144,7 +144,7 @@ public class ActorApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var fields = new ConstrainedFields(ActorCreateDto.class);
         var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
         var actor = ActorDto.builder().id(1L).role(dto.getRole()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
@@ -182,7 +182,7 @@ public class ActorApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    void should_update() throws Exception {
         var fields = new ConstrainedFields(ActorUpdateDto.class);
         var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
         var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
@@ -221,7 +221,7 @@ public class ActorApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_partial_update() throws Exception {
+    void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(ActorUpdateDto.class);
         var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
         var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
@@ -260,7 +260,7 @@ public class ActorApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
 
         mockMvc

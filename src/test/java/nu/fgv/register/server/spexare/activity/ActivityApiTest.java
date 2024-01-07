@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = ActivityApi.class)
-public class ActivityApiTest extends AbstractApiTest {
+class ActivityApiTest extends AbstractApiTest {
 
     @MockBean
     private ActivityService service;
@@ -56,7 +56,7 @@ public class ActivityApiTest extends AbstractApiTest {
     );
 
     @Test
-    public void should_get_paged() throws Exception {
+    void should_get_paged() throws Exception {
         var activity1 = ActivityDto.builder().id(1L).build();
         var activity2 = ActivityDto.builder().id(2L).build();
 
@@ -98,7 +98,7 @@ public class ActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_get() throws Exception {
+    void should_get() throws Exception {
         var activity = ActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(activity));
@@ -129,7 +129,7 @@ public class ActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    void should_create() throws Exception {
         var activity = ActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class))).thenReturn(Optional.of(activity));
@@ -157,7 +157,7 @@ public class ActivityApiTest extends AbstractApiTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    void should_delete() throws Exception {
         when(service.deleteById(any(Long.class), any(Long.class))).thenReturn(true);
 
         mockMvc
