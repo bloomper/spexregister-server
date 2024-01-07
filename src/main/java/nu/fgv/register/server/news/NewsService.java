@@ -68,7 +68,7 @@ public class NewsService {
                 .findById(id);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
     public NewsDto create(final NewsCreateDto dto) {
         return Optional.of(NEWS_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -85,12 +85,12 @@ public class NewsService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
     public Optional<NewsDto> update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById(dto.getId())
@@ -113,14 +113,14 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(News.class, id));
     }
 
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
-    public void publishUnpublishNews() {
+    public void publishAndUnpublishNews() {
         repository
                 .findAll(hasVisibleToBeforeToday())
                 .stream()

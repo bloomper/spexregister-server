@@ -9,14 +9,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class SecurityUtil {
 
-    public static final GrantedAuthoritySid ROLE_ADMIN_SID = new GrantedAuthoritySid("ROLE_ADMIN");
-    public static final GrantedAuthoritySid ROLE_EDITOR_SID = new GrantedAuthoritySid("ROLE_EDITOR");
-    public static final GrantedAuthoritySid ROLE_USER_SID = new GrantedAuthoritySid("ROLE_USER");
+    public static final GrantedAuthoritySid ROLE_ADMIN_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_ADMIN");
+    public static final GrantedAuthoritySid ROLE_EDITOR_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_EDITOR");
+    public static final GrantedAuthoritySid ROLE_USER_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_USER");
 
     private SecurityUtil() {
     }
@@ -24,13 +26,21 @@ public class SecurityUtil {
     public static String getCurrentUserSubClaim() {
         return getCurrentUserClaim(JwtClaimNames.SUB)
                 .map(String.class::cast)
-                .orElse("system");
+                .orElse(null);
     }
 
     public static String getCurrentUserEmailClaim() {
         return getCurrentUserClaim("email")
                 .map(String.class::cast)
                 .orElse(null);
+    }
+
+    public static List<String> getCurrentUserAuthoritiesClaim() {
+        return getCurrentUserClaim("authorities")
+                .filter(List.class::isInstance)
+                .map(List.class::cast)
+                .map(SecurityUtil::filterSpexregisterRoleAuthorities)
+                .orElse(Collections.emptyList());
     }
 
     public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Long id) {
@@ -48,7 +58,7 @@ public class SecurityUtil {
                         .map(Map.Entry::getValue)
                 )
                 .filter(Optional::isPresent)
-                .map(Optional::get);
+                .flatMap(o -> o);
     }
 
     private static Optional<Jwt> getJwtToken() {
@@ -58,6 +68,13 @@ public class SecurityUtil {
                 .map(Authentication::getPrincipal)
                 .filter(Jwt.class::isInstance)
                 .map(Jwt.class::cast);
+    }
+
+    private static List<String> filterSpexregisterRoleAuthorities(final List<Object> claims) {
+        return claims.stream()
+                .map(Object::toString)
+                .filter(a -> a.contains("ROLE_SPEXREGISTER"))
+                .toList();
     }
 
 }

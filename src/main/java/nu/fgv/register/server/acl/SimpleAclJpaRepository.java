@@ -19,6 +19,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserAuthoritiesClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -73,8 +75,11 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
+        final List<GrantedAuthoritySid> authoritySids = getCurrentUserAuthoritiesClaim().stream()
+                .map(GrantedAuthoritySid::new)
+                .toList();
 
-        return getQuery(spec, sort, sid, permission).getResultList();
+        return getQuery(spec, sort, sid, authoritySids, permission).getResultList();
     }
 
     @Override
@@ -98,10 +103,13 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
-        final TypedQuery<T> query = getQuery(spec, pageable, sid, permission);
+        final List<GrantedAuthoritySid> authoritySids = getCurrentUserAuthoritiesClaim().stream()
+                .map(GrantedAuthoritySid::new)
+                .toList();
+        final TypedQuery<T> query = getQuery(spec, pageable, sid, authoritySids, permission);
 
         return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) :
-                readPage(query, getDomainClass(), pageable, spec, sid, permission);
+                readPage(query, getDomainClass(), pageable, spec, sid, authoritySids, permission);
     }
 
     protected <S extends T> Page<S> readPage(final TypedQuery<S> query,
@@ -109,6 +117,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                                              final Pageable pageable,
                                              @Nullable final Specification<S> spec,
                                              final PrincipalSid sid,
+                                             final List<GrantedAuthoritySid> authoritySids,
                                              final Permission permission) {
         if (pageable.isPaged()) {
             query.setFirstResult((int) pageable.getOffset());
@@ -116,33 +125,36 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         return PageableExecutionUtils.getPage(query.getResultList(), pageable,
-                () -> executeCountQuery(getCountQuery(spec, domainClass, sid, permission)));
+                () -> executeCountQuery(getCountQuery(spec, domainClass, sid, authoritySids, permission)));
     }
 
     protected TypedQuery<T> getQuery(@Nullable final Specification<T> spec,
                                      final Pageable pageable,
                                      final PrincipalSid sid,
+                                     final List<GrantedAuthoritySid> authoritySids,
                                      final Permission permission) {
         final Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
 
-        return getQuery(spec, getDomainClass(), sort, sid, permission);
+        return getQuery(spec, getDomainClass(), sort, sid, authoritySids, permission);
     }
 
     protected TypedQuery<T> getQuery(@Nullable final Specification<T> spec,
                                      final Sort sort,
                                      final PrincipalSid sid,
+                                     final List<GrantedAuthoritySid> authoritySids,
                                      final Permission permission) {
-        return getQuery(spec, getDomainClass(), sort, sid, permission);
+        return getQuery(spec, getDomainClass(), sort, sid, authoritySids, permission);
     }
 
     protected <S extends T> TypedQuery<S> getQuery(@Nullable final Specification<S> spec,
                                                    final Class<S> domainClass,
                                                    final Sort sort,
                                                    final PrincipalSid sid,
+                                                   final List<GrantedAuthoritySid> authoritySids,
                                                    final Permission permission) {
         final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         final CriteriaQuery<S> criteriaQuery = criteriaBuilder.createQuery(domainClass);
-        final Root<S> root = applySpecificationToCriteria(spec, domainClass, criteriaQuery, sid, permission);
+        final Root<S> root = applySpecificationToCriteria(spec, domainClass, criteriaQuery, sid, authoritySids, permission);
 
         criteriaQuery.select(root);
 
@@ -156,10 +168,11 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
     protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable final Specification<S> spec,
                                                            final Class<S> domainClass,
                                                            final PrincipalSid sid,
+                                                           final List<GrantedAuthoritySid> authoritySids,
                                                            final Permission permission) {
         final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         final CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
-        final Root<S> root = applySpecificationToCriteria(spec, domainClass, criteriaQuery, sid, permission);
+        final Root<S> root = applySpecificationToCriteria(spec, domainClass, criteriaQuery, sid, authoritySids, permission);
 
         if (criteriaQuery.isDistinct()) {
             criteriaQuery.select(criteriaBuilder.countDistinct(root));
@@ -176,6 +189,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                                                                   final Class<U> domainClass,
                                                                   final CriteriaQuery<S> query,
                                                                   final PrincipalSid sid,
+                                                                  final List<GrantedAuthoritySid> authoritySids,
                                                                   final Permission permission) {
         Assert.notNull(domainClass, "Domain class must not be null!");
         Assert.notNull(query, "CriteriaQuery must not be null!");
@@ -183,15 +197,15 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         final Root<U> root = query.from(domainClass);
 
         if (null == spec) {
-            query.where(filterPermitted(root, query, domainClass, sid, permission));
+            query.where(filterPermitted(root, query, domainClass, sid, authoritySids, permission));
         } else {
             final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             final Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
 
             if (null != predicate) {
-                query.where(criteriaBuilder.and(predicate, filterPermitted(root, query, domainClass, sid, permission)));
+                query.where(criteriaBuilder.and(predicate, filterPermitted(root, query, domainClass, sid, authoritySids, permission)));
             } else {
-                query.where(filterPermitted(root, query, domainClass, sid, permission));
+                query.where(filterPermitted(root, query, domainClass, sid, authoritySids, permission));
             }
 
         }
@@ -203,14 +217,16 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                                                        final CriteriaQuery<S> query,
                                                        final Class<U> domainClass,
                                                        final PrincipalSid sid,
+                                                       final List<GrantedAuthoritySid> authoritySids,
                                                        final Permission permission) {
         return root.<Long>get(entityInformation.getRequiredIdAttribute().getName())
-                .in(selectPermittedIds(query, domainClass, sid, permission));
+                .in(selectPermittedIds(query, domainClass, sid, authoritySids, permission));
     }
 
     private <S> Subquery<Long> selectPermittedIds(final CriteriaQuery<S> query,
                                                   final Class<?> targetType,
                                                   final PrincipalSid sid,
+                                                  final List<GrantedAuthoritySid> authoritySids,
                                                   final Permission permission) {
         final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         final Subquery<Long> aclEntryQuery = query.subquery(Long.class);
@@ -221,7 +237,10 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         return aclEntryQuery.select(aclObjectIdentityJoin.get(AclObjectIdentity_.OBJECT_ID_IDENTITY))
                 .where(criteriaBuilder.and(
                         aclObjectIdentityJoin.<Long>get(AclObjectIdentity_.ID).in(selectAclObjectIdentityId(aclEntryQuery, targetType)),
-                        criteriaBuilder.equal(aclSidJoin.<Long>get(AclSid_.ID), selectAclSidId(aclEntryQuery, sid)),
+                        criteriaBuilder.or(
+                                criteriaBuilder.equal(aclSidJoin.<Long>get(AclSid_.ID), selectAclPrincipalSidId(aclEntryQuery, sid)),
+                                aclSidJoin.<Long>get(AclSid_.ID).in(selectAclAuthoritySidId(aclEntryQuery, authoritySids))
+                        ),
                         criteriaBuilder.equal(root.<Integer>get(AclEntry_.MASK), permission.getMask())));
     }
 
@@ -237,13 +256,23 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                         selectAclClassId(aclObjectIdentityQuery, targetType)));
     }
 
-    private <S> Subquery<Long> selectAclSidId(final Subquery<S> query, final PrincipalSid sid) {
+    private <S> Subquery<Long> selectAclPrincipalSidId(final Subquery<S> query,
+                                                       final PrincipalSid sid) {
         final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         final Subquery<Long> aclSidQuery = query.subquery(Long.class);
         final Root<AclSid> root = aclSidQuery.from(AclSid.class);
 
         return aclSidQuery.select(root.get(AclSid_.ID))
                 .where(criteriaBuilder.equal(root.<String>get(AclSid_.SID), sid.getPrincipal()));
+    }
+
+    private <S> Subquery<Long> selectAclAuthoritySidId(final Subquery<S> query,
+                                                       final List<GrantedAuthoritySid> authoritySids) {
+        final Subquery<Long> aclSidQuery = query.subquery(Long.class);
+        final Root<AclSid> root = aclSidQuery.from(AclSid.class);
+
+        return aclSidQuery.select(root.get(AclSid_.ID))
+                .where(root.<String>get(AclSid_.SID).in(authoritySids.stream().map(GrantedAuthoritySid::getGrantedAuthority).toList()));
     }
 
     private <S> Subquery<Long> selectAclClassId(final Subquery<S> query, final Class<?> targetType) {

@@ -46,7 +46,7 @@
   "roles" : {
     "realm" : [ {
       "id" : "3d46cc44-c503-41bb-8b6d-d230a87b65b4",
-      "name" : "ADMIN",
+      "name" : "SPEXREGISTER_ADMIN",
       "description" : "",
       "composite" : false,
       "clientRole" : false,
@@ -54,7 +54,7 @@
       "attributes" : { }
     }, {
       "id" : "19f22205-122e-496f-b116-85b076d0c71b",
-      "name" : "USER",
+      "name" : "SPEXREGISTER_USER",
       "description" : "",
       "composite" : false,
       "clientRole" : false,
@@ -70,7 +70,7 @@
       "attributes" : { }
     }, {
       "id" : "48eb7111-cba9-41a6-8369-1b6a864b73cb",
-      "name" : "EDITOR",
+      "name" : "SPEXREGISTER_EDITOR",
       "description" : "",
       "composite" : false,
       "clientRole" : false,
@@ -416,7 +416,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "ADMIN", "USER", "EDITOR", "default-roles-spexregister" ],
+    "realmRoles" : [ "SPEXREGISTER_ADMIN", "SPEXREGISTER_USER", "SPEXREGISTER_EDITOR", "default-roles-spexregister" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -439,7 +439,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "USER", "EDITOR", "default-roles-spexregister" ],
+    "realmRoles" : [ "SPEXREGISTER_USER", "SPEXREGISTER_EDITOR", "default-roles-spexregister" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -462,7 +462,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "USER", "default-roles-spexregister" ],
+    "realmRoles" : [ "SPEXREGISTER_USER", "default-roles-spexregister" ],
     "notBefore" : 0,
     "groups" : [ ]
   } ],
