@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -103,7 +104,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var news = persistNews(randomizeNews());
-            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -126,7 +127,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 var news = persistNews(randomizeNews());
-                grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+                grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             });
 
             //@formatter:off
@@ -155,7 +156,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             var news = persistNews(randomizeNews());
-            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -177,7 +178,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var news = persistNews(randomizeNews());
-            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final List<NewsDto> result =
@@ -204,7 +205,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     news.setSubject("whatever");
                 }
-                grantReadPermissionToUser(toObjectIdentity(News.class, persistNews(news).getId()));
+                grantReadPermissionToRoleUser(toObjectIdentity(News.class, persistNews(news).getId()));
             });
 
             //@formatter:off
@@ -238,7 +239,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -262,7 +263,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -281,7 +282,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             var news = persistNews(randomizeNews());
-            grantReadPermissionToUser(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto result =
@@ -305,7 +306,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -344,7 +345,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -382,7 +383,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -400,7 +401,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -424,7 +425,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final NewsDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", news.getId())
@@ -437,12 +438,13 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
                     .text(before.getText())
+                    .visibleFrom(LocalDate.now().minusDays(3))
                     .build();
 
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -479,7 +481,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -503,7 +505,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", news.getId())
@@ -518,7 +520,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -541,7 +543,7 @@ public class NewsApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/events")
