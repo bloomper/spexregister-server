@@ -88,8 +88,8 @@ public class SettingsApi {
     @GetMapping(value = "/types/{type}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<TypeDto>>> retrieveTypes(@PathVariable final TypeType type) {
         final List<EntityModel<TypeDto>> types = typeService.findByType(type).stream()
-                .map(_type -> EntityModel.of(_type,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(type, _type.getId())).withSelfRel(),
+                .map(type0 -> EntityModel.of(type0,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type, type0.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes(type)).withRel("types")))
                 .toList();
 
@@ -101,8 +101,8 @@ public class SettingsApi {
     @GetMapping(value = "/types/{type}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final TypeType type, @PathVariable final String id) {
         return typeService.findById(id)
-                .map(_type -> EntityModel.of(_type,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(type, _type.getId())).withSelfRel(),
+                .map(type0 -> EntityModel.of(type0,
+                        linkTo(methodOn(SettingsApi.class).retrieveType(type, type0.getId())).withSelfRel(),
                         linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
