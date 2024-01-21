@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,14 @@ import java.util.Optional;
 
 public class SecurityUtil {
 
-    public static final GrantedAuthoritySid ROLE_ADMIN_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_ADMIN");
-    public static final GrantedAuthoritySid ROLE_EDITOR_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_EDITOR");
-    public static final GrantedAuthoritySid ROLE_USER_SID = new GrantedAuthoritySid("ROLE_SPEXREGISTER_USER");
+    public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_EDITOR = "ROLE_EDITOR";
+    public static final String ROLE_USER = "ROLE_USER";
+    public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
+    public static final GrantedAuthoritySid ROLE_ADMIN_SID = new GrantedAuthoritySid(ROLE_ADMIN);
+    public static final GrantedAuthoritySid ROLE_EDITOR_SID = new GrantedAuthoritySid(ROLE_EDITOR);
+    public static final GrantedAuthoritySid ROLE_USER_SID = new GrantedAuthoritySid(ROLE_USER);
+    public static final List<GrantedAuthoritySid> ROLE_SIDS = List.of(ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
 
     private SecurityUtil() {
     }
@@ -39,11 +45,11 @@ public class SecurityUtil {
         return getCurrentUserClaim("authorities")
                 .filter(List.class::isInstance)
                 .map(List.class::cast)
-                .map(SecurityUtil::filterSpexregisterRoleAuthorities)
+                .map(SecurityUtil::filterRoleAuthorities)
                 .orElse(Collections.emptyList());
     }
 
-    public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Long id) {
+    public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Serializable id) {
         return new ObjectIdentityImpl(clazz, id);
     }
 
@@ -70,10 +76,10 @@ public class SecurityUtil {
                 .map(Jwt.class::cast);
     }
 
-    private static List<String> filterSpexregisterRoleAuthorities(final List<Object> claims) {
+    private static List<String> filterRoleAuthorities(final List<Object> claims) {
         return claims.stream()
                 .map(Object::toString)
-                .filter(a -> a.contains("ROLE_SPEXREGISTER"))
+                .filter(a -> a.contains("ROLE_"))
                 .toList();
     }
 

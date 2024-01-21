@@ -13,6 +13,7 @@ import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateApi;
 import nu.fgv.register.server.user.state.StateDto;
+import nu.fgv.register.server.util.ResourceAlreadyExistsException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -62,7 +64,7 @@ public class UserApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<PagedModel<EntityModel<UserDto>>> retrieve(@SortDefault(sort = User_.USERNAME, direction = Sort.Direction.ASC) final Pageable pageable,
+    public ResponseEntity<PagedModel<EntityModel<UserDto>>> retrieve(@SortDefault(sort = User_.ID, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<UserDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
         paged.getContent().forEach(this::addLinks);
@@ -72,12 +74,19 @@ public class UserApi {
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<UserDto>> create(@Valid @RequestBody final UserCreateDto dto) {
-        final UserDto newDto = service.create(dto);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(UserApi.class).retrieve(newDto.getId())).toString())
-                .body(EntityModel.of(newDto, getLinks(newDto)));
+        try {
+            return service.create(dto)
+                    .map(newDto -> ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .header(HttpHeaders.LOCATION, linkTo(methodOn(UserApi.class).retrieve(newDto.getId())).toString())
+                            .body(EntityModel.of(newDto, getLinks(newDto))))
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
+        } catch(final ResourceAlreadyExistsException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Could not create user", e);
+            }
+            throw e;
+        }
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -141,7 +150,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.addAuthority(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -153,7 +162,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+    public ResponseEntity<Serializable> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
         try {
             return service.addAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -165,7 +174,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> removeAuthority(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.removeAuthority(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -177,7 +186,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+    public ResponseEntity<Serializable> removeAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
         try {
             return service.removeAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -203,7 +212,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/state/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> setState(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> setState(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.setState(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
@@ -229,7 +238,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/spexare/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
+    public ResponseEntity<Serializable> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
         try {
             return service.addSpexare(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -241,7 +250,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeSpexare(@PathVariable final Long userId) {
+    public ResponseEntity<Serializable> removeSpexare(@PathVariable final Long userId) {
         try {
             return service.removeSpexare(userId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {

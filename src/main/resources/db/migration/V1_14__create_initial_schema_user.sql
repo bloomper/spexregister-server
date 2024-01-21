@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS user
 (
     id                          BIGINT AUTO_INCREMENT NOT NULL,
-    username                    VARCHAR(255)          NOT NULL,
+    external_id                 VARCHAR(255)          NOT NULL,
     state_id                    VARCHAR(255)          DEFAULT 'PENDING',
     spexare_id                  BIGINT                NULL,
     created_by                  VARCHAR(255)          NOT NULL,
@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS user
 );
 
 ALTER TABLE user
-    ADD CONSTRAINT UC_USER_USERNAME UNIQUE (username);
+    ADD CONSTRAINT UC_USER_EXTERNAL_ID UNIQUE (external_id);
 
-CREATE INDEX IX_USER_ON_USERNAME ON user (username);
+CREATE INDEX IX_USER_ON_EXTERNAL_ID ON user (external_id);
 
 CREATE INDEX IX_USER_ON_SPEXARE_ID ON user (spexare_id);
 

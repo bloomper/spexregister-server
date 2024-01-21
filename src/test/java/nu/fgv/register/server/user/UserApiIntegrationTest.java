@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -19,6 +20,7 @@ import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
+import nu.fgv.register.server.util.security.SecurityUtil;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.EmailRandomizer;
@@ -28,14 +30,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
+import org.passay.CharacterData;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -46,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
+import static org.passay.AllowedCharacterRule.ERROR_CODE;
 
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
@@ -72,17 +85,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private EventRepository eventRepository;
 
+    private EmailRandomizer emailRandomizer = new EmailRandomizer();
+
+    private Random rnd = new Random();
+
     public UserApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
         parameters
                 .randomize(
-                        named("username"), new EmailRandomizer()
+                        named("email"), new EmailRandomizer()
                 )
-                .excludeField(named("spexare").and(ofType(Spexare.class)).and(inClass(User.class)))
-                .excludeField(named("authorities").and(ofType(Set.class)).and(inClass(User.class)))
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
+                .excludeField(named("spexare").and(ofType(Spexare.class)).and(inClass(User.class)))
                 .excludeField(named("partner").and(ofType(Spexare.class)).and(inClass(Spexare.class)))
                 .excludeField(named("user").and(ofType(User.class)).and(inClass(Spexare.class)))
                 .excludeField(named("activities").and(ofType(List.class)).and(inClass(Spexare.class)))
@@ -113,7 +129,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
         repository.deleteAll();
-        authorityRepository.deleteAll();
         stateRepository.deleteAll();
         spexareRepository.deleteAll();
         eventRepository.deleteAll();
@@ -206,7 +221,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", User_.USERNAME + ":whatever")
+                        .queryParam("filter", User_.EXTERNAL_ID + ":whatever")
                     .when()
                         .get()
                     .then()
@@ -228,7 +243,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", User_.USERNAME + ":" + user.getUsername())
+                        .queryParam("filter", User_.ID + ":" + user.getId())
                     .when()
                         .get()
                     .then()
@@ -246,9 +261,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
                 var user = randomizeUser(state);
-                if (i % 2 == 0) {
-                    user.setUsername("whatever" + i + "@wherever.com");
-                }
                 persistUser(user);
             });
 
@@ -257,7 +269,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", User_.USERNAME + "=whatever*")
+                        .queryParam("filter", User_.ID + "=whatever*")
                         .queryParam("size", size)
                     .when()
                         .get()
@@ -295,15 +307,16 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto result = objectMapper.readValue(json, UserDto.class);
             assertThat(result)
-                    .extracting("username")
-                    .isEqualTo(dto.getUsername());
+                    .extracting("email")
+                    .isEqualTo(dto.getEmail());
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
             final UserCreateDto dto = random.nextObject(UserCreateDto.class);
-            dto.setUsername(null);
+            dto.setEmail(null);
 
             //@formatter:off
             given()
@@ -317,6 +330,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
     }
 
@@ -342,8 +356,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("username")
-                    .isEqualTo(result.getUsername());
+                    .extracting("email")
+                    .isEqualTo(result.getEmail());
         }
 
         @Test
@@ -383,7 +397,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())
-                    .username(before.getUsername() + "_")
+                    .email("a" + before.getEmail())
                     .build();
 
             //@formatter:off
@@ -418,12 +432,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
-            dto.setUsername(null);
+            dto.setEmail(null);
 
             //@formatter:off
             given()
@@ -437,6 +452,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -455,6 +471,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
     }
 
@@ -481,7 +498,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())
-                    .username(before.getUsername() + "_")
+                    .email("a" + before.getEmail())
                     .build();
 
             //@formatter:off
@@ -516,6 +533,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
         }
 
         @Test
@@ -534,6 +552,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
     }
@@ -558,6 +577,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -573,6 +593,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
     }
 
@@ -591,6 +612,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -612,13 +635,15 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).isEmpty();
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_return_one() {
             var state = persistState(randomizeState());
-            var authority = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority));
+            var role = randomizeRole();
+            var user = persistUser(randomizeUser(state), role);
 
             //@formatter:off
             final List<AuthorityDto> result =
@@ -634,14 +659,17 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
+            assertThat(assignedRoles.size()).isEqualTo(1);
+            assertThat(assignedRoles.get(0).getName()).isEqualTo(role);
         }
 
         @Test
         void should_return_many() {
             var state = persistState(randomizeState());
-            var authority1 = persistAuthority(randomizeAuthority());
-            var authority2 = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority1, authority2));
+            var roles = randomizeRoles(2);
+            var user = persistUser(randomizeUser(state), roles.getFirst(), roles.get(1));
 
             //@formatter:off
             final List<AuthorityDto> result =
@@ -657,26 +685,35 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(2);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
+            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
 
         @Test
         void should_add_and_return_202() {
             var state = persistState(randomizeState());
-            var authority = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority));
+            var roles = randomizeRoles(2);
+            var user = persistUser(randomizeUser(state), roles.getFirst());
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/authorities/{id}", user.getId(), authority.getId())
+                .put("/{userId}/authorities/{id}", user.getId(), roles.get(1))
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(1);
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
+            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
 
         @Test
@@ -686,12 +723,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/authorities/{id}", 1L, "ROLE_USER")
+                .put("/{userId}/authorities/{id}", 1L, randomizeRole())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -704,35 +742,39 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/authorities/{id}", user.getId(), "ROLE_USER")
+                .put("/{userId}/authorities/{id}", user.getId(), "whatever")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_add_multiple_and_return_202() {
             var state = persistState(randomizeState());
-            var authority1 = persistAuthority(randomizeAuthority());
-            var authority2 = persistAuthority(randomizeAuthority());
+            var roles = randomizeRoles(2);
             var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(2);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(2);
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
+            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
 
         @Test
@@ -741,14 +783,15 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+                .queryParam("ids", String.join(",", randomizeRole(), randomizeRole()))
             .when()
                 .put("/{userId}/authorities", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -760,73 +803,75 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+                .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_return_404_when_adding_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
-            var authority = persistAuthority(randomizeAuthority());
+            var role = randomizeRole();
             var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", authority.getId(), "ROLE_USER"))
+                .queryParam("ids", String.join(",", role, "whatever"))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_remove_and_return_204() {
             var state = persistState(randomizeState());
-            var authority = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority));
+            var role = randomizeRole();
+            var user = persistUser(randomizeUser(state), role);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{userId}/authorities/{id}", user.getId(), authority.getId())
+                .delete("/{userId}/authorities/{id}", user.getId(), role)
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_return_404_when_removing_and_user_not_found() {
-            var authority = persistAuthority(randomizeAuthority());
-
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{userId}/authorities/{id}", 1L, authority.getId())
+                .delete("/{userId}/authorities/{id}", 1L, randomizeRole())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(1);
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -839,54 +884,55 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{userId}/authorities/{id}", user.getId(), "ROLE_USER")
+                .delete("/{userId}/authorities/{id}", user.getId(), "whatever")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_remove_multiple_and_return_202() {
             var state = persistState(randomizeState());
-            var authority1 = persistAuthority(randomizeAuthority());
-            var authority2 = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority1, authority2));
+            var roles = randomizeRoles(2);
+            var user = persistUser(randomizeUser(state), roles.getFirst(), roles.get(1));
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(2);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_return_404_when_removing_multiple_and_user_not_found() {
-            var authority1 = persistAuthority(randomizeAuthority());
-            var authority2 = persistAuthority(randomizeAuthority());
+            var roles = randomizeRoles(2);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", authority1.getId(), authority2.getId()))
+                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
             .when()
                 .delete("/{userId}/authorities", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(2);
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
         @Test
@@ -898,36 +944,40 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", "ROLE_USER", "ROLE_EDITOR"))
+                .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isZero();
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).isEmpty();
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
         @Test
         void should_return_404_when_removing_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
-            var authority = persistAuthority(randomizeAuthority());
-            var user = persistUser(randomizeUser(state, authority));
+            var role = randomizeRole();
+            var user = persistUser(randomizeUser(state), role);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", authority.getId(), "ROLE_USER"))
+                .queryParam("ids", String.join(",", role, "whatever"))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(authorityRepository.count()).isEqualTo(1);
-            assertThat(repository.findById(user.getId()).map(User::getAuthorities).orElseThrow(() -> new RuntimeException("User not found"))).hasSize(1);
+            assertThat(authorityRepository.count()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
+            assertThat(assignedRoles.size()).isEqualTo(1);
+            assertThat(assignedRoles.stream().anyMatch(r -> role.equals(r.getName()))).isTrue();
         }
     }
 
@@ -1136,7 +1186,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(3L);
+            assertThat(eventRepository.count()).isEqualTo(7L);
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
@@ -1145,19 +1195,125 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private User randomizeUser(State state, Authority... authorities) {
+    private User randomizeUser(State state) {
         var user = random.nextObject(User.class);
-        if (authorities.length != 0) {
-            user.setAuthorities(Set.copyOf(Arrays.asList(authorities)));
-        }
         if (state != null) {
             user.setState(state);
         }
         return user;
     }
 
-    private User persistUser(User user) {
+    private User persistUser(User user, String... roles) {
+        var representation = persistUserInKeycloak(roles);
+        user.setExternalId(representation.getId());
         return repository.save(user);
+    }
+
+    private UserRepresentation persistUserInKeycloak(String... roles) {
+        final UserRepresentation userRepresentation = new UserRepresentation();
+
+        userRepresentation.setEmail(emailRandomizer.getRandomValue());
+        userRepresentation.setEnabled(true);
+
+        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(generateTemporaryPassword());
+        credentialRepresentation.setTemporary(true);
+
+        try (final Response response = keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .create(userRepresentation)
+        ) {
+            if (response.getStatus() == HttpStatus.CREATED.value()) {
+                final String locationPath = response.getLocation().getPath();
+                final String id = locationPath.substring(locationPath.lastIndexOf('/') + 1);
+                final UserResource userResource = keycloakAdminClient
+                        .realm(keycloakRealm)
+                        .users()
+                        .get(id);
+
+                if (roles.length != 0) {
+                    final List<RoleRepresentation> roleRepresentations = getRoleRepresentationsInKeycloak().stream()
+                            .filter(r -> List.of(roles).contains(r.getName()))
+                            .toList();
+
+                    userResource
+                            .roles()
+                            .clientLevel(keycloakClientId)
+                            .add(roleRepresentations);
+                }
+
+                return userResource.toRepresentation();
+            } else {
+                throw new RuntimeException("Could not persist user in Keycloak");
+            }
+        }
+    }
+
+    private List<RoleRepresentation> getRoleRepresentationsInKeycloak() {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .clients()
+                .get(keycloakClientId)
+                .roles()
+                .list();
+    }
+
+    private List<RoleRepresentation> getRoleRepresentationsForUserInKeycloak(User user) {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .get(user.getExternalId())
+                .roles()
+                .clientLevel(keycloakClientId)
+                .listAll();
+    }
+
+    private Integer getUsersCountInKeycloak() {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .count();
+    }
+
+    private String generateTemporaryPassword() {
+        final PasswordGenerator passwordGenerator = new PasswordGenerator();
+
+        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase);
+        lowerCaseRule.setNumberOfCharacters(2);
+
+        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase);
+        upperCaseRule.setNumberOfCharacters(2);
+
+        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit);
+        digitRule.setNumberOfCharacters(2);
+
+        final CharacterRule specialCharacterRule = new CharacterRule(new CharacterData() {
+            public String getErrorCode() {
+                return ERROR_CODE;
+            }
+
+            public String getCharacters() {
+                return "!@#$%^&*()_+";
+            }
+        });
+        specialCharacterRule.setNumberOfCharacters(2);
+
+        return passwordGenerator.generatePassword(15, specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule);
+    }
+
+    private String randomizeRole() {
+        return SecurityUtil.ROLES.get(rnd.nextInt(SecurityUtil.ROLES.size()));
+    }
+
+    private List<String> randomizeRoles(int numberOfRoles) {
+        if (numberOfRoles > SecurityUtil.ROLES.size()) {
+            throw new IllegalArgumentException();
+        }
+        final List<String> randomRoles = new ArrayList<>(SecurityUtil.ROLES);
+        Collections.shuffle(randomRoles);
+        return randomRoles.subList(0, numberOfRoles);
     }
 
     private Authority randomizeAuthority() {

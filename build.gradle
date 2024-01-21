@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.1'
+    id 'org.springframework.boot' version '3.2.2'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'io.freefair.lombok' version '8.4'
@@ -34,6 +34,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -55,10 +56,12 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.0'
     implementation 'com.google.guava:guava:33.0.0-jre'
-    implementation 'org.keycloak:keycloak-admin-client:23.0.3'
+    implementation 'org.keycloak:keycloak-admin-client:23.0.4'
+    implementation 'org.passay:passay:1.6.4'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
     //implementation 'org.hibernate.search:hibernate-search-backend-elasticsearch'
+    implementation 'org.apache.lucene:lucene-backward-codecs:9.8.0'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -71,7 +74,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'io.github.dvgaba:easy-random-randomizers:6.2.1'
+    testImplementation 'io.github.dvgaba:easy-random-randomizers:7.0.0'
     testImplementation 'io.rest-assured:rest-assured:5.4.0'
     testImplementation 'io.rest-assured:rest-assured-all:5.4.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -81,7 +84,7 @@ dependencies {
     testImplementation 'com.github.dasniko:testcontainers-keycloak:3.2.0'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
-    testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.104.Final:osx-aarch_64'
+    testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.105.Final:osx-aarch_64'
 }
 
 dependencyManagement {

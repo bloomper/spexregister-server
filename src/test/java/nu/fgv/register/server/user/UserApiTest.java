@@ -79,7 +79,8 @@ class UserApiTest extends AbstractApiTest {
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the user"),
-            fieldWithPath("username").description("The username of the user"),
+            fieldWithPath("email").description("The email of the user"),
+            fieldWithPath("temporaryPassword").description("The temporary password of the user").optional(),
             linksSubsection
     );
 
@@ -93,8 +94,8 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var user1 = UserDto.builder().id(1L).username("email1@somewhere.com").build();
-        var user2 = UserDto.builder().id(1L).username("email2@somewhere.com").build();
+        var user1 = UserDto.builder().id(1L).email("email1@somewhere.com").build();
+        var user2 = UserDto.builder().id(2L).email("email2@somewhere.com").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
 
@@ -115,7 +116,7 @@ class UserApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.users[]").description("The elements"),
                                         fieldWithPath("_embedded.users[].id").description("The id of the user"),
-                                        fieldWithPath("_embedded.users[].username").description("The username of the user"),
+                                        fieldWithPath("_embedded.users[].email").description("The email of the user"),
                                         fieldWithPath("_embedded.users[].createdBy").description("Who created the user"),
                                         fieldWithPath("_embedded.users[].createdAt").description("When was the user created"),
                                         fieldWithPath("_embedded.users[].lastModifiedBy").description("Who last modified the user"),
@@ -134,9 +135,9 @@ class UserApiTest extends AbstractApiTest {
     @Test
     void should_create() throws Exception {
         var fields = new ConstrainedFields(UserCreateDto.class);
-        var dto = UserCreateDto.builder().username("email@somewhere.com").build();
+        var dto = UserCreateDto.builder().email("email@somewhere.com").build();
 
-        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).username(dto.getUsername()).build());
+        when(service.create(any(UserCreateDto.class))).thenReturn(Optional.of(UserDto.builder().id(1L).email(dto.getEmail()).build()));
 
         mockMvc
                 .perform(
@@ -152,7 +153,7 @@ class UserApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
-                                        fields.withPath("username").description("The username of the user")
+                                        fields.withPath("email").description("The email of the user")
                                 ),
                                 responseFields,
                                 links,
@@ -164,7 +165,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
+        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
 
@@ -195,8 +196,8 @@ class UserApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
-        var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
+        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.update(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
 
@@ -220,7 +221,7 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 requestFields(
                                         fields.withPath("id").description("The id of the user"),
-                                        fields.withPath("username").description("The username of the user")
+                                        fields.withPath("email").description("The email of the user")
                                 ),
                                 responseFields,
                                 links,
@@ -233,8 +234,8 @@ class UserApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
-        var dto = UserUpdateDto.builder().id(1L).username("email@somewhere.com").build();
+        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
 
@@ -258,7 +259,7 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 requestFields(
                                         fields.withPath("id").description("The id of the user"),
-                                        fields.withPath("username").description("The username of the user").optional()
+                                        fields.withPath("email").description("The email of the user").optional()
                                 ),
                                 responseFields,
                                 links,
@@ -270,7 +271,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var user = UserDto.builder().id(1L).username("email@somewhere.com").build();
+        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
         doNothing().when(service).deleteById(any(Long.class));

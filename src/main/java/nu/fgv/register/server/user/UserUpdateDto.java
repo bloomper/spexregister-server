@@ -21,10 +21,10 @@ public class UserUpdateDto {
     @JsonProperty("id")
     private Long id;
 
-    @NotBlank(message = "{user.username.notEmpty}")
-    @Size(max = 255, message = "{user.username.size}")
-    @Email(message = "{user.username.valid}")
-    @JsonProperty("username")
-    private String username;
+    @NotBlank(message = "{user.email.notEmpty}")
+    @Size(max = 255, message = "{user.email.size}")
+    @Email(message = "{user.email.valid}")
+    @JsonProperty("email")
+    private String email;
 
 }

@@ -1,6 +1,10 @@
 package nu.fgv.register.server.config;
 
-import lombok.RequiredArgsConstructor;
+import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,10 +22,25 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final SpexregisterConfig spexregisterConfig;
+    private final String keycloakUrl;
+    private final String keycloakRealm;
+    private final String keycloakAdminClientId;
+    private final String keycloakAdminClientSecret;
+    private final String keycloakClientClientId;
+
+    public SecurityConfig(@Value("${spexregister.keycloak.url}") final String keycloakUrl,
+                          @Value("${spexregister.keycloak.realm}") final String keycloakRealm,
+                          @Value("${spexregister.keycloak.admin.client-id}") final String keycloakAdminClientId,
+                          @Value("${spexregister.keycloak.admin.client-secret}") final String keycloakAdminClientSecret,
+                          @Value("${spexregister.keycloak.client.client-id}") final String keycloakClientClientId) {
+        this.keycloakUrl = keycloakUrl;
+        this.keycloakRealm = keycloakRealm;
+        this.keycloakAdminClientId = keycloakAdminClientId;
+        this.keycloakAdminClientSecret = keycloakAdminClientSecret;
+        this.keycloakClientClientId = keycloakClientClientId;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,4 +71,27 @@ public class SecurityConfig {
         return jwtAuthenticationConverter;
     }
 
+    @Bean
+    public Keycloak keycloakAdminClient() {
+        return KeycloakBuilder.builder()
+                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+                .serverUrl(keycloakUrl)
+                .realm(keycloakRealm)
+                .clientId(keycloakAdminClientId)
+                .clientSecret(keycloakAdminClientSecret)
+                .build();
+    }
+
+    @Bean
+    public String keycloakClientId(final Keycloak keycloakAdminClient) {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .clients()
+                .findByClientId(keycloakClientClientId)
+                .stream()
+                .filter(c -> c.getClientId().equals(keycloakClientClientId))
+                .findFirst()
+                .map(ClientRepresentation::getId)
+                .orElseThrow(() -> new RuntimeException("Could not retrieve id of client in Keycloak"));
+    }
 }

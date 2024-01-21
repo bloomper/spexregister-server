@@ -71,3 +71,13 @@ spexregister:
       cron-expression: 0 0 2 * * ? # Every night at 02:00
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
+    sync-users:
+      cron-expression: 0 0 1 * * ? # Every night at 01:00
+  keycloak:
+    url: ${KEYCLOAK_URL}
+    realm: ${KEYCLOAK_REALM}
+    admin:
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+    client:
+      client-id: ${KEYCLOAK_CLIENT_CLIENT_ID}

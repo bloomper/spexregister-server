@@ -4,12 +4,15 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -57,7 +60,7 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 @DisabledInAotMode
 public abstract class AbstractIntegrationTest {
 
-    private static final String TEST_REALM = "spexregister";
+    private static final String TEST_REALM = "fgv";
     private static final String TEST_GRANT_TYPE = "password";
     private static final String TEST_CLIENT_ID = "spexregister";
     private static final String TEST_DOMAIN = "@spexregister.com";
@@ -79,11 +82,23 @@ public abstract class AbstractIntegrationTest {
     private AclCache aclCache;
 
     @Autowired
+    protected Keycloak keycloakAdminClient;
+
+    @Autowired
+    protected String keycloakClientId;
+
+    @Value("${spexregister.keycloak.realm}")
+    protected String keycloakRealm;
+
+    @Value("${spexregister.keycloak.client.client-id}")
+    protected String keycloakClientClientId;
+
+    @Autowired
     protected PermissionService permissionService;
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.35");
+    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.36");
 
     /*
     @Container
@@ -96,7 +111,7 @@ public abstract class AbstractIntegrationTest {
     */
 
     @Container
-    private static final KeycloakContainer keycloak = new KeycloakContainer().withRealmImportFile("/keycloak/spexregister.json");
+    private static final KeycloakContainer keycloak = new KeycloakContainer().withRealmImportFile("/keycloak/fgv.json");
 
     private final JacksonJsonParser jsonParser = new JacksonJsonParser();
 
@@ -120,6 +135,7 @@ public abstract class AbstractIntegrationTest {
         //registry.add("spring.jpa.properties.hibernate.search.backend.password", opensearch::getPassword);
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/" + TEST_REALM);
+        registry.add("spexregister.keycloak.url", keycloak::getAuthServerUrl);
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
     }
 
@@ -136,6 +152,17 @@ public abstract class AbstractIntegrationTest {
         jdbcClient.sql("DELETE FROM acl_sid").update();
         SecurityContextHolder.clearContext();
         aclCache.clearCache();
+        keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .list()
+                .stream()
+                .filter(u -> !u.getEmail().contains(TEST_DOMAIN))
+                .forEach(u -> {
+                    try (final Response ignored = keycloakAdminClient.realm(keycloakRealm).users().delete(u.getId())) {
+                        // Ignored
+                    }
+                });
     }
 
     @TestConfiguration
