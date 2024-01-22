@@ -661,8 +661,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(1);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles.size()).isEqualTo(1);
-            assertThat(assignedRoles.get(0).getName()).isEqualTo(role);
+            assertThat(assignedRoles).hasSize(1);
+            assertThat(assignedRoles.getFirst().getName()).isEqualTo(role);
         }
 
         @Test
@@ -687,7 +687,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(2);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles).hasSize(2);
             assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
             assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
@@ -711,7 +711,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles).hasSize(2);
             assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
             assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
@@ -772,7 +772,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles.size()).isEqualTo(2);
+            assertThat(assignedRoles).hasSize(2);
             assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
             assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
         }
@@ -976,7 +976,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles.size()).isEqualTo(1);
+            assertThat(assignedRoles).hasSize(1);
             assertThat(assignedRoles.stream().anyMatch(r -> role.equals(r.getName()))).isTrue();
         }
     }
