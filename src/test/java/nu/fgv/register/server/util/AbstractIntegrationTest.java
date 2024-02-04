@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -71,7 +72,7 @@ public abstract class AbstractIntegrationTest {
     protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
     protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
-    protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMINISTRATOR");
+    protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMIN");
 
     private static URI authorizationURI;
 
@@ -224,6 +225,10 @@ public abstract class AbstractIntegrationTest {
 
     protected void grantReadPermissionToRoleUser(final ObjectIdentity oid) {
         grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
+    }
+
+    protected void grantAdministrationPermissionToRoleAdmin(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.ADMINISTRATION);
     }
 
 }

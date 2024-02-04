@@ -274,6 +274,24 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isZero();
         }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -323,6 +341,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto before =
@@ -412,6 +431,24 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isZero();
         }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -421,6 +458,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto before =
@@ -493,6 +531,24 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
         }
 
+        @Test
+        void should_return_404_when_not_permitted() {
+            final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
     }
 
     @Nested
@@ -502,6 +558,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             var news = persistNews(randomizeNews());
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             given()
@@ -529,6 +586,120 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_404_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+    }
+
+    @Nested
+    @DisplayName("Permissions")
+    class PermissionTests {
+
+        @Test
+        void should_create_non_published() throws Exception {
+            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
+            dto.setVisibleFrom(LocalDate.now().plusDays(1));
+            dto.setVisibleTo(LocalDate.now().plusDays(2));
+
+            //@formatter:off
+            final String json =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                        .contentType(ContentType.JSON)
+                        .body(dto)
+                    .when()
+                        .post()
+                    .then()
+                        .statusCode(HttpStatus.CREATED.value())
+                        .extract().body().asString();
+            //@formatter:on
+
+            final NewsDto created = objectMapper.readValue(json, NewsDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{id}", created.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            //@formatter:off
+            final List<NewsDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.news", NewsDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_create_published() throws Exception {
+            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
+            dto.setVisibleFrom(LocalDate.now().minusDays(1));
+            dto.setVisibleTo(LocalDate.now().plusDays(2));
+
+            //@formatter:off
+            final String json =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                        .contentType(ContentType.JSON)
+                        .body(dto)
+                    .when()
+                        .post()
+                    .then()
+                        .statusCode(HttpStatus.CREATED.value())
+                        .extract().body().asString();
+            //@formatter:on
+
+            final NewsDto created = objectMapper.readValue(json, NewsDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{id}", created.getId())
+            .then()
+                .statusCode(HttpStatus.OK.value());
+            //@formatter:on
+
+            //@formatter:off
+            final List<NewsDto> result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get()
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body()
+                        .jsonPath().getList("_embedded.news", NewsDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
         }
     }
 

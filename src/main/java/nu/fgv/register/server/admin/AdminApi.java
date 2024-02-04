@@ -20,7 +20,7 @@ public class AdminApi {
     private final IndexingService indexingService;
 
     @PostMapping(value = "/index/{entity}")
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN')")
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Void> index(final @PathVariable String entity) {
         try {
             final Class<?> clazz = Class.forName(String.format("nu.fgv.register.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR

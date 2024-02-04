@@ -59,7 +59,7 @@ public class NewsApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> create(@Valid @RequestBody final NewsCreateDto dto) {
         final NewsDto newDto = service.create(dto);
 
@@ -79,7 +79,7 @@ public class NewsApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable Long id, @Valid @RequestBody NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -91,7 +91,7 @@ public class NewsApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -103,7 +103,7 @@ public class NewsApi {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -115,7 +115,7 @@ public class NewsApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR') or hasRole('spexregister_USER')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.NEWS).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

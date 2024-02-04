@@ -10,16 +10,15 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class SecurityUtil {
 
-    public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_EDITOR = "ROLE_EDITOR";
-    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_ADMIN = "ROLE_spexregister_ADMIN";
+    public static final String ROLE_EDITOR = "ROLE_spexregister_EDITOR";
+    public static final String ROLE_USER = "ROLE_spexregister_USER";
     public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
     public static final GrantedAuthoritySid ROLE_ADMIN_SID = new GrantedAuthoritySid(ROLE_ADMIN);
     public static final GrantedAuthoritySid ROLE_EDITOR_SID = new GrantedAuthoritySid(ROLE_EDITOR);
@@ -39,14 +38,6 @@ public class SecurityUtil {
         return getCurrentUserClaim("email")
                 .map(String.class::cast)
                 .orElse(null);
-    }
-
-    public static List<String> getCurrentUserAuthoritiesClaim() {
-        return getCurrentUserClaim("authorities")
-                .filter(List.class::isInstance)
-                .map(List.class::cast)
-                .map(SecurityUtil::filterRoleAuthorities)
-                .orElse(Collections.emptyList());
     }
 
     public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Serializable id) {

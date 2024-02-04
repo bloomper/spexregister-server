@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserAuthoritiesClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -75,9 +74,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
-        final List<GrantedAuthoritySid> authoritySids = getCurrentUserAuthoritiesClaim().stream()
-                .map(GrantedAuthoritySid::new)
-                .toList();
+        final List<GrantedAuthoritySid> authoritySids = getRelevantAuthorities(authentication);
 
         return getQuery(spec, sort, sid, authoritySids, permission).getResultList();
     }
@@ -103,9 +100,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         }
 
         final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
-        final List<GrantedAuthoritySid> authoritySids = getCurrentUserAuthoritiesClaim().stream()
-                .map(GrantedAuthoritySid::new)
-                .toList();
+        final List<GrantedAuthoritySid> authoritySids = getRelevantAuthorities(authentication);
         final TypedQuery<T> query = getQuery(spec, pageable, sid, authoritySids, permission);
 
         return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) :
@@ -282,5 +277,12 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
         return aclClassQuery.select(root.get(AclClass_.ID))
                 .where(criteriaBuilder.equal(root.<String>get(AclClass_.CLASS_NAME), targetType.getName()));
+    }
+
+    private List<GrantedAuthoritySid> getRelevantAuthorities(final Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .filter(g -> g.getAuthority().startsWith("ROLE_spexregister_"))
+                .map(GrantedAuthoritySid::new)
+                .toList();
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -58,17 +57,11 @@ public class NewsService {
     }
 
     public Optional<NewsDto> findById(final Long id) {
-        return findById0(id)
+        return repository.findById0(id)
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : returnObject")
-    private Optional<News> findById0(final Long id) {
-        return repository
-                .findById(id);
-    }
-
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public NewsDto create(final NewsCreateDto dto) {
         return Optional.of(NEWS_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -85,12 +78,12 @@ public class NewsService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public Optional<NewsDto> update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById(dto.getId())
@@ -113,7 +106,7 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('SPEXREGISTER_ADMIN') or hasRole('SPEXREGISTER_EDITOR')")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(News.class, id));

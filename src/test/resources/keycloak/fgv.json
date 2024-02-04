@@ -246,24 +246,24 @@
       } ],
       "security-admin-console" : [ ],
       "spexregister" : [ {
-        "id" : "6186793b-ef53-4551-a048-b0626b26f6af",
-        "name" : "ROLE_ADMIN",
+        "id" : "1bcdab42-e3d7-48ce-b975-8473d72d452f",
+        "name" : "EDITOR",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
         "containerId" : "90e179a1-7165-4088-a147-9a455f8148ac",
         "attributes" : { }
       }, {
-        "id" : "0a9792aa-9845-4f61-9386-2bc7830f0ce5",
-        "name" : "ROLE_EDITOR",
+        "id" : "b7782909-2133-4304-b8db-74b34f79c53e",
+        "name" : "USER",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
         "containerId" : "90e179a1-7165-4088-a147-9a455f8148ac",
         "attributes" : { }
       }, {
-        "id" : "9d600cbe-8efc-4b9f-9287-10702d4b488e",
-        "name" : "ROLE_USER",
+        "id" : "79c055f7-2d46-430c-8d64-d5e9f12a5171",
+        "name" : "ADMIN",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
@@ -420,7 +420,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-fgv" ],
     "clientRoles" : {
-      "spexregister" : [ "ROLE_ADMIN", "ROLE_EDITOR", "ROLE_USER" ]
+      "spexregister" : [ "EDITOR", "USER", "ADMIN" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -444,7 +444,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-fgv" ],
     "clientRoles" : {
-      "spexregister" : [ "ROLE_EDITOR", "ROLE_USER" ]
+      "spexregister" : [ "EDITOR", "USER" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -486,7 +486,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-fgv" ],
     "clientRoles" : {
-      "spexregister" : [ "ROLE_USER" ]
+      "spexregister" : [ "USER" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
