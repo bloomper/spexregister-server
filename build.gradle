@@ -1,10 +1,10 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.2'
+    id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.asciidoctor.jvm.convert' version '3.3.2'
-    id 'io.freefair.lombok' version '8.4'
+    id 'org.asciidoctor.jvm.convert' version '4.0.2'
+    id 'io.freefair.lombok' version '8.6'
     id 'org.sonarqube' version '4.4.1.3373'
-    id 'org.graalvm.buildtools.native' version '0.9.28'
+    id 'org.graalvm.buildtools.native' version '0.10.1'
     id 'jacoco'
     id 'java'
 }
@@ -54,14 +54,14 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
-    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.0'
-    implementation 'com.google.guava:guava:33.0.0-jre'
-    implementation 'org.keycloak:keycloak-admin-client:23.0.4'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
+    implementation 'com.google.guava:guava:33.1.0-jre'
+    implementation 'org.keycloak:keycloak-admin-client:24.0.1'
     implementation 'org.passay:passay:1.6.4'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
     //implementation 'org.hibernate.search:hibernate-search-backend-elasticsearch'
-    implementation 'org.apache.lucene:lucene-backward-codecs:9.8.0'
+    implementation 'org.apache.lucene:lucene-backward-codecs:9.9.2'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -81,16 +81,16 @@ dependencies {
     //testImplementation 'org.opensearch:opensearch-testcontainers:2.0.1'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
-    testImplementation 'com.github.dasniko:testcontainers-keycloak:3.2.0'
+    testImplementation 'com.github.dasniko:testcontainers-keycloak:3.3.0'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
-    testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.105.Final:osx-aarch_64'
+    testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
 }
 
 dependencyManagement {
     imports {
-        mavenBom 'org.testcontainers:testcontainers-bom:1.19.3'
-        mavenBom 'org.hibernate.search:hibernate-search-bom:7.0.0.Final'
+        mavenBom 'org.testcontainers:testcontainers-bom:1.19.7'
+        mavenBom 'org.hibernate.search:hibernate-search-bom:7.1.0.Final'
     }
 }
 
