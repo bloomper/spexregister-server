@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -227,8 +228,20 @@ public abstract class AbstractIntegrationTest {
         grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
     }
 
-    protected void grantAdministrationPermissionToRoleAdmin(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.ADMINISTRATION);
+    protected void grantReadPermissionToRoleEditor(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_EDITOR_SID, BasePermission.READ);
+    }
+
+    protected void grantReadPermissionToRoleAdmin(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.READ);
+    }
+
+    protected void grantWritePermissionToRoleAdmin(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
+    }
+
+    protected void grantDeletePermissionToRoleAdmin(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.DELETE);
     }
 
 }

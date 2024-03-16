@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface NewsRepository extends AclJpaRepository<News, Long>, JpaSpecificationExecutor<News> {
 
-    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : returnObject")
+    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
     default Optional<News> findById0(final Long id) {
         return this
                 .findById(id);

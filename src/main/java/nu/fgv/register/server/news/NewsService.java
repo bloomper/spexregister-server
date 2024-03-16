@@ -68,7 +68,9 @@ public class NewsService {
                 .map(news -> {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
                     if (Boolean.TRUE.equals(news.getPublished())) {
                         permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                     }
@@ -86,7 +88,7 @@ public class NewsService {
     @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
-                .findById(dto.getId())
+                .findById0(dto.getId())
                 .map(news -> {
                     NEWS_MAPPER.toPartialModel(dto, news);
                     return news;

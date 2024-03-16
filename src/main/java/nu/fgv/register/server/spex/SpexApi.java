@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -96,6 +97,7 @@ public class SpexApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody final SpexCreateDto dto) {
         final SpexDto newDto = service.create(dto);
 
@@ -115,6 +117,7 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -126,6 +129,7 @@ public class SpexApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -137,6 +141,7 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -160,6 +165,7 @@ public class SpexApi {
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
         return service.savePoster(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
@@ -167,6 +173,7 @@ public class SpexApi {
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadPoster(id, file.getBytes(), file.getContentType());
@@ -179,6 +186,7 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{id}/poster")
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<?> deletePoster(@PathVariable final Long id) {
         return service.deletePoster(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
@@ -240,6 +248,7 @@ public class SpexApi {
     }
 
     @PostMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         try {
             return service
@@ -259,6 +268,7 @@ public class SpexApi {
     }
 
     @DeleteMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
     public ResponseEntity<?> deleteRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         try {
             return service.deleteRevival(spexId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -286,6 +296,7 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
         try {
             return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -298,6 +309,7 @@ public class SpexApi {
     }
 
     @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> removeCategory(@PathVariable final Long spexId) {
         try {
             return service.removeCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -310,6 +322,7 @@ public class SpexApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR') or hasRole('spexregister_USER')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SPEX).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

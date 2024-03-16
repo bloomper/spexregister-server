@@ -1,8 +1,16 @@
 package nu.fgv.register.server.spex;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import nu.fgv.register.server.acl.AclJpaRepository;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
-public interface SpexDetailsRepository extends JpaRepository<SpexDetails, Long> {
+public interface SpexDetailsRepository extends AclJpaRepository<SpexDetails, Long> {
+    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : returnObject")
+    default Optional<SpexDetails> findById0(final Long id) {
+        return this
+                .findById(id);
+    }
 }

@@ -341,7 +341,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto before =
@@ -458,12 +459,13 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var news = persistNews(randomizeNews());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             final NewsDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", news.getId())
@@ -532,7 +534,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_404_when_not_permitted() {
+        void should_return_403_when_not_permitted() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
             //@formatter:off
@@ -558,7 +560,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             var news = persistNews(randomizeNews());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
             given()
@@ -589,7 +592,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_404_when_not_permitted() {
+        void should_return_403_when_not_permitted() {
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
