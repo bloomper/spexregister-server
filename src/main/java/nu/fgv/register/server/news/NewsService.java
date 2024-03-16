@@ -61,7 +61,7 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public NewsDto create(final NewsCreateDto dto) {
         return Optional.of(NEWS_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -80,12 +80,12 @@ public class NewsService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<NewsDto> update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -108,7 +108,7 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(News.class, id));

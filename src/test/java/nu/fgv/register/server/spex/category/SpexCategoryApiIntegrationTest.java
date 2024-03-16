@@ -34,6 +34,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.named;
 
@@ -111,7 +112,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            persistSpexCategory(randomizeSpexCategory());
+            var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             final List<SpexCategoryDto> result =
@@ -132,7 +134,10 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> persistSpexCategory(randomizeSpexCategory()));
+            IntStream.range(0, size).forEach(i -> {
+                var category = persistSpexCategory(randomizeSpexCategory());
+                grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            });
 
             //@formatter:off
             final List<SpexCategoryDto> result =
@@ -158,7 +163,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            persistSpexCategory(randomizeSpexCategory());
+            var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
             // @formatter:off
             final List<SpexCategoryDto> result =
@@ -179,14 +185,15 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexCategory = persistSpexCategory(randomizeSpexCategory());
+            var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             final List<SpexCategoryDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", SpexCategory_.NAME + ":" + spexCategory.getName())
+                        .queryParam("filter", SpexCategory_.NAME + ":" + category.getName())
                     .when()
                         .get()
                     .then()
@@ -202,11 +209,12 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var spexCategory = randomizeSpexCategory();
+                var category = randomizeSpexCategory();
                 if (i % 2 == 0) {
-                    spexCategory.setName("whatever");
+                    category.setName("whatever");
                 }
-                persistSpexCategory(spexCategory);
+                var category0 = persistSpexCategory(category);
+                grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category0.getId()));
             });
 
             //@formatter:off
@@ -239,7 +247,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -263,13 +271,31 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -282,11 +308,12 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             final SpexCategoryDto result =
                 given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .contentType(ContentType.JSON)
                 .when()
                     .get("/{id}", category.getId())
@@ -305,7 +332,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -322,6 +349,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             final SpexCategoryDto before =
@@ -344,7 +373,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                             .contentType(ContentType.JSON)
                             .body(dto)
                     .when()
@@ -382,7 +411,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -400,13 +429,31 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -420,6 +467,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             final SpexCategoryDto before =
@@ -442,7 +491,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -479,7 +528,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -491,6 +540,23 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -500,10 +566,12 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", category.getId())
@@ -518,12 +586,27 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -537,11 +620,13 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
@@ -569,11 +654,13 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_logo_via_multipart_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             var logo = ResourceUtils.getFile("classpath:test.png");
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .multiPart("file", logo, MediaType.IMAGE_PNG_VALUE)
             .when()
                 .post("/{id}/logo", category.getId())
@@ -600,11 +687,13 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_logo_and_return_204() throws Exception {
             var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
@@ -615,7 +704,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/logo", category.getId())
@@ -625,7 +714,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}/logo", category.getId())

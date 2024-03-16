@@ -47,6 +47,7 @@ public class SpexService {
     private final SpexCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public List<SpexDto> findAll(final Sort sort) {
         return repository
                 .findAll(isNotRevival(), sort, BasePermission.READ)
@@ -54,6 +55,7 @@ public class SpexService {
                 .toList();
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Page<SpexDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -64,12 +66,14 @@ public class SpexService {
                         .map(SPEX_MAPPER::toDto);
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Optional<SpexDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(SPEX_MAPPER::toDto);
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -78,6 +82,7 @@ public class SpexService {
                 .toList();
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public List<SpexDto> findRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
         return repository
                 .findAll(hasParentIds(parentIds), sort, BasePermission.READ)
@@ -104,12 +109,12 @@ public class SpexService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<SpexDto> update(final SpexUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<SpexDto> partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -139,7 +144,7 @@ public class SpexService {
                 });
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<SpexDto> savePoster(final Long spexId, final byte[] poster, final String contentType) {
         return repository
                 .findById0(spexId)
@@ -151,7 +156,7 @@ public class SpexService {
                 });
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<SpexDto> deletePoster(final Long spexId) {
         return repository
                 .findById0(spexId)
@@ -163,6 +168,7 @@ public class SpexService {
                 });
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Optional<Pair<byte[], String>> getPoster(final Long spexId) {
         return repository
                 .findById0(spexId)
@@ -171,6 +177,7 @@ public class SpexService {
                 .map(details -> Pair.of(details.getPoster(), details.getPosterContentType()));
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Optional<SpexDto> findRevivalById(final Long spexId, final Long id) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -182,12 +189,14 @@ public class SpexService {
         }
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Page<SpexDto> findRevivals(final Pageable pageable) {
         return repository
                 .findAll(isRevival(), pageable, BasePermission.READ)
                 .map(SPEX_MAPPER::toDto);
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Page<SpexDto> findRevivalsByParent(final Long spexId, final Pageable pageable) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -202,7 +211,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public Optional<SpexDto> addRevival(final Long spexId, final String year) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -230,7 +239,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public boolean deleteRevival(final Long spexId, final String year) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -248,6 +257,7 @@ public class SpexService {
         }
     }
 
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public Optional<SpexCategoryDto> findCategoryBySpex(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository
