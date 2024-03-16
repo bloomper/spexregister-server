@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
@@ -101,7 +102,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            persistTaskCategory(randomizeTaskCategory());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             final List<TaskCategoryDto> result =
@@ -122,7 +124,10 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> persistTaskCategory(randomizeTaskCategory()));
+            IntStream.range(0, size).forEach(i -> {
+                var category = persistTaskCategory(randomizeTaskCategory());
+                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
+            });
 
             //@formatter:off
             final List<TaskCategoryDto> result =
@@ -148,7 +153,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            persistTaskCategory(randomizeTaskCategory());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             // @formatter:off
             final List<TaskCategoryDto> result =
@@ -169,14 +175,15 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var task = persistTaskCategory(randomizeTaskCategory());
+            var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             final List<TaskCategoryDto> result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", TaskCategory_.NAME + ":" + task.getName())
+                        .queryParam("filter", TaskCategory_.NAME + ":" + category.getName())
                     .when()
                         .get()
                     .then()
@@ -192,11 +199,12 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var taskCategory = randomizeTaskCategory();
+                var category = randomizeTaskCategory();
                 if (i % 2 == 0) {
-                    taskCategory.setName("whatever");
+                    category.setName("whatever");
                 }
-                persistTaskCategory(taskCategory);
+                var category0 = persistTaskCategory(category);
+                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category0.getId()));
             });
 
             //@formatter:off
@@ -229,7 +237,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -253,13 +261,31 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TaskCategoryCreateDto dto = random.nextObject(TaskCategoryCreateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -272,11 +298,12 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             final TaskCategoryDto result =
                 given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .contentType(ContentType.JSON)
                 .when()
                     .get("/{id}", category.getId())
@@ -295,7 +322,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
@@ -312,6 +339,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             final TaskCategoryDto before =
@@ -334,7 +363,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -372,7 +401,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -390,13 +419,31 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -410,6 +457,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             final TaskCategoryDto before =
@@ -432,7 +481,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -469,7 +518,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -481,6 +530,23 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -490,10 +556,12 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", category.getId())
@@ -508,12 +576,27 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();

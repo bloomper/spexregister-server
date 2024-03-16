@@ -80,7 +80,7 @@ public class SpexCategoryApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         try {
             final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);

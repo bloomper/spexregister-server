@@ -76,14 +76,14 @@ public class SpexCategoryService {
     public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
         return Optional.of(SPEX_CATEGORY_MAPPER.toModel(dto))
                 .map(repository::save)
-                .map(spexCategory -> {
-                    final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, spexCategory.getId());
+                .map(category -> {
+                    final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, category.getId());
 
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
 
-                    return SPEX_CATEGORY_MAPPER.toDto(spexCategory);
+                    return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
                 .orElse(null);
     }

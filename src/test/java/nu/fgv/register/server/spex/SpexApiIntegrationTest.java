@@ -14,7 +14,6 @@ import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
-import org.apache.http.HttpHeaders;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.ResourceUtils;
@@ -818,7 +818,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/poster", 123)
+                .post("/{id}/poster", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
