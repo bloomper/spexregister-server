@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TagApiIntegrationTest extends AbstractIntegrationTest {
@@ -101,7 +102,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            persistTag(randomizeTag());
+            var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             final List<TagDto> result =
@@ -122,7 +124,10 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_many() {
             int size = 42;
-            IntStream.range(0, size).forEach(i -> persistTag(randomizeTag()));
+            IntStream.range(0, size).forEach(i -> {
+                var tag = persistTag(randomizeTag());
+                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
+            });
 
             //@formatter:off
             final List<TagDto> result =
@@ -148,7 +153,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            persistTag(randomizeTag());
+            var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             // @formatter:off
             final List<TagDto> result =
@@ -170,6 +176,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             final List<TagDto> result =
@@ -196,7 +203,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     tag.setName("whatever");
                 }
-                persistTag(tag);
+                var tag0 = persistTag(tag);
+                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag0.getId()));
             });
 
             //@formatter:off
@@ -229,7 +237,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -253,13 +261,31 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TagCreateDto dto = random.nextObject(TagCreateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -272,6 +298,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             final TagDto result =
@@ -312,6 +339,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             final TagDto before =
@@ -333,7 +363,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -371,7 +401,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -389,13 +419,31 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -409,6 +457,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_202() throws Exception {
             var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             final TagDto before =
@@ -430,7 +481,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -467,13 +518,31 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -488,10 +557,12 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", tag.getId())
@@ -506,12 +577,27 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
 
             assertThat(repository.count()).isZero();

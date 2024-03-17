@@ -26,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -63,6 +64,7 @@ public class TagApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                     @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
@@ -78,6 +80,7 @@ public class TagApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         try {
             final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
@@ -94,6 +97,7 @@ public class TagApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TagDto>> create(@Valid @RequestBody final TagCreateDto dto) {
         final TagDto newDto = service.create(dto);
 
@@ -104,6 +108,7 @@ public class TagApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<EntityModel<TagDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -117,6 +122,7 @@ public class TagApi {
                     Constants.MediaTypes.APPLICATION_XLSX_VALUE,
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale, final HttpMethod method) {
         try {
             final ImportResultDto result = importService.doImport(file, contentType, locale);
@@ -132,6 +138,7 @@ public class TagApi {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale, final HttpMethod method) {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale, method);
@@ -144,6 +151,7 @@ public class TagApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TagDto>> update(@PathVariable final Long id, @Valid @RequestBody final TagUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -155,6 +163,7 @@ public class TagApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TagDto>> partialUpdate(@PathVariable final Long id, @RequestBody final TagUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -166,6 +175,7 @@ public class TagApi {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -177,6 +187,7 @@ public class TagApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TAG).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
