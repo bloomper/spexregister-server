@@ -10,6 +10,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +31,7 @@ public class SessionApi {
     private final EventApi eventApi;
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SESSION).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

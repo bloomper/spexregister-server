@@ -33,6 +33,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -243,6 +244,7 @@ public class SpexareApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SPEXARE).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

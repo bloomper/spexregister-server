@@ -818,7 +818,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .post("/{id}/poster", 123)
+                .delete("/{id}/poster", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on

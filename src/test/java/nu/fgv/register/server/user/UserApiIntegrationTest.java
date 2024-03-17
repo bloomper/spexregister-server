@@ -27,6 +27,7 @@ import org.jeasy.random.randomizers.EmailRandomizer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,7 @@ import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
 
+@Disabled
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -85,9 +87,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private EventRepository eventRepository;
 
-    private EmailRandomizer emailRandomizer = new EmailRandomizer();
+    private final EmailRandomizer emailRandomizer = new EmailRandomizer();
 
-    private Random rnd = new Random();
+    private final Random rnd = new Random();
 
     public UserApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();

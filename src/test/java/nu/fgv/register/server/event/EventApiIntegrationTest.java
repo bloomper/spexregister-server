@@ -79,7 +79,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -100,7 +100,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -122,7 +122,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -148,7 +148,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final EventDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", event.getId())
@@ -167,7 +167,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
