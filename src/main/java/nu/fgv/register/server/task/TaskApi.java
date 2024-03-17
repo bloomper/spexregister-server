@@ -193,7 +193,7 @@ public class TaskApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TASK).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

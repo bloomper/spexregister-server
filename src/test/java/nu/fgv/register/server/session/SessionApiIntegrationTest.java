@@ -83,7 +83,7 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<EventDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/events")
