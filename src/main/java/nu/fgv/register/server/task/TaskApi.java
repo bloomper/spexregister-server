@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -61,6 +62,7 @@ public class TaskApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<PagedModel<EntityModel<TaskDto>>> retrieve(@SortDefault(sort = Task_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<TaskDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
@@ -76,6 +78,7 @@ public class TaskApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         try {
             final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
@@ -92,6 +95,7 @@ public class TaskApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<TaskDto>> create(@Valid @RequestBody final TaskCreateDto dto) {
         final TaskDto newDto = service.create(dto);
 
@@ -102,6 +106,7 @@ public class TaskApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -111,6 +116,7 @@ public class TaskApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable final Long id, @Valid @RequestBody final TaskUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -122,6 +128,7 @@ public class TaskApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody TaskUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -133,6 +140,7 @@ public class TaskApi {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -144,6 +152,7 @@ public class TaskApi {
     }
 
     @GetMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final Long taskId) {
         try {
             return service
@@ -159,6 +168,7 @@ public class TaskApi {
     }
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
             return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -183,6 +193,7 @@ public class TaskApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TASK).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

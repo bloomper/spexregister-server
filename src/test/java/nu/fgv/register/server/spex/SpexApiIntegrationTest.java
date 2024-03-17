@@ -129,8 +129,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -311,7 +311,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -330,7 +330,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -458,7 +458,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -1269,13 +1269,12 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
             final SpexCategoryDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{spexId}/category", spex.getId())

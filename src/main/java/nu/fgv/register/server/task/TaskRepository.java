@@ -1,9 +1,18 @@
 package nu.fgv.register.server.task;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import nu.fgv.register.server.acl.AclJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificationExecutor<Task> {
+public interface TaskRepository extends AclJpaRepository<Task, Long>, JpaSpecificationExecutor<Task> {
+
+    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    default Optional<Task> findById0(final Long id) {
+        return this
+                .findById(id);
+    }
 }
