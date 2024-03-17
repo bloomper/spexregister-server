@@ -136,6 +136,18 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(size);
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
     }
 
     @Nested
@@ -173,6 +185,19 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                 .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{id}", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
         }
     }

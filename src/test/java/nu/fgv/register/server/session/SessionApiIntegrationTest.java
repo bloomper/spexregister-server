@@ -100,6 +100,18 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(event.getCreatedBy());
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/events")
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
     }
 
     private Event randomizeEvent() {
