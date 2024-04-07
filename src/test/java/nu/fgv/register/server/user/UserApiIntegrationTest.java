@@ -20,14 +20,12 @@ import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
-import nu.fgv.register.server.util.security.SecurityUtil;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.EmailRandomizer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -55,13 +53,13 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
 
-@Disabled
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -150,7 +148,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -166,12 +164,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var state = persistState(randomizeState());
-            persistUser(randomizeUser(state));
+            var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get()
@@ -188,12 +187,15 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             int size = 42;
             var state = persistState(randomizeState());
-            IntStream.range(0, size).forEach(i -> persistUser(randomizeUser(state)));
+            IntStream.range(0, size).forEach(i -> {
+                var user = persistUser(randomizeUser(state));
+                grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            });
 
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .queryParam("size", size)
                     .when()
@@ -207,6 +209,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(size);
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -216,12 +232,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             var state = persistState(randomizeState());
-            persistUser(randomizeUser(state));
+            var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .queryParam("filter", User_.EXTERNAL_ID + ":whatever")
                     .when()
@@ -239,11 +256,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_one() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .queryParam("filter", User_.ID + ":" + user.getId())
                     .when()
@@ -262,14 +280,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             int size = 42;
             var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
-                var user = randomizeUser(state);
-                persistUser(user);
+                var user = persistUser(randomizeUser(state));
+                grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
             //@formatter:off
             final List<UserDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .queryParam("filter", User_.ID + "=whatever*")
                         .queryParam("size", size)
@@ -284,6 +302,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(size);
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("filter", User_.ID + "=whatever*")
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -297,7 +330,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -322,7 +355,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -334,6 +367,24 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final UserCreateDto dto = random.nextObject(UserCreateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -343,11 +394,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final UserDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", user.getId())
@@ -366,12 +418,25 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{id}", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
         }
     }
@@ -384,11 +449,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_update_and_return_202() throws Exception {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final UserDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", user.getId())
@@ -405,7 +472,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -420,7 +487,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final UserDto after =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", user.getId())
@@ -444,7 +511,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -463,7 +530,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -475,6 +542,24 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -485,11 +570,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_update_and_return_202() throws Exception {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final UserDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", user.getId())
@@ -506,7 +593,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -521,7 +608,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final UserDto after =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", user.getId())
@@ -544,7 +631,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -557,6 +644,23 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -567,10 +671,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_delete_and_return_204() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", user.getId())
@@ -586,7 +692,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -596,6 +702,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -607,7 +728,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/authorities", 1L)
@@ -622,11 +743,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_zero() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<AuthorityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{userId}/authorities", user.getId())
@@ -644,13 +766,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             var state = persistState(randomizeState());
-            var role = randomizeRole();
-            var user = persistUser(randomizeUser(state), role);
+            var authority = getRandomAuthority();
+            var user = persistUser(randomizeUser(state), authority);
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<AuthorityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{userId}/authorities", user.getId())
@@ -664,19 +787,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
-            assertThat(assignedRoles.getFirst().getName()).isEqualTo(role);
+            assertThat(assignedRoles.getFirst().getName()).isEqualTo(authority);
         }
 
         @Test
         void should_return_many() {
             var state = persistState(randomizeState());
-            var roles = randomizeRoles(2);
-            var user = persistUser(randomizeUser(state), roles.getFirst(), roles.get(1));
+            var authorities = getRandomAuthorities(2);
+            var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final List<AuthorityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{userId}/authorities", user.getId())
@@ -690,22 +814,24 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(2);
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> authorities.get(1).equals(r.getName()))).isTrue();
         }
 
         @Test
         void should_add_and_return_202() {
             var state = persistState(randomizeState());
-            var roles = randomizeRoles(2);
-            var user = persistUser(randomizeUser(state), roles.getFirst());
+            var authorities = getRandomAuthorities(2);
+            var user = persistUser(randomizeUser(state), authorities.getFirst());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/authorities/{id}", user.getId(), roles.get(1))
+                .put("/{userId}/authorities/{id}", user.getId(), authorities.getFirst())
             .then()
                 .statusCode(HttpStatus.ACCEPTED.value());
             //@formatter:on
@@ -713,19 +839,18 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
-            assertThat(assignedRoles).hasSize(2);
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
+            assertThat(assignedRoles).hasSize(1);
+            assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
         }
 
         @Test
         void should_return_404_when_adding_and_user_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/authorities/{id}", 1L, randomizeRole())
+                .put("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -741,7 +866,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/authorities/{id}", user.getId(), "whatever")
@@ -757,14 +882,16 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_add_multiple_and_return_202() {
             var state = persistState(randomizeState());
-            var roles = randomizeRoles(2);
+            var authorities = getRandomAuthorities(2);
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
+                .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
@@ -775,17 +902,17 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(2);
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.getFirst().equals(r.getName()))).isTrue();
-            assertThat(assignedRoles.stream().anyMatch(r -> roles.get(1).equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> authorities.get(1).equals(r.getName()))).isTrue();
         }
 
         @Test
         void should_return_404_when_adding_multiple_and_user_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", randomizeRole(), randomizeRole()))
+                .queryParam("ids", String.join(",", getRandomAuthority(), getRandomAuthority()))
             .when()
                 .put("/{userId}/authorities", 1L)
             .then()
@@ -803,7 +930,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
@@ -820,14 +947,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_adding_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
-            var role = randomizeRole();
+            var authority = getRandomAuthority();
             var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", role, "whatever"))
+                .queryParam("ids", String.join(",", authority, "whatever"))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
@@ -842,15 +969,17 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_remove_and_return_204() {
             var state = persistState(randomizeState());
-            var role = randomizeRole();
-            var user = persistUser(randomizeUser(state), role);
+            var authority = getRandomAuthority();
+            var user = persistUser(randomizeUser(state), authority);
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{userId}/authorities/{id}", user.getId(), role)
+                .delete("/{userId}/authorities/{id}", user.getId(), authority)
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -864,10 +993,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_removing_and_user_not_found() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{userId}/authorities/{id}", 1L, randomizeRole())
+                .delete("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -883,7 +1012,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{userId}/authorities/{id}", user.getId(), "whatever")
@@ -899,14 +1028,16 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_remove_multiple_and_return_202() {
             var state = persistState(randomizeState());
-            var roles = randomizeRoles(2);
-            var user = persistUser(randomizeUser(state), roles.getFirst(), roles.get(1));
+            var authorities = getRandomAuthorities(2);
+            var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
+                .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
@@ -920,13 +1051,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_multiple_and_user_not_found() {
-            var roles = randomizeRoles(2);
+            var authorities = getRandomAuthorities(2);
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", roles.getFirst(), roles.get(1)))
+                .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
             .when()
                 .delete("/{userId}/authorities", 1L)
             .then()
@@ -944,7 +1075,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
@@ -961,14 +1092,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_removing_multiple_and_authority_not_found() {
             var state = persistState(randomizeState());
-            var role = randomizeRole();
-            var user = persistUser(randomizeUser(state), role);
+            var authority = getRandomAuthority();
+            var user = persistUser(randomizeUser(state), authority);
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("ids", String.join(",", role, "whatever"))
+                .queryParam("ids", String.join(",", authority, "whatever"))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
@@ -979,7 +1110,84 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
-            assertThat(assignedRoles.stream().anyMatch(r -> role.equals(r.getName()))).isTrue();
+            assertThat(assignedRoles.stream().anyMatch(r -> authority.equals(r.getName()))).isTrue();
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_adding_multiple_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", "1", "2"))
+            .when()
+                .put("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_403_when_deleting_multiple_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", "1", "2"))
+            .when()
+                .delete("/{userId}/authorities", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
         }
     }
 
@@ -991,7 +1199,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/state", 1L)
@@ -1004,11 +1212,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return() {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final StateDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{userId}/state", user.getId())
@@ -1026,10 +1236,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
             var newState = persistState(randomizeState());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", user.getId(), newState.getId())
@@ -1046,7 +1258,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", 1L, state.getId())
@@ -1062,7 +1274,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", user.getId(), "WHATEVER")
@@ -1071,6 +1283,31 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{userId}/state", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_setting_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/state/{id}", 1L, 2L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
     }
 
     @Nested
@@ -1081,7 +1318,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/spexare", 1L)
@@ -1097,11 +1334,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             var spexare = persistSpexare(randomizeSpexare());
             user.setSpexare(spexare);
             repository.save(user);
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             final SpexareDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{userId}/spexare", user.getId())
@@ -1119,10 +1359,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             var state = persistState(randomizeState());
             var user = persistUser(randomizeUser(state));
             var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", user.getId(), spexare.getId())
@@ -1139,7 +1382,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", 1L, spexare.getId())
@@ -1155,7 +1398,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", user.getId(), 1L)
@@ -1164,6 +1407,70 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
         }
 
+        @Test
+        void should_remove_and_return_204() {
+            var state = persistState(randomizeState());
+            var user = persistUser(randomizeUser(state));
+            var spexare = persistSpexare(randomizeSpexare());
+            user.setSpexare(spexare);
+            repository.save(user);
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/spexare", user.getId())
+            .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            //@formatter:on
+
+            assertThat(repository.findById(user.getId()).map(User::getSpexare)).isEmpty();
+        }
+
+        @Test
+        void should_return_404_when_removing_and_user_not_found() {
+            var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/spexare", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{userId}/spexare", 1L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/spexare/{id}", 1L, 2L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
+            //@formatter:on
+        }
     }
 
     @Nested
@@ -1188,7 +1495,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(7L);
+            assertThat(eventRepository.count()).isEqualTo(3L);
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
@@ -1317,17 +1624,17 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         return passwordGenerator.generatePassword(15, specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule);
     }
 
-    private String randomizeRole() {
-        return SecurityUtil.ROLES.get(rnd.nextInt(SecurityUtil.ROLES.size()));
+    private String getRandomAuthority() {
+        return AUTHORITIES.get(rnd.nextInt(AUTHORITIES.size()));
     }
 
-    private List<String> randomizeRoles(int numberOfRoles) {
-        if (numberOfRoles > SecurityUtil.ROLES.size()) {
+    private List<String> getRandomAuthorities(int numberOfAuthorities) {
+        if (numberOfAuthorities > AUTHORITIES.size()) {
             throw new IllegalArgumentException();
         }
-        final List<String> randomRoles = new ArrayList<>(SecurityUtil.ROLES);
-        Collections.shuffle(randomRoles);
-        return randomRoles.subList(0, numberOfRoles);
+        final List<String> randomAuthorities = new ArrayList<>(AUTHORITIES);
+        Collections.shuffle(randomAuthorities);
+        return randomAuthorities.subList(0, numberOfAuthorities);
     }
 
     private Authority randomizeAuthority() {

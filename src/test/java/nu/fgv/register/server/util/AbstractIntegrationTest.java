@@ -47,6 +47,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -74,6 +75,10 @@ public abstract class AbstractIntegrationTest {
     protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
     protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMIN");
+    protected static final String AUTHORITY_ADMIN = "ADMIN";
+    protected static final String AUTHORITY_EDITOR = "EDITOR";
+    protected static final String AUTHORITY_USER = "USER";
+    protected static final List<String> AUTHORITIES = List.of(AUTHORITY_ADMIN, AUTHORITY_EDITOR, AUTHORITY_USER);
 
     private static URI authorizationURI;
 

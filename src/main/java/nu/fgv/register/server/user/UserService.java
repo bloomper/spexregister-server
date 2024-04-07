@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -65,25 +66,28 @@ public class UserService {
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Page<UserDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), pageable)
+                        .findAll(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), pageable, BasePermission.READ)
                         .map(this::joinModelWithRepresentation) :
                 repository
-                        .findAll(pageable)
+                        .findAll(pageable, BasePermission.READ)
                         .map(this::joinModelWithRepresentation);
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Optional<UserDto> findById(final Long id) {
         return repository
-                .findById(id)
+                .findById0(id)
                 .flatMap(model ->
                         findResourceByExternalId(model.getExternalId())
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
                 );
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Optional<UserDto> create(final UserCreateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             final String temporaryPassword = generateTemporaryPassword();
@@ -115,14 +119,16 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Optional<UserDto> update(final UserUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Optional<UserDto> partialUpdate(final UserUpdateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             return repository
-                    .findById(dto.getId())
+                    .findById0(dto.getId())
                     .map(user -> {
                         USER_MAPPER.toPartialModel(dto, user);
                         return user;
@@ -145,17 +151,19 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public void deleteById(final Long id) {
-        repository.findById(id)
+        repository.findById0(id)
                 .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                 .ifPresent(UserResource::remove);
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(User.class, id));
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Set<AuthorityDto> getAuthoritiesByUser(final Long userId) {
         if (doesUserExist(userId)) {
-            return repository.findById(userId)
+            return repository.findById0(userId)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .map(resource -> {
                         final List<RoleRepresentation> roleRepresentations = resource
@@ -174,9 +182,10 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean addAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            return repository.findById(userId)
+            return repository.findById0(userId)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .map(resource -> {
                         final List<RoleRepresentation> roleRepresentations = resource
@@ -209,69 +218,15 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean addAuthority(final Long userId, final String id) {
-        if (doUserAndAuthorityExist(userId, id)) {
-            return repository.findById(userId)
-                    .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                    .map(resource -> {
-                        final List<RoleRepresentation> roleRepresentations = resource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .listAll();
-
-                        if (roleRepresentations.stream().noneMatch(r -> r.getName().equals(id))) {
-                            resource
-                                    .roles()
-                                    .clientLevel(keycloakClientId)
-                                    .add(List.of(authorityService.getRoleRepresentationById(id)));
-
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    })
-                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId)));
-        } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or authority %s do not exist", userId, id));
-        }
+        return addAuthorities(userId, List.of(id));
     }
 
-    public boolean removeAuthority(final Long userId, final String id) {
-        if (doUserAndAuthorityExist(userId, id)) {
-            return repository.findById(userId)
-                    .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                    .map(resource -> {
-                        final List<RoleRepresentation> roleRepresentations = resource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .listAll();
-
-                        if (roleRepresentations.stream().anyMatch(r -> r.getName().equals(id))) {
-                            return roleRepresentations.stream()
-                                    .filter(r -> r.getName().equals(id))
-                                    .findFirst()
-                                    .map(r -> {
-                                        resource
-                                                .roles()
-                                                .clientLevel(keycloakClientId)
-                                                .remove(List.of(r));
-
-                                        return true;
-                                    })
-                                    .orElse(false);
-                        } else {
-                            return false;
-                        }
-                    })
-                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId)));
-        } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or authority %s do not exist", userId, id));
-        }
-    }
-
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean removeAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            return repository.findById(userId)
+            return repository.findById0(userId)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .map(resource -> {
                         final List<RoleRepresentation> roleRepresentations = resource
@@ -304,18 +259,25 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    public boolean removeAuthority(final Long userId, final String id) {
+        return removeAuthorities(userId, List.of(id));
+    }
+
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public StateDto getStateByUser(final Long id) {
         return repository
-                .findById(id)
+                .findById0(id)
                 .map(User::getState)
                 .map(STATE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist", id)));
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean setState(final Long userId, final String id) {
         if (doUserAndStateExist(userId, id)) {
             return repository
-                    .findById(userId)
+                    .findById0(userId)
                     .map(user -> stateRepository
                             .findById(id)
                             .map(state -> {
@@ -331,10 +293,11 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public Optional<SpexareDto> findSpexareByUser(final Long userId) {
         if (doesUserExist(userId)) {
             return repository
-                    .findById(userId)
+                    .findById0(userId)
                     .map(User::getSpexare)
                     .map(SPEXARE_MAPPER::toDto);
         } else {
@@ -342,10 +305,11 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean addSpexare(final Long userId, final Long id) {
         if (doUserAndSpexareExist(userId, id)) {
             return repository
-                    .findById(userId)
+                    .findById0(userId)
                     .map(user -> spexareRepository
                             .findById(id)
                             .map(spexare -> {
@@ -360,10 +324,11 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('spexregister_ADMIN')")
     public boolean removeSpexare(final Long userId) {
         if (doesUserExist(userId)) {
             return repository
-                    .findById(userId)
+                    .findById0(userId)
                     .filter(user -> user.getSpexare() != null)
                     .map(user -> {
                         user.setSpexare(null);
@@ -430,10 +395,6 @@ public class UserService {
 
     private boolean doesUserExist(final Long id) {
         return repository.existsById(id);
-    }
-
-    private boolean doUserAndAuthorityExist(final Long userId, final String authorityId) {
-        return doesUserExist(userId) && authorityRepository.existsById(authorityId);
     }
 
     private boolean doUserAndAuthoritiesExist(final Long userId, final List<String> authorityIds) {
