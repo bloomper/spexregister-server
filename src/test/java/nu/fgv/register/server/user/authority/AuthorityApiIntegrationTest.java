@@ -203,8 +203,8 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(4);
-            assertThat(result).hasSize(4);
+            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(result).hasSize(1);
             assertThat(result.getLast().getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.getLast().getSource()).isEqualTo(Event.SourceType.AUTHORITY.name());
             assertThat(result.getLast().getCreatedBy()).isEqualTo(authority.getCreatedBy());

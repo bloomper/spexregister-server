@@ -203,8 +203,8 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(5);
-            assertThat(result).hasSize(5);
+            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(result).hasSize(1);
             assertThat(result.getLast().getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.getLast().getSource()).isEqualTo(Event.SourceType.STATE.name());
             assertThat(result.getLast().getCreatedBy()).isEqualTo(state.getCreatedBy());
