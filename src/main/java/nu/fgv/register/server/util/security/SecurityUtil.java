@@ -67,11 +67,4 @@ public class SecurityUtil {
                 .map(Jwt.class::cast);
     }
 
-    private static List<String> filterRoleAuthorities(final List<Object> claims) {
-        return claims.stream()
-                .map(Object::toString)
-                .filter(a -> a.contains("ROLE_"))
-                .toList();
-    }
-
 }

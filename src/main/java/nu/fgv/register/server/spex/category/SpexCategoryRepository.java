@@ -1,8 +1,6 @@
 package nu.fgv.register.server.spex.category;
 
 import nu.fgv.register.server.acl.AclJpaRepository;
-import nu.fgv.register.server.spex.SpexDetails;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
