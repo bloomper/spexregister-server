@@ -112,7 +112,7 @@ public abstract class AbstractIntegrationTest {
     private static final OpensearchContainer opensearch;
 
     static {
-        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:2.16.0"));
+        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:2.17.1"));
         opensearch.start();
     }
     */

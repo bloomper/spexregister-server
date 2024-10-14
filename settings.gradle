@@ -1,22 +1,21 @@
 pluginManagement {
-	repositories {
-		maven { url 'https://repo.spring.io/milestone' }
-		gradlePluginPortal()
-	}
+    repositories {
+        maven { url 'https://repo.spring.io/milestone' }
+        gradlePluginPortal()
+    }
 }
 
 plugins {
-	id 'com.gradle.develocity' version '3.17'
+    id 'com.gradle.develocity' version '3.17'
 }
 
-gradleEnterprise {
-	if (System.getenv("CI") != null) {
-		buildScan {
-			publishAlways()
-			termsOfServiceUrl = "https://gradle.com/terms-of-service"
-			termsOfServiceAgree = "yes"
-		}
-	}
+develocity {
+    if (System.getenv("CI") != null) {
+        buildScan {
+            termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+            termsOfUseAgree = "yes"
+        }
+    }
 }
 
 rootProject.name = 'spexregister-server'
