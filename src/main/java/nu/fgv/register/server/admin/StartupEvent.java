@@ -18,6 +18,6 @@ public class StartupEvent implements ApplicationListener<ApplicationReadyEvent> 
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
-        indexingService.initiateIndexingFor(Spexare.class, false);
+        indexingService.initiateIndexingFor(Spexare.class, Boolean.parseBoolean(System.getenv("spexregister-insert-sample-data")));
     }
 }
