@@ -119,7 +119,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSampleSpexDetailsPosters(final JdbcClient jdbcClient) {
         final String sql = """
-                UPDATE spex_details 
+                UPDATE spex_details
                 SET
                     poster = :poster,
                     poster_content_type = :posterContentType
@@ -260,7 +260,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSpexareImage(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
-                UPDATE spexare 
+                UPDATE spexare
                 SET
                     image = :image,
                     image_content_type = :imageContentType
@@ -278,7 +278,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSpexareAddresses(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
-                INSERT INTO address 
+                INSERT INTO address
                     (street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id, created_by, created_at)
                 VALUES
                     (:streetAddress, :postalCode, :city, :country, :phone, :phoneMobile, :emailAddress, :typeId, :spexareId, :createdBy, :createdAt)
@@ -310,7 +310,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSpexareConsents(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
-                INSERT INTO consent 
+                INSERT INTO consent
                     (value, type_id, spexare_id, created_by, created_at)
                 VALUES
                     (:value, :typeId, :spexareId, :createdBy, :createdAt)
@@ -334,7 +334,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSpexareMemberships(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
-                INSERT INTO membership 
+                INSERT INTO membership
                     (year, type_id, spexare_id, created_by, created_at)
                 VALUES
                     (:year, :typeId, :spexareId, :createdBy, :createdAt)
@@ -365,7 +365,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
 
     private void createSpexareToggles(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
-                INSERT INTO toggle 
+                INSERT INTO toggle
                     (value, type_id, spexare_id, created_by, created_at)
                 VALUES
                     (:value, :typeId, :spexareId, :createdBy, :createdAt)

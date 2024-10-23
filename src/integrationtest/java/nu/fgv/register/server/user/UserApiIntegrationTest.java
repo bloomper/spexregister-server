@@ -43,6 +43,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -87,7 +88,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EmailRandomizer emailRandomizer = new EmailRandomizer();
 
-    private final Random rnd = new Random();
+    private final Random rnd = new SecureRandom();
 
     public UserApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
@@ -1621,7 +1622,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         });
         specialCharacterRule.setNumberOfCharacters(2);
 
-        return passwordGenerator.generatePassword(15, specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule);
+        return passwordGenerator.generatePassword(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
     }
 
     private String getRandomAuthority() {

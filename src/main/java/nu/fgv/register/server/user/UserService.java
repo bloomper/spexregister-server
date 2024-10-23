@@ -438,6 +438,6 @@ public class UserService {
         });
         specialCharacterRule.setNumberOfCharacters(2);
 
-        return passwordGenerator.generatePassword(15, specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule);
+        return passwordGenerator.generatePassword(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
     }
 }
