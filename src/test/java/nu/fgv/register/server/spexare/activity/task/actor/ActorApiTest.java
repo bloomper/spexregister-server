@@ -56,7 +56,7 @@ class ActorApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the actor"),
             fieldWithPath("role").description("The role of the actor"),
             linksSubsection
-    ).andWithPrefix("vocal.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).collect(Collectors.toList()));
+    ).andWithPrefix("vocal.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),

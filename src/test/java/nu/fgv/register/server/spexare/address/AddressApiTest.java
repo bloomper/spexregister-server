@@ -62,7 +62,7 @@ class AddressApiTest extends AbstractApiTest {
             fieldWithPath("phoneMobile").description("The phone (mobile) of the address"),
             fieldWithPath("emailAddress").description("The email address of the address"),
             linksSubsection
-    ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).collect(Collectors.toList()));
+    ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),

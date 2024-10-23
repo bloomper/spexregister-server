@@ -52,7 +52,7 @@ class MembershipApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the membership"),
             fieldWithPath("year").description("The year of the membership"),
             linksSubsection
-    ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).collect(Collectors.toList()));
+    ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
