@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    @Profile(value = {"!local", "!test"})
+    @Profile("!local & !test & !integrationtest")
     public ForwardedHeaderFilter forwardedHeaderFilter() {
         return new ForwardedHeaderFilter();
     }

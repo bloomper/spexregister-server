@@ -1,0 +1,28 @@
+|===
+|Path|Type|Description
+
+|`+id+`
+|`+Number+`
+|The id of the event
+
+|`+event+`
+|`+String+`
+|The type of the event
+
+|`+source+`
+|`+String+`
+|The source of the event
+
+|`+createdBy+`
+|`+Null+`
+|Who created the entity
+
+|`+createdAt+`
+|`+Null+`
+|When was the entity created
+
+|`+_links+`
+|`+Object+`
+|Links section
+
+|===

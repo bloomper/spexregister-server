@@ -66,12 +66,12 @@ use of HTTP status codes.
 Whenever an error response (status code >= 400) is returned, the body will contain a JSON object
 that describes the problem. The error object has the following structure:
 
-include::{snippets}/error-example/response-fields.adoc[]
+include::{template-snippets}/error-example/response-fields.adoc[]
 
 For example, a request that attempts to apply a non-existent tag to a spexare will produce a
 `400 Bad Request` response:
 
-include::{snippets}/error-example/http-response.adoc[]
+include::{template-snippets}/error-example/http-response.adoc[]
 
 [[overview_hypermedia]]
 == Hypermedia

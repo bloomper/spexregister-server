@@ -32,7 +32,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class JpaConfig {
 
     @Bean
-    @Profile("!test")
+    @Profile("!test & !integrationtest")
     public AuditorAware<String> auditorAware() {
         return new JwtAuditorAwareImpl();
     }

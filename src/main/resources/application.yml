@@ -42,6 +42,7 @@ spring:
 
   flyway:
     table: flyway_schema_history_spexregister
+    locations: classpath:db/migration,classpath:nu/fgv/register/server/util/migration
     baseline-on-migrate: true
 
   security:

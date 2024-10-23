@@ -1,25 +1,37 @@
 plugins {
+    id 'java'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
-    id 'org.asciidoctor.jvm.convert' version '4.0.3'
-    id 'io.freefair.lombok' version '8.10.2'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'org.sonarqube' version '5.1.0.4882'
-    id 'org.graalvm.buildtools.native' version '0.10.3'
+    //id 'org.graalvm.buildtools.native' version '0.10.3'
     id 'jacoco'
-    id 'java'
 }
 
 group = 'nu.fgv.register'
 version = '2.0.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            runtimeClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            srcDir file('src/integrationtest/java')
+        }
+        resources.srcDir file('src/integrationtest/resources')
+    }
 }
 
 configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+    compileOnly.extendsFrom annotationProcessor
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 repositories {
@@ -32,6 +44,9 @@ ext {
 
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly 'org.projectlombok:lombok'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -67,8 +82,7 @@ dependencies {
     implementation 'net.datafaker:datafaker:2.4.0'
     implementation 'org.jboss.logging:jboss-logging:3.6.1.Final' // Remove once Hibernate Core uses 3.6+
 
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
+    annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
@@ -79,27 +93,26 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'io.github.dvgaba:easy-random-randomizers:7.0.0'
-    testImplementation 'io.rest-assured:rest-assured:5.5.0'
-    testImplementation 'io.rest-assured:rest-assured-all:5.5.0'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    //testImplementation 'org.opensearch:opensearch-testcontainers:2.1.1'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mysql'
-    testImplementation 'com.github.dasniko:testcontainers-keycloak:3.5.1'
+
+    integrationTestImplementation 'io.rest-assured:rest-assured:5.5.0'
+    integrationTestImplementation 'io.rest-assured:rest-assured-all:5.5.0'
+    integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:2.1.1'
+    integrationTestImplementation 'org.testcontainers:junit-jupiter'
+    integrationTestImplementation 'org.testcontainers:mysql'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:3.5.1'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.113.Final:osx-aarch_64'
 }
 
 dependencyManagement {
     imports {
         mavenBom 'org.testcontainers:testcontainers-bom:1.20.2'
-        mavenBom 'org.hibernate.search:hibernate-search-bom:7.1.0.Final'
+        mavenBom 'org.hibernate.search:hibernate-search-bom:7.2.1.Final'
     }
-}
-
-compileJava {
-    options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 tasks.register('createSnippetsDir') {
@@ -114,21 +127,48 @@ tasks.named('test') {
     dependsOn createSnippetsDir
 }
 
+tasks.register('integrationTest', Test) {
+    description = 'Runs the integration tests'
+    group = 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    shouldRunAfter test
+}
+
+integrationTest {
+    useJUnitPlatform()
+}
+
+rootProject.tasks.named("processIntegrationTestResources") {
+    duplicatesStrategy = 'include'
+}
+
+jacocoTestReport {
+    dependsOn test, integrationTest
+    reports {
+        xml.required = true
+    }
+    additionalSourceDirs.from = files(sourceSets.main.allSource.srcDirs)
+    sourceDirectories.from = files(sourceSets.main.allSource.srcDirs)
+    classDirectories.from = files(sourceSets.main.output.classesDirs)
+    executionData.from = fileTree(layout.buildDirectory).include(
+            'jacoco/test.exec',
+            'jacoco/integrationTest.exec'
+    )
+}
+
+check.dependsOn jacocoTestReport
+
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn createSnippetsDir, test
 }
 
-jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
-
 asciidoctor {
     sourceDir 'src/main/asciidoc'
     attributes   \
-        'snippets': file('build/generated-snippets')
+        'snippets': file('build/generated-snippets'),
+        'template-snippets': file('src/main/asciidoc/snippets')
 }
 
 bootJar {
@@ -144,12 +184,5 @@ sonar {
         property 'sonar.organization', 'bloomper'
         property 'sonar.host.url', 'https://sonarcloud.io'
         property 'sonar.exclusions', '**/**_.java'
-    }
-}
-
-develocity {
-    buildScan {
-        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
-        termsOfUseAgree = "yes"
     }
 }

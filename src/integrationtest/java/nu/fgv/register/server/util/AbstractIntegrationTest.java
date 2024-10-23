@@ -59,7 +59,7 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 @Testcontainers
 @DirtiesContext
 @Import({AbstractIntegrationTest.TestConfig.class})
-@ActiveProfiles("test")
+@ActiveProfiles("integrationtest")
 @DisabledInAotMode
 public abstract class AbstractIntegrationTest {
 
