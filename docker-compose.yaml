@@ -68,7 +68,8 @@ services:
     labels:
       org.springframework.boot.ignore: true
     depends_on:
-      - mysql-keycloak
+      mysql-keycloak:
+        condition: service_started
     volumes:
       - keycloak_log_data:/opt/keycloak/data/log
       - ./src/test/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
@@ -97,8 +98,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql-app
-      - keycloak
+      mysql-app:
+        condition: service_started
+      keycloak:
+        condition: service_started
     volumes:
       - app_log_data:/data/log_data
       - app_index_data:/data/index_data
