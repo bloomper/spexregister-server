@@ -9,6 +9,8 @@ services:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_APP_ROOT_PASSWORD
       MYSQL_USER: ${MYSQL_APP_USER}
       MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_APP_USER_PASSWORD
+    labels:
+      org.springframework.boot.ignore: true
     #ports:
     #  - "3306:3306"
     volumes:

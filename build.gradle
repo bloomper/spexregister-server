@@ -111,12 +111,12 @@ dependencies {
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {
-       runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.113.Final:osx-aarch_64'
+       runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.114.Final:osx-aarch_64'
     }
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {
-        testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.113.Final:osx-aarch_64'
+        testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.114.Final:osx-aarch_64'
     }
 }
 
