@@ -19,6 +19,5 @@ spexregister:
       client-secret: YGXDSS5oiZFf4fnTWfX4LImOToPlVOhF
     client:
       client-id: spexregister
-logging:
-  level:
-    org.springframework: DEBUG
+  sample-data:
+    import: false

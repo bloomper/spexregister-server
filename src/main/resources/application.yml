@@ -1,10 +1,8 @@
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,info
-
 spring:
+  config:
+    import: "optional:configtree:/run/secrets/"
+  datasource:
+    password: ${MYSQL_APP_USER_PASSWORD}
   jpa:
     open-in-view: false
     properties:
@@ -28,33 +26,30 @@ spring:
           indexing:
             listeners:
               enabled: true
-
-  datasource:
-    url: TODO
-    username: TODO
-    password: TODO
-
   servlet:
     multipart:
       max-file-size: 15MB
-
   task:
     scheduling:
       pool:
         size: 5
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:9000
-
   threads:
     virtual:
       enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+
 server:
-  port: 8081
+  port: 8080
 
 logging:
   file:
@@ -66,8 +61,8 @@ spexregister:
     - en
     - sv
   crypto:
-    secret-key: ${SECRET_KEY}
-    initialization-vector: ${IV}
+    secret-key: ${APP_SECRET_KEY}
+    initialization-vector: ${APP_IV}
     algorithm: "AES/CFB/PKCS5Padding"
   jobs:
     full-index:
@@ -77,12 +72,12 @@ spexregister:
     sync-users:
       cron-expression: 0 0 1 * * ? # Every night at 01:00
   keycloak:
-    url: ${KEYCLOAK_URL}
-    realm: ${KEYCLOAK_REALM}
+    url: ${APP_KEYCLOAK_URL}
+    realm: ${APP_KEYCLOAK_REALM}
     admin:
-      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID}
-      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+      client-id: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
+      client-secret: ${APP_KEYCLOAK_ADMIN_CLIENT_SECRET}
     client:
-      client-id: ${KEYCLOAK_CLIENT_CLIENT_ID}
+      client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
   sample-data:
-    import: ${IMPORT_SAMPLE_DATA}
+    import: ${APP_IMPORT_SAMPLE_DATA}

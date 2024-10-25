@@ -1,0 +1,177 @@
+services:
+  mysql-app:
+    image: 'mysql:8.0'
+    command: --log-error=/var/log/mysql/error.log
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_DATABASE: ${MYSQL_APP_DATABASE}
+      MYSQL_ROOT_USER: ${MYSQL_APP_ROOT_USER}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_APP_ROOT_PASSWORD
+      MYSQL_USER: ${MYSQL_APP_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_APP_USER_PASSWORD
+    #ports:
+    #  - "3306:3306"
+    volumes:
+      - mysql_app_db_data:/var/lib/mysql
+      - mysql_app_log_data:/var/log/mysql
+    networks:
+      - app_network
+    secrets:
+      - MYSQL_APP_ROOT_PASSWORD
+      - MYSQL_APP_USER_PASSWORD
+
+  mysql-keycloak:
+    image: 'mysql:8.0'
+    command: --log-error=/var/log/mysql/error.log
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_DATABASE: ${MYSQL_KEYCLOAK_DATABASE}
+      MYSQL_ROOT_USER: ${MYSQL_KEYCLOAK_ROOT_USER}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_KEYCLOAK_ROOT_PASSWORD
+      MYSQL_USER: ${MYSQL_KEYCLOAK_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_KEYCLOAK_USER_PASSWORD
+    labels:
+      org.springframework.boot.ignore: true
+    volumes:
+      - mysql_keycloak_db_data:/var/lib/mysql
+      - mysql_keycloak_log_data:/var/log/mysql
+    networks:
+      - keycloak_network
+    secrets:
+      - MYSQL_KEYCLOAK_ROOT_PASSWORD
+      - MYSQL_KEYCLOAK_USER_PASSWORD
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        export KC_DB_PASSWORD=$$(cat /run/secrets/MYSQL_KEYCLOAK_USER_PASSWORD)
+        export KEYCLOAK_ADMIN_PASSWORD=$$(cat /run/secrets/KEYCLOAK_ADMIN_PASSWORD)
+        /opt/keycloak/bin/kc.sh start --hostname localhost --http-port 8081 --http-enabled true --import-realm
+    environment:
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KC_LOG: console,file
+      KC_LOG_FILE: /opt/keycloak/data/log/keycloak.log
+      KC_LOG_LEVEL: info
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
+      KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
+    ports:
+      - "8081:8081"
+    labels:
+      org.springframework.boot.ignore: true
+    depends_on:
+      - mysql-keycloak
+    volumes:
+      - keycloak_log_data:/opt/keycloak/data/log
+      - ./src/test/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
+    networks:
+      - app_network
+      - keycloak_network
+    secrets:
+      - MYSQL_KEYCLOAK_USER_PASSWORD
+      - KEYCLOAK_ADMIN_PASSWORD
+
+  app:
+    image: 'bloomper/spexregister-server:latest'
+    #platform: linux/arm64
+    container_name: app
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-app/${MYSQL_APP_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_APP_USER}
+      SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
+      LOGGING_FILE_PATH: /data/log_data
+      APP_KEYCLOAK_URL: http://keycloak:8081/auth
+      APP_KEYCLOAK_REALM: ${APP_KEYCLOAK_REALM}
+      APP_KEYCLOAK_ADMIN_CLIENT_ID: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
+      APP_KEYCLOAK_CLIENT_CLIENT_ID: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
+      APP_IMPORT_SAMPLE_DATA: ${APP_IMPORT_SAMPLE_DATA}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql-app
+      - keycloak
+    volumes:
+      - app_log_data:/data/log_data
+      - app_index_data:/data/index_data
+    networks:
+      - app_network
+    secrets:
+      - MYSQL_APP_USER_PASSWORD
+      - APP_KEYCLOAK_ADMIN_CLIENT_SECRET
+      - APP_SECRET_KEY
+      - APP_IV
+
+volumes:
+  mysql_app_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/mysql/app/db_data
+      o: bind
+  mysql_keycloak_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/mysql/keycloak/db_data
+      o: bind
+  mysql_app_log_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/mysql/app/log_data
+      o: bind
+  mysql_keycloak_log_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/mysql/keycloak/log_data
+      o: bind
+  keycloak_log_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/keycloak/log_data
+      o: bind
+  app_log_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/app/log_data
+      o: bind
+  app_index_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/app/index_data
+      o: bind
+
+networks:
+  app_network:
+    driver: bridge
+  keycloak_network:
+    driver: bridge
+
+secrets:
+  MYSQL_APP_ROOT_PASSWORD:
+    file: .docker/secrets/MYSQL_APP_ROOT_PASSWORD
+  MYSQL_APP_USER_PASSWORD:
+    file: .docker/secrets/MYSQL_APP_USER_PASSWORD
+  MYSQL_KEYCLOAK_ROOT_PASSWORD:
+    file: .docker/secrets/MYSQL_KEYCLOAK_ROOT_PASSWORD
+  MYSQL_KEYCLOAK_USER_PASSWORD:
+    file: .docker/secrets/MYSQL_KEYCLOAK_USER_PASSWORD
+  KEYCLOAK_ADMIN_PASSWORD:
+    file: .docker/secrets/KEYCLOAK_ADMIN_PASSWORD
+  APP_KEYCLOAK_ADMIN_CLIENT_SECRET:
+    file: .docker/secrets/APP_KEYCLOAK_ADMIN_CLIENT_SECRET
+  APP_SECRET_KEY:
+    file: .docker/secrets/APP_SECRET_KEY
+  APP_IV:
+    file: .docker/secrets/APP_IV
