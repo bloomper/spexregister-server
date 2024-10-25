@@ -229,4 +229,20 @@ jib {
             }
         }
     }
+    extraDirectories {
+        paths {
+            path {
+                from = "${asciidoctor.outputDir}"
+                into = "/app/resources/static/docs"
+            }
+        }
+    }
+}
+
+tasks.named('jib') {
+    dependsOn asciidoctor
+}
+
+jibDockerBuild {
+    dependsOn asciidoctor
 }
