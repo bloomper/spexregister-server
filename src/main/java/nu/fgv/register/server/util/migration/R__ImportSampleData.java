@@ -4,15 +4,18 @@ import net.datafaker.Faker;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +40,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class R__InsertSampleData extends BaseJavaMigration {
+@Component
+public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_NEWS = 20;
     private static final int NUMBER_OF_SAMPLES_TAGS = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE = 500;
@@ -47,12 +51,29 @@ public class R__InsertSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
     private static final String SYSTEM_USER = "system";
 
+    @Value("${spexregister.sample-data.import:false}")
+    private final boolean importSampleData;
+
     private final Random rnd = new SecureRandom();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
+    private final CryptoConverter cryptoConverter;
+
+    public R__ImportSampleData(@Value("${spexregister.sample-data.import:false}") final boolean importSampleData,
+                               @Value("${spexregister.crypto.algorithm}") final String algorithm,
+                               @Value("${spexregister.crypto.secret-key}") final String secretKey,
+                               @Value("${spexregister.crypto.initialization-vector}") final String iv) {
+        this.importSampleData = importSampleData;
+        cryptoConverter = new CryptoConverter(algorithm, secretKey, iv);
+    }
+
+    @Override
+    public Integer getChecksum() {
+        return rnd.nextInt();
+    }
 
     @Override
     public void migrate(final Context context) {
-        if (Boolean.parseBoolean(System.getenv("spexregister-insert-sample-data"))) {
+        if (importSampleData) {
             final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(context.getConnection(), true));
 
             purgeAllRelevantTables(jdbcClient);
@@ -212,7 +233,7 @@ public class R__InsertSampleData extends BaseJavaMigration {
                                     .maxLen(1)
                                     .generate() :
                             null)
-                    .param("socialSecurityNumber", rnd.nextBoolean() ? faker.idNumber().valid() : null)
+                    .param("socialSecurityNumber", rnd.nextBoolean() ? cryptoConverter.convertToDatabaseColumn(faker.idNumber().valid()) : null)
                     .param("graduation", rnd.nextBoolean() ? faker.regexify("[A|B|D|E|G|K|M|I|V|T]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)
