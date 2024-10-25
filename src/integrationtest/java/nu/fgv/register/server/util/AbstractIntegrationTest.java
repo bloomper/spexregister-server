@@ -74,7 +74,7 @@ public abstract class AbstractIntegrationTest {
     protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
     protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
-    protected final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMIN");
+    protected static final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMIN");
     protected static final String AUTHORITY_ADMIN = "ADMIN";
     protected static final String AUTHORITY_EDITOR = "EDITOR";
     protected static final String AUTHORITY_USER = "USER";
@@ -105,7 +105,7 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.39");
+    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.40");
 
     /*
     @Container
