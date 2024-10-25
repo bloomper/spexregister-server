@@ -23,7 +23,7 @@ SET
 INSERT INTO spex_details (title, category_id, created_by, created_at)
 VALUES ('Bojan', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
        ('Erik XIV', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
-       ('Caesarion', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
+       ('Cæsarion', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
        ('Scheherazade', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
        ('Anna', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
        ('Henrik 8', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
@@ -127,56 +127,57 @@ VALUES ('Bojan', @spex_category_chalmersspexet, 'system', CURRENT_TIME),
 INSERT INTO spex (year, details_id, created_by, created_at)
 VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', CURRENT_TIME),
        ('1949', (SELECT id FROM spex_details WHERE title = 'Erik XIV'), 'system', CURRENT_TIME),
-       ('1950', (SELECT id FROM spex_details WHERE title = 'Caesarion'), 'system', CURRENT_TIME),
+       ('1950', (SELECT id FROM spex_details WHERE title = 'Cæsarion'), 'system', CURRENT_TIME),
        ('1951', (SELECT id FROM spex_details WHERE title = 'Scheherazade'), 'system', CURRENT_TIME),
        ('1952', (SELECT id FROM spex_details WHERE title = 'Anna'), 'system', CURRENT_TIME),
-       ('1953', (SELECT id FROM spex_details WHERE title = 'Henrik 8'), 'system', CURRENT_TIME),
-       ('1954', (SELECT id FROM spex_details WHERE title = 'Gustav E:son Vasa'), 'system', CURRENT_TIME),
-       ('1955', (SELECT id FROM spex_details WHERE title = 'Napoleon'), 'system', CURRENT_TIME),
-       ('1956', (SELECT id FROM spex_details WHERE title = 'Statyerna'), 'system', CURRENT_TIME),
-       ('1957', (SELECT id FROM spex_details WHERE title = 'Lucrezia'), 'system', CURRENT_TIME),
-       ('1958', (SELECT id FROM spex_details WHERE title = 'Katarina II'), 'system', CURRENT_TIME),
-       ('1959', (SELECT id FROM spex_details WHERE title = 'Starke August'), 'system', CURRENT_TIME),
-       ('1960', (SELECT id FROM spex_details WHERE title = 'Klodvig'), 'system', CURRENT_TIME),
-       ('1961', (SELECT id FROM spex_details WHERE title = 'Don Pedro'), 'system', CURRENT_TIME),
-       ('1962', (SELECT id FROM spex_details WHERE title = 'Charles II'), 'system', CURRENT_TIME),
-       ('1963', (SELECT id FROM spex_details WHERE title = 'Nebukadnessar'), 'system', CURRENT_TIME),
-       ('1964', (SELECT id FROM spex_details WHERE title = 'Sven Duva'), 'system', CURRENT_TIME),
-       ('1965', (SELECT id FROM spex_details WHERE title = 'Montezuma'), 'system', CURRENT_TIME),
-       ('1966', (SELECT id FROM spex_details WHERE title = 'Alexander'), 'system', CURRENT_TIME),
-       ('1967', (SELECT id FROM spex_details WHERE title = 'Richard III'), 'system', CURRENT_TIME),
-       ('1968', (SELECT id FROM spex_details WHERE title = 'Margareta'), 'system', CURRENT_TIME),
-       ('1969', (SELECT id FROM spex_details WHERE title = 'George Washington'), 'system', CURRENT_TIME),
-       ('1970', (SELECT id FROM spex_details WHERE title = 'Noak'), 'system', CURRENT_TIME),
-       ('1971', (SELECT id FROM spex_details WHERE title = 'Turandot'), 'system', CURRENT_TIME),
-       ('1972', (SELECT id FROM spex_details WHERE title = 'Fredrik den Store'), 'system', CURRENT_TIME),
-       ('1973', (SELECT id FROM spex_details WHERE title = 'Sherlock Holmes'), 'system', CURRENT_TIME),
-       ('1974', (SELECT id FROM spex_details WHERE title = 'Lionardo da Vinci'), 'system', CURRENT_TIME),
-       ('1975', (SELECT id FROM spex_details WHERE title = 'Ludvig XIV'), 'system', CURRENT_TIME),
-       ('1976', (SELECT id FROM spex_details WHERE title = 'Nils Dacke'), 'system', CURRENT_TIME),
-       ('1977', (SELECT id FROM spex_details WHERE title = 'Dr Livingstone'), 'system', CURRENT_TIME),
-       ('1978', (SELECT id FROM spex_details WHERE title = 'Nero'), 'system', CURRENT_TIME),
-       ('1979', (SELECT id FROM spex_details WHERE title = 'Tutankhamon'), 'system', CURRENT_TIME),
-       ('1980', (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven'), 'system', CURRENT_TIME),
-       ('1981', (SELECT id FROM spex_details WHERE title = 'John Ericsson'), 'system', CURRENT_TIME),
-       ('1982', (SELECT id FROM spex_details WHERE title = 'Filip II'), 'system', CURRENT_TIME),
-       ('1983', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'), 'system', CURRENT_TIME),
-       ('1984', (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung'), 'system', CURRENT_TIME),
-       ('1985', (SELECT id FROM spex_details WHERE title = 'Victoria'), 'system', CURRENT_TIME),
-       ('1986', (SELECT id FROM spex_details WHERE title = 'Montgomery'), 'system', CURRENT_TIME),
-       ('1987', (SELECT id FROM spex_details WHERE title = 'Svartskägg'), 'system', CURRENT_TIME),
-       ('1988', (SELECT id FROM spex_details WHERE title = 'Christina'), 'system', CURRENT_TIME),
-       ('1989', (SELECT id FROM spex_details WHERE title = 'Klondike'), 'system', CURRENT_TIME),
-       ('1990', (SELECT id FROM spex_details WHERE title = 'Gutenberg'), 'system', CURRENT_TIME),
-       ('1991', (SELECT id FROM spex_details WHERE title = 'Krösus'), 'system', CURRENT_TIME),
-       ('1992', (SELECT id FROM spex_details WHERE title = 'Stradivarius'), 'system', CURRENT_TIME),
-       ('1993', (SELECT id FROM spex_details WHERE title = 'Ivan den förskräcklige'), 'system', CURRENT_TIME),
-       ('1994', (SELECT id FROM spex_details WHERE title = 'Snorre'), 'system', CURRENT_TIME),
-       ('1995', (SELECT id FROM spex_details WHERE title = 'Nobel'), 'system', CURRENT_TIME),
-       ('1996', (SELECT id FROM spex_details WHERE title = 'Ali Baba'), 'system', CURRENT_TIME),
-       ('1997', (SELECT id FROM spex_details WHERE title = 'Sköna Hélena'), 'system', CURRENT_TIME),
-       ('1998', (SELECT id FROM spex_details WHERE title = 'Nostradamus'), 'system', CURRENT_TIME),
-       ('1999', (SELECT id FROM spex_details WHERE title = 'Mose'), 'system', CURRENT_TIME),
+       ('1953', (SELECT id FROM spex_details WHERE title = 'Cæsarion'), 'system', CURRENT_TIME),
+       ('1954', (SELECT id FROM spex_details WHERE title = 'Henrik 8'), 'system', CURRENT_TIME),
+       ('1955', (SELECT id FROM spex_details WHERE title = 'Gustav E:son Vasa'), 'system', CURRENT_TIME),
+       ('1956', (SELECT id FROM spex_details WHERE title = 'Napoleon'), 'system', CURRENT_TIME),
+       ('1957', (SELECT id FROM spex_details WHERE title = 'Statyerna'), 'system', CURRENT_TIME),
+       ('1958', (SELECT id FROM spex_details WHERE title = 'Lucrezia'), 'system', CURRENT_TIME),
+       ('1959', (SELECT id FROM spex_details WHERE title = 'Katarina II'), 'system', CURRENT_TIME),
+       ('1960', (SELECT id FROM spex_details WHERE title = 'Starke August'), 'system', CURRENT_TIME),
+       ('1961', (SELECT id FROM spex_details WHERE title = 'Klodvig'), 'system', CURRENT_TIME),
+       ('1962', (SELECT id FROM spex_details WHERE title = 'Don Pedro'), 'system', CURRENT_TIME),
+       ('1963', (SELECT id FROM spex_details WHERE title = 'Charles II'), 'system', CURRENT_TIME),
+       ('1964', (SELECT id FROM spex_details WHERE title = 'Nebukadnessar'), 'system', CURRENT_TIME),
+       ('1965', (SELECT id FROM spex_details WHERE title = 'Sven Duva'), 'system', CURRENT_TIME),
+       ('1966', (SELECT id FROM spex_details WHERE title = 'Montezuma'), 'system', CURRENT_TIME),
+       ('1967', (SELECT id FROM spex_details WHERE title = 'Alexander'), 'system', CURRENT_TIME),
+       ('1968', (SELECT id FROM spex_details WHERE title = 'Richard III'), 'system', CURRENT_TIME),
+       ('1969', (SELECT id FROM spex_details WHERE title = 'Margareta'), 'system', CURRENT_TIME),
+       ('1970', (SELECT id FROM spex_details WHERE title = 'George Washington'), 'system', CURRENT_TIME),
+       ('1971', (SELECT id FROM spex_details WHERE title = 'Noak'), 'system', CURRENT_TIME),
+       ('1972', (SELECT id FROM spex_details WHERE title = 'Turandot'), 'system', CURRENT_TIME),
+       ('1973', (SELECT id FROM spex_details WHERE title = 'Fredrik den Store'), 'system', CURRENT_TIME),
+       ('1974', (SELECT id FROM spex_details WHERE title = 'Sherlock Holmes'), 'system', CURRENT_TIME),
+       ('1975', (SELECT id FROM spex_details WHERE title = 'Lionardo da Vinci'), 'system', CURRENT_TIME),
+       ('1976', (SELECT id FROM spex_details WHERE title = 'Ludvig XIV'), 'system', CURRENT_TIME),
+       ('1977', (SELECT id FROM spex_details WHERE title = 'Nils Dacke'), 'system', CURRENT_TIME),
+       ('1978', (SELECT id FROM spex_details WHERE title = 'Dr Livingstone'), 'system', CURRENT_TIME),
+       ('1979', (SELECT id FROM spex_details WHERE title = 'Nero'), 'system', CURRENT_TIME),
+       ('1980', (SELECT id FROM spex_details WHERE title = 'Tutankhamon'), 'system', CURRENT_TIME),
+       ('1981', (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven'), 'system', CURRENT_TIME),
+       ('1982', (SELECT id FROM spex_details WHERE title = 'John Ericsson'), 'system', CURRENT_TIME),
+       ('1983', (SELECT id FROM spex_details WHERE title = 'Filip II'), 'system', CURRENT_TIME),
+       ('1984', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'), 'system', CURRENT_TIME),
+       ('1985', (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung'), 'system', CURRENT_TIME),
+       ('1986', (SELECT id FROM spex_details WHERE title = 'Victoria'), 'system', CURRENT_TIME),
+       ('1987', (SELECT id FROM spex_details WHERE title = 'Montgomery'), 'system', CURRENT_TIME),
+       ('1988', (SELECT id FROM spex_details WHERE title = 'Svartskägg'), 'system', CURRENT_TIME),
+       ('1989', (SELECT id FROM spex_details WHERE title = 'Christina'), 'system', CURRENT_TIME),
+       ('1990', (SELECT id FROM spex_details WHERE title = 'Klondike'), 'system', CURRENT_TIME),
+       ('1991', (SELECT id FROM spex_details WHERE title = 'Gutenberg'), 'system', CURRENT_TIME),
+       ('1992', (SELECT id FROM spex_details WHERE title = 'Krösus'), 'system', CURRENT_TIME),
+       ('1993', (SELECT id FROM spex_details WHERE title = 'Stradivarius'), 'system', CURRENT_TIME),
+       ('1994', (SELECT id FROM spex_details WHERE title = 'Ivan den förskräcklige'), 'system', CURRENT_TIME),
+       ('1995', (SELECT id FROM spex_details WHERE title = 'Snorre'), 'system', CURRENT_TIME),
+       ('1996', (SELECT id FROM spex_details WHERE title = 'Nobel'), 'system', CURRENT_TIME),
+       ('1997', (SELECT id FROM spex_details WHERE title = 'Ali Baba'), 'system', CURRENT_TIME),
+       ('1998', (SELECT id FROM spex_details WHERE title = 'Sköna Hélena'), 'system', CURRENT_TIME),
+       ('1999', (SELECT id FROM spex_details WHERE title = 'Nostradamus'), 'system', CURRENT_TIME),
+       ('2000', (SELECT id FROM spex_details WHERE title = 'Mose'), 'system', CURRENT_TIME),
        ('2001', (SELECT id FROM spex_details WHERE title = 'Marco Polo'), 'system', CURRENT_TIME),
        ('2002', (SELECT id FROM spex_details WHERE title = 'Dracula'), 'system', CURRENT_TIME),
        ('2020', (SELECT id FROM spex_details WHERE title = 'Carl von Linné'), 'system', CURRENT_TIME),
@@ -231,7 +232,8 @@ VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', C
 CREATE
 TEMPORARY TABLE temp_spex AS
 SELECT id, year, details_id
-FROM spex;
+FROM spex
+WHERE parent_id IS NULL;
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
 VALUES ('1968', (SELECT id FROM spex_details WHERE title = 'Henrik 8'),
@@ -360,7 +362,7 @@ VALUES ('1995', (SELECT id FROM spex_details WHERE title = 'Dr Livingstone'),
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
 VALUES ('1996', (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung'),
-        (SELECT id FROM temp_spex WHERE year = '1948' AND
+        (SELECT id FROM temp_spex WHERE year = '1985' AND
         details_id = (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung')), 'system', CURRENT_TIME);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
@@ -375,7 +377,7 @@ VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'Klondike'),
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
 VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'Henrik 8'),
-        (SELECT id FROM temp_spex WHERE year = '1964' AND
+        (SELECT id FROM temp_spex WHERE year = '1954' AND
         details_id = (SELECT id FROM spex_details WHERE title = 'Henrik 8')), 'system', CURRENT_TIME);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
@@ -415,7 +417,7 @@ VALUES ('2005', (SELECT id FROM spex_details WHERE title = 'Montgomery'),
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
 VALUES ('2006', (SELECT id FROM spex_details WHERE title = 'Stradivarius'),
-        (SELECT id FROM temp_spex WHERE year = '2006' AND
+        (SELECT id FROM temp_spex WHERE year = '1993' AND
         details_id = (SELECT id FROM spex_details WHERE title = 'Stradivarius')), 'system', CURRENT_TIME);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at)
