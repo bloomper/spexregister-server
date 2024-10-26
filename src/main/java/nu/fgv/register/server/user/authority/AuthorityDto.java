@@ -58,4 +58,7 @@ public class AuthorityDto extends AbstractAuditableDto<AuthorityDto> {
         this.id = id;
         this.label = label;
     }
+
+    public static class AuthorityDtoBuilder {
+    }
 }

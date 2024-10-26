@@ -127,6 +127,21 @@ dependencyManagement {
     }
 }
 
+javadoc {
+    source = sourceSets.main.allJava
+    destinationDir = layout.buildDirectory.dir('docs/javadoc').get().asFile
+    title = 'Spexregister Server JavaDoc'
+    classpath = sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath
+    options {
+        encoding 'UTF-8'
+        charSet 'UTF-8'
+        author true
+        version true
+        failOnError true
+        verbose false
+    }
+}
+
 tasks.register('createSnippetsDir') {
     doLast {
         project.mkdir snippetsDir
@@ -184,9 +199,12 @@ asciidoctor {
 }
 
 bootJar {
-    dependsOn asciidoctor
+    dependsOn asciidoctor, javadoc
     from("${asciidoctor.outputDir}") {
         into 'static/docs'
+    }
+    from("${javadoc.destinationDir}") {
+        into 'static/docs/javadoc'
     }
 }
 
@@ -235,12 +253,16 @@ jib {
                 from = "${asciidoctor.outputDir}"
                 into = "/app/resources/static/docs"
             }
+            path {
+                from = "${javadoc.destinationDir}"
+                into = "/app/resources/static/docs/javadoc"
+            }
         }
     }
 }
 
 tasks.named('jib') {
-    dependsOn asciidoctor
+    dependsOn asciidoctor, javadoc
 }
 
 jibDockerBuild {

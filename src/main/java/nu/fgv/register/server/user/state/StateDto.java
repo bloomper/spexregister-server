@@ -59,4 +59,7 @@ public class StateDto extends AbstractAuditableDto<StateDto> {
         this.id = id;
         this.label = label;
     }
+
+    public static class StateDtoBuilder {
+    }
 }

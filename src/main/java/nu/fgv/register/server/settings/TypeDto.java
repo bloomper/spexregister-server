@@ -64,4 +64,7 @@ public class TypeDto extends AbstractAuditableDto<TypeDto> {
         this.label = label;
         this.type = type;
     }
+
+    public static class TypeDtoBuilder {
+    }
 }

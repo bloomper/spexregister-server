@@ -74,4 +74,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
         this.title = title;
         this.revival = revival;
     }
+
+    public static class SpexDtoBuilder {
+    }
 }
