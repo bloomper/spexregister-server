@@ -2,9 +2,7 @@ spring:
   config:
     import: "optional:configtree:/run/secrets/"
   datasource:
-    url: jdbc:mysql://localhost/spexregister
-    username: spexregister
-    password: secret
+    password: ${MYSQL_APP_USER_PASSWORD}
   jpa:
     open-in-view: false
     properties:
