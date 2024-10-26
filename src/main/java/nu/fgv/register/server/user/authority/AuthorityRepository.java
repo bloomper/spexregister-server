@@ -19,6 +19,10 @@ package nu.fgv.register.server.user.authority;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Repository
 public interface AuthorityRepository extends JpaRepository<Authority, String> {
 }

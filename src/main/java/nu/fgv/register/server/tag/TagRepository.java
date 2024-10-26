@@ -23,6 +23,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Repository
 public interface TagRepository extends AclJpaRepository<Tag, Long>, JpaSpecificationExecutor<Tag> {
 

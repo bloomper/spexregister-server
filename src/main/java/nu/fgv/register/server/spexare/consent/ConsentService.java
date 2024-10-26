@@ -35,6 +35,10 @@ import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasId;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasSpexare;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasType;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

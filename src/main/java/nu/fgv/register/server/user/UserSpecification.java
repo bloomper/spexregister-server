@@ -20,6 +20,10 @@ import lombok.Getter;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 public class UserSpecification extends BaseSpecification<User> {
 

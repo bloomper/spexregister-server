@@ -25,6 +25,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.function.BiConsumer;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 class CellWriter extends FieldAccessor {
 

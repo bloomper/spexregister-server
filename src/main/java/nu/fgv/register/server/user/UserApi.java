@@ -66,6 +66,10 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @RestController

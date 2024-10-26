@@ -27,6 +27,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public abstract class AbstractExportService {
 
     public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) throws IOException {

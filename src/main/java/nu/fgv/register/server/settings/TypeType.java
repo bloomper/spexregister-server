@@ -16,6 +16,10 @@
 
 package nu.fgv.register.server.settings;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public enum TypeType {
     ADDRESS, CONSENT, MEMBERSHIP, VOCAL, TOGGLE
 }

@@ -77,6 +77,10 @@ import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;

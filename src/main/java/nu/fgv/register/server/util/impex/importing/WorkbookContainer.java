@@ -27,6 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 class WorkbookContainer extends AbstractWorkbookContainer {

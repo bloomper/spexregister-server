@@ -50,6 +50,10 @@ import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.setCellBorders;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 public class ExcelWriter {
 

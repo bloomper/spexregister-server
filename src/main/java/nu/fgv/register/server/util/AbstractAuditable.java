@@ -29,6 +29,10 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import java.time.Instant;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter

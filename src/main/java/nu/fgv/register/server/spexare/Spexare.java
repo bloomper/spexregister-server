@@ -70,6 +70,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "spexare")
 @EntityListeners(JpaEntityListener.class)

@@ -47,6 +47,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "spex")
 @EntityListeners(JpaEntityListener.class)

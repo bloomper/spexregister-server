@@ -40,6 +40,10 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "news")
 @EntityListeners(JpaEntityListener.class)

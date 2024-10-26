@@ -29,6 +29,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

@@ -18,6 +18,10 @@ package nu.fgv.register.server.util;
 
 import org.springframework.http.MediaType;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class Constants {
 
     private Constants() {

@@ -37,6 +37,10 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

@@ -19,6 +19,10 @@ package nu.fgv.register.server.util;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class StringUtil {
 
     private StringUtil() {

@@ -31,6 +31,10 @@ import static nu.fgv.register.server.spexare.activity.ActivityMapper.ACTIVITY_MA
 import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasId;
 import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasSpexare;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

@@ -20,6 +20,10 @@ import lombok.Getter;
 import lombok.Setter;
 import nu.fgv.register.server.util.impex.util.AbstractWorkbookContainer;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 class WorkbookContainer extends AbstractWorkbookContainer {

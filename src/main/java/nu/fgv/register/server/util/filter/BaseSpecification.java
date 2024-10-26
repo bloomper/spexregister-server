@@ -23,6 +23,10 @@ import jakarta.persistence.criteria.Root;
 import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 public class BaseSpecification<T> implements Specification<T> {
 

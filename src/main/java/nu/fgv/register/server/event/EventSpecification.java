@@ -20,6 +20,10 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class EventSpecification {
 
     private EventSpecification() {

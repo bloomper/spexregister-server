@@ -28,6 +28,10 @@ import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDate;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )

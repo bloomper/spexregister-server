@@ -19,6 +19,10 @@ package nu.fgv.register.server.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @EnableAsync
 public class AsyncConfig {

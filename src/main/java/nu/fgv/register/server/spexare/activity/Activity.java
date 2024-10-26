@@ -50,6 +50,10 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "activity")
 @EntityListeners(JpaEntityListener.class)

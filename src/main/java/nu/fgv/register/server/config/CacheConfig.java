@@ -24,6 +24,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @EnableCaching
 public class CacheConfig {

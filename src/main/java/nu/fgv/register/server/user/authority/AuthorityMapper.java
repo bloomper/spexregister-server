@@ -28,6 +28,10 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.Set;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )

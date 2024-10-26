@@ -24,6 +24,10 @@ import net.sf.jmimemagic.MagicParseException;
 
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class FileUtil {
 
     private FileUtil() {

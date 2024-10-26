@@ -36,6 +36,10 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "event")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

@@ -22,6 +22,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.env.Environment;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @EnableAspectJAutoProxy
 public class AspectConfig {

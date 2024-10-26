@@ -37,6 +37,10 @@ import static nu.fgv.register.server.event.EventMapper.EVENT_MAPPER;
 import static nu.fgv.register.server.event.EventSpecification.hasCreatedAtGreaterThanEqual;
 import static nu.fgv.register.server.event.EventSpecification.hasSource;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

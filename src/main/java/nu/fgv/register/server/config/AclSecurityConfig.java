@@ -37,6 +37,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.sql.DataSource;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 public class AclSecurityConfig {
 

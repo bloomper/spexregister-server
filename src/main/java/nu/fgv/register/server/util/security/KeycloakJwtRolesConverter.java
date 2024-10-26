@@ -26,6 +26,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class KeycloakJwtRolesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
     public static final String PREFIX_REALM_ROLE = "ROLE_realm_";
     public static final String PREFIX_RESOURCE_ROLE = "ROLE_";

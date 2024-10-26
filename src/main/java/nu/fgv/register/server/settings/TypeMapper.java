@@ -26,6 +26,10 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )

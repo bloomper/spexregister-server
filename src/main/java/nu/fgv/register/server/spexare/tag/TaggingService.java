@@ -28,6 +28,10 @@ import org.springframework.stereotype.Service;
 
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

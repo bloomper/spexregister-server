@@ -27,6 +27,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

@@ -27,6 +27,10 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import java.lang.reflect.Field;
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class ImpexUtil {
 
     private ImpexUtil() {

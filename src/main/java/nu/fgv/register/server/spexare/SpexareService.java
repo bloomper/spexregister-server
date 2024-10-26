@@ -43,6 +43,10 @@ import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.A
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

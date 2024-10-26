@@ -27,6 +27,10 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

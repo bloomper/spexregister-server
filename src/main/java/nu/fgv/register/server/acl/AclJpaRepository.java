@@ -26,6 +26,10 @@ import org.springframework.security.acls.model.Permission;
 
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @NoRepositoryBean
 public interface AclJpaRepository<T, ID> extends JpaRepository<T, ID> {
 

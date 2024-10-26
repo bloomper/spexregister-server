@@ -30,6 +30,10 @@ import java.lang.annotation.Annotation;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @ExtendWith(MockitoExtension.class)
 class LuhnValidatorTest {
 

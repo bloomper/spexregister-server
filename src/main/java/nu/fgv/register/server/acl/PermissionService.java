@@ -31,6 +31,10 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

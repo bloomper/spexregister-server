@@ -23,6 +23,10 @@ import nu.fgv.register.server.util.impex.util.AbstractSheetContainer;
 import java.lang.reflect.Field;
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 class SheetContainer extends AbstractSheetContainer {

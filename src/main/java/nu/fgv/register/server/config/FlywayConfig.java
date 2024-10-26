@@ -25,6 +25,10 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 public class FlywayConfig {
     private final DataSource dataSource;

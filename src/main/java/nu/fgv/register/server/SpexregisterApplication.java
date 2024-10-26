@@ -22,6 +22,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class, FlywayAutoConfiguration.class})
 public class SpexregisterApplication {
 

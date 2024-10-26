@@ -32,6 +32,10 @@ import java.util.Optional;
 
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

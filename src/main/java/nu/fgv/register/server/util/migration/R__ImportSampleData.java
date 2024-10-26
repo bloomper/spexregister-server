@@ -56,6 +56,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Component
 public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_NEWS = 20;

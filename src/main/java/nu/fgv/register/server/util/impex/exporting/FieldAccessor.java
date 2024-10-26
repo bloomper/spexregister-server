@@ -20,6 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 class FieldAccessor {
 

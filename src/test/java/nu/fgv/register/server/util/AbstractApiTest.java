@@ -58,6 +58,10 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.util.StringUtils.collectionToDelimitedString;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @AutoConfigureRestDocs(outputDir = "build/generated-snippets")
 @ExtendWith(RestDocumentationExtension.class)
 @EnableConfigurationProperties(value = SpexregisterConfig.class)

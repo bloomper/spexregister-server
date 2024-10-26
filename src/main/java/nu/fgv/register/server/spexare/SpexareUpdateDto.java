@@ -32,6 +32,10 @@ import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

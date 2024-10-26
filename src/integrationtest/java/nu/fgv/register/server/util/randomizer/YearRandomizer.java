@@ -23,6 +23,10 @@ import org.jeasy.random.api.Randomizer;
 
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class YearRandomizer implements Randomizer<String> {
 
     private final FakeValuesService fakeValuesService = new FakeValuesService();

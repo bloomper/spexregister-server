@@ -20,6 +20,10 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public interface PageWithFacets<T> extends Page<T> {
 
     List<Facet> getFacets();

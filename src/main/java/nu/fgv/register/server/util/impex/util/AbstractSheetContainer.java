@@ -20,6 +20,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.poi.ss.usermodel.Sheet;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 public abstract class AbstractSheetContainer {

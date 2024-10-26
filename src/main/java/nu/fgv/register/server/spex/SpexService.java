@@ -52,6 +52,10 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

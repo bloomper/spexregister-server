@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util.impex.importing;
 
-
 import nu.fgv.register.server.util.impex.model.ExcelCell;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 import nu.fgv.register.server.util.impex.model.ExcelSheet;
@@ -45,6 +44,10 @@ import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForCreati
 import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForUpdate;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class ExcelValidator {
 
     final WorkbookContainer workbookContainer = new WorkbookContainer();

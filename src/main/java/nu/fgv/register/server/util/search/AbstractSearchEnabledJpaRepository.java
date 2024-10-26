@@ -42,6 +42,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements SearchEnabledJpaRepository<T, ID> {
 
     private final EntityManager entityManager;

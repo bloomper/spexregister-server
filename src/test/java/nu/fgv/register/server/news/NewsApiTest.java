@@ -64,6 +64,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @WebMvcTest(value = NewsApi.class)
 class NewsApiTest extends AbstractApiTest {
 

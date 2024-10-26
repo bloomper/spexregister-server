@@ -20,6 +20,10 @@ import lombok.Getter;
 import lombok.ToString;
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @ToString
 public class SpringEvent extends ApplicationEvent {

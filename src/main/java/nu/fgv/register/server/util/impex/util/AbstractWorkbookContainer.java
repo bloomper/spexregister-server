@@ -23,6 +23,10 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 public abstract class AbstractWorkbookContainer {

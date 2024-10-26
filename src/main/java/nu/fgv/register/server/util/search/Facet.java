@@ -21,6 +21,10 @@ import lombok.Getter;
 
 import java.util.Map;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Builder
 @Getter
 public class Facet {

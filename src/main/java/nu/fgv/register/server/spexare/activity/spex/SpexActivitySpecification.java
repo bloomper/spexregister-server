@@ -20,6 +20,10 @@ import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.activity.Activity;
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class SpexActivitySpecification {
 
     private SpexActivitySpecification() {

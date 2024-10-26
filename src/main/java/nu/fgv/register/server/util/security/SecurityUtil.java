@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class SecurityUtil {
 
     public static final String ROLE_ADMIN = "ROLE_spexregister_ADMIN";

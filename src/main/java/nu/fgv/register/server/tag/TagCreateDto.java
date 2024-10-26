@@ -27,6 +27,10 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

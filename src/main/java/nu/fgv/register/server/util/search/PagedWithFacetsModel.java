@@ -37,6 +37,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
     public static final PagedWithFacetsModel<?> NO_PAGE = new PagedWithFacetsModel<>();

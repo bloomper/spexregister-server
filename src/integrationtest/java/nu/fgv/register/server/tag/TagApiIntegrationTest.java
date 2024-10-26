@@ -48,6 +48,10 @@ import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 class TagApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;

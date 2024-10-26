@@ -27,6 +27,10 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )

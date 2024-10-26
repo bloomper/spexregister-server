@@ -24,6 +24,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor

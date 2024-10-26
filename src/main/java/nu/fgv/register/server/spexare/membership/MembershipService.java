@@ -39,6 +39,10 @@ import static nu.fgv.register.server.spexare.membership.MembershipSpecification.
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasYear;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

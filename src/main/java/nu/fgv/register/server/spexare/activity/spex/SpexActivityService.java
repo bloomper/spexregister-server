@@ -36,6 +36,10 @@ import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecifica
 import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasId;
 import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasSpex;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

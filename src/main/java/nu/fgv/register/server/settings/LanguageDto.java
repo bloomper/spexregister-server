@@ -25,6 +25,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.hateoas.server.core.Relation;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

@@ -27,6 +27,10 @@ import java.util.regex.Pattern;
 
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class FilterParser {
     private static final Map<String, Operator> OPERATIONS;
 

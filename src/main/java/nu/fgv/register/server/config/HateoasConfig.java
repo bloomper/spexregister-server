@@ -24,6 +24,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 public class HateoasConfig {
 

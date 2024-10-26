@@ -27,6 +27,10 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Target( { FIELD, PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

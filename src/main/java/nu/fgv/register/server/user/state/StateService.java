@@ -28,6 +28,10 @@ import java.util.Optional;
 
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

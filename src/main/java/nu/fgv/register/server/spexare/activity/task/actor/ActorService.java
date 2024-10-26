@@ -40,6 +40,10 @@ import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecificat
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecification.hasVocal;
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

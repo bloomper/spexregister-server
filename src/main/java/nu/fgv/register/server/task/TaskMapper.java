@@ -26,6 +26,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = TaskCategoryMapper.class

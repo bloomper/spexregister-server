@@ -33,6 +33,10 @@ import org.springframework.data.annotation.Immutable;
 
 import java.util.Objects;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Immutable
 @Table(name = "acl_entry", uniqueConstraints = {

@@ -26,6 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public abstract class AbstractImportService {
 
     public ImportResultDto doImport(final byte[] file, final String type, final Locale locale) throws IOException {

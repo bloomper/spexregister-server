@@ -56,6 +56,10 @@ import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Disabled
 class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 

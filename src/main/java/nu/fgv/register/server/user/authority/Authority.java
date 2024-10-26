@@ -36,6 +36,10 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "authority")
 @EntityListeners(JpaEntityListener.class)

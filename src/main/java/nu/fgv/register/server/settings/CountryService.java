@@ -27,6 +27,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

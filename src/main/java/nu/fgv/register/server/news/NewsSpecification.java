@@ -23,6 +23,10 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 public class NewsSpecification extends BaseSpecification<News> {
 

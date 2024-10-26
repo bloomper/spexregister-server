@@ -18,6 +18,10 @@ package nu.fgv.register.server.settings;
 
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class TypeSpecification {
 
     private TypeSpecification() {

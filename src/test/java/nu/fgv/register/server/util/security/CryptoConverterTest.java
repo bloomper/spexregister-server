@@ -22,6 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 class CryptoConverterTest {
 
     @Test

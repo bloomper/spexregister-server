@@ -24,6 +24,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @ConfigurationProperties(prefix = "spexregister")
 @Getter

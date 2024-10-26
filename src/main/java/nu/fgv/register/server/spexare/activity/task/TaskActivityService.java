@@ -33,6 +33,10 @@ import java.util.Optional;
 import static nu.fgv.register.server.spexare.activity.task.TaskActivityMapper.TASK_ACTIVITY_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

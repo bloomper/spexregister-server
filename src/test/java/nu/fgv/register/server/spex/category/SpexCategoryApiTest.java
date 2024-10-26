@@ -83,6 +83,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @WebMvcTest(value = SpexCategoryApi.class)
 class SpexCategoryApiTest extends AbstractApiTest {
 

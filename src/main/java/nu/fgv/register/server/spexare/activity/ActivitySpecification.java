@@ -19,6 +19,10 @@ package nu.fgv.register.server.spexare.activity;
 import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class ActivitySpecification {
 
     private ActivitySpecification() {

@@ -40,6 +40,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Entity
 @Table(name = "type")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

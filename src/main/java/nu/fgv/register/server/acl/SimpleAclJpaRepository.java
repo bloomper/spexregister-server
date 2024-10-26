@@ -48,6 +48,10 @@ import java.util.List;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements AclJpaRepository<T, ID> {
 

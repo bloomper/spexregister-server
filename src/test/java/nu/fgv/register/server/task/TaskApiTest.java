@@ -73,6 +73,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @WebMvcTest(value = TaskApi.class)
 class TaskApiTest extends AbstractApiTest {
 

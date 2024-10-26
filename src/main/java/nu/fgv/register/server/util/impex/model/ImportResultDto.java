@@ -24,6 +24,10 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @Builder

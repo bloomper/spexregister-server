@@ -42,6 +42,10 @@ import java.util.Optional;
 
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class PagedWithFacetsResourcesAssembler<T> implements RepresentationModelAssembler<PageWithFacets<T>, PagedWithFacetsModel<EntityModel<T>>> {
 
     private final HateoasPageableHandlerMethodArgumentResolver pageableResolver;

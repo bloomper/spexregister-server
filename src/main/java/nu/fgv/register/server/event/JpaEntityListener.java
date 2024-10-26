@@ -44,6 +44,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Component
 public class JpaEntityListener {
 

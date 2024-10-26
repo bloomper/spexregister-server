@@ -26,6 +26,10 @@ import org.springframework.hateoas.RepresentationModel;
 
 import java.time.Instant;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @AllArgsConstructor

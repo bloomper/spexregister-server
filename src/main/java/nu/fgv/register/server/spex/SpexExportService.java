@@ -35,6 +35,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

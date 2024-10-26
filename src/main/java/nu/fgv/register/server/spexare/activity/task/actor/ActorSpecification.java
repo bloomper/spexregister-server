@@ -23,6 +23,10 @@ import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 public class ActorSpecification extends BaseSpecification<Actor> {
 

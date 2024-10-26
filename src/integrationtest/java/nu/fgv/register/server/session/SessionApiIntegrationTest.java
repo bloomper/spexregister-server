@@ -46,6 +46,10 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 class SessionApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;

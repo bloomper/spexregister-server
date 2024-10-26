@@ -16,6 +16,10 @@
 
 package nu.fgv.register.server.util.filter;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public enum FilterOperation {
     EQUALITY, NEGATION, GREATER_THAN, LESS_THAN, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
 

@@ -27,6 +27,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

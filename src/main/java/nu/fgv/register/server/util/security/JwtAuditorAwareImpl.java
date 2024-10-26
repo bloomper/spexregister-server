@@ -22,6 +22,10 @@ import java.util.Optional;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserEmailClaim;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class JwtAuditorAwareImpl implements AuditorAware<String> {
 
     @Override

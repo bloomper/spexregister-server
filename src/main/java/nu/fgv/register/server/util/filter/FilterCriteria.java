@@ -18,6 +18,10 @@ package nu.fgv.register.server.util.filter;
 
 import lombok.Getter;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 public class FilterCriteria {
 

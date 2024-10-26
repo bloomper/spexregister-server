@@ -25,6 +25,10 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @NoRepositoryBean
 public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
 

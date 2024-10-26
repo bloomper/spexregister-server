@@ -16,6 +16,10 @@
 
 package nu.fgv.register.server.util;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class ResourceAlreadyExistsException extends RuntimeException {
 
     public ResourceAlreadyExistsException(final String message) {

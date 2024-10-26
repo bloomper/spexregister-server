@@ -23,6 +23,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.io.Serializable;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 

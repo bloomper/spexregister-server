@@ -29,6 +29,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @ControllerAdvice
 public class ValidationHandler extends ResponseEntityExceptionHandler {
 

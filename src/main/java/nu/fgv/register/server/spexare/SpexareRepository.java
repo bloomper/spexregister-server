@@ -20,6 +20,10 @@ import nu.fgv.register.server.util.search.SearchEnabledJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Repository
 public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, Long>, JpaSpecificationExecutor<Spexare> {
 }

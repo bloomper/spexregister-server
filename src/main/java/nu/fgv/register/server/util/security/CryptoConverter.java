@@ -30,6 +30,10 @@ import java.util.Base64;
 
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @Converter
 public class CryptoConverter implements AttributeConverter<String, String> {

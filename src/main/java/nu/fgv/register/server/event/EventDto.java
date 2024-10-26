@@ -27,6 +27,10 @@ import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

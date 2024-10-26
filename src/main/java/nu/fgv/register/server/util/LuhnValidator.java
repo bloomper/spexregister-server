@@ -27,6 +27,10 @@ import java.util.regex.PatternSyntaxException;
 
 import static org.springframework.util.StringUtils.hasText;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 public class LuhnValidator implements ConstraintValidator<Luhn, String> {
 

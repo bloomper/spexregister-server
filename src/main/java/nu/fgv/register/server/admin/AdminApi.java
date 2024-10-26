@@ -27,6 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.util.StringUtils.capitalize;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @RestController

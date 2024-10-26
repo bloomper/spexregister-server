@@ -35,6 +35,10 @@ import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasId;
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasSpexare;
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasType;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service

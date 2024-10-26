@@ -19,6 +19,10 @@ package nu.fgv.register.server.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Configuration
 @EnableScheduling
 public class JobConfig {

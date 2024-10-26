@@ -28,6 +28,10 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

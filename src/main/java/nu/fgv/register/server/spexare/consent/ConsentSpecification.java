@@ -22,6 +22,10 @@ import nu.fgv.register.server.settings.Type_;
 import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 public class ConsentSpecification {
 
     private ConsentSpecification() {

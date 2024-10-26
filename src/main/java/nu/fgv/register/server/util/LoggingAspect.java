@@ -29,6 +29,10 @@ import org.springframework.core.env.Profiles;
 
 import java.util.Arrays;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Aspect
 public class LoggingAspect {
 

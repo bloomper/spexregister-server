@@ -27,6 +27,10 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 
 import java.util.List;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Transactional
 public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaRepository<Spexare, Long> {
 
