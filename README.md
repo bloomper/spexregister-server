@@ -25,7 +25,7 @@ You can contribute to Spexregister Server by:
 
 - Opening a [pull request][4]. Please see the [contributor guidelines][5] for details
 
-## Licence
+## License
 
 Spexregister Server is open source software released under the [Apache 2.0 license][6].
 
