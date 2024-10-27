@@ -61,6 +61,7 @@ public class FlywayConfig {
                 .dataSource(dataSource)
                 .baselineOnMigrate(true)
                 .installedBy("system")
+                .executeInTransaction(false)
                 .javaMigrations(migrationBeans)
                 .load();
 

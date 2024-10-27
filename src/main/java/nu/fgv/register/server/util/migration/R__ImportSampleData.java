@@ -17,8 +17,14 @@
 package nu.fgv.register.server.util.migration;
 
 import net.datafaker.Faker;
+import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.news.News;
+import nu.fgv.register.server.news.NewsMapper;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.category.SpexCategory;
+import nu.fgv.register.server.tag.Tag;
+import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
@@ -31,6 +37,11 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -39,6 +50,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
+import java.sql.Connection;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +68,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -70,7 +87,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
     private static final String SYSTEM_USER = "system";
+    protected static final Authentication AUTH = new TestingAuthenticationToken("system", "ignored", "ROLE_ADMIN");
 
+    private final PermissionService permissionService;
     @Value("${spexregister.sample-data.import:false}")
     private final boolean importSampleData;
 
@@ -78,10 +97,12 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CryptoConverter cryptoConverter;
 
-    public R__ImportSampleData(@Value("${spexregister.sample-data.import:false}") final boolean importSampleData,
+    public R__ImportSampleData(final PermissionService permissionService,
+                               @Value("${spexregister.sample-data.import:false}") final boolean importSampleData,
                                @Value("${spexregister.crypto.algorithm}") final String algorithm,
                                @Value("${spexregister.crypto.secret-key}") final String secretKey,
                                @Value("${spexregister.crypto.initialization-vector}") final String iv) {
+        this.permissionService = permissionService;
         this.importSampleData = importSampleData;
         cryptoConverter = new CryptoConverter(algorithm, secretKey, iv);
     }
@@ -97,36 +118,60 @@ public class R__ImportSampleData extends BaseJavaMigration {
             final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(context.getConnection(), true));
 
             purgeAllRelevantTables(jdbcClient);
+            SecurityContextHolder.getContext().setAuthentication(AUTH);
 
-            ScriptUtils.executeSqlScript(context.getConnection(), new ClassPathResource("db/sampledata/tasks.sql"));
-            ScriptUtils.executeSqlScript(context.getConnection(), new ClassPathResource("db/sampledata/spex.sql"));
-
-            createSampleSpexCategoryLogos(jdbcClient);
-            createSampleSpexDetailsPosters(jdbcClient);
+            createSampleTaskCategoriesAndTasks(context.getConnection(), jdbcClient);
+            createSampleSpexCategoriesAndSpex(context.getConnection(), jdbcClient);
             createSampleNews(jdbcClient);
             createSampleTags(jdbcClient);
             createSampleSpexare(jdbcClient);
+
+            SecurityContextHolder.clearContext();
         }
     }
 
     private void purgeAllRelevantTables(final JdbcClient jdbcClient) {
+        jdbcClient.sql("SELECT id FROM spexare WHERE partner_id IS NOT NULL")
+                .query()
+                .listOfRows()
+                .forEach(row ->
+                        jdbcClient
+                                .sql("UPDATE spexare SET partner_id = NULL WHERE id = :id")
+                                .param("id", row.get("id"))
+                                .update()
+                );
+        jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NOT NULL")
+                .query()
+                .listOfRows()
+                .forEach(row ->
+                        jdbcClient
+                                .sql("UPDATE spex SET parent_id = NULL WHERE id = :id")
+                                .param("id", row.get("id"))
+                                .update()
+                );
+
         final List<String> tables = List.of(
                 "actor",
                 "task_activity",
                 "spex_activity",
                 "activity",
+                "address",
+                "consent",
+                "membership",
                 "tagging",
                 "toggle",
-                "membership",
-                "consent",
                 "spexare",
-                "task_category",
                 "task",
+                "task_category",
                 "spex",
                 "spex_details",
                 "spex_category",
                 "news",
-                "tag"
+                "tag",
+                "acl_entry",
+                "acl_object_identity",
+                "acl_class",
+                "acl_sid"
         );
 
         tables.forEach(table ->
@@ -136,8 +181,39 @@ public class R__ImportSampleData extends BaseJavaMigration {
         );
     }
 
-    private void createSampleSpexCategoryLogos(final JdbcClient jdbcClient) {
-        final String sql = """
+    private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
+        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/tasks.sql"));
+
+        jdbcClient.sql("SELECT id FROM task_category")
+                .query()
+                .listOfRows()
+                .forEach(row -> {
+                    final Long id = (Long) row.get("id");
+                    final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, id);
+
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
+                });
+
+        jdbcClient.sql("SELECT id FROM task")
+                .query()
+                .listOfRows()
+                .forEach(row -> {
+                    final Long id = (Long) row.get("id");
+                    final ObjectIdentity oid = toObjectIdentity(Task.class, id);
+
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                });
+    }
+
+    private void createSampleSpexCategoriesAndSpex(final Connection connection, final JdbcClient jdbcClient) {
+        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/spex.sql"));
+
+        final String categorySql = """
                 UPDATE spex_category
                 SET
                     logo = :logo,
@@ -149,17 +225,23 @@ public class R__ImportSampleData extends BaseJavaMigration {
         jdbcClient.sql("SELECT id FROM spex_category")
                 .query()
                 .listOfRows()
-                .forEach(row ->
-                        jdbcClient
-                                .sql(sql)
-                                .param("logo", imageToByteArray(faker.image().base64SVG()))
-                                .param("logoContentType", "image/svg+xml")
-                                .param("id", row.get("id"))
-                                .update());
-    }
+                .forEach(row -> {
+                    final Long id = (Long) row.get("id");
+                    final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, id);
 
-    private void createSampleSpexDetailsPosters(final JdbcClient jdbcClient) {
-        final String sql = """
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
+
+                    jdbcClient
+                            .sql(categorySql)
+                            .param("logo", imageToByteArray(faker.image().base64SVG()))
+                            .param("logoContentType", "image/svg+xml")
+                            .param("id", id)
+                            .update();
+                });
+
+        final String detailsSql = """
                 UPDATE spex_details
                 SET
                     poster = :poster,
@@ -173,24 +255,39 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .listOfRows()
                 .forEach(row ->
                         jdbcClient
-                                .sql(sql)
+                                .sql(detailsSql)
                                 .param("poster", imageToByteArray(faker.image().base64SVG()))
                                 .param("posterContentType", "image/svg+xml")
                                 .param("id", row.get("id"))
-                                .update());
+                                .update()
+                );
+
+        jdbcClient.sql("SELECT id FROM spex")
+                .query()
+                .listOfRows()
+                .forEach(row -> {
+                    final Long id = (Long) row.get("id");
+                    final ObjectIdentity oid = toObjectIdentity(Spex.class, id);
+
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                });
     }
 
     private void createSampleNews(final JdbcClient jdbcClient) {
         final String sql = """
                 INSERT INTO news
-                    (visible_from, visible_to, subject, text, created_by, created_at)
+                    (visible_from, visible_to, subject, text, published, created_by, created_at)
                 VALUES
-                    (:visibleFrom, :visibleTo, :subject, :text, :createdBy, :createdAt)
+                    (:visibleFrom, :visibleTo, :subject, :text, :published, :createdBy, :createdAt)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_NEWS).forEach(i -> {
             final Instant visibleFrom = faker.timeAndDate().past(10, TimeUnit.DAYS, Instant.now().plus(2, ChronoUnit.DAYS));
             final Instant visibleTo = faker.timeAndDate().future(20, TimeUnit.DAYS, visibleFrom);
+            final KeyHolder keyHolder = new GeneratedKeyHolder();
 
             jdbcClient
                     .sql(sql)
@@ -198,9 +295,22 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     .param("visibleTo", visibleTo)
                     .param("subject", faker.lorem().maxLengthSentence(255))
                     .param("text", faker.lorem().paragraphs(5).stream().collect(Collectors.joining(System.lineSeparator())))
+                    .param("published", NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault())))
                     .param("createdBy", SYSTEM_USER)
                     .param("createdAt", LocalDateTime.now())
-                    .update();
+                    .update(keyHolder);
+
+            if (keyHolder.getKey() != null) {
+                final long id = keyHolder.getKey().longValue();
+                final ObjectIdentity oid = toObjectIdentity(News.class, id);
+
+                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                if (NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault()))) {
+                    permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
+                }
+            }
         });
     }
 
@@ -212,13 +322,26 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     (:name, :createdBy, :createdAt)
                 """;
 
-        IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(i ->
-                jdbcClient
-                        .sql(sql)
-                        .param("name", faker.lorem().word())
-                        .param("createdBy", SYSTEM_USER)
-                        .param("createdAt", LocalDateTime.now())
-                        .update());
+        IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(i -> {
+            final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+            jdbcClient
+                    .sql(sql)
+                    .param("name", faker.lorem().word())
+                    .param("createdBy", SYSTEM_USER)
+                    .param("createdAt", LocalDateTime.now())
+                    .update(keyHolder);
+
+            if (keyHolder.getKey() != null) {
+                final long id = keyHolder.getKey().longValue();
+                final ObjectIdentity oid = toObjectIdentity(Tag.class, id);
+
+                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+            }
+        });
     }
 
     private void createSampleSpexare(final JdbcClient jdbcClient) {
@@ -236,6 +359,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 VALUES
                     (:firstName, :lastName, :nickName, :socialSecurityNumber, :graduation, :comment, :createdBy, :createdAt)
                 """;
+
+        // TODO: Add ACL permissions!
 
         IntStream.range(0, NUMBER_OF_SAMPLES_SPEXARE).forEach(i -> {
             final KeyHolder keyHolder = new GeneratedKeyHolder();
