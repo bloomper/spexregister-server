@@ -68,6 +68,7 @@ public class IndexingService {
     }
 
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
+    @Transactional
     public void scheduledRun() {
         initiateIndexingFor(Spexare.class, true);
     }
