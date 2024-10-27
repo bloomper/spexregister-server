@@ -37,7 +37,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000
+          issuer-uri: ${APP_KEYCLOAK_URL}/realms/${APP_KEYCLOAK_REALM}
   threads:
     virtual:
       enabled: true
