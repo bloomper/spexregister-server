@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.config;
@@ -313,8 +314,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var state = persistState(randomizeState());
+            final List<String> externalIds = new ArrayList<>();
             IntStream.range(0, size).forEach(i -> {
                 final var user = persistUser(randomizeUser(state));
+                externalIds.add(user.getExternalId());
                 grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
@@ -323,7 +326,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", User_.ID + "=whatever*")
+                        .queryParam("filter", "( " + externalIds.stream().map(e -> "%s:%s".formatted(User_.EXTERNAL_ID, e)).collect(Collectors.joining(" OR ")) + " )")
                         .queryParam("size", size)
                     .when()
                         .get()
@@ -342,7 +345,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .queryParam("filter", User_.ID + "=whatever*")
+                .queryParam("filter", User_.EXTERNAL_ID + ":whatever")
             .when()
                 .get()
             .then()

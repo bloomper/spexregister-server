@@ -29,30 +29,20 @@ public class FilterCriteria {
     private final String key;
     private final FilterOperation operation;
     private final Object value;
-    private final boolean orPredicate;
 
     public FilterCriteria(final String key, final FilterOperation operation, final Object value) {
         super();
         this.key = key;
         this.operation = operation;
         this.value = value;
-        this.orPredicate = false;
     }
 
-    public FilterCriteria(@Nullable final String orPredicate, final String key, final FilterOperation operation, final Object value) {
-        super();
-        this.orPredicate = orPredicate != null && orPredicate.equals(FilterOperation.OR_PREDICATE_FLAG);
-        this.key = key;
-        this.operation = operation;
-        this.value = value;
-    }
-
-    public FilterCriteria(final String key, final String operation, final String prefix, final String value, final String suffix) {
+    public FilterCriteria(final String key, final String operation, @Nullable final String prefix, final String value, @Nullable final String suffix) {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 
         if (op == FilterOperation.EQUALITY) {
-                final boolean startWithAsterisk = prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
-                final boolean endWithAsterisk = suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
+                final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.WILDCARD);
+                final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.WILDCARD);
 
                 if (startWithAsterisk && endWithAsterisk) {
                     op = FilterOperation.CONTAINS;
@@ -65,7 +55,6 @@ public class FilterCriteria {
         this.key = key;
         this.operation = op;
         this.value = value;
-        this.orPredicate = false;
     }
 
 }

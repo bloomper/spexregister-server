@@ -16,8 +16,6 @@
 
 package nu.fgv.register.server.util.filter;
 
-import org.springframework.lang.Nullable;
-
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -27,9 +25,7 @@ public enum FilterOperation {
 
     public static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "~" };
 
-    public static final String OR_PREDICATE_FLAG = "'";
-
-    public static final String ZERO_OR_MORE_REGEX = "*";
+    public static final String WILDCARD = "*";
 
     public static final String OR_OPERATOR = "OR";
 
