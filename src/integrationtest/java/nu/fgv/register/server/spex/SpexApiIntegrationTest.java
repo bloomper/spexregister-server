@@ -294,7 +294,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("filter", Spex_.YEAR + ":1996 AND " + Spex_.PARENT + ":" + FilterOperation.NULL)
+                        .queryParam("filter", "( " + Spex_.YEAR + ":1996 AND " + Spex_.PARENT + ":" + FilterOperation.NULL + " )")
                         .queryParam("size", size)
                     .when()
                         .get()
