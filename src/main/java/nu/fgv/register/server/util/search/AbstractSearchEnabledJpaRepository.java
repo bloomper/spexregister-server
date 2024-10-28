@@ -70,7 +70,7 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         // Query example: colgate:tags.name:detaljen
 
         if (!hasText(query)) {
-            return new SearchQuery(null, Collections.emptyList());
+            return new SearchQuery("", Collections.emptyList());
         }
 
         final String[] parts = query.split(":");

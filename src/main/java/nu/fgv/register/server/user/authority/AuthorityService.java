@@ -71,7 +71,7 @@ public class AuthorityService {
         return roles.stream()
                 .filter(r -> r.getName().equals(id))
                 .findFirst()
-                .orElse(null); // Should never happen
+                .orElseGet(RoleRepresentation::new); // Should never happen
     }
 
 }

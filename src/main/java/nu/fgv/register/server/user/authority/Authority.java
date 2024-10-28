@@ -69,14 +69,14 @@ public class Authority extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         final Authority authority = (Authority) o;
+
         return !(authority.getId() == null || getId() == null) && Objects.equals(getId(), authority.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 
 }

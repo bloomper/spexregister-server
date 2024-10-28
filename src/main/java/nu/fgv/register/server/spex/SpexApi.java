@@ -44,6 +44,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -190,7 +191,7 @@ public class SpexApi {
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
-    public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
+    public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.savePoster(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -359,7 +360,7 @@ public class SpexApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<SpexDto> entity) {
@@ -390,7 +391,7 @@ public class SpexApi {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }
         if (includeEvents) {
-            links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null)).withRel("events"));
+            links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(-1)).withRel("events"));
         }
 
         return links;

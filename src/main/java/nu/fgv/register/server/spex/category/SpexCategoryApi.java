@@ -42,6 +42,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -143,7 +144,7 @@ public class SpexCategoryApi {
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
     @PreAuthorize("hasRole('spexregister_ADMIN')")
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale, final HttpMethod method) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale, final HttpMethod method) {
         try {
             final ImportResultDto result = importService.doImport(file, contentType, locale);
             return ResponseEntity
@@ -221,7 +222,7 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @PreAuthorize("hasRole('spexregister_ADMIN')")
-    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
+    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.saveLogo(spexId, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -257,7 +258,7 @@ public class SpexCategoryApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
@@ -276,7 +277,7 @@ public class SpexCategoryApi {
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("spex-categories"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
-        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(null)).withRel("events"));
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
     }

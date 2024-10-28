@@ -41,6 +41,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -83,9 +84,11 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @Column(name = "logo", columnDefinition = "MEDIUMBLOB")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Nullable
     private byte[] logo;
 
     @Column(name = "logo_content_type")
+    @Nullable
     private String logoContentType;
 
     @Override
@@ -97,6 +100,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
             return false;
         }
         final SpexCategory spexCategory = (SpexCategory) o;
+
         if (spexCategory.getId() == null || getId() == null) {
             return false;
         }
@@ -105,6 +109,6 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

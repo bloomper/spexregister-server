@@ -82,8 +82,8 @@ class AuthorityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_all() throws Exception {
-        var authority1 = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
-        var authority2 = AuthorityDto.builder().id("ROLE_USER").label("User").build();
+        final var authority1 = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
+        final var authority2 = AuthorityDto.builder().id("ROLE_USER").label("User").build();
 
         when(service.findAll(any(Sort.class))).thenReturn(List.of(authority1, authority2));
 
@@ -121,7 +121,7 @@ class AuthorityApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var authority = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
+        final var authority = AuthorityDto.builder().id("ROLE_ADMIN").label("Administrator").build();
 
         when(service.findById(any(String.class))).thenReturn(Optional.of(authority));
 
@@ -151,9 +151,9 @@ class AuthorityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

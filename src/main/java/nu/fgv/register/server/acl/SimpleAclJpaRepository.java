@@ -70,7 +70,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
     private static long executeCountQuery(final TypedQuery<Long> query) {
         Assert.notNull(query, "TypedQuery must not be null!");
-        List<Long> totals = query.getResultList();
+        final List<Long> totals = query.getResultList();
 
         return totals.stream().mapToLong(total -> null == total ? 0 : total).sum();
     }
@@ -86,7 +86,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
     }
 
     @Override
-    public List<T> findAll(final Specification<T> spec, final Sort sort, final Permission permission) {
+    public List<T> findAll(@Nullable final Specification<T> spec, final Sort sort, final Permission permission) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (null == authentication || !authentication.isAuthenticated()) {
@@ -105,12 +105,12 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
     }
 
     @Override
-    public List<T> findAll(final Specification<T> spec, final Permission permission) {
+    public List<T> findAll(@Nullable final Specification<T> spec, final Permission permission) {
         return findAll(spec, Sort.unsorted(), permission);
     }
 
     @Override
-    public Page<T> findAll(final Specification<T> spec,
+    public Page<T> findAll(@Nullable final Specification<T> spec,
                            final Pageable pageable,
                            final Permission permission) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

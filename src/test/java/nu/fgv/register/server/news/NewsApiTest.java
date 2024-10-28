@@ -97,8 +97,8 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
-        var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
+        final var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
+        final var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("visibleFrom")), 10));
 
@@ -141,8 +141,8 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(NewsCreateDto.class);
-        var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
+        final var fields = new ConstrainedFields(NewsCreateDto.class);
+        final var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
         when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.getSubject()).text(dto.getText()).build());
 
@@ -151,7 +151,7 @@ class NewsApiTest extends AbstractApiTest {
                         post("/api/v1/news")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -175,7 +175,7 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
 
@@ -205,9 +205,9 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(NewsUpdateDto.class);
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
-        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var fields = new ConstrainedFields(NewsUpdateDto.class);
+        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.update(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
@@ -216,7 +216,7 @@ class NewsApiTest extends AbstractApiTest {
                         put("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -246,9 +246,9 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(NewsUpdateDto.class);
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
-        var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var fields = new ConstrainedFields(NewsUpdateDto.class);
+        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
 
@@ -257,7 +257,7 @@ class NewsApiTest extends AbstractApiTest {
                         patch("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -287,7 +287,7 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
         doNothing().when(service).deleteById(any(Long.class));
@@ -314,9 +314,9 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.NEWS.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.NEWS.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.NEWS.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.NEWS.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

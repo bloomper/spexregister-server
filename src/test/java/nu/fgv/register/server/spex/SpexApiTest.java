@@ -136,8 +136,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var spex1 = SpexDto.builder().id(1L).year("2021").build();
-        var spex2 = SpexDto.builder().id(2L).year("2022").build();
+        final var spex1 = SpexDto.builder().id(1L).year("2021").build();
+        final var spex2 = SpexDto.builder().id(2L).year("2022").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spex1, spex2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -178,7 +178,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        var export = Pair.of(".xlsx", new byte[]{10, 12});
+        final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
@@ -213,8 +213,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(SpexCreateDto.class);
-        var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
+        final var fields = new ConstrainedFields(SpexCreateDto.class);
+        final var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
 
         when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(1L).year(dto.getYear()).title(dto.getTitle()).build());
 
@@ -223,7 +223,7 @@ class SpexApiTest extends AbstractApiTest {
                         post("/api/v1/spex")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -245,7 +245,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
 
@@ -275,9 +275,9 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(SpexUpdateDto.class);
-        var spex = SpexDto.builder().id(1L).year("2021").build();
-        var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
+        final var fields = new ConstrainedFields(SpexUpdateDto.class);
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
 
         when(service.update(any(SpexUpdateDto.class))).thenReturn(Optional.of(spex));
 
@@ -286,7 +286,7 @@ class SpexApiTest extends AbstractApiTest {
                         put("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -314,9 +314,9 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(SpexUpdateDto.class);
-        var spex = SpexDto.builder().id(1L).year("2021").build();
-        var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
+        final var fields = new ConstrainedFields(SpexUpdateDto.class);
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
 
         when(service.partialUpdate(any(SpexUpdateDto.class))).thenReturn(Optional.of(spex));
 
@@ -325,7 +325,7 @@ class SpexApiTest extends AbstractApiTest {
                         patch("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -353,7 +353,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
         doNothing().when(service).deleteById(any(Long.class));
@@ -380,7 +380,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_download_poster() throws Exception {
-        var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
+        final var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
         when(service.getPoster(any(Long.class))).thenReturn(Optional.of(poster));
 
         mockMvc
@@ -412,8 +412,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_upload_poster() throws Exception {
-        var poster = new byte[]{10, 12};
-        var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var poster = new byte[]{10, 12};
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
 
         mockMvc
@@ -443,8 +443,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_upload_poster_via_multipart() throws Exception {
-        var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
 
         mockMvc
@@ -473,7 +473,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_delete_poster() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
         when(service.deletePoster(any(Long.class))).thenReturn(Optional.of(spex));
 
         mockMvc
@@ -498,7 +498,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_revival() throws Exception {
-        var revival = SpexDto.builder().id(1L).year("2021").build();
+        final var revival = SpexDto.builder().id(1L).year("2021").build();
 
         when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(Optional.of(revival));
 
@@ -529,8 +529,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged_revivals() throws Exception {
-        var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
-        var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
+        final var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
+        final var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
 
         when(service.findRevivals(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(revival1, revival2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -571,8 +571,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged_specific_revivals() throws Exception {
-        var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
-        var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
+        final var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
+        final var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
 
         when(service.findRevivalsByParent(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(revival1, revival2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -616,7 +616,7 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_add_revival() throws Exception {
-        var revival = SpexDto.builder().id(1L).year("2021").title("Bojan").revival(true).build();
+        final var revival = SpexDto.builder().id(1L).year("2021").title("Bojan").revival(true).build();
 
         when(service.addRevival(any(Long.class), any(String.class))).thenReturn(Optional.of(revival));
 
@@ -668,8 +668,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_category() throws Exception {
-        var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        var realCategoryApi = new SpexCategoryApi(null, null, null, null, null, null);
+        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
+        final var realCategoryApi = new SpexCategoryApi(null, null, null, null, null, null);
 
         when(service.findCategoryBySpex(any(Long.class))).thenReturn(Optional.of(category));
         when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
@@ -743,9 +743,9 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEX.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEX.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

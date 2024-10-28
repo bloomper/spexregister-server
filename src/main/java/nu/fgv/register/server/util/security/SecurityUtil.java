@@ -51,13 +51,13 @@ public class SecurityUtil {
     public static String getCurrentUserSubClaim() {
         return getCurrentUserClaim(JwtClaimNames.SUB)
                 .map(String.class::cast)
-                .orElse(null);
+                .orElse("");
     }
 
     public static String getCurrentUserEmailClaim() {
         return getCurrentUserClaim("email")
                 .map(String.class::cast)
-                .orElse(null);
+                .orElse("");
     }
 
     public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Serializable id) {

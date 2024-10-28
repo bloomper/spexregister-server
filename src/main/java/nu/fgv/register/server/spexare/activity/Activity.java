@@ -98,6 +98,7 @@ public class Activity extends AbstractAuditable implements Serializable {
             return false;
         }
         final Activity activity = (Activity) o;
+
         if (activity.getId() == null || getId() == null) {
             return false;
         }
@@ -106,6 +107,6 @@ public class Activity extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

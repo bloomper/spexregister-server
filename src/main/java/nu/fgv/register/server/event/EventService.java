@@ -79,7 +79,7 @@ public class EventService {
                 .map(EVENT_MAPPER::toDto);
     }
 
-    public EventDto create(final String createdBy, final Event.EventType event, Event.SourceType source) {
+    public EventDto create(final String createdBy, final Event.EventType event, final Event.SourceType source) {
         final Event model = EVENT_MAPPER.toModel(createdBy, event, source);
         return EVENT_MAPPER.toDto(repository.save(model));
     }
@@ -87,12 +87,12 @@ public class EventService {
     @TransactionalEventListener
     @Async
     public void onEvent(final SpringEvent springEvent) {
-        if (springEvent.getSource() instanceof AbstractAuditable auditable) {
+        if (springEvent.getSource() instanceof final AbstractAuditable auditable) {
             create(auditable.getCreatedBy(), springEvent.getEvent(), springEvent.getSourceType());
         }
     }
 
     private Instant getInstantFromSinceInDays(final Integer sinceInDays) {
-        return LocalDate.now().minusDays(sinceInDays != null ? sinceInDays : 90).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return LocalDate.now().minusDays(sinceInDays != -1 ? sinceInDays : 90).atStartOfDay(ZoneId.systemDefault()).toInstant();
     }
 }

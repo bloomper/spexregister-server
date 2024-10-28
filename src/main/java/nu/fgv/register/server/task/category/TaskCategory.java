@@ -81,6 +81,7 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
             return false;
         }
         final TaskCategory taskCategory = (TaskCategory) o;
+
         if (taskCategory.getId() == null || getId() == null) {
             return false;
         }
@@ -89,6 +90,6 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

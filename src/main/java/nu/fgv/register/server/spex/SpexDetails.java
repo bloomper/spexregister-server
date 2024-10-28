@@ -44,6 +44,7 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -80,14 +81,17 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @Column(name = "poster", columnDefinition = "MEDIUMBLOB")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Nullable
     private byte[] poster;
 
     @Column(name = "poster_content_type")
+    @Nullable
     private String posterContentType;
 
     @ManyToOne
     @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @Nullable
     private SpexCategory category;
 
     @Override
@@ -99,6 +103,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
             return false;
         }
         final SpexDetails spexDetails = (SpexDetails) o;
+
         if (spexDetails.getId() == null || getId() == null) {
             return false;
         }
@@ -107,7 +112,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 
 }

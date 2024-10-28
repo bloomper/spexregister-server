@@ -86,8 +86,8 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var actor1 = ActorDto.builder().id(1L).build();
-        var actor2 = ActorDto.builder().id(2L).build();
+        final var actor1 = ActorDto.builder().id(1L).build();
+        final var actor2 = ActorDto.builder().id(2L).build();
 
         when(service.findByTaskActivity(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(actor1, actor2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
@@ -131,7 +131,7 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(actor));
 
@@ -164,9 +164,9 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(ActorCreateDto.class);
-        var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
-        var actor = ActorDto.builder().id(1L).role(dto.getRole()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var fields = new ConstrainedFields(ActorCreateDto.class);
+        final var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
+        final var actor = ActorDto.builder().id(1L).role(dto.getRole()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(ActorCreateDto.class))).thenReturn(Optional.of(actor));
 
@@ -175,7 +175,7 @@ class ActorApiTest extends AbstractApiTest {
                         post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}", 1L, 1L, 1L, "B1")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -202,9 +202,9 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(ActorUpdateDto.class);
-        var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
-        var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
+        final var fields = new ConstrainedFields(ActorUpdateDto.class);
+        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
 
         when(service.update(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(Optional.of(actor));
 
@@ -213,7 +213,7 @@ class ActorApiTest extends AbstractApiTest {
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(
@@ -241,9 +241,9 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(ActorUpdateDto.class);
-        var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
-        var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
+        final var fields = new ConstrainedFields(ActorUpdateDto.class);
+        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
 
         when(service.partialUpdate(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(Optional.of(actor));
 
@@ -252,7 +252,7 @@ class ActorApiTest extends AbstractApiTest {
                         patch("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andDo(document(

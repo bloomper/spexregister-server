@@ -69,13 +69,13 @@ public class State extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         final State state = (State) o;
+
         return !(state.getId() == null || getId() == null) && Objects.equals(getId(), state.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

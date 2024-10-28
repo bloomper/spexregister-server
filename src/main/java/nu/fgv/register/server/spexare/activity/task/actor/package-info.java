@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
 package nu.fgv.register.server.spexare.activity.task.actor;

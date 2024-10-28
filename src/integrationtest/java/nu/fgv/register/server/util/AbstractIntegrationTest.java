@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.keycloak.admin.client.Keycloak;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -102,26 +101,17 @@ public abstract class AbstractIntegrationTest {
 
     private static URI authorizationURI;
 
-    @Autowired
-    private JdbcClient jdbcClient;
-
-    @Autowired
-    private AclCache aclCache;
-
-    @Autowired
-    protected Keycloak keycloakAdminClient;
-
-    @Autowired
-    protected String keycloakClientId;
+    private final JdbcClient jdbcClient;
+    private final AclCache aclCache;
+    protected final Keycloak keycloakAdminClient;
+    protected final String keycloakClientId;
+    protected final PermissionService permissionService;
 
     @Value("${spexregister.keycloak.realm}")
     protected String keycloakRealm;
 
     @Value("${spexregister.keycloak.client.client-id}")
     protected String keycloakClientClientId;
-
-    @Autowired
-    protected PermissionService permissionService;
 
     @Container
     @ServiceConnection
@@ -144,12 +134,22 @@ public abstract class AbstractIntegrationTest {
 
     private final LoadingCache<String, String> accessTokenCache;
 
-    protected AbstractIntegrationTest() {
+    protected AbstractIntegrationTest(final JdbcClient jdbcClient,
+                                      final AclCache aclCache,
+                                      final Keycloak keycloakAdminClient,
+                                      final String keycloakClientId,
+                                      final PermissionService permissionService) {
+        this.jdbcClient = jdbcClient;
+        this.aclCache = aclCache;
+        this.keycloakAdminClient = keycloakAdminClient;
+        this.keycloakClientId = keycloakClientId;
+        this.permissionService = permissionService;
+
         accessTokenCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {
                     @Override
-                    public @NotNull String load(@NotNull String key) {
+                    public @NotNull String load(@NotNull final String key) {
                         return key.toUpperCase();
                     }
                 });

@@ -106,8 +106,8 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var tag1 = TagDto.builder().id(1L).name("tag1").build();
-        var tag2 = TagDto.builder().id(2L).name("tag2").build();
+        final var tag1 = TagDto.builder().id(1L).name("tag1").build();
+        final var tag2 = TagDto.builder().id(2L).name("tag2").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -146,7 +146,7 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        var export = Pair.of(".xlsx", new byte[]{10, 12});
+        final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
@@ -181,8 +181,8 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(TagCreateDto.class);
-        var dto = TagCreateDto.builder().name("Tag").build();
+        final var fields = new ConstrainedFields(TagCreateDto.class);
+        final var dto = TagCreateDto.builder().name("Tag").build();
 
         when(service.create(any(TagCreateDto.class))).thenReturn(TagDto.builder().id(1L).name(dto.getName()).build());
 
@@ -191,7 +191,7 @@ class TagApiTest extends AbstractApiTest {
                         post("/api/v1/tags")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -212,7 +212,7 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(1L).name("tag").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(tag));
 
@@ -242,9 +242,9 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(TagUpdateDto.class);
-        var tag = TagDto.builder().id(1L).name("tag").build();
-        var dto = TagUpdateDto.builder().id(1L).name("tag2").build();
+        final var fields = new ConstrainedFields(TagUpdateDto.class);
+        final var tag = TagDto.builder().id(1L).name("tag").build();
+        final var dto = TagUpdateDto.builder().id(1L).name("tag2").build();
 
         when(service.update(any(TagUpdateDto.class))).thenReturn(Optional.of(tag));
 
@@ -253,7 +253,7 @@ class TagApiTest extends AbstractApiTest {
                         put("/api/v1/tags/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -280,9 +280,9 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(TagUpdateDto.class);
-        var tag = TagDto.builder().id(1L).name("tag").build();
-        var dto = TagUpdateDto.builder().id(1L).build();
+        final var fields = new ConstrainedFields(TagUpdateDto.class);
+        final var tag = TagDto.builder().id(1L).name("tag").build();
+        final var dto = TagUpdateDto.builder().id(1L).build();
 
         when(service.partialUpdate(any(TagUpdateDto.class))).thenReturn(Optional.of(tag));
 
@@ -291,7 +291,7 @@ class TagApiTest extends AbstractApiTest {
                         patch("/api/v1/tags/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -318,7 +318,7 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(1L).name("tag").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(tag));
         doNothing().when(service).deleteById(any(Long.class));
@@ -345,9 +345,9 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.TAG.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TAG.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.TAG.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TAG.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

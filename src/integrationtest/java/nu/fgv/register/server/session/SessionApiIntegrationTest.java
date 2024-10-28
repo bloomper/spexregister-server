@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.session;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -33,10 +33,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -57,14 +60,21 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private EventRepository eventRepository;
+    public SessionApiIntegrationTest(final JdbcClient jdbcClient,
+                                     final AclCache aclCache,
+                                     final Keycloak keycloakAdminClient,
+                                     final String keycloakClientId,
+                                     final PermissionService permissionService,
+                                     final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.eventRepository = eventRepository;
 
-    public SessionApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -98,7 +108,7 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var event = persistEvent(randomizeEvent());
+            final var event = persistEvent(randomizeEvent());
 
             //@formatter:off
             final List<EventDto> result =
@@ -135,12 +145,12 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Event randomizeEvent() {
-        var event = random.nextObject(Event.class);
+        final var event = random.nextObject(Event.class);
         event.setSource(Event.SourceType.SESSION);
         return event;
     }
 
-    private Event persistEvent(Event event) {
+    private Event persistEvent(final Event event) {
         return eventRepository.save(event);
     }
 

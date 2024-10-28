@@ -51,15 +51,15 @@ public class SpexExportService extends AbstractExportService {
 
     @Override
     protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
-        var dtos = retrieveDtos(ids);
-        var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).toList());
-        var categoryDtos = retrieveCategoryDtos();
+        final var dtos = retrieveDtos(ids);
+        final var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).toList());
+        final var categoryDtos = retrieveCategoryDtos();
 
         writer.createSheet(messageSource, locale, workbook, dtos);
         writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
         writer.createSheet(messageSource, locale, workbook, categoryDtos)
                 .ifPresent(sheet -> {
-                    if (sheet instanceof XSSFSheet sheet0) {
+                    if (sheet instanceof final XSSFSheet sheet0) {
                         final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
                         sheet0.setTabColor(new XSSFColor(red));
                     }

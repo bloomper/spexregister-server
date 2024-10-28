@@ -124,8 +124,8 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
-        var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
+        final var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(task1, task2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -164,7 +164,7 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        var export = Pair.of(".xlsx", new byte[]{10, 12});
+        final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
@@ -199,8 +199,8 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(TaskCreateDto.class);
-        var dto = TaskCreateDto.builder().name("Scenmästare").build();
+        final var fields = new ConstrainedFields(TaskCreateDto.class);
+        final var dto = TaskCreateDto.builder().name("Scenmästare").build();
 
         when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(1L).name(dto.getName()).build());
 
@@ -209,7 +209,7 @@ class TaskApiTest extends AbstractApiTest {
                         post("/api/v1/tasks")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -230,7 +230,7 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
 
@@ -260,9 +260,9 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(TaskUpdateDto.class);
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
+        final var fields = new ConstrainedFields(TaskUpdateDto.class);
+        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.update(any(TaskUpdateDto.class))).thenReturn(Optional.of(task));
 
@@ -271,7 +271,7 @@ class TaskApiTest extends AbstractApiTest {
                         put("/api/v1/tasks/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -298,9 +298,9 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(TaskUpdateDto.class);
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
+        final var fields = new ConstrainedFields(TaskUpdateDto.class);
+        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.partialUpdate(any(TaskUpdateDto.class))).thenReturn(Optional.of(task));
 
@@ -309,7 +309,7 @@ class TaskApiTest extends AbstractApiTest {
                         patch("/api/v1/tasks/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -336,7 +336,7 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
         doNothing().when(service).deleteById(any(Long.class));
@@ -363,8 +363,8 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_category() throws Exception {
-        var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        var realCategoryApi = new TaskCategoryApi(null, null, null, null, null, null);
+        final var category = TaskCategoryDto.builder().id(1L).name("category").build();
+        final var realCategoryApi = new TaskCategoryApi(null, null, null, null, null, null);
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
@@ -438,9 +438,9 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.TASK.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.TASK.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

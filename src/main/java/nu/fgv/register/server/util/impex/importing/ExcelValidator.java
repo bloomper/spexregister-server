@@ -27,6 +27,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 
 import jakarta.validation.ConstraintViolation;
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -77,15 +79,19 @@ public class ExcelValidator {
             final Locale locale,
             final Workbook workbook,
             final Class<?> clazz,
-            final Class<?> createClazz,
-            final Class<?> updateClazz,
+            @Nullable final Class<?> createClazz,
+            @Nullable final Class<?> updateClazz,
             final Function<Long, Boolean> existenceChecker,
-            final String overrideSheetName) {
+            @Nullable final String overrideSheetName) {
         workbookContainer.setMessageSource(messageSource);
         workbookContainer.setLocale(locale);
         workbookContainer.setWorkbook(workbook);
-        workbookContainer.setCreateClazz(createClazz);
-        workbookContainer.setUpdateClazz(updateClazz);
+        if (createClazz != null) {
+            workbookContainer.setCreateClazz(createClazz);
+        }
+        if (updateClazz != null) {
+            workbookContainer.setUpdateClazz(updateClazz);
+        }
         workbookContainer.setExistenceChecker(existenceChecker);
 
         initialize
@@ -187,8 +193,7 @@ public class ExcelValidator {
                         switch (primaryKeyCell.getCellType()) {
                             case STRING ->
                                     primaryKey = hasText(primaryKeyCell.getStringCellValue()) ? Long.parseLong(primaryKeyCell.getStringCellValue()) : null;
-                            case NUMERIC ->
-                                    primaryKey = (long) primaryKeyCell.getNumericCellValue();
+                            case NUMERIC -> primaryKey = (long) primaryKeyCell.getNumericCellValue();
                             default -> {
                                 workbookContainer.getMessages().add(workbookContainer.getMessageSource().getMessage("import.validation.cellTypeMismatch", new Object[]{sheetContainer.getPrimaryKeyPosition(), row.getRowNum()}, workbookContainer.getLocale()));
                                 primaryKey = null;

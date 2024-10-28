@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util.filter;
 
 import lombok.Getter;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -25,22 +26,20 @@ import lombok.Getter;
 @Getter
 public class FilterCriteria {
 
-    private String key;
-    private FilterOperation operation;
-    private Object value;
-    private boolean orPredicate;
-
-    public FilterCriteria() {
-    }
+    private final String key;
+    private final FilterOperation operation;
+    private final Object value;
+    private final boolean orPredicate;
 
     public FilterCriteria(final String key, final FilterOperation operation, final Object value) {
         super();
         this.key = key;
         this.operation = operation;
         this.value = value;
+        this.orPredicate = false;
     }
 
-    public FilterCriteria(final String orPredicate, final String key, final FilterOperation operation, final Object value) {
+    public FilterCriteria(@Nullable final String orPredicate, final String key, final FilterOperation operation, final Object value) {
         super();
         this.orPredicate = orPredicate != null && orPredicate.equals(FilterOperation.OR_PREDICATE_FLAG);
         this.key = key;
@@ -52,8 +51,8 @@ public class FilterCriteria {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 
         if (op == FilterOperation.EQUALITY) {
-                final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
-                final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
+                final boolean startWithAsterisk = prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
+                final boolean endWithAsterisk = suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
 
                 if (startWithAsterisk && endWithAsterisk) {
                     op = FilterOperation.CONTAINS;
@@ -66,6 +65,7 @@ public class FilterCriteria {
         this.key = key;
         this.operation = op;
         this.value = value;
+        this.orPredicate = false;
     }
 
 }

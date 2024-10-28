@@ -114,8 +114,8 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var user1 = UserDto.builder().id(1L).email("email1@somewhere.com").build();
-        var user2 = UserDto.builder().id(2L).email("email2@somewhere.com").build();
+        final var user1 = UserDto.builder().id(1L).email("email1@somewhere.com").build();
+        final var user2 = UserDto.builder().id(2L).email("email2@somewhere.com").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
 
@@ -154,8 +154,8 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(UserCreateDto.class);
-        var dto = UserCreateDto.builder().email("email@somewhere.com").build();
+        final var fields = new ConstrainedFields(UserCreateDto.class);
+        final var dto = UserCreateDto.builder().email("email@somewhere.com").build();
 
         when(service.create(any(UserCreateDto.class))).thenReturn(Optional.of(UserDto.builder().id(1L).email(dto.getEmail()).build()));
 
@@ -164,7 +164,7 @@ class UserApiTest extends AbstractApiTest {
                         post("/api/v1/users")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -185,7 +185,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
 
@@ -215,9 +215,9 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
-        var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
+        final var fields = new ConstrainedFields(UserUpdateDto.class);
+        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.update(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
 
@@ -226,7 +226,7 @@ class UserApiTest extends AbstractApiTest {
                         put("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -253,9 +253,9 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(UserUpdateDto.class);
-        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
-        var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
+        final var fields = new ConstrainedFields(UserUpdateDto.class);
+        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
 
@@ -264,7 +264,7 @@ class UserApiTest extends AbstractApiTest {
                         patch("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -291,7 +291,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
         doNothing().when(service).deleteById(any(Long.class));
@@ -318,8 +318,8 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_retrieve_authorities() throws Exception {
-        var authority1 = AuthorityDto.builder().id("ROLE_USER").build();
-        var authority2 = AuthorityDto.builder().id("ROLE_EDITOR").build();
+        final var authority1 = AuthorityDto.builder().id("ROLE_USER").build();
+        final var authority2 = AuthorityDto.builder().id("ROLE_EDITOR").build();
         when(service.getAuthoritiesByUser(any(Long.class))).thenReturn(Set.of(authority1, authority2));
 
         mockMvc
@@ -611,9 +611,9 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.USER.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.USER.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.USER.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.USER.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

@@ -90,8 +90,8 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
+        final var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
 
         when(service.findBySpexare(any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(address1, address2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
@@ -140,7 +140,7 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(address));
 
@@ -171,8 +171,8 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(AddressCreateDto.class);
-        var dto = AddressCreateDto.builder().streetAddress("Street1").build();
+        final var fields = new ConstrainedFields(AddressCreateDto.class);
+        final var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
         when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(Optional.of(AddressDto.builder().id(1L).streetAddress(dto.getStreetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build()));
 
@@ -181,7 +181,7 @@ class AddressApiTest extends AbstractApiTest {
                         post("/api/v1/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -212,9 +212,9 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(AddressUpdateDto.class);
-        var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
+        final var fields = new ConstrainedFields(AddressUpdateDto.class);
+        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(Optional.of(address));
 
@@ -223,7 +223,7 @@ class AddressApiTest extends AbstractApiTest {
                         put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -256,9 +256,9 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(AddressUpdateDto.class);
-        var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
+        final var fields = new ConstrainedFields(AddressUpdateDto.class);
+        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
 
         when(service.partialUpdate(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(Optional.of(address));
 
@@ -267,7 +267,7 @@ class AddressApiTest extends AbstractApiTest {
                         patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))

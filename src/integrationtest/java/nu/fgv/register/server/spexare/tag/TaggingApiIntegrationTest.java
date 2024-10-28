@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.spexare.tag;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
@@ -37,10 +37,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -68,17 +71,24 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final TaggingRepository repository;
+    private final SpexareRepository spexareRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private TaggingRepository repository;
+    public TaggingApiIntegrationTest(final JdbcClient jdbcClient,
+                                     final AclCache aclCache,
+                                     final Keycloak keycloakAdminClient,
+                                     final String keycloakClientId,
+                                     final PermissionService permissionService,
+                                     final TaggingRepository repository,
+                                     final SpexareRepository spexareRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.spexareRepository = spexareRepository;
 
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    public TaggingApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
@@ -141,7 +151,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<TagDto> result =
@@ -162,8 +172,8 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var tag = persistTag(randomizeTag());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var tag = persistTag(randomizeTag());
             spexare.setTags(Set.of(tag));
             persistSpexare(spexare);
 
@@ -186,11 +196,11 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var taggings = new ArrayList<Tag>();
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var taggings = new ArrayList<Tag>();
             IntStream.range(0, size).forEach(i -> {
-                var tag = persistTag(randomizeTag());
+                final var tag = persistTag(randomizeTag());
                 taggings.add(tag);
             });
             spexare.setTags(Set.copyOf(taggings));
@@ -222,8 +232,8 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var tag = persistTag(randomizeTag());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
@@ -256,8 +266,8 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_already_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var tag = persistTag(randomizeTag());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
@@ -286,7 +296,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
@@ -310,8 +320,8 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var tag = persistTag(randomizeTag());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
@@ -355,7 +365,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -373,7 +383,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
@@ -395,7 +405,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Tag.class);
     }
 
-    private Tag persistTag(Tag tag) {
+    private Tag persistTag(final Tag tag) {
         return repository.save(tag);
     }
 
@@ -403,7 +413,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 

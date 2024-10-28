@@ -65,6 +65,7 @@ public final class AclSid {
             return false;
         }
         final AclSid aclSid = (AclSid) o;
+
         if (aclSid.getId() == null || getId() == null) {
             return false;
         }
@@ -73,6 +74,6 @@ public final class AclSid {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

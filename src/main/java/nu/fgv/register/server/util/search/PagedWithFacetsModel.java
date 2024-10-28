@@ -45,7 +45,7 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
     public static final PagedWithFacetsModel<?> NO_PAGE = new PagedWithFacetsModel<>();
 
-    private final PageMetadata metadata;
+    private final @Nullable PageMetadata metadata;
     private final @Nullable ResolvableType fallbackType;
     private final Collection<Facet> facets;
 
@@ -128,7 +128,7 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
         return new PagedWithFacetsModel<>(content, metadata, facets);
     }
 
-    public static <T> PagedWithFacetsModel<T> of(Collection<T> content, @Nullable PageMetadata metadata, final Collection<Facet> facets, Link... links) {
+    public static <T> PagedWithFacetsModel<T> of(final Collection<T> content, @Nullable final PageMetadata metadata, final Collection<Facet> facets, final Link... links) {
         return new PagedWithFacetsModel<>(content, metadata, List.of(links), facets);
     }
 
@@ -202,7 +202,7 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
         final PagedWithFacetsModel<?> that = (PagedWithFacetsModel<?>) obj;
 
-        return Objects.equals(this.metadata, that.metadata) && super.equals(obj);
+        return Objects.equals(metadata, that.metadata) && super.equals(obj);
     }
 
     @Override
@@ -258,17 +258,17 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
 
             final PageMetadata that = (PageMetadata) obj;
 
-            return this.number == that.number && this.size == that.size && this.totalElements == that.totalElements && this.totalPages == that.totalPages;
+            return number == that.number && size == that.size && totalElements == that.totalElements && totalPages == that.totalPages;
         }
 
         @Override
         public int hashCode() {
             int result = 17;
 
-            result += 31 * Long.hashCode(this.number);
-            result += 31 * Long.hashCode(this.size);
-            result += 31 * Long.hashCode(this.totalElements);
-            result += 31 * Long.hashCode(this.totalPages);
+            result += 31 * Long.hashCode(number);
+            result += 31 * Long.hashCode(size);
+            result += 31 * Long.hashCode(totalElements);
+            result += 31 * Long.hashCode(totalPages);
 
             return result;
         }

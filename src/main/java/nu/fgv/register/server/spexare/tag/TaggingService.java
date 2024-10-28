@@ -60,6 +60,9 @@ public class TaggingService {
                             .findById(spexareId)
                             .filter(spexare -> !repository.existsBySpexareIdAndTagId(spexare.getId(), tag.getId()))
                             .map(spexare -> {
+                                if (spexare.getTags() == null) {
+                                    spexare.setTags(new java.util.HashSet<>());
+                                }
                                 spexare.getTags().add(tag);
                                 spexareRepository.save(spexare);
                                 return true;
@@ -80,7 +83,13 @@ public class TaggingService {
                             .findById(spexareId)
                             .filter(spexare -> repository.existsBySpexareIdAndTagId(spexare.getId(), tag.getId()))
                             .map(spexare -> {
+                                if (spexare.getTags() == null) {
+                                    spexare.setTags(new java.util.HashSet<>());
+                                }
                                 spexare.getTags().remove(tag);
+                                if (spexare.getTags().isEmpty()) {
+                                    spexare.setTags(null);
+                                }
                                 spexareRepository.save(spexare);
                                 return true;
                             })

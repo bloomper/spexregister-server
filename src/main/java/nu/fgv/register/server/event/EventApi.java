@@ -67,7 +67,7 @@ public class EventApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -84,15 +84,15 @@ public class EventApi {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(EventApi.class).retrieveById(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(null)).withRel("news-events"));
-        links.add(linkTo(methodOn(SessionApi.class).retrieveEvents(null)).withRel("session-events"));
-        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null)).withRel("spex-events"));
-        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(null)).withRel("spex-category-events"));
-        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(null)).withRel("spexare-events"));
-        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null)).withRel("tag-events"));
-        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("task-events"));
-        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(null)).withRel("task-category-events"));
-        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("user-events"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(-1)).withRel("news-events"));
+        links.add(linkTo(methodOn(SessionApi.class).retrieveEvents(-1)).withRel("session-events"));
+        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(-1)).withRel("spex-events"));
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(-1)).withRel("spex-category-events"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("spexare-events"));
+        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(-1)).withRel("tag-events"));
+        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(-1)).withRel("task-events"));
+        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(-1)).withRel("task-category-events"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(-1)).withRel("user-events"));
 
         return links;
     }

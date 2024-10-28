@@ -50,7 +50,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
         this.iv = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
         try {
             cipher = Cipher.getInstance(algorithm);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error during initialization", e);
             throw new RuntimeException(e);
         }
@@ -64,12 +64,12 @@ public class CryptoConverter implements AttributeConverter<String, String> {
             try {
                 cipher.init(Cipher.ENCRYPT_MODE, key, iv); // NOSONAR
                 return Base64.getEncoder().encodeToString(cipher.doFinal(plainValue.getBytes()));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Unexpected error during encryption", e);
                 throw new RuntimeException(e);
             }
         } else {
-            return null;
+            return "";
         }
     }
 
@@ -81,12 +81,12 @@ public class CryptoConverter implements AttributeConverter<String, String> {
             try {
                 cipher.init(Cipher.DECRYPT_MODE, key, iv);
                 return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedValue)));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Unexpected error during decryption", e);
                 throw new RuntimeException(e);
             }
         } else {
-            return null;
+            return "";
         }
     }
 }

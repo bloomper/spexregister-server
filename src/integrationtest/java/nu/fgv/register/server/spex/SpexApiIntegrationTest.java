@@ -21,6 +21,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -38,11 +39,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.lang.Nullable;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -69,23 +74,33 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final SpexRepository repository;
+    private final SpexDetailsRepository detailsRepository;
+    private final SpexCategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private SpexRepository repository;
+    public SpexApiIntegrationTest(final JdbcClient jdbcClient,
+                                  final AclCache aclCache,
+                                  final Keycloak keycloakAdminClient,
+                                  final String keycloakClientId,
+                                  final PermissionService permissionService,
+                                  final ObjectMapper objectMapper,
+                                  final SpexRepository repository,
+                                  final SpexDetailsRepository detailsRepository,
+                                  final SpexCategoryRepository categoryRepository,
+                                  final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.detailsRepository = detailsRepository;
+        this.categoryRepository = categoryRepository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private SpexDetailsRepository detailsRepository;
-
-    @Autowired
-    private SpexCategoryRepository categoryRepository;
-
-    @Autowired
-    private EventRepository eventRepository;
-
-    public SpexApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("year"), new YearRandomizer()
@@ -148,9 +163,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -171,14 +186,14 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final int size = 42;
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             IntStream.range(0, size).forEach(i -> {
-                var spex = persistSpex(randomizeSpex(category));
+                final var spex = persistSpex(randomizeSpex(category));
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
                 if (i % 2 == 0) {
-                    var revival = randomizeRevival(spex);
+                    final var revival = randomizeRevival(spex);
                     persistRevival(revival);
                     grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
                 }
@@ -209,8 +224,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -233,8 +248,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -257,18 +272,18 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final int size = 42;
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             IntStream.range(0, size).forEach(i -> {
-                var spex = randomizeSpex(category);
+                final var spex = randomizeSpex(category);
                 if (i % 2 == 0) {
                     spex.setYear("1996");
                 }
-                var spex0 = persistSpex(spex);
+                final var spex0 = persistSpex(spex);
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex0.getId()));
                 if (i % 4 == 0) {
-                    var revival = randomizeRevival(spex0);
+                    final var revival = randomizeRevival(spex0);
                     persistRevival(revival);
                     grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
                 }
@@ -368,9 +383,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -411,9 +426,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -535,9 +550,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -639,9 +654,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -697,13 +712,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_poster_and_return_204() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+            final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
@@ -734,13 +749,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_poster_via_multipart_and_return_204() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            var poster = ResourceUtils.getFile("classpath:test.png");
+            final var poster = ResourceUtils.getFile("classpath:test.png");
 
             //@formatter:off
             given()
@@ -770,13 +785,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_poster_and_return_204() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+            final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
@@ -815,7 +830,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_updating_not_permitted() throws Exception {
-            var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+            final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
@@ -871,11 +886,11 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -896,13 +911,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final int size = 42;
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             IntStream.range(0, size).forEach(i -> {
-                var spex = persistSpex(randomizeSpex(category));
+                final var spex = persistSpex(randomizeSpex(category));
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-                var revival = persistRevival(randomizeRevival(spex));
+                final var revival = persistRevival(randomizeRevival(spex));
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
             });
 
@@ -931,11 +946,11 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -958,11 +973,11 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_and_spex_not_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -978,13 +993,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_incorrect_spex() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex1 = persistSpex(randomizeSpex(category));
+            final var spex1 = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex1.getId()));
-            var spex2 = persistSpex(randomizeSpex(category));
+            final var spex2 = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex2.getId()));
-            var revival = persistRevival(randomizeRevival(spex2));
+            final var revival = persistRevival(randomizeRevival(spex2));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1000,9 +1015,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -1036,11 +1051,11 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1061,13 +1076,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final int size = 42;
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             IntStream.range(0, size).forEach(i -> {
-                var revival = persistRevival(randomizeRevival(spex));
+                final var revival = persistRevival(randomizeRevival(spex));
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
             });
 
@@ -1090,9 +1105,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() throws Exception {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -1149,12 +1164,12 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_adding_and_year_already_exists() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1173,12 +1188,12 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            var revival = persistRevival(randomizeRevival(spex));
+            final var revival = persistRevival(randomizeRevival(spex));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1213,9 +1228,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_removing_and_year_not_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -1286,9 +1301,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -1329,9 +1344,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_add_and_return_202() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -1367,9 +1382,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_and_category_not_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -1388,9 +1403,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_remove_and_return_204() {
-            var category = persistSpexCategory(randomizeSpexCategory());
+            final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            var spex = persistSpex(randomizeSpex(category));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -1410,7 +1425,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_removing_and_no_category() {
-            var spex = persistSpex(randomizeSpex(null));
+            final var spex = persistSpex(randomizeSpex(null));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
@@ -1484,8 +1499,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
 
             //@formatter:off
             final List<EventDto> result =
@@ -1521,17 +1536,17 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private Spex randomizeSpex(SpexCategory category) {
-        var spex = random.nextObject(Spex.class);
+    private Spex randomizeSpex(@Nullable final SpexCategory category) {
+        final var spex = random.nextObject(Spex.class);
         spex.setParent(null);
-        var details = random.nextObject(SpexDetails.class);
+        final var details = random.nextObject(SpexDetails.class);
         details.setCategory(category);
         spex.setDetails(details);
         return spex;
     }
 
-    private Spex randomizeRevival(Spex parent) {
-        var revival = random.nextObject(Spex.class);
+    private Spex randomizeRevival(final Spex parent) {
+        final var revival = random.nextObject(Spex.class);
         revival.setParent(parent);
         revival.setDetails(parent.getDetails());
         return revival;
@@ -1541,17 +1556,17 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(SpexCategory.class);
     }
 
-    private Spex persistSpex(Spex spex) {
-        var details = detailsRepository.save(spex.getDetails());
+    private Spex persistSpex(final Spex spex) {
+        final var details = detailsRepository.save(spex.getDetails());
         spex.setDetails(details);
         return repository.save(spex);
     }
 
-    private Spex persistRevival(Spex spex) {
+    private Spex persistRevival(final Spex spex) {
         return repository.save(spex);
     }
 
-    private SpexCategory persistSpexCategory(SpexCategory category) {
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
         return categoryRepository.save(category);
     }
 }

@@ -82,8 +82,8 @@ class StateApiTest extends AbstractApiTest {
 
     @Test
     void should_get_all() throws Exception {
-        var state1 = StateDto.builder().id("PENDING").label("Pending").build();
-        var state2 = StateDto.builder().id("ACTIVE").label("Active").build();
+        final var state1 = StateDto.builder().id("PENDING").label("Pending").build();
+        final var state2 = StateDto.builder().id("ACTIVE").label("Active").build();
 
         when(service.findAll(any(Sort.class))).thenReturn(List.of(state1, state2));
 
@@ -121,7 +121,7 @@ class StateApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var state = StateDto.builder().id("PENDING").label("Pending").build();
+        final var state = StateDto.builder().id("PENDING").label("Pending").build();
 
         when(service.findById(any(String.class))).thenReturn(Optional.of(state));
 
@@ -151,9 +151,9 @@ class StateApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

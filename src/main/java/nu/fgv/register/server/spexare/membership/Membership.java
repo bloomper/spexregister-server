@@ -101,6 +101,7 @@ public class Membership extends AbstractAuditable implements Serializable {
             return false;
         }
         final Membership membership = (Membership) o;
+
         if (membership.getId() == null || getId() == null) {
             return false;
         }
@@ -109,6 +110,6 @@ public class Membership extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

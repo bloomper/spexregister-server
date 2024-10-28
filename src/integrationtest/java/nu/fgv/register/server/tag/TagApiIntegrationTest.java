@@ -21,6 +21,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -33,10 +34,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -59,17 +63,27 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final TagRepository repository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private TagRepository repository;
+    public TagApiIntegrationTest(final JdbcClient jdbcClient,
+                                 final AclCache aclCache,
+                                 final Keycloak keycloakAdminClient,
+                                 final String keycloakClientId,
+                                 final PermissionService permissionService,
+                                 final ObjectMapper objectMapper,
+                                 final TagRepository repository,
+                                 final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    public TagApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -122,7 +136,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
@@ -143,9 +157,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var tag = persistTag(randomizeTag());
+                final var tag = persistTag(randomizeTag());
                 grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             });
 
@@ -173,7 +187,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             // @formatter:off
@@ -195,7 +209,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
@@ -217,13 +231,13 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i ->  {
-                var tag = randomizeTag();
+                final var tag = randomizeTag();
                 if (i % 2 == 0) {
                     tag.setName("whatever");
                 }
-                var tag0 = persistTag(tag);
+                final var tag0 = persistTag(tag);
                 grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag0.getId()));
             });
 
@@ -317,7 +331,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             //@formatter:off
@@ -358,7 +372,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
@@ -476,7 +490,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
@@ -576,7 +590,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
@@ -630,7 +644,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var tag = persistTag(randomizeTag());
+            final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             final List<EventDto> result =
@@ -670,7 +684,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Tag.class);
     }
 
-    private Tag persistTag(Tag tag) {
+    private Tag persistTag(final Tag tag) {
         return repository.save(tag);
     }
 }

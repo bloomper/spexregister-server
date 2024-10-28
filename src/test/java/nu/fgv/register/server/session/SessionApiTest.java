@@ -61,9 +61,9 @@ class SessionApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SESSION.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

@@ -77,6 +77,7 @@ public class Event implements Serializable {
             return false;
         }
         final Event event0 = (Event) o;
+
         if (event0.getId() == null || getId() == null) {
             return false;
         }
@@ -85,7 +86,7 @@ public class Event implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 
     public enum EventType {

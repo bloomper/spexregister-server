@@ -84,6 +84,7 @@ public final class AclEntry {
             return false;
         }
         final AclEntry aclEntry = (AclEntry) o;
+
         if (aclEntry.getId() == null || getId() == null) {
             return false;
         }
@@ -92,6 +93,6 @@ public final class AclEntry {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

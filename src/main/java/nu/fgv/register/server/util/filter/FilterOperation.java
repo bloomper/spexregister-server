@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.util.filter;
 
+import org.springframework.lang.Nullable;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -46,7 +48,7 @@ public enum FilterOperation {
             case '>' -> GREATER_THAN;
             case '<' -> LESS_THAN;
             case '~' -> LIKE;
-            default -> null;
+            default -> throw new IllegalArgumentException("Unexpected operation input, expected one of :, !, >, <, ~, but got: " + input);
         };
     }
 }

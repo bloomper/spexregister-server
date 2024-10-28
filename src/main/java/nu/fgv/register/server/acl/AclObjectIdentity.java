@@ -76,6 +76,7 @@ public final class AclObjectIdentity {
             return false;
         }
         final AclObjectIdentity aclObjectIdentity = (AclObjectIdentity) o;
+
         if (aclObjectIdentity.getId() == null || getId() == null) {
             return false;
         }
@@ -84,6 +85,6 @@ public final class AclObjectIdentity {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

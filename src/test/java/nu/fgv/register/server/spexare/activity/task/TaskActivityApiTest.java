@@ -96,8 +96,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var taskActivity1 = TaskActivityDto.builder().id(1L).build();
-        var taskActivity2 = TaskActivityDto.builder().id(2L).build();
+        final var taskActivity1 = TaskActivityDto.builder().id(1L).build();
+        final var taskActivity2 = TaskActivityDto.builder().id(2L).build();
 
         when(service.findByActivity(any(Long.class), any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(taskActivity1, taskActivity2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
@@ -139,7 +139,7 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var taskActivity = TaskActivityDto.builder().id(1L).build();
+        final var taskActivity = TaskActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
 
@@ -171,7 +171,7 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var taskActivity = TaskActivityDto.builder().id(1L).build();
+        final var taskActivity = TaskActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
 
@@ -250,8 +250,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_task() throws Exception {
-        var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        var realTaskApi = new TaskApi(null, null, null, null, null, null);
+        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var realTaskApi = new TaskApi(null, null, null, null, null, null);
 
         when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(task));
         when(taskApi.getLinks(any(TaskDto.class), eq(false))).thenReturn(realTaskApi.getLinks(task, false));

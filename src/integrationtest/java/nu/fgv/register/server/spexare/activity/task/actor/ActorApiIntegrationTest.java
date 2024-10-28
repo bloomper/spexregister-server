@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.spexare.activity.task.actor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -48,10 +48,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -78,32 +81,39 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ActorRepository repository;
+    private final TaskActivityRepository taskActivityRepository;
+    private final ActivityRepository activityRepository;
+    private final SpexareRepository spexareRepository;
+    private final TaskRepository taskRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final TypeRepository typeRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private ActorRepository repository;
+    public ActorApiIntegrationTest(final JdbcClient jdbcClient,
+                                   final AclCache aclCache,
+                                   final Keycloak keycloakAdminClient,
+                                   final String keycloakClientId,
+                                   final PermissionService permissionService,
+                                   final ActorRepository repository,
+                                   final TaskActivityRepository taskActivityRepository,
+                                   final ActivityRepository activityRepository,
+                                   final SpexareRepository spexareRepository,
+                                   final TaskRepository taskRepository,
+                                   final TaskCategoryRepository taskCategoryRepository,
+                                   final TypeRepository typeRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.taskActivityRepository = taskActivityRepository;
+        this.activityRepository = activityRepository;
+        this.spexareRepository = spexareRepository;
+        this.taskRepository = taskRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
+        this.typeRepository = typeRepository;
 
-    @Autowired
-    private TaskActivityRepository taskActivityRepository;
-
-    @Autowired
-    private ActivityRepository activityRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private TaskCategoryRepository taskCategoryRepository;
-
-    @Autowired
-    private TypeRepository typeRepository;
-
-    public ActorApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("year"), new YearRandomizer()
@@ -180,11 +190,11 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -207,12 +217,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
             persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
@@ -236,13 +246,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
             IntStream.range(0, size).forEach(i -> persistActor(randomizeActor(vocal, taskActivity)));
 
             //@formatter:off
@@ -267,12 +277,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -295,13 +305,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_activity() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare1));
-            var activity2 = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare1));
+            final var activity2 = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -346,12 +356,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
             persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
@@ -376,13 +386,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -406,15 +416,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
             IntStream.range(0, size).forEach(i -> {
-                var actor = randomizeActor(vocal, taskActivity);
+                final var actor = randomizeActor(vocal, taskActivity);
                 if (i % 2 == 0) {
                     actor.setRole("whatever");
                 }
@@ -444,12 +454,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -473,13 +483,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_activity() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare1));
-            var activity2 = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare1));
+            final var activity2 = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             final List<ActorDto> result =
@@ -507,13 +517,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             final ActorDto result =
@@ -538,11 +548,11 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -560,13 +570,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -584,13 +594,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -608,13 +618,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_task_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -632,14 +642,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -657,14 +667,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -682,14 +692,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_task_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity2));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity2));
 
             //@formatter:off
             given()
@@ -712,13 +722,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -756,13 +766,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_already_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -797,13 +807,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -824,13 +834,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -849,13 +859,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_task_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
             persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -874,12 +884,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_vocal_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -900,14 +910,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -928,14 +938,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             given()
@@ -961,13 +971,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             final ActorDto before =
@@ -985,7 +995,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .extract().body().as(ActorDto.class);
             //@formatter:on
 
-            var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
+            final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
             //@formatter:off
             given()
@@ -1026,13 +1036,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1053,13 +1063,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1080,13 +1090,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1107,13 +1117,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_task_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1134,13 +1144,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_vocal_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1161,15 +1171,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1191,15 +1201,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1221,15 +1231,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_task_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity2));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity2));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1256,13 +1266,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
             final ActorDto before =
@@ -1280,7 +1290,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .extract().body().as(ActorDto.class);
             //@formatter:on
 
-            var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
+            final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
             //@formatter:off
             given()
@@ -1321,13 +1331,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1348,13 +1358,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1375,13 +1385,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1402,13 +1412,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_task_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1429,13 +1439,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_vocal_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
             given()
@@ -1456,15 +1466,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1486,15 +1496,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1516,15 +1526,15 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_task_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity2));
-            var dto = random.nextObject(ActorUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity2));
+            final var dto = random.nextObject(ActorUpdateDto.class);
             dto.setId(actor.getId());
 
             //@formatter:off
@@ -1551,13 +1561,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1594,12 +1604,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
 
             //@formatter:off
             given()
@@ -1619,13 +1629,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1645,13 +1655,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1671,13 +1681,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_task_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1697,14 +1707,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1724,14 +1734,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
             given()
@@ -1751,14 +1761,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_task_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
-            var vocal = persistVocal(randomizeVocal());
-            var actor = persistActor(randomizeActor(vocal, taskActivity2));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var actor = persistActor(randomizeActor(vocal, taskActivity2));
 
             //@formatter:off
             given()
@@ -1777,35 +1787,35 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private Actor randomizeActor(Type vocal, TaskActivity taskActivity) {
-        var actor = random.nextObject(Actor.class);
+    private Actor randomizeActor(final Type vocal, final TaskActivity taskActivity) {
+        final var actor = random.nextObject(Actor.class);
         actor.setTaskActivity(taskActivity);
         actor.setVocal(vocal);
         return actor;
     }
 
-    private Actor persistActor(Actor actor) {
+    private Actor persistActor(final Actor actor) {
         return repository.save(actor);
     }
 
-    private TaskActivity randomizeTaskActivity(Activity activity, Task task) {
-        var taskActivity = random.nextObject(TaskActivity.class);
+    private TaskActivity randomizeTaskActivity(final Activity activity, final Task task) {
+        final var taskActivity = random.nextObject(TaskActivity.class);
         taskActivity.setActivity(activity);
         taskActivity.setTask(task);
         return taskActivity;
     }
 
-    private TaskActivity persistTaskActivity(TaskActivity taskActivity) {
+    private TaskActivity persistTaskActivity(final TaskActivity taskActivity) {
         return taskActivityRepository.save(taskActivity);
     }
 
-    private Activity randomizeActivity(Spexare spexare) {
-        var activity = random.nextObject(Activity.class);
+    private Activity randomizeActivity(final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
         activity.setSpexare(spexare);
         return activity;
     }
 
-    private Activity persistActivity(Activity activity) {
+    private Activity persistActivity(final Activity activity) {
         return activityRepository.save(activity);
     }
 
@@ -1813,17 +1823,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 
-    private Task randomizeTask(TaskCategory category) {
-        var task = random.nextObject(Task.class);
+    private Task randomizeTask(final TaskCategory category) {
+        final var task = random.nextObject(Task.class);
         task.setCategory(category);
         return task;
     }
 
-    private Task persistTask(Task task) {
+    private Task persistTask(final Task task) {
         return taskRepository.save(task);
     }
 
@@ -1831,17 +1841,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(TaskCategory.class);
     }
 
-    private TaskCategory persistTaskCategory(TaskCategory category) {
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
         return taskCategoryRepository.save(category);
     }
 
     private Type randomizeVocal() {
-        var type = random.nextObject(Type.class);
+        final var type = random.nextObject(Type.class);
         type.setType(TypeType.VOCAL);
         return type;
     }
 
-    private Type persistVocal(Type type) {
+    private Type persistVocal(final Type type) {
         return typeRepository.save(type);
     }
 

@@ -51,14 +51,11 @@ import java.util.Optional;
 @Component
 public class JpaEntityListener {
 
-    private ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     public JpaEntityListener(final ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
-    }
-
-    public JpaEntityListener() {
     }
 
     @PrePersist

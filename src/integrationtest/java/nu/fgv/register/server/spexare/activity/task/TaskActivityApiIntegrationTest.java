@@ -16,20 +16,20 @@
 
 package nu.fgv.register.server.spexare.activity.task;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
-import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -43,10 +43,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.lang.Nullable;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -73,26 +77,33 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final TaskActivityRepository repository;
+    private final ActivityRepository activityRepository;
+    private final SpexareRepository spexareRepository;
+    private final TaskRepository taskRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private TaskActivityRepository repository;
+    public TaskActivityApiIntegrationTest(final JdbcClient jdbcClient,
+                                          final AclCache aclCache,
+                                          final Keycloak keycloakAdminClient,
+                                          final String keycloakClientId,
+                                          final PermissionService permissionService,
+                                          final TaskActivityRepository repository,
+                                          final ActivityRepository activityRepository,
+                                          final SpexareRepository spexareRepository,
+                                          final TaskRepository taskRepository,
+                                          final TaskCategoryRepository taskCategoryRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.activityRepository = activityRepository;
+        this.spexareRepository = spexareRepository;
+        this.taskRepository = taskRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
 
-    @Autowired
-    private ActivityRepository activityRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private TaskCategoryRepository taskCategoryRepository;
-
-    public TaskActivityApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("year"), new YearRandomizer()
@@ -166,8 +177,8 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final List<TaskActivityDto> result =
@@ -189,10 +200,10 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
             persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
@@ -215,11 +226,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
             IntStream.range(0, size).forEach(i -> persistTaskActivity(randomizeTaskActivity(activity, task)));
 
             //@formatter:off
@@ -243,9 +254,9 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
             final List<TaskActivityDto> result =
@@ -271,11 +282,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final TaskActivityDto result =
@@ -299,8 +310,8 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -317,11 +328,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -338,11 +349,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -359,12 +370,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -381,12 +392,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
@@ -408,10 +419,10 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -446,10 +457,10 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -468,9 +479,9 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
             persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
@@ -488,8 +499,8 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_task_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -508,11 +519,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
             given()
@@ -536,12 +547,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task1 = persistTask(randomizeTask(category));
-            var task2 = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task1 = persistTask(randomizeTask(category));
+            final var task2 = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
 
             //@formatter:off
             given()
@@ -576,11 +587,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -599,11 +610,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -622,11 +633,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spex_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -645,12 +656,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -669,12 +680,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
@@ -698,11 +709,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -737,8 +748,8 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -757,10 +768,10 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(null));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(null));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -779,11 +790,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(null));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(null));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -802,12 +813,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
@@ -826,12 +837,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistTaskCategory(randomizeTaskCategory());
-            var task = persistTask(randomizeTask(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
             given()
@@ -849,24 +860,26 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private TaskActivity randomizeTaskActivity(Activity activity, Task task) {
-        var taskActivity = random.nextObject(TaskActivity.class);
+    private TaskActivity randomizeTaskActivity(final Activity activity, final Task task) {
+        final var taskActivity = random.nextObject(TaskActivity.class);
         taskActivity.setActivity(activity);
         taskActivity.setTask(task);
         return taskActivity;
     }
 
-    private TaskActivity persistTaskActivity(TaskActivity taskActivity) {
+    private TaskActivity persistTaskActivity(final TaskActivity taskActivity) {
         return repository.save(taskActivity);
     }
 
-    private Activity randomizeActivity(Spexare spexare) {
-        var activity = random.nextObject(Activity.class);
-        activity.setSpexare(spexare);
+    private Activity randomizeActivity(@Nullable final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+        if (spexare != null) {
+            activity.setSpexare(spexare);
+        }
         return activity;
     }
 
-    private Activity persistActivity(Activity activity) {
+    private Activity persistActivity(final Activity activity) {
         return activityRepository.save(activity);
     }
 
@@ -874,17 +887,17 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 
-    private Task randomizeTask(TaskCategory category) {
-        var task = random.nextObject(Task.class);
+    private Task randomizeTask(final TaskCategory category) {
+        final var task = random.nextObject(Task.class);
         task.setCategory(category);
         return task;
     }
 
-    private Task persistTask(Task task) {
+    private Task persistTask(final Task task) {
         return taskRepository.save(task);
     }
 
@@ -892,7 +905,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(TaskCategory.class);
     }
 
-    private TaskCategory persistTaskCategory(TaskCategory category) {
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
         return taskCategoryRepository.save(category);
     }
 

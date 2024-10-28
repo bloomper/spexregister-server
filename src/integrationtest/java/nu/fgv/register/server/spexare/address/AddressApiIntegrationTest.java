@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.spexare.address;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -39,10 +39,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -69,20 +72,27 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final AddressRepository repository;
+    private final TypeRepository typeRepository;
+    private final SpexareRepository spexareRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private AddressRepository repository;
+    public AddressApiIntegrationTest(final JdbcClient jdbcClient,
+                                     final AclCache aclCache,
+                                     final Keycloak keycloakAdminClient,
+                                     final String keycloakClientId,
+                                     final PermissionService permissionService,
+                                     final AddressRepository repository,
+                                     final TypeRepository typeRepository,
+                                     final SpexareRepository spexareRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.typeRepository = typeRepository;
+        this.spexareRepository = spexareRepository;
 
-    @Autowired
-    private TypeRepository typeRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    public AddressApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("emailAddress"), new EmailRandomizer()
@@ -149,7 +159,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<AddressDto> result =
@@ -170,8 +180,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
@@ -193,9 +203,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> persistAddress(randomizeAddress(type, spexare)));
 
             //@formatter:off
@@ -239,8 +249,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
@@ -263,9 +273,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             final List<AddressDto> result =
@@ -287,11 +297,11 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> {
-                var address = randomizeAddress(type, spexare);
+                final var address = randomizeAddress(type, spexare);
                 if (i % 2 == 0) {
                     address.setStreetAddress("whatever");
                 }
@@ -324,9 +334,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             final AddressDto result =
@@ -349,7 +359,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -365,9 +375,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             given()
@@ -388,9 +398,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             given()
@@ -424,9 +434,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_already_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             given()
@@ -457,8 +467,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             given()
@@ -477,8 +487,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             given()
@@ -503,9 +513,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             final AddressDto before = given()
@@ -520,7 +530,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .extract().body().as(AddressDto.class);
             //@formatter:on
 
-            var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
+            final var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
                     .postalCode(before.getPostalCode()).city(before.getCity()).country(before.getCountry())
                     .phone(before.getPhone()).phoneMobile(dto.getPhoneMobile()).emailAddress(before.getEmailAddress()).build();
 
@@ -559,9 +569,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -580,8 +590,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -600,8 +610,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -620,11 +630,11 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare2));
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare2));
+            final var dto = random.nextObject(AddressUpdateDto.class);
             dto.setId(address.getId());
 
             //@formatter:off
@@ -649,9 +659,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressCreateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
             final AddressDto result =
@@ -667,7 +677,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                         .extract().body().as(AddressDto.class);
             //@formatter:on
 
-            var updateDto = AddressUpdateDto.builder().id(result.getId()).streetAddress(result.getStreetAddress() + "_").build();
+            final var updateDto = AddressUpdateDto.builder().id(result.getId()).streetAddress(result.getStreetAddress() + "_").build();
 
             //@formatter:off
             given()
@@ -704,9 +714,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -725,8 +735,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var type = persistType(randomizeType());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var type = persistType(randomizeType());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -745,8 +755,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
             given()
@@ -765,11 +775,11 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare2));
-            var dto = random.nextObject(AddressUpdateDto.class);
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare2));
+            final var dto = random.nextObject(AddressUpdateDto.class);
             dto.setId(address.getId());
 
             //@formatter:off
@@ -795,9 +805,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             given()
@@ -830,8 +840,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -849,9 +859,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             given()
@@ -869,9 +879,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
             given()
@@ -889,10 +899,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var address = persistAddress(randomizeAddress(type, spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var address = persistAddress(randomizeAddress(type, spexare2));
 
             //@formatter:off
             given()
@@ -909,24 +919,24 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private Address randomizeAddress(Type type, Spexare spexare) {
-        var address = random.nextObject(Address.class);
+    private Address randomizeAddress(final Type type, final Spexare spexare) {
+        final var address = random.nextObject(Address.class);
         address.setSpexare(spexare);
         address.setType(type);
         return address;
     }
 
-    private Address persistAddress(Address address) {
+    private Address persistAddress(final Address address) {
         return repository.save(address);
     }
 
     private Type randomizeType() {
-        var type = random.nextObject(Type.class);
+        final var type = random.nextObject(Type.class);
         type.setType(TypeType.ADDRESS);
         return type;
     }
 
-    private Type persistType(Type type) {
+    private Type persistType(final Type type) {
         return typeRepository.save(type);
     }
 
@@ -934,7 +944,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 

@@ -30,6 +30,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.context.MessageSource;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -64,12 +65,12 @@ public class ExcelWriter {
         return createSheet(messageSource, locale, workbook, data, null);
     }
 
-    public <T> Optional<Sheet> createSheet(final MessageSource messageSource, final Locale locale, final Workbook workbook, final List<T> data, final String overrideSheetName) {
+    public <T> Optional<Sheet> createSheet(final MessageSource messageSource, final Locale locale, final Workbook workbook, final List<T> data, @Nullable final String overrideSheetName) {
         workbookContainer.setMessageSource(messageSource);
         workbookContainer.setLocale(locale);
         workbookContainer.setWorkbook(workbook);
 
-        return data != null && !data.isEmpty() ?
+        return !data.isEmpty() ?
                 Optional.of(initialize
                         .andThen(generateSheetName)
                         .andThen(addColumns)

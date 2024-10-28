@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -130,7 +131,7 @@ public class SpexareService {
         repository.deleteById(id);
     }
 
-    public Optional<SpexareDto> saveImage(final Long id, final byte[] image, final String contentType) {
+    public Optional<SpexareDto> saveImage(final Long id, final byte[] image, @Nullable final String contentType) {
         return repository
                 .findById(id)
                 .map(spexare -> {

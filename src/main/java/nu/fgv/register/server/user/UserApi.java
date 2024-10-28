@@ -306,11 +306,11 @@ public class UserApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<UserDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
         }
     }
@@ -327,7 +327,7 @@ public class UserApi {
         links.add(linkTo(methodOn(UserApi.class).retrieveSpexare(dto.getId())).withRel("spexare"));
         links.add(linkTo(methodOn(UserApi.class).retrieveState(dto.getId())).withRel("state"));
         links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));
-        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null)).withRel("events"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
     }

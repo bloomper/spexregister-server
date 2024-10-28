@@ -16,17 +16,17 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.spex.category.SpexCategory;
-import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
 import nu.fgv.register.server.spex.SpexRepository;
+import nu.fgv.register.server.spex.category.SpexCategory;
+import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.Activity;
@@ -44,10 +44,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.lang.Nullable;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -74,29 +78,36 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final SpexActivityRepository repository;
+    private final ActivityRepository activityRepository;
+    private final SpexareRepository spexareRepository;
+    private final SpexRepository spexRepository;
+    private final SpexDetailsRepository spexDetailsRepository;
+    private final SpexCategoryRepository spexCategoryRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private SpexActivityRepository repository;
+    public SpexActivityApiIntegrationTest(final JdbcClient jdbcClient,
+                                          final AclCache aclCache,
+                                          final Keycloak keycloakAdminClient,
+                                          final String keycloakClientId,
+                                          final PermissionService permissionService,
+                                          final SpexActivityRepository repository,
+                                          final ActivityRepository activityRepository,
+                                          final SpexareRepository spexareRepository,
+                                          final SpexRepository spexRepository,
+                                          final SpexDetailsRepository spexDetailsRepository,
+                                          final SpexCategoryRepository spexCategoryRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.activityRepository = activityRepository;
+        this.spexareRepository = spexareRepository;
+        this.spexRepository = spexRepository;
+        this.spexDetailsRepository = spexDetailsRepository;
+        this.spexCategoryRepository = spexCategoryRepository;
 
-    @Autowired
-    private ActivityRepository activityRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    @Autowired
-    private SpexRepository spexRepository;
-
-    @Autowired
-    private SpexDetailsRepository spexDetailsRepository;
-
-    @Autowired
-    private SpexCategoryRepository spexCategoryRepository;
-
-    public SpexActivityApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("year"), new YearRandomizer()
@@ -171,8 +182,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final List<SpexActivityDto> result =
@@ -194,10 +205,10 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
             persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
@@ -220,11 +231,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
             IntStream.range(0, size).forEach(i -> persistSpexActivity(randomizeSpexActivity(activity, spex)));
 
             //@formatter:off
@@ -248,9 +259,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
             final List<SpexActivityDto> result =
@@ -276,11 +287,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             final SpexActivityDto result =
@@ -304,8 +315,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -322,11 +333,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -343,11 +354,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -364,12 +375,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -386,12 +397,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
@@ -413,10 +424,10 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -451,10 +462,10 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -473,9 +484,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
             persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
@@ -493,8 +504,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spex_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -513,11 +524,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
             given()
@@ -541,12 +552,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex1 = persistSpex(randomizeSpex(category));
-            var spex2 = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex1 = persistSpex(randomizeSpex(category));
+            final var spex2 = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
             //@formatter:off
             given()
@@ -581,11 +592,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -604,11 +615,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -627,11 +638,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spex_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -650,12 +661,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -674,12 +685,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
@@ -703,11 +714,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -742,8 +753,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var activity = persistActivity(randomizeActivity(spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
@@ -762,10 +773,10 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(null));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(null));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -784,11 +795,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_activity_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(null));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(null));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -807,12 +818,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity = persistActivity(randomizeActivity(spexare2));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
             given()
@@ -831,12 +842,12 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_activity() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var category = persistSpexCategory(randomizeSpexCategory());
-            var spex = persistSpex(randomizeSpex(category));
-            var activity1 = persistActivity(randomizeActivity(spexare));
-            var activity2 = persistActivity(randomizeActivity(spexare));
-            var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
 
             //@formatter:off
             given()
@@ -854,24 +865,27 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private SpexActivity randomizeSpexActivity(Activity activity, Spex spex) {
-        var spexActivity = random.nextObject(SpexActivity.class);
+    private SpexActivity randomizeSpexActivity(final Activity activity, final Spex spex) {
+        final var spexActivity = random.nextObject(SpexActivity.class);
         spexActivity.setActivity(activity);
         spexActivity.setSpex(spex);
         return spexActivity;
     }
 
-    private SpexActivity persistSpexActivity(SpexActivity spexActivity) {
+    private SpexActivity persistSpexActivity(final SpexActivity spexActivity) {
         return repository.save(spexActivity);
     }
 
-    private Activity randomizeActivity(Spexare spexare) {
-        var activity = random.nextObject(Activity.class);
-        activity.setSpexare(spexare);
+    private Activity randomizeActivity(@Nullable final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+
+        if (spexare != null) {
+            activity.setSpexare(spexare);
+        }
         return activity;
     }
 
-    private Activity persistActivity(Activity activity) {
+    private Activity persistActivity(final Activity activity) {
         return activityRepository.save(activity);
     }
 
@@ -879,21 +893,21 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 
-    private Spex randomizeSpex(SpexCategory category) {
-        var spex = random.nextObject(Spex.class);
+    private Spex randomizeSpex(final SpexCategory category) {
+        final var spex = random.nextObject(Spex.class);
         spex.setParent(null);
-        var details = random.nextObject(SpexDetails.class);
+        final var details = random.nextObject(SpexDetails.class);
         details.setCategory(category);
         spex.setDetails(details);
         return spex;
     }
 
-    private Spex persistSpex(Spex spex) {
-        var details = spexDetailsRepository.save(spex.getDetails());
+    private Spex persistSpex(final Spex spex) {
+        final var details = spexDetailsRepository.save(spex.getDetails());
         spex.setDetails(details);
         return spexRepository.save(spex);
     }
@@ -902,7 +916,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(SpexCategory.class);
     }
 
-    private SpexCategory persistSpexCategory(SpexCategory category) {
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
         return spexCategoryRepository.save(category);
     }
 

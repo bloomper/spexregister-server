@@ -64,12 +64,12 @@ public interface NewsMapper {
     void toPartialModel(NewsUpdateDto dto, @MappingTarget News model);
 
     @AfterMapping
-    default void setPublished(NewsCreateDto dto, final @MappingTarget News model) {
+    default void setPublished(final NewsCreateDto dto, final @MappingTarget News model) {
         model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
     }
 
     @AfterMapping
-    default void setPublished(NewsUpdateDto dto, final @MappingTarget News model) {
+    default void setPublished(final NewsUpdateDto dto, final @MappingTarget News model) {
         model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
     }
 

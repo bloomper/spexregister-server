@@ -42,6 +42,7 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -76,6 +77,7 @@ public class Spex extends AbstractAuditable implements Serializable {
     private String year;
 
     @ManyToOne
+    @Nullable
     private Spex parent;
 
     @ManyToOne(optional = false)
@@ -96,6 +98,7 @@ public class Spex extends AbstractAuditable implements Serializable {
             return false;
         }
         final Spex spex = (Spex) o;
+
         if (spex.getId() == null || getId() == null) {
             return false;
         }
@@ -104,6 +107,6 @@ public class Spex extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

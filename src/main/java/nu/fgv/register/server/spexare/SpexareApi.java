@@ -49,6 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -196,7 +197,7 @@ public class SpexareApi {
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public ResponseEntity<?> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType) {
+    public ResponseEntity<?> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.saveImage(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -272,7 +273,7 @@ public class SpexareApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<SpexareDto> entity) {
@@ -300,7 +301,7 @@ public class SpexareApi {
         links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged(), "")).withRel("addresses"));
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrievePartner(dto.getId())).withRel("partner"));
-        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(null)).withRel("events"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
     }

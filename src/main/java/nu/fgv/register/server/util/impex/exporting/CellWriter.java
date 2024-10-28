@@ -36,24 +36,25 @@ class CellWriter extends FieldAccessor {
         super(field);
     }
 
-    public final BiConsumer<Cell, Object> intWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getInt(obj));
+    public final BiConsumer<Cell, Object> intWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getInt(obj));
 
-    public final BiConsumer<Cell, Object> shortWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getShort(obj));
+    public final BiConsumer<Cell, Object> shortWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getShort(obj));
 
-    public final BiConsumer<Cell, Object> longWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getLong(obj));
+    public final BiConsumer<Cell, Object> longWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getLong(obj));
 
-    public final BiConsumer<Cell, Object> doubleWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getDouble(obj));
+    public final BiConsumer<Cell, Object> doubleWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getDouble(obj));
 
-    public final BiConsumer<Cell, Object> floatWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getFloat(obj));
+    public final BiConsumer<Cell, Object> floatWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getFloat(obj));
 
-    public final BiConsumer<Cell, Object> byteWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getByte(obj));
+    public final BiConsumer<Cell, Object> byteWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getByte(obj));
 
-    public final BiConsumer<Cell, Object> charWriter = (Cell cell, Object obj) -> cell.setCellValue(String.valueOf(this.getChar(obj)));
+    public final BiConsumer<Cell, Object> charWriter = (final Cell cell, final Object obj) -> cell.setCellValue(String.valueOf(getChar(obj)));
 
-    public final BiConsumer<Cell, Object> booleanWriter = (Cell cell, Object obj) -> cell.setCellValue(this.getBoolean(obj));
+    public final BiConsumer<Cell, Object> booleanWriter = (final Cell cell, final Object obj) -> cell.setCellValue(getBoolean(obj));
 
-    public final BiConsumer<Cell, Object> utilDateWriter = (Cell cell, Object obj) -> {
+    public final BiConsumer<Cell, Object> utilDateWriter = (final Cell cell, final Object obj) -> {
         Date value = null;
+
         try {
             value = (Date) field.get(obj);
         } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
@@ -63,8 +64,9 @@ class CellWriter extends FieldAccessor {
         cell.setCellValue(value);
     };
 
-    public final BiConsumer<Cell, Object> sqlDateWriter = (Cell cell, Object obj) -> {
+    public final BiConsumer<Cell, Object> sqlDateWriter = (final Cell cell, final Object obj) -> {
         Date value = null;
+
         try {
             value = new Date(((java.sql.Date) field.get(obj)).getTime());
         } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
@@ -74,8 +76,9 @@ class CellWriter extends FieldAccessor {
         cell.setCellValue(value);
     };
 
-    public final BiConsumer<Cell, Object> calendarWriter = (Cell cell, Object obj) -> {
+    public final BiConsumer<Cell, Object> calendarWriter = (final Cell cell, final Object obj) -> {
         Date value = null;
+
         try {
             value = ((Calendar) field.get(obj)).getTime();
         } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
@@ -85,10 +88,11 @@ class CellWriter extends FieldAccessor {
         cell.setCellValue(value);
     };
 
-    public final BiConsumer<Cell, Object> stringWriter = (Cell cell, Object obj) -> {
-        obj = this.getObject(obj);
-        if (obj != null) {
-            cell.setCellValue(obj.toString());
+    public final BiConsumer<Cell, Object> stringWriter = (final Cell cell, final Object obj) -> {
+        final Object o = getObject(obj);
+
+        if (o != null) {
+            cell.setCellValue(o.toString());
         }
     };
 }

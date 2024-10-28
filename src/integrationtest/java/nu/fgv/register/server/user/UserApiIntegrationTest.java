@@ -22,6 +22,7 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -57,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.SecureRandom;
@@ -88,30 +92,39 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserRepository repository;
-
-    @Autowired
-    private AuthorityRepository authorityRepository;
-
-    @Autowired
-    private StateRepository stateRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    @Autowired
-    private EventRepository eventRepository;
+    private final ObjectMapper objectMapper;
+    private final UserRepository repository;
+    private final AuthorityRepository authorityRepository;
+    private final StateRepository stateRepository;
+    private final SpexareRepository spexareRepository;
+    private final EventRepository eventRepository;
 
     private final EmailRandomizer emailRandomizer = new EmailRandomizer();
-
     private final Random rnd = new SecureRandom();
 
-    public UserApiIntegrationTest() {
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
+    public UserApiIntegrationTest(final JdbcClient jdbcClient,
+                                  final AclCache aclCache,
+                                  final Keycloak keycloakAdminClient,
+                                  final String keycloakClientId,
+                                  final PermissionService permissionService,
+                                  final ObjectMapper objectMapper,
+                                  final UserRepository repository,
+                                  final AuthorityRepository authorityRepository,
+                                  final StateRepository stateRepository,
+                                  final SpexareRepository spexareRepository,
+                                  final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.authorityRepository = authorityRepository;
+        this.stateRepository = stateRepository;
+        this.spexareRepository = spexareRepository;
+        this.eventRepository = eventRepository;
+
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("email"), new EmailRandomizer()
@@ -184,8 +197,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -206,10 +219,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var state = persistState(randomizeState());
+            final int size = 42;
+            final var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
-                var user = persistUser(randomizeUser(state));
+                final var user = persistUser(randomizeUser(state));
                 grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
@@ -252,8 +265,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -275,8 +288,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -298,10 +311,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var state = persistState(randomizeState());
+            final int size = 42;
+            final var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
-                var user = persistUser(randomizeUser(state));
+                final var user = persistUser(randomizeUser(state));
                 grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
@@ -413,8 +426,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -468,8 +481,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -589,8 +602,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -690,8 +703,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -762,8 +775,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -786,9 +799,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var state = persistState(randomizeState());
-            var authority = getRandomAuthority();
-            var user = persistUser(randomizeUser(state), authority);
+            final var state = persistState(randomizeState());
+            final var authority = getRandomAuthority();
+            final var user = persistUser(randomizeUser(state), authority);
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -813,9 +826,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            var state = persistState(randomizeState());
-            var authorities = getRandomAuthorities(2);
-            var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
@@ -841,9 +854,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_add_and_return_202() {
-            var state = persistState(randomizeState());
-            var authorities = getRandomAuthorities(2);
-            var user = persistUser(randomizeUser(state), authorities.getFirst());
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state), authorities.getFirst());
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -882,8 +895,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_and_authority_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -902,9 +915,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_add_multiple_and_return_202() {
-            var state = persistState(randomizeState());
-            var authorities = getRandomAuthorities(2);
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -946,8 +959,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_multiple_and_authorities_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -967,9 +980,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_multiple_and_authority_not_found() {
-            var state = persistState(randomizeState());
-            var authority = getRandomAuthority();
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var authority = getRandomAuthority();
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -989,9 +1002,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_remove_and_return_204() {
-            var state = persistState(randomizeState());
-            var authority = getRandomAuthority();
-            var user = persistUser(randomizeUser(state), authority);
+            final var state = persistState(randomizeState());
+            final var authority = getRandomAuthority();
+            final var user = persistUser(randomizeUser(state), authority);
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1028,8 +1041,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_and_authority_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -1048,9 +1061,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_remove_multiple_and_return_202() {
-            var state = persistState(randomizeState());
-            var authorities = getRandomAuthorities(2);
-            var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1072,7 +1085,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_multiple_and_user_not_found() {
-            var authorities = getRandomAuthorities(2);
+            final var authorities = getRandomAuthorities(2);
 
             //@formatter:off
             given()
@@ -1091,8 +1104,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_multiple_and_authorities_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -1112,9 +1125,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_multiple_and_authority_not_found() {
-            var state = persistState(randomizeState());
-            var authority = getRandomAuthority();
-            var user = persistUser(randomizeUser(state), authority);
+            final var state = persistState(randomizeState());
+            final var authority = getRandomAuthority();
+            final var user = persistUser(randomizeUser(state), authority);
 
             //@formatter:off
             given()
@@ -1231,8 +1244,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1254,9 +1267,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_set_and_return_202() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
-            var newState = persistState(randomizeState());
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var newState = persistState(randomizeState());
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1275,7 +1288,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_setting_and_user_not_found() {
-            var state = persistState(randomizeState());
+            final var state = persistState(randomizeState());
 
             //@formatter:off
             given()
@@ -1290,8 +1303,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_setting_and_state_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -1350,9 +1363,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
-            var spexare = persistSpexare(randomizeSpexare());
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
             user.setSpexare(spexare);
             repository.save(user);
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -1377,9 +1390,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_add_and_return_202() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
-            var spexare = persistSpexare(randomizeSpexare());
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
@@ -1399,7 +1412,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_and_user_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -1414,8 +1427,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_adding_and_spexare_not_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             given()
@@ -1430,9 +1443,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_remove_and_return_204() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
-            var spexare = persistSpexare(randomizeSpexare());
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
             user.setSpexare(spexare);
             repository.save(user);
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -1454,7 +1467,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_and_user_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -1500,8 +1513,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var state = persistState(randomizeState());
-            var user = persistUser(randomizeUser(state));
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
 
             //@formatter:off
             final List<EventDto> result =
@@ -1537,21 +1550,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private User randomizeUser(State state) {
-        var user = random.nextObject(User.class);
+    private User randomizeUser(final State state) {
+        final var user = random.nextObject(User.class);
         if (state != null) {
             user.setState(state);
         }
         return user;
     }
 
-    private User persistUser(User user, String... roles) {
-        var representation = persistUserInKeycloak(roles);
+    private User persistUser(final User user, final String... roles) {
+        final var representation = persistUserInKeycloak(roles);
         user.setExternalId(representation.getId());
         return repository.save(user);
     }
 
-    private UserRepresentation persistUserInKeycloak(String... roles) {
+    private UserRepresentation persistUserInKeycloak(final String... roles) {
         final UserRepresentation userRepresentation = new UserRepresentation();
 
         userRepresentation.setEmail(emailRandomizer.getRandomValue());
@@ -1602,7 +1615,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .list();
     }
 
-    private List<RoleRepresentation> getRoleRepresentationsForUserInKeycloak(User user) {
+    private List<RoleRepresentation> getRoleRepresentationsForUserInKeycloak(final User user) {
         return keycloakAdminClient
                 .realm(keycloakRealm)
                 .users()
@@ -1649,7 +1662,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         return AUTHORITIES.get(rnd.nextInt(AUTHORITIES.size()));
     }
 
-    private List<String> getRandomAuthorities(int numberOfAuthorities) {
+    private List<String> getRandomAuthorities(final int numberOfAuthorities) {
         if (numberOfAuthorities > AUTHORITIES.size()) {
             throw new IllegalArgumentException();
         }
@@ -1662,7 +1675,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Authority.class);
     }
 
-    private Authority persistAuthority(Authority authority) {
+    private Authority persistAuthority(final Authority authority) {
         return authorityRepository.save(authority);
     }
 
@@ -1670,7 +1683,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(State.class);
     }
 
-    private State persistState(State state) {
+    private State persistState(final State state) {
         return stateRepository.save(state);
     }
 
@@ -1678,7 +1691,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 }

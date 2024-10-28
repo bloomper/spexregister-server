@@ -27,6 +27,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -47,7 +48,7 @@ public interface UserMapper {
     @Mapping(target = "id", source = "model.id")
     @Mapping(target = "email", source = "representation.email")
     @Mapping(target = "temporaryPassword", source = "temporaryPassword")
-    UserDto toDto(User model, UserRepresentation representation, String temporaryPassword);
+    UserDto toDto(User model, UserRepresentation representation, @Nullable String temporaryPassword);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "state", ignore = true)
@@ -70,7 +71,7 @@ public interface UserMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(UserUpdateDto dto, @MappingTarget User model);
 
-    default UserRepresentation toRepresentation(UserCreateDto dto, String temporaryPassword) {
+    default UserRepresentation toRepresentation(final UserCreateDto dto, final String temporaryPassword) {
         final UserRepresentation userRepresentation = new UserRepresentation();
 
         userRepresentation.setEmail(dto.getEmail());

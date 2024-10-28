@@ -148,7 +148,7 @@ public abstract class AbstractApiTest {
     private WebApplicationContext context;
 
     @BeforeEach
-    public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
+    public void setUp(final WebApplicationContext webApplicationContext, final RestDocumentationContextProvider restDocumentation) {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .apply(documentationConfiguration(restDocumentation)
                         .uris()
@@ -162,14 +162,14 @@ public abstract class AbstractApiTest {
 
         private final ConstraintDescriptions constraintDescriptions;
 
-        public ConstrainedFields(Class<?> input) {
+        public ConstrainedFields(final Class<?> input) {
             this.constraintDescriptions = new ConstraintDescriptions(input);
         }
 
         public FieldDescriptor withPath(final String path) {
             return fieldWithPath(path)
                     .attributes(key("constraints")
-                            .value(collectionToDelimitedString(this.constraintDescriptions.descriptionsForProperty(path), ". ")));
+                            .value(collectionToDelimitedString(constraintDescriptions.descriptionsForProperty(path), ". ")));
         }
     }
 }

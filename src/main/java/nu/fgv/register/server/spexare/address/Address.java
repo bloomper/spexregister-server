@@ -129,6 +129,7 @@ public class Address extends AbstractAuditable implements Serializable {
             return false;
         }
         final Address address = (Address) o;
+
         if (address.getId() == null || getId() == null) {
             return false;
         }
@@ -137,6 +138,6 @@ public class Address extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

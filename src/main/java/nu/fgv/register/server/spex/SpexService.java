@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -165,7 +166,7 @@ public class SpexService {
     }
 
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
-    public Optional<SpexDto> savePoster(final Long spexId, final byte[] poster, final String contentType) {
+    public Optional<SpexDto> savePoster(final Long spexId, final byte[] poster, @Nullable final String contentType) {
         return repository
                 .findById0(spexId)
                 .map(spex -> {

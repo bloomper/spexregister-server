@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util.filter;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,31 +47,29 @@ public class SpecificationsBuilder<T> {
         return with(null, key, operation, value, prefix, suffix);
     }
 
-    public final SpecificationsBuilder<T> with(final String orPredicate, final String key, final String operation, final Object value, final String prefix, final String suffix) {
+    public final SpecificationsBuilder<T> with(@Nullable final String orPredicate, final String key, final String operation, final Object value, final String prefix, final String suffix) {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 
-        if (op != null) {
-            if (op == FilterOperation.EQUALITY) {
-                final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
-                final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
+        if (op == FilterOperation.EQUALITY) {
+            final boolean startWithAsterisk = prefix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
+            final boolean endWithAsterisk = suffix.contains(FilterOperation.ZERO_OR_MORE_REGEX);
 
-                if (startWithAsterisk && endWithAsterisk) {
-                    op = FilterOperation.CONTAINS;
-                } else if (startWithAsterisk) {
-                    op = FilterOperation.ENDS_WITH;
-                } else if (endWithAsterisk) {
-                    op = FilterOperation.STARTS_WITH;
-                }
+            if (startWithAsterisk && endWithAsterisk) {
+                op = FilterOperation.CONTAINS;
+            } else if (startWithAsterisk) {
+                op = FilterOperation.ENDS_WITH;
+            } else if (endWithAsterisk) {
+                op = FilterOperation.STARTS_WITH;
             }
-            params.add(new FilterCriteria(orPredicate, key, op, value));
         }
+        params.add(new FilterCriteria(orPredicate, key, op, value));
 
         return this;
     }
 
     public Specification<T> build(final Function<FilterCriteria, Specification<T>> converter) {
         if (params.isEmpty()) {
-            return null;
+            return Specification.where(null);
         }
 
         final List<Specification<T>> specifications = params.stream()
@@ -110,7 +109,11 @@ public class SpecificationsBuilder<T> {
             }
 
         }
-        return !specificationStack.isEmpty() ? specificationStack.pop() : null;
+
+        if (specificationStack.isEmpty()) {
+            throw new IllegalStateException("Expected non-empty specification stack");
+        }
+        return specificationStack.pop();
     }
 
 }

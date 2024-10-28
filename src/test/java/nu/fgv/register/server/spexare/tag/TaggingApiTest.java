@@ -74,8 +74,8 @@ class TaggingApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var tag1 = TagDto.builder().id(1L).name("tag1").build();
-        var tag2 = TagDto.builder().id(2L).name("tag2").build();
+        final var tag1 = TagDto.builder().id(1L).name("tag1").build();
+        final var tag2 = TagDto.builder().id(2L).name("tag2").build();
 
         when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -117,7 +117,7 @@ class TaggingApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(1L).name("tag").build();
 
         when(service.create(any(Long.class), any(Long.class))).thenReturn(true);
 

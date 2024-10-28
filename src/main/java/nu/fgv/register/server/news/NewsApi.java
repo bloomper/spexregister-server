@@ -101,7 +101,7 @@ public class NewsApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
-    public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable Long id, @Valid @RequestBody NewsUpdateDto dto) {
+    public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -144,7 +144,7 @@ public class NewsApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<NewsDto> entity) {
@@ -158,7 +158,7 @@ public class NewsApi {
 
         links.add(linkTo(methodOn(NewsApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged(), "")).withRel("news"));
-        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(null)).withRel("events"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
     }

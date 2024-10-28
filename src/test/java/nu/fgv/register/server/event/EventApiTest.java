@@ -83,8 +83,8 @@ class EventApiTest extends AbstractApiTest {
 
     @Test
     void should_get_all() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
 
         when(service.find(any(Integer.class))).thenReturn(List.of(event1, event2));
 
@@ -121,7 +121,7 @@ class EventApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var event = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
+        final var event = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(event));
 

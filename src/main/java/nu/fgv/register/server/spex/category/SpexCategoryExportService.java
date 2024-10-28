@@ -43,7 +43,7 @@ public class SpexCategoryExportService extends AbstractExportService {
     private final ExcelWriter writer = new ExcelWriter();
 
     protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
-        var dtos = retrieveDtos(ids);
+        final var dtos = retrieveDtos(ids);
 
         writer.createSheet(messageSource, locale, workbook, dtos);
         return convertWorkbookToByteArray(workbook);

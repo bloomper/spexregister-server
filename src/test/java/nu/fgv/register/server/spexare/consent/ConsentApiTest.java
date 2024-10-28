@@ -81,8 +81,8 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var consent1 = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
-        var consent2 = ConsentDto.builder().id(2L).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
+        final var consent1 = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent2 = ConsentDto.builder().id(2L).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
 
         when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(consent1, consent2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
@@ -125,7 +125,7 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(consent));
 
@@ -156,7 +156,7 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
 
@@ -186,7 +186,7 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
 

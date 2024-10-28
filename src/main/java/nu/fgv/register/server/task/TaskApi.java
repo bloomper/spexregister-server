@@ -149,7 +149,7 @@ public class TaskApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
-    public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable Long id, @Valid @RequestBody TaskUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final TaskUpdateDto dto) {
         if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -221,11 +221,11 @@ public class TaskApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<TaskDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
         }
     }
@@ -245,7 +245,7 @@ public class TaskApi {
         links.add(linkTo(methodOn(TaskApi.class).retrieve(Pageable.unpaged(), "")).withRel("tasks"));
         links.add(linkTo(methodOn(TaskApi.class).retrieveCategory(dto.getId())).withRel("category"));
         if (includeEvents) {
-            links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null)).withRel("events"));
+            links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(-1)).withRel("events"));
         }
 
         return links;

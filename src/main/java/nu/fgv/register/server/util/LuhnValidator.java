@@ -39,6 +39,11 @@ public class LuhnValidator implements ConstraintValidator<Luhn, String> {
     private int controlGroup;
     private int existenceGroup;
 
+    public LuhnValidator() {
+        pattern = Pattern.compile("");
+        inputGroups = new int[0];
+    }
+
     @Override
     public void initialize(final Luhn parameters) {
         try {

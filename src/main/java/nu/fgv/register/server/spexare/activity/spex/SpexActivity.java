@@ -94,6 +94,7 @@ public class SpexActivity extends AbstractAuditable implements Serializable {
             return false;
         }
         final SpexActivity spexActivity = (SpexActivity) o;
+
         if (spexActivity.getId() == null || getId() == null) {
             return false;
         }
@@ -102,7 +103,7 @@ public class SpexActivity extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 
 }

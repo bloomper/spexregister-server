@@ -88,6 +88,7 @@ public class News extends AbstractAuditable implements Serializable {
             return false;
         }
         final News news = (News) o;
+
         if (news.getId() == null || getId() == null) {
             return false;
         }
@@ -96,6 +97,6 @@ public class News extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

@@ -101,8 +101,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var spexActivity1 = SpexActivityDto.builder().id(1L).build();
-        var spexActivity2 = SpexActivityDto.builder().id(2L).build();
+        final var spexActivity1 = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity2 = SpexActivityDto.builder().id(2L).build();
 
         when(service.findByActivity(any(Long.class), any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexActivity1, spexActivity2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
@@ -144,7 +144,7 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
 
@@ -176,7 +176,7 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
 
@@ -255,8 +255,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_spex() throws Exception {
-        var spex = SpexDto.builder().id(1L).year("2021").build();
-        var realSpexApi = new SpexApi(null, null, null, null, null, null);
+        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var realSpexApi = new SpexApi(null, null, null, null, null, null);
 
         when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
         when(spexApi.getLinks(any(SpexDto.class), eq(false))).thenReturn(realSpexApi.getLinks(spex, false));

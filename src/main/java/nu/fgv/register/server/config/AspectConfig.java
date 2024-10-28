@@ -31,7 +31,7 @@ import org.springframework.core.env.Environment;
 public class AspectConfig {
 
     @Bean
-    public LoggingAspect loggingAspect(Environment env) {
+    public LoggingAspect loggingAspect(final Environment env) {
         return new LoggingAspect(env);
     }
 }

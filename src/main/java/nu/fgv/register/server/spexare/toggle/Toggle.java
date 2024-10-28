@@ -96,6 +96,7 @@ public class Toggle extends AbstractAuditable implements Serializable {
             return false;
         }
         final Toggle membership = (Toggle) o;
+
         if (membership.getId() == null || getId() == null) {
             return false;
         }
@@ -104,6 +105,6 @@ public class Toggle extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

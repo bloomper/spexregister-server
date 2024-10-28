@@ -22,6 +22,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNullApi;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -37,7 +39,7 @@ public class BaseSpecification<T> implements Specification<T> {
     }
 
     @Override
-    public Predicate toPredicate(final Root<T> root, final CriteriaQuery<?> query, final CriteriaBuilder builder) {
+    public Predicate toPredicate(final Root<T> root, @Nullable final CriteriaQuery<?> query, final CriteriaBuilder builder) {
         return switch (criteria.getOperation()) {
             case EQUALITY -> {
                 if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {

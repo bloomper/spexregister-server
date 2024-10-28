@@ -27,6 +27,8 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 
 import java.util.List;
 
+import static org.springframework.util.StringUtils.hasText;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -82,7 +84,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         return searchSession
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
-                            if (query.freeTextQuery() != null) {
+                            if (hasText(query.freeTextQuery())) {
                                 b.must(f.match().fields(FIELDS).matching(query.freeTextQuery()));
                             }
                             query.aggregations().forEach(a -> b.must(f.match().field(a.name()).matching(a.value())));

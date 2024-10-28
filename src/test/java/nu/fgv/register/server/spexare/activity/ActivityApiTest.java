@@ -77,8 +77,8 @@ class ActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var activity1 = ActivityDto.builder().id(1L).build();
-        var activity2 = ActivityDto.builder().id(2L).build();
+        final var activity1 = ActivityDto.builder().id(1L).build();
+        final var activity2 = ActivityDto.builder().id(2L).build();
 
         when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(activity1, activity2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
@@ -119,7 +119,7 @@ class ActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var activity = ActivityDto.builder().id(1L).build();
+        final var activity = ActivityDto.builder().id(1L).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(activity));
 
@@ -150,7 +150,7 @@ class ActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var activity = ActivityDto.builder().id(1L).build();
+        final var activity = ActivityDto.builder().id(1L).build();
 
         when(service.create(any(Long.class))).thenReturn(Optional.of(activity));
 

@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.spexare.consent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -38,10 +38,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -68,20 +71,27 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ConsentRepository repository;
+    private final TypeRepository typeRepository;
+    private final SpexareRepository spexareRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private ConsentRepository repository;
+    public ConsentApiIntegrationTest(final JdbcClient jdbcClient,
+                                     final AclCache aclCache,
+                                     final Keycloak keycloakAdminClient,
+                                     final String keycloakClientId,
+                                     final PermissionService permissionService,
+                                     final ConsentRepository repository,
+                                     final TypeRepository typeRepository,
+                                     final SpexareRepository spexareRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.typeRepository = typeRepository;
+        this.spexareRepository = spexareRepository;
 
-    @Autowired
-    private TypeRepository typeRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    public ConsentApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
@@ -145,7 +155,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<ConsentDto> result =
@@ -166,8 +176,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
@@ -189,9 +199,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> persistConsent(randomizeConsent(type, spexare)));
 
             //@formatter:off
@@ -219,9 +229,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             final ConsentDto result =
@@ -244,7 +254,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -260,9 +270,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -283,8 +293,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -317,8 +327,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_already_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -347,7 +357,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var type = persistType(randomizeType());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -365,7 +375,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -389,9 +399,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -427,8 +437,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -446,9 +456,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -466,9 +476,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -486,10 +496,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_updating_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare2));
 
             //@formatter:off
             given()
@@ -512,9 +522,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -547,8 +557,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -566,9 +576,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -586,9 +596,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare));
 
             //@formatter:off
             given()
@@ -606,10 +616,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var consent = persistConsent(randomizeConsent(type, spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var consent = persistConsent(randomizeConsent(type, spexare2));
 
             //@formatter:off
             given()
@@ -626,24 +636,24 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private Consent randomizeConsent(Type type, Spexare spexare) {
-        var consent = random.nextObject(Consent.class);
+    private Consent randomizeConsent(final Type type, final Spexare spexare) {
+        final var consent = random.nextObject(Consent.class);
         consent.setSpexare(spexare);
         consent.setType(type);
         return consent;
     }
 
-    private Consent persistConsent(Consent consent) {
+    private Consent persistConsent(final Consent consent) {
         return repository.save(consent);
     }
 
     private Type randomizeType() {
-        var type = random.nextObject(Type.class);
+        final var type = random.nextObject(Type.class);
         type.setType(TypeType.CONSENT);
         return type;
     }
 
-    private Type persistType(Type type) {
+    private Type persistType(final Type type) {
         return typeRepository.save(type);
     }
 
@@ -651,7 +661,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 

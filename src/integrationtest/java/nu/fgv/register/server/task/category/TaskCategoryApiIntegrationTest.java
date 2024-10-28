@@ -21,6 +21,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -33,10 +34,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -59,17 +63,27 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final TaskCategoryRepository repository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private TaskCategoryRepository repository;
+    public TaskCategoryApiIntegrationTest(final JdbcClient jdbcClient,
+                                          final AclCache aclCache,
+                                          final Keycloak keycloakAdminClient,
+                                          final String keycloakClientId,
+                                          final PermissionService permissionService,
+                                          final ObjectMapper objectMapper,
+                                          final TaskCategoryRepository repository,
+                                          final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    public TaskCategoryApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -122,7 +136,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
@@ -143,9 +157,9 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var category = persistTaskCategory(randomizeTaskCategory());
+                final var category = persistTaskCategory(randomizeTaskCategory());
                 grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             });
 
@@ -173,7 +187,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             // @formatter:off
@@ -195,7 +209,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
@@ -217,13 +231,13 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var category = randomizeTaskCategory();
+                final var category = randomizeTaskCategory();
                 if (i % 2 == 0) {
                     category.setName("whatever");
                 }
-                var category0 = persistTaskCategory(category);
+                final var category0 = persistTaskCategory(category);
                 grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category0.getId()));
             });
 
@@ -317,7 +331,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             //@formatter:off
@@ -358,7 +372,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
@@ -476,7 +490,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
@@ -575,7 +589,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
@@ -629,7 +643,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var category = persistTaskCategory(randomizeTaskCategory());
+            final var category = persistTaskCategory(randomizeTaskCategory());
 
             //@formatter:off
             final List<EventDto> result =
@@ -669,7 +683,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(TaskCategory.class);
     }
 
-    private TaskCategory persistTaskCategory(TaskCategory category) {
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
         return repository.save(category);
     }
 }

@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -30,10 +30,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -55,14 +58,21 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private EventRepository eventRepository;
+    public EventApiIntegrationTest(final JdbcClient jdbcClient,
+                                   final AclCache aclCache,
+                                   final Keycloak keycloakAdminClient,
+                                   final String keycloakClientId,
+                                   final PermissionService permissionService,
+                                   final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.eventRepository = eventRepository;
 
-    public EventApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -136,7 +146,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> persistEvent(randomizeEvent()));
 
             //@formatter:off
@@ -175,7 +185,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var event = persistEvent(randomizeEvent());
+            final var event = persistEvent(randomizeEvent());
 
             //@formatter:off
             final EventDto result =
@@ -226,7 +236,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Event.class);
     }
 
-    private Event persistEvent(Event event) {
+    private Event persistEvent(final Event event) {
         return eventRepository.save(event);
     }
 

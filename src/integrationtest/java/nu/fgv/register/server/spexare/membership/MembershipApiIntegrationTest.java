@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.spexare.membership;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -39,10 +39,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -69,20 +72,27 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final MembershipRepository repository;
+    private final TypeRepository typeRepository;
+    private final SpexareRepository spexareRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private MembershipRepository repository;
+    public MembershipApiIntegrationTest(final JdbcClient jdbcClient,
+                                        final AclCache aclCache,
+                                        final Keycloak keycloakAdminClient,
+                                        final String keycloakClientId,
+                                        final PermissionService permissionService,
+                                        final MembershipRepository repository,
+                                        final TypeRepository typeRepository,
+                                        final SpexareRepository spexareRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.typeRepository = typeRepository;
+        this.spexareRepository = spexareRepository;
 
-    @Autowired
-    private TypeRepository typeRepository;
-
-    @Autowired
-    private SpexareRepository spexareRepository;
-
-    public MembershipApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("year"), new YearRandomizer()
@@ -149,7 +159,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<MembershipDto> result =
@@ -170,8 +180,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
@@ -193,9 +203,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> persistMembership(randomizeMembership(type, spexare)));
 
             //@formatter:off
@@ -239,7 +249,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<MembershipDto> result =
@@ -261,9 +271,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final List<MembershipDto> result =
@@ -285,11 +295,11 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final int size = 42;
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> {
-                var membership = randomizeMembership(type, spexare);
+                final var membership = randomizeMembership(type, spexare);
                 if (i % 2 == 0) {
                     membership.setYear("whatever");
                 }
@@ -322,9 +332,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final MembershipDto result =
@@ -347,7 +357,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -363,9 +373,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
@@ -386,8 +396,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_and_return_201() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -420,8 +430,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_409_when_creating_already_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -450,7 +460,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
-            var type = persistType(randomizeType());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -468,7 +478,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_creating_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -492,9 +502,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
@@ -527,8 +537,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_non_existing_value() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
@@ -546,9 +556,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
@@ -566,9 +576,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_deleting_and_type_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
@@ -586,10 +596,10 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_deleting_and_incorrect_spexare() {
-            var spexare1 = persistSpexare(randomizeSpexare());
-            var spexare2 = persistSpexare(randomizeSpexare());
-            var type = persistType(randomizeType());
-            var membership = persistMembership(randomizeMembership(type, spexare2));
+            final var spexare1 = persistSpexare(randomizeSpexare());
+            final var spexare2 = persistSpexare(randomizeSpexare());
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare2));
 
             //@formatter:off
             given()
@@ -606,24 +616,24 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private Membership randomizeMembership(Type type, Spexare spexare) {
-        var membership = random.nextObject(Membership.class);
+    private Membership randomizeMembership(final Type type, final Spexare spexare) {
+        final var membership = random.nextObject(Membership.class);
         membership.setSpexare(spexare);
         membership.setType(type);
         return membership;
     }
 
-    private Membership persistMembership(Membership membership) {
+    private Membership persistMembership(final Membership membership) {
         return repository.save(membership);
     }
 
     private Type randomizeType() {
-        var type = random.nextObject(Type.class);
+        final var type = random.nextObject(Type.class);
         type.setType(TypeType.MEMBERSHIP);
         return type;
     }
 
-    private Type persistType(Type type) {
+    private Type persistType(final Type type) {
         return typeRepository.save(type);
     }
 
@@ -631,7 +641,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return spexareRepository.save(spexare);
     }
 

@@ -16,11 +16,11 @@
 
 package nu.fgv.register.server.user.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -33,10 +33,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -58,17 +61,24 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final StateRepository repository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private StateRepository repository;
+    public StateApiIntegrationTest(final JdbcClient jdbcClient,
+                                   final AclCache aclCache,
+                                   final Keycloak keycloakAdminClient,
+                                   final String keycloakClientId,
+                                   final PermissionService permissionService,
+                                   final StateRepository repository,
+                                   final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.repository = repository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    public StateApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -141,7 +151,7 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> persistState(randomizeState()));
 
             //@formatter:off
@@ -168,7 +178,7 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var state = persistState(randomizeState());
+            final var state = persistState(randomizeState());
 
             //@formatter:off
             final StateDto result =
@@ -208,7 +218,7 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var state = persistState(randomizeState());
+            final var state = persistState(randomizeState());
 
             //@formatter:off
             final List<EventDto> result =
@@ -248,7 +258,7 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(State.class);
     }
 
-    private State persistState(State state) {
+    private State persistState(final State state) {
         return repository.save(state);
     }
 

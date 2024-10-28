@@ -81,8 +81,8 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
-        var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
+        final var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
 
         when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(toggle1, toggle2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
@@ -125,7 +125,7 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(toggle));
 
@@ -156,7 +156,7 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 
@@ -186,7 +186,7 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
         when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
 

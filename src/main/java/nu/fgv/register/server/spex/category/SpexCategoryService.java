@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -132,7 +133,7 @@ public class SpexCategoryService {
     }
 
     @PreAuthorize("hasRole('spexregister_ADMIN')")
-    public Optional<SpexCategoryDto> saveLogo(final Long spexId, final byte[] logo, final String contentType) {
+    public Optional<SpexCategoryDto> saveLogo(final Long spexId, final byte[] logo, @Nullable final String contentType) {
         return repository
                 .findById0(spexId)
                 .map(category -> {

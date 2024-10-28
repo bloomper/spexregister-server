@@ -21,6 +21,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -36,11 +37,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -70,17 +74,27 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final SpexareRepository repository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private SpexareRepository repository;
+    public SpexareApiIntegrationTest(final JdbcClient jdbcClient,
+                                     final AclCache aclCache,
+                                     final Keycloak keycloakAdminClient,
+                                     final String keycloakClientId,
+                                     final PermissionService permissionService,
+                                     final ObjectMapper objectMapper,
+                                     final SpexareRepository repository,
+                                     final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    public SpexareApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         parameters
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
@@ -167,7 +181,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> persistSpexare(randomizeSpexare()));
 
             //@formatter:off
@@ -216,7 +230,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -237,9 +251,9 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var spexare = randomizeSpexare();
+                final var spexare = randomizeSpexare();
                 if (i % 2 == 0) {
                     spexare.setFirstName("whatever");
                 }
@@ -291,7 +305,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -312,9 +326,9 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var spexare = persistSpexare(randomizeSpexare());
+                final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 persistSpexare(spexare);
             });
@@ -392,7 +406,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto result =
@@ -432,7 +446,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto before =
@@ -550,7 +564,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final SpexareDto before =
@@ -631,7 +645,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -668,8 +682,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_image_and_return_204() throws Exception {
-            var spexare = persistSpexare(randomizeSpexare());
-            var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
@@ -700,8 +714,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_image_via_multipart_and_return_204() throws Exception {
-            var spexare = persistSpexare(randomizeSpexare());
-            var image = ResourceUtils.getFile("classpath:test.png");
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var image = ResourceUtils.getFile("classpath:test.png");
 
             //@formatter:off
             given()
@@ -731,8 +745,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_image_and_return_204() throws Exception {
-            var spexare = persistSpexare(randomizeSpexare());
-            var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
@@ -773,8 +787,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_200() {
-            var partner = persistSpexare(randomizeSpexare());
-            var spexare = persistSpexare(randomizeSpexare());
+            final var partner = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -813,7 +827,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_retrieving_and_partner_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -828,8 +842,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() {
-            var spexare = persistSpexare(randomizeSpexare());
-            var partner = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var partner = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -857,7 +871,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_updating_and_partner_not_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -872,8 +886,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var partner = persistSpexare(randomizeSpexare());
-            var spexare = persistSpexare(randomizeSpexare());
+            final var partner = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -892,7 +906,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_422_when_removing_and_no_partner() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             given()
@@ -926,7 +940,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var spexare = persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
             final List<EventDto> result =
@@ -966,7 +980,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(Spexare.class);
     }
 
-    private Spexare persistSpexare(Spexare spexare) {
+    private Spexare persistSpexare(final Spexare spexare) {
         return repository.save(spexare);
     }
 

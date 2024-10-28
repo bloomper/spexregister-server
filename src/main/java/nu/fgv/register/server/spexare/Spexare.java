@@ -61,6 +61,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -109,6 +110,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
     @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
+    @Nullable
     private String nickName;
 
     @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
@@ -116,35 +118,43 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Column(name = "social_security_number")
     @Convert(converter = CryptoConverter.class)
     @GenericField(searchable = Searchable.YES)
+    @Nullable
     private String socialSecurityNumber;
 
     @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")
     @GenericField(searchable = Searchable.YES)
+    @Nullable
     private String graduation;
 
     @Lob
     @Column(name = "comment")
     @FullTextField(searchable = Searchable.YES)
+    @Nullable
     private String comment;
 
     @Lob
     @Column(name = "image", columnDefinition = "MEDIUMBLOB")
+    @Nullable
     private byte[] image;
 
     @Column(name = "image_content_type")
+    @Nullable
     private String imageContentType;
 
     @ManyToOne
+    @Nullable
     private Spexare partner;
 
     @OneToOne(mappedBy = "spexare")
+    @Nullable
     private User user;
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private Set<Activity> activities = new HashSet<>();
 
     @ManyToMany
@@ -155,30 +165,35 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @ToString.Exclude
     @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @Nullable
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private List<Membership> memberships = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private List<Consent> consents = new ArrayList<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private List<Toggle> toggles = new ArrayList<>();
 
     @Override
@@ -190,6 +205,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
             return false;
         }
         final Spexare spexare = (Spexare) o;
+
         if (spexare.getId() == null || getId() == null) {
             return false;
         }
@@ -198,6 +214,6 @@ public class Spexare extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

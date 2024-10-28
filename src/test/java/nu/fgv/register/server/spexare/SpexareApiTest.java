@@ -138,8 +138,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
-        var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
+        final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
+        final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), 10));
 
@@ -181,11 +181,11 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_search_paged() throws Exception {
-        var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
-        var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
-        var facets = List.of(Facet.builder().name("facet").values(Map.of("whatever", 2L)).build());
-        var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
-        var pageWithFacetsModel = PagedWithFacetsModel.of(
+        final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
+        final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
+        final var facets = List.of(Facet.builder().name("facet").values(Map.of("whatever", 2L)).build());
+        final var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
+        final var pageWithFacetsModel = PagedWithFacetsModel.of(
                 pageWithFacets.stream().map(EntityModel::of).toList(),
                 new PagedWithFacetsModel.PageMetadata(pageWithFacets.getSize(), pageWithFacets.getNumber(), pageWithFacets.getTotalElements(), pageWithFacets.getTotalPages()), pageWithFacets.getFacets()
         );
@@ -239,7 +239,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        var export = Pair.of(".xlsx", new byte[]{10, 12});
+        final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
         when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
 
@@ -274,8 +274,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
-        var fields = new ConstrainedFields(SpexareCreateDto.class);
-        var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").build();
+        final var fields = new ConstrainedFields(SpexareCreateDto.class);
+        final var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").build();
 
         when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.getFirstName()).lastName(dto.getLastName()).build());
 
@@ -284,7 +284,7 @@ class SpexareApiTest extends AbstractApiTest {
                         post("/api/v1/spexare")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -307,7 +307,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
 
@@ -337,9 +337,9 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        var fields = new ConstrainedFields(SpexareUpdateDto.class);
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
+        final var fields = new ConstrainedFields(SpexareUpdateDto.class);
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
 
         when(service.update(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
 
@@ -348,7 +348,7 @@ class SpexareApiTest extends AbstractApiTest {
                         put("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -380,9 +380,9 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        var fields = new ConstrainedFields(SpexUpdateDto.class);
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
+        final var fields = new ConstrainedFields(SpexUpdateDto.class);
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
 
         when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
 
@@ -391,7 +391,7 @@ class SpexareApiTest extends AbstractApiTest {
                         patch("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(this.objectMapper.writeValueAsString(dto))
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -423,7 +423,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
         doNothing().when(service).deleteById(any(Long.class));
@@ -450,7 +450,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_download_image() throws Exception {
-        var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
+        final var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
 
         when(service.getImage(any(Long.class))).thenReturn(Optional.of(image));
 
@@ -483,8 +483,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_upload_image() throws Exception {
-        var image = new byte[]{10, 12};
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var image = new byte[]{10, 12};
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
@@ -515,8 +515,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_upload_image_via_multipart() throws Exception {
-        var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
 
@@ -546,7 +546,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_delete_image() throws Exception {
-        var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.deleteImage(any(Long.class))).thenReturn(Optional.of(spexare));
 
@@ -572,7 +572,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_partner() throws Exception {
-        var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
 
@@ -602,7 +602,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_update_partner() throws Exception {
-        var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
         when(service.updatePartner(any(Long.class), any(Long.class))).thenReturn(Optional.of(partner));
 
@@ -653,9 +653,9 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEXARE.name()).build();
-        var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEXARE.name()).build();
-        var realEventApi = new EventApi(null);
+        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEXARE.name()).build();
+        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEXARE.name()).build();
+        final var realEventApi = new EventApi(null);
 
         when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));

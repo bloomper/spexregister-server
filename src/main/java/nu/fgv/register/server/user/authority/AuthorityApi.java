@@ -88,11 +88,11 @@ public class AuthorityApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<AuthorityDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
         }
     }

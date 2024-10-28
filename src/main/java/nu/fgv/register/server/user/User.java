@@ -38,6 +38,7 @@ import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -72,6 +73,7 @@ public class User extends AbstractAuditable implements Serializable {
 
     @OneToOne
     @JoinColumn(unique = true)
+    @Nullable
     private Spexare spexare;
 
     @Override
@@ -82,14 +84,14 @@ public class User extends AbstractAuditable implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         final User user = (User) o;
+
         return !(user.getId() == null || getId() == null) && Objects.equals(getId(), user.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 
 }

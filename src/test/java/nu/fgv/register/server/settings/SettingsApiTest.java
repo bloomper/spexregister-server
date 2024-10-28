@@ -109,8 +109,8 @@ class SettingsApiTest extends AbstractApiTest {
     class LanguageApiTest {
         @Test
         void should_get_languages() throws Exception {
-            var language1 = LanguageDto.builder().isoCode("sv").label("Svenska").build();
-            var language2 = LanguageDto.builder().isoCode("en").label("Engelska").build();
+            final var language1 = LanguageDto.builder().isoCode("sv").label("Svenska").build();
+            final var language2 = LanguageDto.builder().isoCode("en").label("Engelska").build();
 
             when(languageService.findAll()).thenReturn((List.of(language1, language2)));
 
@@ -142,7 +142,7 @@ class SettingsApiTest extends AbstractApiTest {
 
         @Test
         void should_get_language() throws Exception {
-            var language = LanguageDto.builder().isoCode("sv").label("Svenska").build();
+            final var language = LanguageDto.builder().isoCode("sv").label("Svenska").build();
 
             when(languageService.findByIsoCode(any(String.class))).thenReturn(Optional.of(language));
 
@@ -175,8 +175,8 @@ class SettingsApiTest extends AbstractApiTest {
     class CountryApiTest {
         @Test
         void should_get_countries() throws Exception {
-            var country1 = CountryDto.builder().isoCode("SE").label("Sverige").build();
-            var country2 = CountryDto.builder().isoCode("NO").label("Norge").build();
+            final var country1 = CountryDto.builder().isoCode("SE").label("Sverige").build();
+            final var country2 = CountryDto.builder().isoCode("NO").label("Norge").build();
 
             when(countryService.findAll()).thenReturn((List.of(country1, country2)));
 
@@ -208,7 +208,7 @@ class SettingsApiTest extends AbstractApiTest {
 
         @Test
         void should_get_country() throws Exception {
-            var country = CountryDto.builder().isoCode("SE").label("Sverige").build();
+            final var country = CountryDto.builder().isoCode("SE").label("Sverige").build();
 
             when(countryService.findByIsoCode(any(String.class))).thenReturn(Optional.of(country));
 
@@ -241,8 +241,8 @@ class SettingsApiTest extends AbstractApiTest {
     class TypeApiTest {
         @Test
         void should_get_types() throws Exception {
-            var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
-            var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+            final var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            final var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
 
             when(typeService.findAll()).thenReturn((List.of(type1, type2)));
 
@@ -275,8 +275,8 @@ class SettingsApiTest extends AbstractApiTest {
 
         @Test
         void should_get_types_of_type() throws Exception {
-            var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
-            var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
+            final var type1 = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            final var type2 = TypeDto.builder().id("WORK").type(TypeType.ADDRESS).label("Arbete").build();
 
             when(typeService.findByType(any(TypeType.class))).thenReturn((List.of(type1, type2)));
 
@@ -309,7 +309,7 @@ class SettingsApiTest extends AbstractApiTest {
 
         @Test
         void should_get_type() throws Exception {
-            var type = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
+            final var type = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
 
             when(typeService.findById(any(String.class))).thenReturn(Optional.of(type));
 

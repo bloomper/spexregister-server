@@ -75,17 +75,18 @@ class CellWriterFactory {
 
     public BiConsumer<Cell, String> getHeaderWriter() {
         final Workbook workbook = this.container.getWorkbook();
-
         final Font font = workbook.createFont();
+
         font.setBold(true);
         font.setColor(IndexedColors.DARK_BLUE.getIndex());
 
         final CellStyle style = workbook.createCellStyle();
+
         style.setBorderBottom(BorderStyle.MEDIUM);
         style.setBottomBorderColor(IndexedColors.BLUE1.getIndex());
         style.setFont(font);
 
-        return (Cell cell, String header) -> {
+        return (final Cell cell, final String header) -> {
             cell.setCellValue(header);
             cell.setCellStyle(style);
         };

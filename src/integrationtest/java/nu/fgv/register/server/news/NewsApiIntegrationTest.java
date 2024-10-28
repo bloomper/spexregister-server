@@ -21,6 +21,7 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
@@ -33,10 +34,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDate;
@@ -60,17 +64,27 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     @LocalServerPort
     private int localPort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final NewsRepository repository;
+    private final EventRepository eventRepository;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private NewsRepository repository;
+    public NewsApiIntegrationTest(final JdbcClient jdbcClient,
+                                  final AclCache aclCache,
+                                  final Keycloak keycloakAdminClient,
+                                  final String keycloakClientId,
+                                  final PermissionService permissionService,
+                                  final ObjectMapper objectMapper,
+                                  final NewsRepository repository,
+                                  final EventRepository eventRepository) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        this.objectMapper = objectMapper;
+        this.repository = repository;
+        this.eventRepository = eventRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
-
-    public NewsApiIntegrationTest() {
         final EasyRandomParameters parameters = new EasyRandomParameters();
+
         random = new EasyRandom(parameters);
     }
 
@@ -86,7 +100,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setBasePath(basePath);
         RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
+        config = config()
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
@@ -123,7 +137,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
@@ -144,9 +158,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var news = persistNews(randomizeNews());
+                final var news = persistNews(randomizeNews());
                 grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             });
 
@@ -175,7 +189,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
@@ -197,7 +211,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
@@ -219,9 +233,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            int size = 42;
+            final int size = 42;
             IntStream.range(0, size).forEach(i -> {
-                var news = randomizeNews();
+                final var news = randomizeNews();
                 if (i % 2 == 0) {
                     news.setSubject("whatever");
                 }
@@ -319,7 +333,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class RetrieveTests {
         @Test
         void should_return_found() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             //@formatter:off
@@ -360,7 +374,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
@@ -478,7 +492,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_update_and_return_202() throws Exception {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
@@ -579,7 +593,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_delete_and_return_204() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
@@ -732,7 +746,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            var news = persistNews(randomizeNews());
+            final var news = persistNews(randomizeNews());
 
             //@formatter:off
             final List<EventDto> result =
@@ -760,7 +774,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         return random.nextObject(News.class);
     }
 
-    private News persistNews(News news) {
+    private News persistNews(final News news) {
         return repository.save(news);
     }
 

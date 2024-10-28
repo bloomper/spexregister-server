@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util.impex.exporting;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.springframework.lang.Nullable;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -31,7 +32,7 @@ class CellTypedWriterFactory {
     private CellTypedWriterFactory() {
     }
 
-    public static BiConsumer<Cell, Object> getTypedWriter(final Class<?> clazz) {
+    public static BiConsumer<Cell, Object> getTypedWriter(@Nullable final Class<?> clazz) {
         final CellTypedWriter cellTypedWriter = new CellTypedWriter();
 
         if (clazz == Integer.class || clazz == int.class) {

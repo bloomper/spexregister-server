@@ -62,6 +62,7 @@ public final class AclClass {
             return false;
         }
         final AclClass aclClass = (AclClass) o;
+
         if (aclClass.getId() == null || getId() == null) {
             return false;
         }
@@ -70,6 +71,6 @@ public final class AclClass {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

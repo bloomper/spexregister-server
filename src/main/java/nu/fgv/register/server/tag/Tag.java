@@ -77,6 +77,7 @@ public class Tag extends AbstractAuditable implements Serializable {
             return false;
         }
         final Tag tag = (Tag) o;
+
         if (tag.getId() == null || getId() == null) {
             return false;
         }
@@ -85,6 +86,6 @@ public class Tag extends AbstractAuditable implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.getClass().hashCode());
+        return Objects.hashCode(getClass().hashCode());
     }
 }

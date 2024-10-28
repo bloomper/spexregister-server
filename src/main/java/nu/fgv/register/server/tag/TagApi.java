@@ -42,6 +42,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -143,7 +144,7 @@ public class TagApi {
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) final String contentType, final Locale locale, final HttpMethod method) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale, final HttpMethod method) {
         try {
             final ImportResultDto result = importService.doImport(file, contentType, locale);
             return ResponseEntity
@@ -215,11 +216,11 @@ public class TagApi {
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(null)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<TagDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             addLinks(entity.getContent());
         }
     }
@@ -233,7 +234,7 @@ public class TagApi {
 
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged(), "")).withRel("tags"));
-        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null)).withRel("events"));
+        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
     }

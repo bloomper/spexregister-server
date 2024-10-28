@@ -38,7 +38,7 @@ class FieldAccessor {
             return field.get(obj);
         } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException e) {
             log.warn("Unable to read field from object", e);
-            return null;
+            return new Object();
         }
     }
 
