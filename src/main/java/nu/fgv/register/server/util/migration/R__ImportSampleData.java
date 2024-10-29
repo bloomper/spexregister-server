@@ -87,7 +87,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
     private static final String SYSTEM_USER = "system";
-    protected static final Authentication AUTH = new TestingAuthenticationToken("system", "ignored", "ROLE_ADMIN");
+    protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
 
     private final PermissionService permissionService;
     @Value("${spexregister.sample-data.import:false}")
