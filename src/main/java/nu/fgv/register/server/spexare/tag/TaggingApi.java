@@ -105,7 +105,7 @@ public class TaggingApi {
     }
 
     private void addLinks(final EntityModel<TagDto> entity, final Long spexareId) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent(), spexareId));
         }
     }

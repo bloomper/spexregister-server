@@ -68,7 +68,7 @@ public class TaskExportService extends AbstractExportService {
     }
 
     private List<TaskDto> retrieveDtos(final List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
+        if (ids.isEmpty()) {
             return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
         } else {
             return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));

@@ -50,7 +50,7 @@ public class SpexCategoryExportService extends AbstractExportService {
     }
 
     private List<SpexCategoryDto> retrieveDtos(final List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
+        if (ids.isEmpty()) {
             return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
         } else {
             return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));

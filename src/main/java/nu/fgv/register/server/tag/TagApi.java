@@ -174,7 +174,7 @@ public class TagApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TagDto>> update(@PathVariable final Long id, @Valid @RequestBody final TagUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -186,7 +186,7 @@ public class TagApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
     public ResponseEntity<EntityModel<TagDto>> partialUpdate(@PathVariable final Long id, @RequestBody final TagUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service

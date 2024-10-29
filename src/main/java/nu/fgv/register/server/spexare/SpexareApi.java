@@ -153,7 +153,7 @@ public class SpexareApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexareDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -164,7 +164,7 @@ public class SpexareApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexareDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -277,7 +277,7 @@ public class SpexareApi {
     }
 
     private void addLinks(final EntityModel<SpexareDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
         }
     }

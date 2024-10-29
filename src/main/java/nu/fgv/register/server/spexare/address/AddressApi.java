@@ -117,7 +117,7 @@ public class AddressApi {
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<AddressDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -135,7 +135,7 @@ public class AddressApi {
 
     @PatchMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<AddressDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -164,7 +164,7 @@ public class AddressApi {
     }
 
     private void addLinks(final EntityModel<AddressDto> entity, final Long spexareId) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent(), spexareId));
         }
     }

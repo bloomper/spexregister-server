@@ -29,10 +29,6 @@ public class StringUtil {
     }
 
     public static String parseCamelCase(final String camelCaseString) {
-        if (camelCaseString == null) {
-            return "";
-        } else {
-            return capitalize(String.join(" ", splitByCharacterTypeCamelCase(camelCaseString)));
-        }
+        return capitalize(String.join(" ", splitByCharacterTypeCamelCase(camelCaseString)));
     }
 }

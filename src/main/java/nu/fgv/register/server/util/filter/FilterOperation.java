@@ -23,17 +23,17 @@ package nu.fgv.register.server.util.filter;
 public enum FilterOperation {
     EQUALITY, NEGATION, GREATER_THAN, LESS_THAN, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
 
-    public static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "~" };
+    static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "~" };
 
-    public static final String WILDCARD = "*";
+    static final String WILDCARD = "*";
 
-    public static final String OR_OPERATOR = "OR";
+    static final String OR_OPERATOR = "OR";
 
-    public static final String AND_OPERATOR = "AND";
+    static final String AND_OPERATOR = "AND";
 
-    public static final String LEFT_PARENTHESIS = "(";
+    static final String LEFT_PARENTHESIS = "(";
 
-    public static final String RIGHT_PARENTHESIS = ")";
+    static final String RIGHT_PARENTHESIS = ")";
 
     public static final String NULL = "NULL";
 

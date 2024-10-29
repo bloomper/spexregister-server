@@ -174,7 +174,7 @@ public class SpexCategoryApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexCategoryUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -186,7 +186,7 @@ public class SpexCategoryApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable final Long id, @RequestBody final SpexCategoryUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -262,7 +262,7 @@ public class SpexCategoryApi {
     }
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             addLinks(entity.getContent());
         }
     }

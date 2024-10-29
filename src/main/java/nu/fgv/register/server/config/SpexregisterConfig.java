@@ -38,6 +38,7 @@ public class SpexregisterConfig {
     private List<String> languages;
 
     SpexregisterConfig() {
+        this.defaultLanguage = "";
         this.languages = new ArrayList<>();
     }
 

@@ -174,7 +174,7 @@ public class TaskCategoryApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<TaskCategoryDto>> update(@PathVariable final Long id, @Valid @RequestBody final TaskCategoryUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -186,7 +186,7 @@ public class TaskCategoryApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<TaskCategoryDto>> partialUpdate(@PathVariable final Long id, @RequestBody final TaskCategoryUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service

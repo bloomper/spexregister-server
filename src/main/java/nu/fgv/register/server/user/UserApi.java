@@ -125,7 +125,7 @@ public class UserApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<UserDto>> update(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service
@@ -137,7 +137,7 @@ public class UserApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<EntityModel<UserDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         return service

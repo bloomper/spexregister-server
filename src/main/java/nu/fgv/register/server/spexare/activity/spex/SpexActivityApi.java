@@ -154,7 +154,7 @@ public class SpexActivityApi {
     }
 
     private void addLinks(final EntityModel<SpexActivityDto> entity, final Long spexareId, final Long activityId) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId));
         }
     }

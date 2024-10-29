@@ -121,7 +121,7 @@ public class ActorApi {
 
     @PutMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ActorDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -139,7 +139,7 @@ public class ActorApi {
 
     @PatchMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ActorDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
-        if (dto.getId() == null || !Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -168,7 +168,7 @@ public class ActorApi {
     }
 
     private void addLinks(final EntityModel<ActorDto> entity, final Long spexareId, final Long activityId, final Long taskActivityId) {
-        if (entity != null && entity.getContent() != null) {
+        if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId, taskActivityId));
         }
     }

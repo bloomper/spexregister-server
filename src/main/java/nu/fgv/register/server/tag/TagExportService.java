@@ -50,7 +50,7 @@ public class TagExportService extends AbstractExportService {
     }
 
     private List<TagDto> retrieveDtos(final List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
+        if (ids.isEmpty()) {
             return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
         } else {
             return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));

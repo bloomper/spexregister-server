@@ -25,6 +25,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 
@@ -73,7 +74,7 @@ public interface NewsMapper {
         model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
     }
 
-    default boolean isPublished(final LocalDate visibleFrom, final LocalDate visibleTo) {
+    default boolean isPublished(@Nullable final LocalDate visibleFrom, @Nullable final LocalDate visibleTo) {
         final LocalDate today = LocalDate.now();
 
         return (visibleFrom != null && (visibleFrom.isEqual(today) || visibleFrom.isBefore(today))) &&
