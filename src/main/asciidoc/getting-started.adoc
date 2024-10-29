@@ -1,35 +1,197 @@
-= Spexregister Server Getting Started Guide
-Anders Jacobsson (Colgate);
+= Spexregister Server 2.0
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
 :toc: left
 :toclevels: 4
-:sectlinks:
 
 [[introduction]]
-= Introduction
+== Introduction
 
-Spexregister Server is a RESTful web service for .....
+TODO
 
+[[prerequisites]]
+== Prerequisites
 
-[[getting_started_running_the_service]]
-== Running the service
-Spexregister Server is written using https://projects.spring.io/spring-boot[Spring Boot] which
-makes it easy to get it up and running so that you can start exploring the REST API.
+You need to have the following installed to run Spexregister Server:
 
-The first step is to clone the Git repository:
+* Docker
+** Version 27.2 is verified to work
+
+You also need the following if you are to do development in Spexregister Server:
+
+* Git
+* Java
+** Version 21 is required, later versions might work as well
+* Gradle
+** Version 8.10.2 is verified to work
+* An IDE of your choice
+
+[[cloning_the_repository]]
+== Cloning the repository
+
+Clone the Git repository:
 
 [source,bash]
 ----
 $ git clone https://github.com/bloomper/spexregister-server
 ----
 
-Once the clone is complete, you're ready to get the service up and running:
+[[setup]]
+== Setup
+
+There are some configuration parameters that need to be set before Spexregister Server can be started.
+The parameters can be found under ``.docker/secrets`` where each file represents a parameter.
+
+|===
+|Parameter|Purpose|Comment|Example value
+
+|MYSQL_APP_ROOT_PASSWORD|The password for the root user of Spexregister Server's database||verysecret
+|MYSQL_APP_USER_PASSWORD|The password for the user of Spexregister Server's database||secret
+|MYSQL_KEYCLOAK_ROOT_PASSWORD|The password for the root user of Keycloak's database||verysecret
+|MYSQL_KEYCLOAK_USER_PASSWORD|The password for the user of Keycloak's database||secret
+|KEYCLOAK_ADMIN_PASSWORD|The password of Keycloak's administrative user||password
+|APP_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``src/test/resources/keycloak/fgv.json``, search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
+|APP_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
+|APP_IV|The initialization vector user for encrypting sensitive data|A 16 digit integer|1827491465859186
+
+|===
+
+There are also configuration parameters in ``.env`` that can be tweaked if so desired but
+the default values will work just fine.
+
+|===
+|Parameter|Purpose|Default value
+
+|MYSQL_APP_DATABASE|The name of the database used by Spexregister Server|spexregister
+|MYSQL_APP_ROOT_USER|The root user of Spexregister Server's database|root
+|MYSQL_APP_USER|The user of Spexregister Server's database|spexregister
+|MYSQL_KEYCLOAK_DATABASE|The name of the database used by Spexregister Server|keycloak
+|MYSQL_KEYCLOAK_ROOT_USER|The root user of Keycloak's database|root
+|MYSQL_KEYCLOAK_USER|The user of Keycloak's database|keycloak
+|KEYCLOAK_ADMIN|The administrative user of Keycloak|admin
+|APP_KEYCLOAK_REALM|The Keycloak realm of Spexregister Server|fgv
+|APP_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
+|APP_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
+|APP_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
+
+|===
+
+[[run]]
+== Run
+
+You are now ready to get Spexregister Server up and running:
 
 [source,bash]
 ----
-$ cd spexregister/spexregister-server
-$ ./gradle clean bootJar
-$ java -jar target/*.jar
+$ docker compose up -d
 ----
+
+[sidebar]
+.TEMPORARY WORKAROUND
+--
+Keycloak sometimes takes a while to start which can cause Spexregister Server to fail.
+Running the same command again will solve that.
+--
+
+[[sample_data]]
+== Sample data
+
+If ``APP_IMPORT_SAMPLE_DATA`` in ``.env`` is set to ``true``, sample data will be imported.
+Sample data consists both of real data and random data but none of the data can be traced
+to real individuals, i.e. no personally identifiable information (PII).
+
+[sidebar]
+.NOTE
+--
+Any existing data will be wiped out.
+--
+
+[[keycloak_setup]]
+== Keycloak administration
+
+The administrative UI of Keycloak can be accessed at http://localhost:8081/auth. The username is set
+by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
+
+[[tests]]
+== Tests
+
+There are two types of tests:
+
+* Unit tests, located under ``src/test``
+* Integration tests, located under ``src/integrationtest``
+
+Unit tests do not require any external dependencies, such as a database, and are therefore
+quicker to run. An example of unit tests is API tests which are used to generate the REST API documentation.
+Apart from API tests, unit tests are mostly only written for complex logic.
+
+Integration tests are slow to run as they depend on a full environment but that also means that they are
+end-to-end tests which are generally considered to provide better test value.
+
+[[test_credentials]]
+== Test credentials
+
+The following test users have been pre-created:
+
+!===
+
+|Username|Password|Comment
+
+|admin@spexregister.com|s3cr3t|Has admin privileges
+|editor@spexregister.com|s3cr3t|Has editor privileges
+|user@spexregister.com|s3cr3t|Has user privileges
+
+!===
+
+[[testing_the_api]]
+== Testing the API
+
+There are many tools out there that can be used for manual testing of the API. Two examples are
+Postman (https://www.postman.com/) and Brauzie (https://github.com/maslick/brauzie).
+
+To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`` tab and then select
+``Authorization Code`` as ``Grant type``. Enter values as follows (leave other fields empty).
+
+|===
+
+|Field|Value|Comment
+
+|Callback URL|https://oauth.pstmn.io/v1/browser-callback|
+|Auth URL|http://localhost:8081/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Access Token URL|http://localhost:8081/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Client ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|Scope|offline_access|
+|Client Authentication|Send as Basic Auth header|
+
+Request an access token by clicking ``Get New Access Token`` and use any of the test credentials to login.
+Use the obtained access token when invoking the API endpoints.
+
+|===
+
+To use Brauzie, set the following environment variables by running:
+
+[source,bash]
+----
+$ export <environment variable>=<value>
+----
+
+!===
+
+|Environment variable|Value|Comment
+
+|BRAUZIE_KC_URL|http://localhost:8081|
+|BRAUZIE_REALM|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|BRAUZIE_CLIENT_ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+
+!===
+
+Then run:
+
+[source,bash]
+----
+$ brauzie login
+----
+
+Use any of the test credentials to login after which the access token should show in the console.
+Use the obtained access token when invoking the API endpoints.
+

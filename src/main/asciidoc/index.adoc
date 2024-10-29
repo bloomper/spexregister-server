@@ -4,31 +4,27 @@
 :source-highlighter: highlightjs
 :toc: left
 :toclevels: 4
-:sectlinks:
 
 [[introduction]]
-= Introduction
+== Introduction
 
-Spexregister Server is a RESTful web service for .....
+Spexregister Server is the second generation of the backend responsible for serving data related to
+Spexregister.
 
+The purpose of this documentation is to provide details on how to develop within Spexregister Server and
+how to integrate Spexregister Server into another application, e.g. a web application.
 
-[[getting_started_running_the_service]]
-== Running the service
-Spexregister Server is written using https://projects.spring.io/spring-boot[Spring Boot] which
-makes it easy to get it up and running so that you can start exploring the REST API.
+[[getting_started]]
+== Getting started
 
-The first step is to clone the Git repository:
+Refer to the link:getting-started.adoc[getting started guide].
 
-[source,bash]
-----
-$ git clone https://github.com/bloomper/spexregister-server
-----
+[[api_guide]]
+== API guide
 
-Once the clone is complete, you're ready to get the service up and running:
+Refer to the link:api-guide.adoc[API guide].
 
-[source,bash]
-----
-$ cd spexregister/spexregister-server
-$ ./gradle clean bootJar
-$ java -jar target/*.jar
-----
+[[javadoc]]
+== Javadoc
+
+Javadoc can be found link:javadoc/index.html[here].
