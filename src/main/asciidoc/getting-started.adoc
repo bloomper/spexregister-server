@@ -83,13 +83,6 @@ You are now ready to get Spexregister Server up and running:
 $ docker compose up -d
 ----
 
-[sidebar]
-.TEMPORARY WORKAROUND
---
-Keycloak sometimes takes a while to start which can cause Spexregister Server to fail.
-Running the same command again will solve that.
---
-
 [[sample_data]]
 == Sample data
 
