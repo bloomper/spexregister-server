@@ -4,11 +4,46 @@
     <additionalParameters>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="SECRET_KEY" />
-        <option name="value" value="TODO" />
+        <option name="name" value="APP_IV" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_SECRET_KEY" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_ADMIN_CLIENT_SECRET" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_URL" />
+        <option name="value" value="http://localhost:8081/auth" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_REALM" />
+        <option name="value" value="fgv" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_ADMIN_CLIENT_ID" />
+        <option name="value" value="fgv-admin" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_CLIENT_CLIENT_ID" />
+        <option name="value" value="spexregister" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_IMPORT_SAMPLE_DATA" />
+        <option name="value" value="false" />
       </param>
     </additionalParameters>
-    <module name="nu.fgv.register.spexregister-server.main" />
+    <module name="spexregister-server.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
