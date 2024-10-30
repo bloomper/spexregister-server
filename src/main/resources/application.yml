@@ -43,6 +43,8 @@ spring:
       enabled: true
 
 management:
+  server:
+    port: 9000
   endpoints:
     web:
       exposure:

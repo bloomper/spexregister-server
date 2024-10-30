@@ -65,6 +65,12 @@ services:
       KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
     ports:
       - "8081:8081"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     labels:
       org.springframework.boot.ignore: true
     depends_on:
@@ -97,11 +103,17 @@ services:
       APP_IMPORT_SAMPLE_DATA: ${APP_IMPORT_SAMPLE_DATA}
     ports:
       - "8080:8080"
+    restart: on-failure
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /actuator/health HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       mysql-app:
         condition: service_started
       keycloak:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - app_log_data:/data/log_data
       - app_index_data:/data/index_data
