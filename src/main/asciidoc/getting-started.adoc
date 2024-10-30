@@ -4,11 +4,7 @@
 :source-highlighter: highlightjs
 :toc: left
 :toclevels: 4
-
-[[introduction]]
-== Introduction
-
-TODO
+:favicon: /favicon.ico
 
 [[prerequisites]]
 == Prerequisites

@@ -2,8 +2,7 @@
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
-:toc: left
-:toclevels: 4
+:favicon: /favicon.ico
 
 [[introduction]]
 == Introduction
@@ -17,12 +16,12 @@ how to integrate Spexregister Server into another application, e.g. a web applic
 [[getting_started]]
 == Getting started
 
-Refer to the link:getting-started.adoc[getting started guide].
+Refer to the link:getting-started.html[getting started guide].
 
 [[api_guide]]
 == API guide
 
-Refer to the link:api-guide.adoc[API guide].
+Refer to the link:api-guide.html[API guide].
 
 [[javadoc]]
 == Javadoc
