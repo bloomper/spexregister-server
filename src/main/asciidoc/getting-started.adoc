@@ -96,11 +96,51 @@ to real individuals, i.e. no personally identifiable information (PII).
 Any existing data will be wiped out.
 --
 
-[[keycloak_setup]]
+[[keycloak_administration]]
 == Keycloak administration
 
 The administrative UI of Keycloak can be accessed at http://localhost:8081/auth. The username is set
 by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
+
+[[keycloak_administration_setup]]
+=== Keycloak setup
+
+These are the steps to create a realm in Keycloak:
+
+* Create realm ``fgv``
+** Allow email to be used as username
+* Create client ``spexregister``
+** Create role ``USER``
+** Create role ``EDITOR``
+** Create role ``ADMIN``
+* Create client ``fgv-admin``
+** Enable client authentication
+** Enable service account roles
+** Disable standard flow
+** Disable direct access grants
+** Assign the following service account roles
+*** manage-users
+*** query-users
+*** view-users
+*** view-clients
+
+To also create test users and export the realm, i.e. ``src/test/resources/keycloak/fgv.json``,
+do the following:
+
+* Start Keycloak by ``./bin/kc.sh start-dev``
+* Follow the steps outlined above
+* Create the following users
+** user@spexregister.com
+*** Assign client role USER
+** editor@spexregister.com
+*** Assign client role USER
+*** Assign client role EDITOR
+** admin@spexregister.com
+*** Assign client role USER
+*** Assign client role EDITOR
+*** Assign client role ADMIN
+* Set password ``s3cr3t`` for all users
+* Export by ``./kc.sh export --users realm_file --file fgv.json --realm fgv``
 
 [[tests]]
 == Tests
