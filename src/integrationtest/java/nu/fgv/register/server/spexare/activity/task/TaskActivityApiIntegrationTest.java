@@ -546,7 +546,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var category = persistTaskCategory(randomizeTaskCategory());
             final var task1 = persistTask(randomizeTask(category));
@@ -563,7 +563,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task2.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off

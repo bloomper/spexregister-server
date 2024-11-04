@@ -127,7 +127,7 @@ public class ActorApi {
         try {
             return service
                     .update(spexareId, activityId, taskActivityId, vocalId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
+                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
@@ -145,7 +145,7 @@ public class ActorApi {
         try {
             return service
                     .partialUpdate(spexareId, activityId, taskActivityId, vocalId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.ACCEPTED).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
+                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
                     .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {

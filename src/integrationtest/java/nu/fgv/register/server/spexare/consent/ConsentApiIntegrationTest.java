@@ -398,7 +398,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
@@ -411,7 +411,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.FALSE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off

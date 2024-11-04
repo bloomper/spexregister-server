@@ -396,7 +396,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
@@ -409,7 +409,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.FALSE)
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off

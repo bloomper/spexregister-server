@@ -195,7 +195,7 @@ class ConsentApiTest extends AbstractApiTest {
                         put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1L, consent.getType().getId(), consent.getId(), Boolean.FALSE)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/consents/update",

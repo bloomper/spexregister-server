@@ -483,7 +483,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
@@ -515,7 +515,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .put("/{id}", user.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -604,7 +604,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
@@ -636,7 +636,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", user.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

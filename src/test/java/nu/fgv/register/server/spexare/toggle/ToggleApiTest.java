@@ -195,7 +195,7 @@ class ToggleApiTest extends AbstractApiTest {
                         put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1L, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
                                 "spexare/toggles/update",

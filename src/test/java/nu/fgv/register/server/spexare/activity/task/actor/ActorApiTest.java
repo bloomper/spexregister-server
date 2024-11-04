@@ -215,7 +215,7 @@ class ActorApiTest extends AbstractApiTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andDo(document(
                                 "spexare/activities/tasks/actors/update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -254,7 +254,7 @@ class ActorApiTest extends AbstractApiTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andDo(document(
                                 "spexare/activities/tasks/actors/partial-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),

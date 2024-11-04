@@ -445,7 +445,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -476,7 +476,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .put("/{id}", spexare.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -563,7 +563,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
@@ -594,7 +594,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", spexare.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

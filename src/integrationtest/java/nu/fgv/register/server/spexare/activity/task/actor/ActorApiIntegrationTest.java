@@ -970,7 +970,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var category = persistTaskCategory(randomizeTaskCategory());
             final var task = persistTask(randomizeTask(category));
@@ -1008,7 +1008,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", vocal.getId(), before.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off
@@ -1265,7 +1265,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var category = persistTaskCategory(randomizeTaskCategory());
             final var task = persistTask(randomizeTask(category));
@@ -1303,7 +1303,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", vocal.getId(), before.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off

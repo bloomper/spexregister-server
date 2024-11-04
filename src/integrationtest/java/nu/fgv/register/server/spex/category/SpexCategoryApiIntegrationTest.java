@@ -381,7 +381,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
@@ -413,7 +413,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                             .put("/{id}", category.getId())
                     .then()
-                            .statusCode(HttpStatus.ACCEPTED.value())
+                            .statusCode(HttpStatus.OK.value())
                             .extract().body().asString();
             //@formatter:on
 
@@ -499,7 +499,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
@@ -531,7 +531,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", category.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

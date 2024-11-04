@@ -373,7 +373,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
@@ -405,7 +405,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .put("/{id}", news.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -491,7 +491,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
@@ -524,7 +524,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", news.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

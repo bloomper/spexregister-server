@@ -371,7 +371,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
@@ -403,7 +403,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .put("/{id}", category.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -489,7 +489,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
@@ -521,7 +521,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", category.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

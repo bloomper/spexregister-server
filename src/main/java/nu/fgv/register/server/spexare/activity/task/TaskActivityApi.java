@@ -118,7 +118,7 @@ public class TaskActivityApi {
     @PutMapping(value = "/{id}/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<?> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId, @PathVariable final Long id) {
         try {
-            return service.update(spexareId, activityId, taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.update(spexareId, activityId, taskId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not update task activity {} for activity {} and spexare {}", id, activityId, spexareId, e);

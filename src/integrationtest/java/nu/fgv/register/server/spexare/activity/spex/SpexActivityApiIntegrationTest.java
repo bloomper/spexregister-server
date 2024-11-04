@@ -551,7 +551,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var category = persistSpexCategory(randomizeSpexCategory());
             final var spex1 = persistSpex(randomizeSpex(category));
@@ -568,7 +568,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{spexId}", spexActivity.getId(), spex2.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             //@formatter:off

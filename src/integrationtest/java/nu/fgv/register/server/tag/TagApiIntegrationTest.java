@@ -371,7 +371,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
@@ -403,7 +403,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .put("/{id}", tag.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 
@@ -489,7 +489,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() throws Exception {
+        void should_update_and_return_200() throws Exception {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
@@ -521,7 +521,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .when()
                         .patch("/{id}", tag.getId())
                     .then()
-                        .statusCode(HttpStatus.ACCEPTED.value())
+                        .statusCode(HttpStatus.OK.value())
                         .extract().body().asString();
             //@formatter:on
 

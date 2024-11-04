@@ -512,7 +512,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
@@ -543,7 +543,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", type.getId(), before.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off
@@ -658,7 +658,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
@@ -688,7 +688,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), result.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
 
             //@formatter:off
