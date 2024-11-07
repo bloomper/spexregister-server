@@ -711,7 +711,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_add_and_return_202() {
+        void should_add_and_return_200() {
             final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
@@ -725,7 +725,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{taskId}/category/{id}", task.getId(), category.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);

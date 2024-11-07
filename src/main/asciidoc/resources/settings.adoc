@@ -1,0 +1,92 @@
+= Settings
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[country]]
+== Country
+
+[[country_get]]
+=== Get
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-country-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[country_get_all]]
+=== Get (all)
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-country-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+
+[[language]]
+== Language
+
+[[language_get]]
+=== Get
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-language-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[language_get_all]]
+=== Get (all)
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-language-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+
+[[type]]
+== Type
+
+[[type_get]]
+=== Get
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-type-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[type_get_all]]
+=== Get (all)
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-type-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+
+[[type_get_all_of_type]]
+=== Get (all of specific type)
+
+!===
+|Requires authentication|No
+|Required roles|None
+!===
+
+operation::settings-type-get-all-of-type[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

@@ -59,6 +59,7 @@ public class StateApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<CollectionModel<EntityModel<StateDto>>> retrieve(@SortDefault(sort = Authority_.ID, direction = Sort.Direction.ASC) final Sort sort) {
         final List<EntityModel<StateDto>> states = service.findAll(sort).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
@@ -70,6 +71,7 @@ public class StateApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
     public ResponseEntity<EntityModel<StateDto>> retrieve(@PathVariable final String id) {
         return service
                 .findById(id)

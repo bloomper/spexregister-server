@@ -86,13 +86,14 @@ class ActivityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.activities", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/get-paged",
+                                "spexare-activity-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -127,13 +128,14 @@ class ActivityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/get",
+                                "spexare-activity-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -158,11 +160,12 @@ class ActivityApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/activities/create",
+                                "spexare-activity-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -184,10 +187,11 @@ class ActivityApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/activities/delete",
+                                "spexare-activity-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

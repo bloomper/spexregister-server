@@ -123,13 +123,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users?page=1&size=2&sort=username,desc&filter=username:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.users", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/get-paged",
+                                "user-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -163,13 +164,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/users")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "users/create",
+                                "user-create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -193,13 +195,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/get",
+                                "user-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -225,6 +228,7 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -233,7 +237,7 @@ class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/update",
+                                "user-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -263,6 +267,7 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -271,7 +276,7 @@ class UserApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/partial-update",
+                                "user-update-partial",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -300,12 +305,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/users/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/delete",
+                                "user-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -326,13 +332,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/{userId}/authorities", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.authorities", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-get",
+                                "user-authority-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -363,12 +370,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-add",
+                                "user-authority-add",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -389,12 +397,13 @@ class UserApiTest extends AbstractApiTest {
                         put("/api/v1/users/{userId}/authorities", 1)
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-add-multiple",
+                                "user-authority-add-multiple",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -416,12 +425,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-remove",
+                                "user-authority-remove",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -442,12 +452,13 @@ class UserApiTest extends AbstractApiTest {
                         delete("/api/v1/users/{userId}/authorities", 1)
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-remove-multiple",
+                                "user-authority-remove-multiple",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -469,13 +480,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/{userId}/state", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/state-get",
+                                "user-state-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -503,12 +515,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/users/{userId}/state/{id}", 1, "PENDING")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/state-set",
+                                "user-state-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -528,13 +541,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/{userId}/spexare", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/spexare-get",
+                                "user-spexare-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -568,12 +582,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/users/{userId}/spexare/{id}", 1, 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/spexare-add",
+                                "user-spexare-add",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -593,12 +608,13 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/users/{userId}/spexare", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/spexare-remove",
+                                "user-spexare-remove",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -623,13 +639,14 @@ class UserApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/get-events",
+                                "user-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

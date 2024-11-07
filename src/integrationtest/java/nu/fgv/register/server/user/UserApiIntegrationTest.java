@@ -856,7 +856,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_add_and_return_202() {
+        void should_add_and_return_204() {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst());
@@ -870,7 +870,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{userId}/authorities/{id}", user.getId(), authorities.getFirst())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
@@ -917,7 +917,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_add_multiple_and_return_202() {
+        void should_add_multiple_and_return_204() {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state));
@@ -932,7 +932,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
@@ -1063,7 +1063,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_remove_multiple_and_return_202() {
+        void should_remove_multiple_and_return_204() {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
@@ -1269,7 +1269,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_set_and_return_202() {
+        void should_set_and_return_204() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var newState = persistState(randomizeState());
@@ -1283,7 +1283,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{userId}/state/{id}", user.getId(), newState.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.findById(user.getId()).map(User::getState).orElseThrow(() -> new RuntimeException("User not found"))).isEqualTo(newState);
@@ -1392,7 +1392,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_add_and_return_202() {
+        void should_add_and_return_204() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var spexare = persistSpexare(randomizeSpexare());
@@ -1407,7 +1407,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{userId}/spexare/{id}", user.getId(), spexare.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.findById(user.getId()).map(User::getSpexare).orElseThrow(() -> new RuntimeException("User not found"))).isEqualTo(spexare);

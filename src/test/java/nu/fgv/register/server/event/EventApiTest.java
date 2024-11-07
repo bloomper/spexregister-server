@@ -92,13 +92,14 @@ class EventApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "events/get-all",
+                                "event-get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(
@@ -129,13 +130,14 @@ class EventApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/events/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "events/get",
+                                "event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

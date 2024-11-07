@@ -1,0 +1,110 @@
+= News
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[create]]
+== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::news-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[get_paged]]
+== Get (paged)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::news-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
+
+[[get]]
+== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::news-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[update]]
+== Update
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::news-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[update_partial]]
+== Update (partial)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::news-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[delete]]
+== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::news-delete[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[events]]
+== Events
+
+[[events_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::news-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

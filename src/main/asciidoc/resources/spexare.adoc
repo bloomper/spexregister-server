@@ -1,0 +1,220 @@
+= Spexare
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[create]]
+== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[get_paged]]
+== Get (paged)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
+
+[[get_search]]
+== Get (search)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-get-all-search[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[get]]
+== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[update]]
+== Update
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[update_partial]]
+== Update (partial)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[delete]]
+== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::spexare-delete[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[image]]
+== Image
+
+[[image_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-image-get[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+
+[[image_update]]
+=== Update
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-image-add[snippets='request-headers,http-request,http-response']
+
+[[image_update_multipart]]
+=== Update (multipart)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::spexare-image-add-multipart[snippets='request-headers,http-request,http-response']
+
+[[image_delete]]
+=== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-image-remove[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[partner]]
+== Partner
+
+[[partner_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-partner-get[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+
+[[partner_create]]
+=== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-partner-add[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[partner_delete]]
+=== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-partner-remove[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[events]]
+== Events
+
+[[events_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::spexare-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

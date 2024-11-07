@@ -91,13 +91,14 @@ class StateApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/states?sort=name,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.states", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/states/get-all",
+                                "user-state-get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(
@@ -129,13 +130,14 @@ class StateApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/states/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/states/get",
+                                "user-state-get-2",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -163,13 +165,14 @@ class StateApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/states/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/states/get-events",
+                                "user-state-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

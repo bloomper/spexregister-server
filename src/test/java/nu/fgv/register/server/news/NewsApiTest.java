@@ -106,13 +106,14 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc&filter=subject~test")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.news", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/get-paged",
+                                "news-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -150,13 +151,14 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/news")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "news/create",
+                                "news-create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -183,13 +185,14 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/get",
+                                "news-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -215,6 +218,7 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -223,7 +227,7 @@ class NewsApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/update",
+                                "news-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -256,6 +260,7 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -264,7 +269,7 @@ class NewsApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/partial-update",
+                                "news-update-partial",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -296,12 +301,13 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/news/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/delete",
+                                "news-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -326,13 +332,14 @@ class NewsApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/news/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "news/get-events",
+                                "news-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

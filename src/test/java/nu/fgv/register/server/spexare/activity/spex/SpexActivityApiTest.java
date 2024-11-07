@@ -110,13 +110,14 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities?page=1&size=2&sort=id,desc", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex-activities", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get-paged",
+                                "spexare-activity-spex-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -152,13 +153,14 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get",
+                                "spexare-activity-spex-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -184,11 +186,12 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{spexId}", 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/activities/spex/create",
+                                "spexare-activity-spex-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -212,10 +215,11 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1L, 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/activities/spex/update",
+                                "spexare-activity-spex-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -237,10 +241,11 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/activities/spex/delete",
+                                "spexare-activity-spex-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -265,13 +270,14 @@ class SpexActivityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/spex", 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/activities/spex/get-spex",
+                                "spexare-activity-spex-get-spex",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

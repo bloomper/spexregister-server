@@ -113,7 +113,7 @@ class SpexApiTest extends AbstractApiTest {
 
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("poster").description("Link to the current spex's poster").optional(),
-            linkWithRel("parent").description("Link to the current spex's parent").optional(),
+            linkWithRel("revivals-parent").description("Link to the current spex's parent").optional(),
             linkWithRel("revivals").description("Link to the current spex's revivals").optional(),
             linkWithRel("category").description("Link to the current spex's spex category").optional(),
             linkWithRel("spex").description("Link to paged spex").optional(),
@@ -145,13 +145,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex?page=1&size=2&sort=year,desc&filter=parent:NULL")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/get-paged",
+                                "spex-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -186,6 +187,7 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex?ids=1,2,3")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -193,7 +195,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/get-export",
+                                "spex-get-all-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -222,13 +224,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spex")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spex/create",
+                                "spex-create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -253,13 +256,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/get",
+                                "spex-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -285,6 +289,7 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -293,7 +298,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/update",
+                                "spex-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -324,6 +329,7 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -332,7 +338,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/partial-update",
+                                "spex-update-partial",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -362,12 +368,13 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/delete",
+                                "spex-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -387,6 +394,7 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/{id}/poster", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, poster.getSecond()))
@@ -394,7 +402,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/poster-download",
+                                "spex-poster-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -420,6 +428,7 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spex/{id}/poster", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(poster)
                 )
@@ -427,7 +436,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/poster-upload",
+                                "spex-poster-add",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -452,12 +461,13 @@ class SpexApiTest extends AbstractApiTest {
                         multipart("/api/v1/spex/{id}/poster", 1L)
                                 .file(poster)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/poster-upload-multipart",
+                                "spex-poster-add-multipart",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -480,49 +490,19 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{id}/poster", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/poster-delete",
+                                "spex-poster-remove",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex")
                                 ),
                                 secureRequestHeaders
-                        )
-                );
-    }
-
-    @Test
-    void should_get_revival() throws Exception {
-        final var revival = SpexDto.builder().id(1L).year("2021").build();
-
-        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(Optional.of(revival));
-
-        mockMvc
-                .perform(
-                        get("/api/v1/spex/{spexId}/revivals/{id}", 1L, 1L)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex/revivals-get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("id").description("The id of the revival")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders
                         )
                 );
     }
@@ -538,13 +518,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/revivals?page=1&size=2&sort=year,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/revivals-paged",
+                                "spex-revival-get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -570,6 +551,69 @@ class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
+    void should_get_revival_parent() throws Exception {
+        final var parent = SpexDto.builder().id(1L).year("2021").build();
+
+        when(service.findById(any(Long.class))).thenReturn(Optional.of(parent));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spex/{spexId}/revivals/parent", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex-revival-get-parent",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexId").description("The id of the spex")
+                                ),
+                                responseFields,
+                                links,
+                                secureRequestHeaders,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
+    void should_get_revival() throws Exception {
+        final var revival = SpexDto.builder().id(1L).year("2021").build();
+
+        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(Optional.of(revival));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spex/{spexId}/revivals/{id}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spex-revival-get",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexId").description("The id of the spex"),
+                                        parameterWithName("id").description("The id of the revival")
+                                ),
+                                responseFields,
+                                links,
+                                secureRequestHeaders,
+                                responseHeaders
+                        )
+                );
+    }
+
+    @Test
     void should_get_paged_specific_revivals() throws Exception {
         final var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
         final var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
@@ -580,13 +624,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spex", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/revivals-specific-paged",
+                                "spex-revival-get-2",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -624,11 +669,12 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spex/{spexId}/revivals/{year}", 1L, "2021")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spex/revival-add",
+                                "spex-revival-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -651,10 +697,11 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{spexId}/revivals/{year}", 1L, "2021")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spex/revival-delete",
+                                "spex-revival-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -678,11 +725,12 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/{spexId}/category", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spex/category-get",
+                                "spex-category-get",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -704,10 +752,11 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spex/{spexId}/category/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spex/category-add",
+                                "spex-category-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -727,10 +776,11 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spex/{spexId}/category", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spex/category-remove",
+                                "spex-category-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -755,13 +805,14 @@ class SpexApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spex/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex/get-events",
+                                "spex-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

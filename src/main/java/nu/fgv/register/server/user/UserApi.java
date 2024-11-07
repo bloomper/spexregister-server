@@ -181,7 +181,7 @@ public class UserApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Serializable> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
         try {
-            return service.addAuthority(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.addAuthority(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add authority {} for user {}", id, userId, e);
@@ -194,7 +194,7 @@ public class UserApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Serializable> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
         try {
-            return service.addAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.addAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add authorities {} for user {}", String.join(",", ids), userId, e);
@@ -247,7 +247,7 @@ public class UserApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Serializable> setState(@PathVariable final Long userId, @PathVariable final String id) {
         try {
-            return service.setState(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.setState(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not set state {} for user {}", id, userId, e);
@@ -275,7 +275,7 @@ public class UserApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<Serializable> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
         try {
-            return service.addSpexare(userId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            return service.addSpexare(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add spexare {} for user {}", id, userId, e);

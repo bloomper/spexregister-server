@@ -90,13 +90,14 @@ class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.consents", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/consents/get-paged",
+                                "spexare-consent-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -133,13 +134,14 @@ class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{spexareId}/consents/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/consents/get",
+                                "spexare-consent-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -164,11 +166,12 @@ class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1L, consent.getId(), Boolean.TRUE)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/consents/create",
+                                "spexare-consent-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -194,11 +197,12 @@ class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1L, consent.getType().getId(), consent.getId(), Boolean.FALSE)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/consents/update",
+                                "spexare-consent-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -223,10 +227,11 @@ class ConsentApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/consents/delete",
+                                "spexare-consent-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(

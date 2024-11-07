@@ -841,7 +841,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_update_and_return_202() {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var partner = persistSpexare(randomizeSpexare());
 
@@ -852,7 +852,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.OK.value());
             //@formatter:on
         }
 

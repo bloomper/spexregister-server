@@ -1,0 +1,67 @@
+= Activity
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[create]]
+== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-activity-add[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[get_paged]]
+== Get (paged)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-activity-get-all-paged[snippets='request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[get]]
+== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-activity-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[delete]]
+== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-activity-remove[snippets='request-headers,path-parameters,http-request,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

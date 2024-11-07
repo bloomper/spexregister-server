@@ -147,13 +147,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare?page=1&size=2&sort=firstName,desc&filter=firstName:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/get-paged",
+                                "spexare-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -202,13 +203,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare?q=FirstName&page=1&size=2&sort=firstName,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.spexare", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/search-paged",
+                                "spexare-get-all-search",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -247,6 +249,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare?ids=1,2,3")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -254,7 +257,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/get-export",
+                                "spexare-get-all-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -283,13 +286,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/spexare")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/create",
+                                "spexare-create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -315,13 +319,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/get",
+                                "spexare-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -347,6 +352,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -355,7 +361,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/update",
+                                "spexare-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -390,6 +396,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -398,7 +405,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/partial-update",
+                                "spexare-update-partial",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -432,12 +439,13 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{id}", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/delete",
+                                "spexare-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -458,6 +466,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{id}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, image.getSecond()))
@@ -465,7 +474,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/image-download",
+                                "spexare-image-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -492,6 +501,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spexare/{id}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(image)
                 )
@@ -499,7 +509,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/image-upload",
+                                "spexare-image-add",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -525,12 +535,13 @@ class SpexareApiTest extends AbstractApiTest {
                         multipart("/api/v1/spexare/{id}/image", 1L)
                                 .file(image)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/image-upload-multipart",
+                                "spexare-image-add-multipart",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -554,12 +565,13 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{id}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/image-delete",
+                                "spexare-image-remove",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -580,13 +592,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/{id}/partner", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/get-partner",
+                                "spexare-partner-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -610,11 +623,12 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/spexare/{spexareId}/partner/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "spexare/partner-update",
+                                "spexare-partner-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -637,10 +651,11 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/partner", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(document(
-                                "spexare/partner-delete",
+                                "spexare-partner-remove",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -665,13 +680,14 @@ class SpexareApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/spexare/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare/get-events",
+                                "spexare-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

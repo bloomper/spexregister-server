@@ -117,13 +117,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/languages")
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.languages", hasSize(2)))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/language-get-all",
+                                    "settings-language-get-all",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     responseFields(
@@ -149,13 +150,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/languages/{isoCode}", "sv")
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/language-get",
+                                    "settings-language-get",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     pathParameters(
@@ -183,13 +185,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/countries")
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.countries", hasSize(2)))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/country-get-all",
+                                    "settings-country-get-all",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     responseFields(
@@ -215,13 +218,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/countries/{isoCode}", "SE")
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("isoCode", is(notNullValue())))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/country-get",
+                                    "settings-country-get",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     pathParameters(
@@ -249,13 +253,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/types")
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.types", hasSize(2)))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/type-get-all",
+                                    "settings-type-get-all",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     responseFields(
@@ -283,15 +288,19 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/types/{type}", TypeType.ADDRESS)
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("_embedded.types", hasSize(2)))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/type-get-all-of-type",
+                                    "settings-type-get-all-of-type",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                    pathParameters(
+                                            parameterWithName("type").description("The type of the type")
+                                    ),
                                     responseFields(
                                             subsectionWithPath("_embedded").description("The embedded section"),
                                             subsectionWithPath("_embedded.types[]").description("The elements"),
@@ -316,13 +325,14 @@ class SettingsApiTest extends AbstractApiTest {
             mockMvc
                     .perform(
                             get("/api/v1/settings/types/{type}/{id}", TypeType.ADDRESS, 1L)
+                                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("id", is(notNullValue())))
                     .andDo(print())
                     .andDo(
                             document(
-                                    "settings/type-get",
+                                    "settings-type-get",
                                     preprocessRequest(prettyPrint()),
                                     preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                     pathParameters(

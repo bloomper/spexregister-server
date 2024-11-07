@@ -91,13 +91,14 @@ class AuthorityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/authorities?sort=name,desc")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.authorities", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-get-all",
+                                "user-authority-get-all",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(
@@ -129,13 +130,14 @@ class AuthorityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/authorities/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities-get",
+                                "user-authority-get-2",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -163,13 +165,14 @@ class AuthorityApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/users/authorities/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "users/authorities/get-events",
+                                "user-authority-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

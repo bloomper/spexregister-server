@@ -218,9 +218,18 @@ public class SpexApi {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping(value = "/{spexId}/parent", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
-    public ResponseEntity<EntityModel<SpexDto>> retrieveParent(@PathVariable final Long spexId) {
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
+        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivals(pageable));
+        paged.getContent().forEach(this::addLinks);
+
+        return ResponseEntity.ok(paged);
+    }
+
+    @GetMapping(value = "/{spexId}/revivals/parent", produces = MediaTypes.HAL_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    public ResponseEntity<EntityModel<SpexDto>> retrieveRevivalParent(@PathVariable final Long spexId) {
         try {
             return service
                     .findById(spexId)
@@ -248,15 +257,6 @@ public class SpexApi {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    @GetMapping(value = "/revivals", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivals(pageable));
-        paged.getContent().forEach(this::addLinks);
-
-        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{spexId}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
@@ -329,7 +329,7 @@ public class SpexApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
         try {
-            return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add category {} for spex {}", id, spexId, e);
@@ -386,7 +386,7 @@ public class SpexApi {
         links.add(linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster"));
         links.add(linkTo(methodOn(SpexApi.class).retrieveCategory(dto.getId())).withRel("category"));
         if (dto.isRevival()) {
-            links.add(linkTo(methodOn(SpexApi.class).retrieveParent(dto.getId())).withRel("parent"));
+            links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalParent(dto.getId())).withRel("revivals-parent"));
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }

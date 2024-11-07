@@ -191,7 +191,7 @@ public class TaskApi {
     @PreAuthorize("hasRole('spexregister_ADMIN')")
     public ResponseEntity<?> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
-            return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.ACCEPTED).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not add category {} for task {}", id, taskId, e);

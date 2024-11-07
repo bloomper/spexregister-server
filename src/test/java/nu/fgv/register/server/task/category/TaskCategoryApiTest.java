@@ -116,13 +116,14 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/tasks/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.task-categories", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/get-paged",
+                                "task-category-get-all-paged",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pageLinks.and(
@@ -156,6 +157,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/tasks/categories?ids=1,2,3")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
                 .andExpect(status().isOk())
@@ -163,7 +165,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/get-export",
+                                "task-category-get-all-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
@@ -192,13 +194,14 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/v1/tasks/categories")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(document(
-                                "tasks/categories/create",
+                                "task-category-create",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
@@ -223,13 +226,14 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/tasks/categories/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/get",
+                                "task-category-get-2",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -255,6 +259,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/v1/tasks/categories/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -263,7 +268,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/update",
+                                "task-category-update",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -294,6 +299,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/v1/tasks/categories/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
@@ -302,7 +308,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/partial-update",
+                                "task-category-update-partial",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -332,12 +338,13 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/v1/tasks/categories/{id}", 1)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/delete",
+                                "task-category-delete",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
@@ -362,13 +369,14 @@ class TaskCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/v1/tasks/categories/events?sinceInDays=30")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.events", hasSize(2)))
                 .andDo(print())
                 .andDo(
                         document(
-                                "tasks/categories/get-events",
+                                "task-category-event-get",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 responseFields(

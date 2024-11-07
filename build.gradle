@@ -39,6 +39,7 @@ configurations {
     compileOnly.extendsFrom annotationProcessor
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    asciidoctorExtensions
 }
 
 repositories {
@@ -52,6 +53,8 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
     compileOnly 'org.projectlombok:lombok'
 
@@ -186,16 +189,14 @@ jacocoTestReport {
 
 check.dependsOn jacocoTestReport
 
-tasks.named('asciidoctor') {
-    inputs.dir snippetsDir
-    dependsOn createSnippetsDir, test
-}
-
 asciidoctor {
+    dependsOn createSnippetsDir, test
+    configurations 'asciidoctorExtensions'
+    inputs.dir snippetsDir
     sourceDir 'src/main/asciidoc'
     attributes   \
         'snippets': file('build/generated-snippets'),
-        'template-snippets': file('src/main/asciidoc/snippets')
+        'static-snippets': file('src/main/asciidoc/static-snippets')
 }
 
 bootJar {

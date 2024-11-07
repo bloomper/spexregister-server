@@ -1,0 +1,95 @@
+= Task (activity)
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[create]]
+== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::spexare-activity-task-add[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[get_paged]]
+== Get (paged)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-activity-task-get-all-paged[snippets='request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[get]]
+== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-activity-task-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[update]]
+== Update
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+!===
+
+operation::spexare-activity-task-update[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[delete]]
+== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::spexare-activity-task-remove[snippets='request-headers,path-parameters,http-request,http-response']
+
+[[task]]
+== Task
+
+[[task_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-activity-task-get-task[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

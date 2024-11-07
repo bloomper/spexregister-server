@@ -5,13 +5,10 @@
 :toc: left
 :toclevels: 4
 :favicon: /favicon.ico
-:operation-curl-request-title: Example request
-:operation-http-response-title: Example response
 
-[[overview]]
-= Overview
+xref:index.adoc[Back to start page]
 
-[[overview_http_verbs]]
+[[http_verbs]]
 == HTTP verbs
 
 Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its
@@ -33,7 +30,7 @@ use of HTTP verbs.
 | Used to delete an existing resource
 |===
 
-[[overview_http_status_codes]]
+[[http_status_codes]]
 == HTTP status codes
 
 Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its
@@ -43,36 +40,45 @@ use of HTTP status codes.
 | Status code | Usage
 
 | `200 OK`
-| The request completed successfully
+| The request completed successfully.
 
 | `201 Created`
 | A new resource has been created successfully. The resource's URI is available from the response's
 `Location` header
 
 | `204 No Content`
-| An update to an existing resource has been applied successfully
+| An update/delete to an existing resource has been applied successfully
 
 | `400 Bad Request`
-| The request was malformed. The response body will include an error providing further information
+| The request was malformed.
 
 | `404 Not Found`
-| The requested resource did not exist
+| The requested resource did not exist.
+
+| `409 Conflict`
+| The request could not be completed due to already existing resource.
+
+| `422 Unprocessable Entity`
+| The request could not be processed due to invalid input related to sub-resource.
+
+| `500 Internal Server Error`
+| A fatal error has occurred.
 |===
 
-[[overview_errors]]
+[[errors]]
 == Errors
 
 Whenever an error response (status code >= 400) is returned, the body will contain a JSON object
 that describes the problem. The error object has the following structure:
 
-include::{template-snippets}/error-example/response-fields.adoc[]
+include::{static-snippets}/error/response-fields.adoc[]
 
 For example, a request that attempts to apply a non-existent tag to a spexare will produce a
 `400 Bad Request` response:
 
-include::{template-snippets}/error-example/http-response.adoc[]
+include::{static-snippets}/error/http-response.adoc[]
 
-[[overview_hypermedia]]
+[[hypermedia]]
 == Hypermedia
 
 Spexregister Server uses hypermedia and resources include links to other resources in their
@@ -81,12 +87,79 @@ Application Language (HAL)] format. Links can be found beneath the `_links` key.
 the API should not create URIs themselves, instead they should use the above-described
 links to navigate from resource to resource.
 
+[[roles]]
+== Roles
+
+Spexregister Server uses the following roles:
+
+!===
+|Role|Technical name|Description
+
+|USER|ROLE_USER|User with no administrative privileges
+|EDITOR|ROLE_EDITOR|User with selected administrative privileges
+|ADMIN|ROLE_ADMIN|User with full administrative privileges
+
+!===
+
+[[filtering]]
+== Filtering
+
+When retrieving resources, it is possible to apply filtering. Note that it does not
+apply to all resources.
+
+The available operations are:
+
+* Simple operations
+** Equality: represented by colon (:)
+** Negation: represented by exclamation mark (!)
+** Greater than: represented by (>)
+** Less than: represented by (<)
+** Like: represented by tilde (~)
+* Complex operations
+** Starts with: represented by (:prefix*)
+** Ends with: represented by (:*suffix)
+** Contains: represented by (:*substring*)
+
+The syntax is:
+
+``<attribute><operation><value><optional operation>``
+
+Example: ``nickName:colg*``
+
+Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much
+like the WHERE clause in SQL statements. To group clauses, use ``( `` and `` )`` (note the
+trailing and leading whitespaces).
+
+Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
+
 [[resources]]
-= Resources
+== Resources
 
+Spexregister Server uses the following resources:
 
+* xref:resources/event.adoc[Event]
+* xref:resources/news.adoc[News]
+* xref:resources/session.adoc[Session]
+* xref:resources/settings.adoc[Settings]
+* xref:resources/spex.adoc[Spex]
+** xref:resources/spex-category.adoc[Spex category]
+* xref:resources/spexare.adoc[Spexare]
+** xref:resources/spexare-activity.adoc[Activity]
+*** xref:resources/spexare-activity-spex.adoc[Spex]
+*** xref:resources/spexare-activity-task.adoc[Task]
+**** xref:resources/spexare-activity-task-actor.adoc[Actor]
+** xref:resources/spexare-address.adoc[Address]
+** xref:resources/spexare-consent.adoc[Consent]
+** xref:resources/spexare-membership.adoc[Membership]
+** xref:resources/spexare-tag.adoc[Tag]
+** xref:resources/spexare-toggle.adoc[Toggle]
+* xref:resources/tag.adoc[Tag]
+* xref:resources/task.adoc[Task]
+** xref:resources/task-category.adoc[Task category]
+* xref:resources/user.adoc[User]
+** xref:resources/user-authority.adoc[Authority]
+** xref:resources/user-state.adoc[State]
 
-[[resources_index]]
-== Index
+Click on each respective resource for more details.
 
-The index provides the entry point into the service.
+xref:index.adoc[Back to start page]

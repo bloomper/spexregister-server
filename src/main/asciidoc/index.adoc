@@ -16,12 +16,12 @@ how to integrate Spexregister Server into another application, e.g. a web applic
 [[getting_started]]
 == Getting started
 
-Refer to the link:getting-started.html[getting started guide].
+Refer to the xref:getting-started.adoc[getting started guide].
 
 [[api_guide]]
 == API guide
 
-Refer to the link:api-guide.html[API guide].
+Refer to the xref:api-guide.adoc[API guide].
 
 [[javadoc]]
 == Javadoc

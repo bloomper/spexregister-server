@@ -1,0 +1,28 @@
+= Session
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[events]]
+== Events
+
+[[events_get]]
+=== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+!===
+
+operation::session-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

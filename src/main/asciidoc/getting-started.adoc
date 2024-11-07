@@ -6,6 +6,8 @@
 :toclevels: 4
 :favicon: /favicon.ico
 
+xref:index.adoc[Back to start page]
+
 [[prerequisites]]
 == Prerequisites
 
@@ -208,9 +210,9 @@ $ export <environment variable>=<value>
 
 |Environment variable|Value|Comment
 
-|BRAUZIE_KC_URL|http://localhost:8081|
-|BRAUZIE_REALM|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|BRAUZIE_CLIENT_ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|``BRAUZIE_KC_URL``|http://localhost:8081|
+|``BRAUZIE_REALM``|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|``BRAUZIE_CLIENT_ID``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
 
 !===
 
@@ -224,3 +226,4 @@ $ brauzie login
 Use any of the test credentials to login after which the access token should show in the console.
 Use the obtained access token when invoking the API endpoints.
 
+xref:index.adoc[Back to start page]

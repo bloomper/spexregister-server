@@ -1343,7 +1343,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_add_and_return_202() {
+        void should_add_and_return_204() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -1357,7 +1357,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{spexId}/category/{id}", spex.getId(), category.getId())
             .then()
-                .statusCode(HttpStatus.ACCEPTED.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
