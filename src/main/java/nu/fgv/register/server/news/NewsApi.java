@@ -23,6 +23,9 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -35,7 +38,6 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -70,7 +72,7 @@ public class NewsApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = News_.VISIBLE_FROM, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
@@ -80,7 +82,7 @@ public class NewsApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<NewsDto>> create(@Valid @RequestBody final NewsCreateDto dto) {
         final NewsDto newDto = service.create(dto);
 
@@ -91,7 +93,7 @@ public class NewsApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<NewsDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -101,7 +103,7 @@ public class NewsApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -113,7 +115,7 @@ public class NewsApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -125,7 +127,7 @@ public class NewsApi {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -137,7 +139,7 @@ public class NewsApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.NEWS).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

@@ -19,12 +19,12 @@ package nu.fgv.register.server.user.authority;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class AuthorityService {
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<AuthorityDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort)
@@ -56,7 +56,7 @@ public class AuthorityService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<AuthorityDto> findById(final String id) {
         return repository
                 .findById(id)
@@ -64,7 +64,7 @@ public class AuthorityService {
     }
 
     @Cacheable("roleRepresentations")
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public RoleRepresentation getRoleRepresentationById(final String id) {
         final List<RoleRepresentation> roles = keycloakAdminClient.realm(keycloakRealm).clients().get(keycloakClientId).roles().list();
 

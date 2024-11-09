@@ -30,6 +30,7 @@ import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateApi;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.util.ResourceAlreadyExistsException;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -43,7 +44,6 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -85,7 +85,7 @@ public class UserApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<PagedModel<EntityModel<UserDto>>> retrieve(@SortDefault(sort = User_.ID, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<UserDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
@@ -95,7 +95,7 @@ public class UserApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> create(@Valid @RequestBody final UserCreateDto dto) {
         try {
             return service.create(dto)
@@ -113,7 +113,7 @@ public class UserApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> retrieve(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -123,7 +123,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> update(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -135,7 +135,7 @@ public class UserApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -147,7 +147,7 @@ public class UserApi {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<?> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
@@ -159,7 +159,7 @@ public class UserApi {
     }
 
     @GetMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long userId) {
         try {
             final Set<EntityModel<AuthorityDto>> authorities = service.getAuthoritiesByUser(userId).stream()
@@ -178,7 +178,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.addAuthority(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -191,7 +191,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
         try {
             return service.addAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -204,7 +204,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> removeAuthority(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.removeAuthority(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -229,7 +229,7 @@ public class UserApi {
     }
 
     @GetMapping(value = "/{userId}/state", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final Long userId) {
         try {
             return Optional.of(service.getStateByUser(userId))
@@ -244,7 +244,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/state/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> setState(@PathVariable final Long userId, @PathVariable final String id) {
         try {
             return service.setState(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -257,7 +257,7 @@ public class UserApi {
     }
 
     @GetMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long userId) {
         try {
             return service.findSpexareByUser(userId)
@@ -272,7 +272,7 @@ public class UserApi {
     }
 
     @PutMapping(value = "/{userId}/spexare/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
         try {
             return service.addSpexare(userId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -285,7 +285,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<Serializable> removeSpexare(@PathVariable final Long userId) {
         try {
             return service.removeSpexare(userId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -298,7 +298,7 @@ public class UserApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.USER).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

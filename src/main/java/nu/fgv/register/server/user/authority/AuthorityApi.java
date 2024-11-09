@@ -22,6 +22,8 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.CollectionModel;
@@ -30,7 +32,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,7 +59,7 @@ public class AuthorityApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieve(@SortDefault(sort = Authority_.ID, direction = Sort.Direction.ASC) final Sort sort) {
         final List<EntityModel<AuthorityDto>> authorities = service.findAll(sort).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
@@ -70,7 +71,7 @@ public class AuthorityApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AuthorityDto>> retrieve(@PathVariable final String id) {
         return service
                 .findById(id)
@@ -80,7 +81,7 @@ public class AuthorityApi {
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.AUTHORITY).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))

@@ -31,6 +31,7 @@ import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.ResourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -45,7 +46,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -86,7 +86,7 @@ public class UserService {
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Page<UserDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -97,7 +97,7 @@ public class UserService {
                         .map(this::joinModelWithRepresentation);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<UserDto> findById(final Long id) {
         return repository
                 .findById0(id)
@@ -107,7 +107,7 @@ public class UserService {
                 );
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<UserDto> create(final UserCreateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             final String temporaryPassword = generateTemporaryPassword();
@@ -139,12 +139,12 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<UserDto> update(final UserUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<UserDto> partialUpdate(final UserUpdateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             return repository
@@ -171,7 +171,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public void deleteById(final Long id) {
         repository.findById0(id)
                 .flatMap(model -> findResourceByExternalId(model.getExternalId()))
@@ -180,7 +180,7 @@ public class UserService {
         permissionService.deleteAcl(toObjectIdentity(User.class, id));
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Set<AuthorityDto> getAuthoritiesByUser(final Long userId) {
         if (doesUserExist(userId)) {
             return repository.findById0(userId)
@@ -202,7 +202,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean addAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
             return repository.findById0(userId)
@@ -238,12 +238,12 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean addAuthority(final Long userId, final String id) {
         return addAuthorities(userId, List.of(id));
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean removeAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
             return repository.findById0(userId)
@@ -279,12 +279,12 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean removeAuthority(final Long userId, final String id) {
         return removeAuthorities(userId, List.of(id));
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public StateDto getStateByUser(final Long id) {
         return repository
                 .findById0(id)
@@ -293,7 +293,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist", id)));
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean setState(final Long userId, final String id) {
         if (doUserAndStateExist(userId, id)) {
             return repository
@@ -313,7 +313,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<SpexareDto> findSpexareByUser(final Long userId) {
         if (doesUserExist(userId)) {
             return repository
@@ -325,7 +325,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean addSpexare(final Long userId, final Long id) {
         if (doUserAndSpexareExist(userId, id)) {
             return repository
@@ -344,7 +344,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean removeSpexare(final Long userId) {
         if (doesUserExist(userId)) {
             return repository

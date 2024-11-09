@@ -22,10 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class TagService {
     private final TagRepository repository;
     private final PermissionService permissionService;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TagDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort, BasePermission.READ)
@@ -63,7 +64,7 @@ public class TagService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<TagDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -74,14 +75,14 @@ public class TagService {
                         .map(TAG_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<TagDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(TAG_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TagDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -90,7 +91,7 @@ public class TagService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public TagDto create(final TagCreateDto dto) {
         return Optional.of(TAG_MAPPER.toModel(dto))
                 .map(model -> {
@@ -107,12 +108,12 @@ public class TagService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<TagDto> update(final TagUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<TagDto> partialUpdate(final TagUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -124,7 +125,7 @@ public class TagService {
                 .map(TAG_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(Tag.class, id));

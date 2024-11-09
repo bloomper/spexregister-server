@@ -27,13 +27,13 @@ import nu.fgv.register.server.tag.TagApi;
 import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.category.TaskCategoryApi;
 import nu.fgv.register.server.user.UserApi;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,7 +59,7 @@ public class EventApi {
     private final EventService service;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieve(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
         final List<EntityModel<EventDto>> events = service.find(sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
@@ -71,7 +71,7 @@ public class EventApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public ResponseEntity<EntityModel<EventDto>> retrieveById(@PathVariable final Long id) {
         return service
                 .findById(id)

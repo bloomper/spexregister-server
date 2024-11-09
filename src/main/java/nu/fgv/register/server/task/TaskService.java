@@ -24,11 +24,13 @@ import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -59,7 +61,7 @@ public class TaskService {
     private final TaskCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TaskDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort, BasePermission.READ)
@@ -68,7 +70,7 @@ public class TaskService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<TaskDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -79,14 +81,14 @@ public class TaskService {
                         .map(TASK_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<TaskDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(TASK_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TaskDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -94,7 +96,7 @@ public class TaskService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public TaskDto create(final TaskCreateDto dto) {
         return Optional.of(TASK_MAPPER.toModel(dto))
                 .map(model -> {
@@ -111,12 +113,12 @@ public class TaskService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<TaskDto> update(final TaskUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<TaskDto> partialUpdate(final TaskUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -128,13 +130,13 @@ public class TaskService {
                 .map(TASK_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(Task.class, id));
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<TaskCategoryDto> findCategoryByTask(final Long taskId) {
         if (doesTaskExist(taskId)) {
             return repository
@@ -146,7 +148,7 @@ public class TaskService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean addCategory(final Long taskId, final Long id) {
         if (doTaskAndCategoryExist(taskId, id)) {
             return repository
@@ -165,7 +167,7 @@ public class TaskService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean removeCategory(final Long taskId) {
         if (doesTaskExist(taskId)) {
             return repository

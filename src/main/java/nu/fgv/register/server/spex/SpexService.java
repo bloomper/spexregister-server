@@ -25,13 +25,15 @@ import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -68,7 +70,7 @@ public class SpexService {
     private final SpexCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<SpexDto> findAll(final Sort sort) {
         return repository
                 .findAll(isNotRevival(), sort, BasePermission.READ)
@@ -76,7 +78,7 @@ public class SpexService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<SpexDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -87,14 +89,14 @@ public class SpexService {
                         .map(SPEX_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<SpexDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(SPEX_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -103,7 +105,7 @@ public class SpexService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<SpexDto> findRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
         return repository
                 .findAll(hasParentIds(parentIds), sort, BasePermission.READ)
@@ -112,7 +114,7 @@ public class SpexService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public SpexDto create(final SpexCreateDto dto) {
         return Optional.of(SPEX_MAPPER.toModel(dto))
                 .map(model -> {
@@ -130,12 +132,12 @@ public class SpexService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<SpexDto> update(final SpexUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<SpexDto> partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -150,7 +152,7 @@ public class SpexService {
                 .map(SPEX_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public void deleteById(final Long id) {
         repository
                 .findById0(id)
@@ -165,7 +167,7 @@ public class SpexService {
                 });
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<SpexDto> savePoster(final Long spexId, final byte[] poster, @Nullable final String contentType) {
         return repository
                 .findById0(spexId)
@@ -177,7 +179,7 @@ public class SpexService {
                 });
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<SpexDto> deletePoster(final Long spexId) {
         return repository
                 .findById0(spexId)
@@ -189,7 +191,7 @@ public class SpexService {
                 });
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<Pair<byte[], String>> getPoster(final Long spexId) {
         return repository
                 .findById0(spexId)
@@ -198,7 +200,7 @@ public class SpexService {
                 .map(details -> Pair.of(details.getPoster(), details.getPosterContentType()));
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<SpexDto> findRevivalById(final Long spexId, final Long id) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -210,14 +212,14 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<SpexDto> findRevivals(final Pageable pageable) {
         return repository
                 .findAll(isRevival(), pageable, BasePermission.READ)
                 .map(SPEX_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<SpexDto> findRevivalsByParent(final Long spexId, final Pageable pageable) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -232,7 +234,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<SpexDto> addRevival(final Long spexId, final String year) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -260,7 +262,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public boolean deleteRevival(final Long spexId, final String year) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -278,7 +280,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<SpexCategoryDto> findCategoryBySpex(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository
@@ -290,7 +292,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean addCategory(final Long spexId, final Long id) {
         if (doSpexAndCategoryExist(spexId, id)) {
             return repository
@@ -309,7 +311,7 @@ public class SpexService {
         }
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public boolean removeCategory(final Long spexId) {
         if (doesSpexExist(spexId)) {
             return repository

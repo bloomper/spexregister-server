@@ -23,12 +23,13 @@ import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class SpexCategoryService {
     private final SpexCategoryRepository repository;
     private final PermissionService permissionService;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<SpexCategoryDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort, BasePermission.READ)
@@ -66,7 +67,7 @@ public class SpexCategoryService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -77,14 +78,14 @@ public class SpexCategoryService {
                         .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<SpexCategoryDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<SpexCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -93,7 +94,7 @@ public class SpexCategoryService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
         return Optional.of(SPEX_CATEGORY_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -109,12 +110,12 @@ public class SpexCategoryService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<SpexCategoryDto> update(final SpexCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<SpexCategoryDto> partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -126,13 +127,13 @@ public class SpexCategoryService {
                 .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<SpexCategoryDto> saveLogo(final Long spexId, final byte[] logo, @Nullable final String contentType) {
         return repository
                 .findById0(spexId)
@@ -144,7 +145,7 @@ public class SpexCategoryService {
                 });
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<SpexCategoryDto> deleteLogo(final Long spexId) {
         return repository
                 .findById0(spexId)
@@ -156,7 +157,7 @@ public class SpexCategoryService {
                 });
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<Pair<byte[], String>> getLogo(final Long spexId) {
         return repository
                 .findById0(spexId)

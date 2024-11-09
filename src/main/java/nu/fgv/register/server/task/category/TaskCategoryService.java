@@ -22,10 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class TaskCategoryService {
     private final TaskCategoryRepository repository;
     private final PermissionService permissionService;
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TaskCategoryDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort, BasePermission.READ)
@@ -63,7 +64,7 @@ public class TaskCategoryService {
                 .toList();
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -74,14 +75,14 @@ public class TaskCategoryService {
                         .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public Optional<TaskCategoryDto> findById(final Long id) {
         return repository
                 .findById0(id)
                 .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER')")
+    @RequiresAdminOrEditorOrUser
     public List<TaskCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
         return repository
                 .findAll(hasIds(ids), sort, BasePermission.READ)
@@ -90,7 +91,7 @@ public class TaskCategoryService {
                 .toList();
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public TaskCategoryDto create(final TaskCategoryCreateDto dto) {
         return Optional.of(TASK_CATEGORY_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -106,12 +107,12 @@ public class TaskCategoryService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<TaskCategoryDto> update(final TaskCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public Optional<TaskCategoryDto> partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -123,7 +124,7 @@ public class TaskCategoryService {
                 .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasRole('spexregister_ADMIN')")
+    @RequiresAdmin
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));

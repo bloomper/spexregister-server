@@ -22,11 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -81,7 +81,7 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public NewsDto create(final NewsCreateDto dto) {
         return Optional.of(NEWS_MAPPER.toModel(dto))
                 .map(repository::save)
@@ -100,12 +100,12 @@ public class NewsService {
                 .orElse(null);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<NewsDto> update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
@@ -128,7 +128,7 @@ public class NewsService {
                 .map(NEWS_MAPPER::toDto);
     }
 
-    @PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public void deleteById(final Long id) {
         repository.deleteById(id);
         permissionService.deleteAcl(toObjectIdentity(News.class, id));
