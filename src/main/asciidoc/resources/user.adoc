@@ -13,76 +13,34 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::user-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::user-get-all-paged[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::user-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[update]]
 == Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::user-update[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[update_partial]]
 == Update (partial)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::user-update-partial[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[delete]]
 == Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-delete[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[authority]]
 == Authority
@@ -90,62 +48,27 @@ operation::user-delete[snippets='request-headers,path-parameters,http-request,ht
 [[authority_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-authority-get[snippets='request-headers,path-parameters,http-request,response-fields,response-headers,http-response']
+operation::user-authority-get[snippets='security,request-headers,path-parameters,http-request,response-fields,response-headers,http-response']
 
 [[authority_update]]
 === Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-authority-add[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-authority-add[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[authority_update_multiple]]
 === Update (multiple)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-authority-add-multiple[snippets='request-headers,path-parameters,query-parameters,http-request,http-response']
+operation::user-authority-add-multiple[snippets='security,request-headers,path-parameters,query-parameters,http-request,http-response']
 
 [[authority_delete]]
 === Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-authority-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-authority-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[authority_delete_multiple]]
 === Delete (multiple)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-authority-remove-multiple[snippets='request-headers,path-parameters,query-parameters,http-request,http-response']
+operation::user-authority-remove-multiple[snippets='security,request-headers,path-parameters,query-parameters,http-request,http-response']
 
 [[state]]
 == State
@@ -165,14 +88,7 @@ operation::user-state-get[snippets='request-headers,path-parameters,http-request
 [[state_update]]
 === Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-state-update[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-state-update[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[spexare]]
 == Spexare
@@ -180,38 +96,17 @@ operation::user-state-update[snippets='request-headers,path-parameters,http-requ
 [[spexare_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-spexare-get[snippets='request-headers,path-parameters,http-request,response-fields,response-headers,http-response']
+operation::user-spexare-get[snippets='security,request-headers,path-parameters,http-request,response-fields,response-headers,http-response']
 
 [[spexare_update]]
 === Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-spexare-add[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-spexare-add[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[spexare_delete]]
 === Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-spexare-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::user-spexare-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[events]]
 == Events
@@ -219,13 +114,6 @@ operation::user-spexare-remove[snippets='request-headers,path-parameters,http-re
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::user-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

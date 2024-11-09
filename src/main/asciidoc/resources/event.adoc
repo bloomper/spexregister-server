@@ -13,25 +13,11 @@ xref:../api-guide.adoc[Back to API guide]
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::event-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+operation::event-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
 
 [[get_all]]
 == Get (all)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::event-get-all[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::event-get-all[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

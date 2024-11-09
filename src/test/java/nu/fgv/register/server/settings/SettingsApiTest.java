@@ -136,7 +136,8 @@ class SettingsApiTest extends AbstractApiTest {
                                             linksSubsection
                                     ),
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -166,7 +167,8 @@ class SettingsApiTest extends AbstractApiTest {
                                     languageResponseFields,
                                     languageLinks,
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -204,7 +206,8 @@ class SettingsApiTest extends AbstractApiTest {
                                             linksSubsection
                                     ),
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -234,7 +237,8 @@ class SettingsApiTest extends AbstractApiTest {
                                     countryResponseFields,
                                     countryLinks,
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -273,7 +277,8 @@ class SettingsApiTest extends AbstractApiTest {
                                             linksSubsection
                                     ),
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -311,7 +316,8 @@ class SettingsApiTest extends AbstractApiTest {
                                             linksSubsection
                                     ),
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }
@@ -342,7 +348,8 @@ class SettingsApiTest extends AbstractApiTest {
                                     typeResponseFields,
                                     typeLinks,
                                     requestHeaders,
-                                    responseHeaders
+                                    responseHeaders,
+                                    noSecurity()
                             )
                     );
         }

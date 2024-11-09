@@ -13,80 +13,34 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-category-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-category-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spex-category-get-all-paged[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-category-get-2[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spex-category-get-2[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[update]]
 == Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-category-update[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[update_partial]]
 == Update (partial)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-category-update-partial[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[delete]]
 == Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-delete[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-category-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[logo]]
 == Logo
@@ -94,40 +48,17 @@ operation::spex-category-delete[snippets='request-headers,path-parameters,http-r
 [[logo_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-category-logo-get[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spex-category-logo-get[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[logo_update]]
 === Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-logo-add[snippets='request-headers,http-request,http-response']
+operation::spex-category-logo-add[snippets='security,request-headers,http-request,http-response']
 
 [[logo_update_multipart]]
 == Update (multipart)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-logo-add-multipart[snippets='request-headers,http-request,http-response']
+operation::spex-category-logo-add-multipart[snippets='security,request-headers,http-request,http-response']
 
 [[events]]
 == Events
@@ -135,13 +66,6 @@ operation::spex-category-logo-add-multipart[snippets='request-headers,http-reque
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::spex-category-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

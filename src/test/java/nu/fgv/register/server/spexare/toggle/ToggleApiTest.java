@@ -119,7 +119,8 @@ class ToggleApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ToggleApi.class, "retrieve", Long.class, Pageable.class))
                         )
                 );
     }
@@ -151,7 +152,8 @@ class ToggleApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ToggleApi.class, "retrieve", Long.class, Long.class))
                         )
                 );
     }
@@ -182,7 +184,8 @@ class ToggleApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(ToggleApi.class, "create", Long.class, String.class, Boolean.class))
                         )
                 );
     }
@@ -214,7 +217,8 @@ class ToggleApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ToggleApi.class, "update", Long.class, String.class, Long.class, Boolean.class))
                         )
                 );
     }
@@ -239,7 +243,8 @@ class ToggleApiTest extends AbstractApiTest {
                                         parameterWithName("typeId").description("The type id of the toggle"),
                                         parameterWithName("id").description("The id of the toggle")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(ToggleApi.class, "delete", Long.class, String.class, Long.class))
                         )
                 );
     }

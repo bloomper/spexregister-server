@@ -133,7 +133,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "retrieve", Long.class, Long.class, Pageable.class))
                         )
                 );
     }
@@ -166,7 +167,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "retrieve", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -197,7 +199,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "create", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -223,7 +226,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                         parameterWithName("taskId").description("The id of the task"),
                                         parameterWithName("id").description("The id of the task activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "update", Long.class, Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -248,7 +252,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("id").description("The id of the task activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "delete", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -283,7 +288,8 @@ class TaskActivityApiTest extends AbstractApiTest {
                                 taskResponseFields,
                                 taskLinks,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskActivityApi.class, "retrieveTask", Long.class, Long.class, Long.class))
                         )
                 );
     }

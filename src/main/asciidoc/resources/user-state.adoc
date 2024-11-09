@@ -13,30 +13,12 @@ xref:../api-guide.adoc[Back to API guide]
 [[get_all]]
 == Get all
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::user-state-get-all[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::user-state-get-all[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::user-state-get-2[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::user-state-get-2[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[events]]
 == Events
@@ -44,13 +26,6 @@ operation::user-state-get-2[snippets='request-headers,path-parameters,http-reque
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::user-state-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::user-state-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

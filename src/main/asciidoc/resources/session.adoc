@@ -16,13 +16,6 @@ xref:../api-guide.adoc[Back to API guide]
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::session-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::session-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

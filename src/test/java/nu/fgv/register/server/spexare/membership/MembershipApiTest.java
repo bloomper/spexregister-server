@@ -118,7 +118,8 @@ class MembershipApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(MembershipApi.class, "retrieve", Long.class, Pageable.class, String.class))
                         )
                 );
     }
@@ -150,7 +151,8 @@ class MembershipApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(MembershipApi.class, "retrieve", Long.class, Long.class))
                         )
                 );
     }
@@ -181,7 +183,8 @@ class MembershipApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(MembershipApi.class, "create", Long.class, String.class, String.class))
                         )
                 );
     }
@@ -206,7 +209,8 @@ class MembershipApiTest extends AbstractApiTest {
                                         parameterWithName("typeId").description("The type id of the membership"),
                                         parameterWithName("id").description("The id of the membership")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(MembershipApi.class, "delete", Long.class, String.class, Long.class))
                         )
                 );
     }

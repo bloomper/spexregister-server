@@ -16,22 +16,12 @@ xref:../api-guide.adoc[Back to API guide]
 [[country_get]]
 === Get
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-country-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::settings-country-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[country_get_all]]
 === Get (all)
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-country-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+operation::settings-country-get-all[snippets='security,request-headers,http-request,response-headers,response-fields,http-response']
 
 [[language]]
 == Language
@@ -39,22 +29,12 @@ operation::settings-country-get-all[snippets='request-headers,http-request,respo
 [[language_get]]
 === Get
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-language-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::settings-language-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[language_get_all]]
 === Get (all)
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-language-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+operation::settings-language-get-all[snippets='security,request-headers,http-request,response-headers,response-fields,http-response']
 
 [[type]]
 == Type
@@ -62,31 +42,16 @@ operation::settings-language-get-all[snippets='request-headers,http-request,resp
 [[type_get]]
 === Get
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-type-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::settings-type-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[type_get_all]]
 === Get (all)
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-type-get-all[snippets='request-headers,http-request,response-headers,response-fields,http-response']
+operation::settings-type-get-all[snippets='security,request-headers,http-request,response-headers,response-fields,http-response']
 
 [[type_get_all_of_type]]
 === Get (all of specific type)
 
-!===
-|Requires authentication|No
-|Required roles|None
-!===
-
-operation::settings-type-get-all-of-type[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+operation::settings-type-get-all-of-type[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

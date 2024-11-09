@@ -35,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
@@ -148,7 +149,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -184,7 +186,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", List.class, String.class, Locale.class))
                         )
                 );
     }
@@ -217,7 +220,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "create", SpexCategoryCreateDto.class))
                         )
                 );
     }
@@ -248,7 +252,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -288,7 +293,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "update", Long.class, SpexCategoryUpdateDto.class))
                         )
                 );
     }
@@ -328,7 +334,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "partialUpdate", Long.class, SpexCategoryUpdateDto.class))
                         )
                 );
     }
@@ -356,7 +363,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -389,7 +397,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(SpexCategoryApi.class, "downloadLogo", Long.class))
                         )
                 );
     }
@@ -421,7 +430,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
-                                requestBody()
+                                requestBody(),
+                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, byte[].class, String.class))
                         )
                 );
     }
@@ -452,7 +462,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 requestParts(
                                         partWithName("file").description("The logo to upload")
-                                )
+                                ),
+                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, MultipartFile.class))
                         )
                 );
     }
@@ -478,7 +489,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex category")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "deleteLogo", Long.class))
                         )
                 );
     }
@@ -520,7 +532,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

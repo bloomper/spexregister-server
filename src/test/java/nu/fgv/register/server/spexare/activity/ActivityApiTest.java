@@ -113,7 +113,8 @@ class ActivityApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActivityApi.class, "retrieve", Long.class, Pageable.class))
                         )
                 );
     }
@@ -145,7 +146,8 @@ class ActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActivityApi.class, "retrieve", Long.class, Long.class))
                         )
                 );
     }
@@ -174,7 +176,8 @@ class ActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(ActivityApi.class, "create", Long.class))
                         )
                 );
     }
@@ -198,7 +201,8 @@ class ActivityApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("id").description("The id of the activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(ActivityApi.class, "delete", Long.class, Long.class))
                         )
                 );
     }

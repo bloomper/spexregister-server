@@ -203,6 +203,7 @@ public class TaskApi {
     }
 
     @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
     public ResponseEntity<Object> removeCategory(@PathVariable final Long taskId) {
         try {
             return service.removeCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();

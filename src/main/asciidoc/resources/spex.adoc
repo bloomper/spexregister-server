@@ -13,82 +13,34 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spex-get-all-paged[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spex-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[update]]
 == Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spex-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-update[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[update_partial]]
 == Update (partial)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spex-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spex-update-partial[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[delete]]
 == Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-delete[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[poster]]
 == Poster
@@ -96,53 +48,22 @@ operation::spex-delete[snippets='request-headers,path-parameters,http-request,ht
 [[poster_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-poster-get[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spex-poster-get[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[poster_update]]
 === Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-poster-add[snippets='request-headers,http-request,http-response']
+operation::spex-poster-add[snippets='security,request-headers,http-request,http-response']
 
 [[poster_update_multipart]]
 === Update (multipart)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-poster-add-multipart[snippets='request-headers,http-request,http-response']
+operation::spex-poster-add-multipart[snippets='security,request-headers,http-request,http-response']
 
 [[poster_delete]]
 === Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spex-poster-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-poster-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[revivals]]
 == Revivals
@@ -150,84 +71,32 @@ operation::spex-poster-remove[snippets='request-headers,path-parameters,http-req
 [[revivals_get_all]]
 === Get all (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-revival-get-all[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::spex-revival-get-all[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 [[revivals_get_parent]]
 === Get parent
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-revival-get-parent[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spex-revival-get-parent[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[revivals_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-revival-get[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spex-revival-get[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[revivals_get_paged]]
 === Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-revival-get-2[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spex-revival-get-2[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[revivals_create]]
 === Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spex-revival-add[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spex-revival-add[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[revivals_delete]]
 === Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spex-revival-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-revival-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[category]]
 == Category
@@ -235,40 +104,17 @@ operation::spex-revival-remove[snippets='request-headers,path-parameters,http-re
 [[category_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spex-category-get[snippets='request-headers,path-parameters,http-request,response-fields,links,response-headers,http-response']
+operation::spex-category-get[snippets='security,request-headers,path-parameters,http-request,response-fields,links,response-headers,http-response']
 
 [[category_create]]
 === Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-add[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-category-add[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[category_delete]]
 === Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-category-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spex-category-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[events]]
 == Events
@@ -276,13 +122,6 @@ operation::spex-category-remove[snippets='request-headers,path-parameters,http-r
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spex-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::spex-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

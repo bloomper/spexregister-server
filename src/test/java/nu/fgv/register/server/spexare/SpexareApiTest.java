@@ -45,6 +45,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
@@ -175,7 +176,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -234,7 +236,8 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("q").description("The query")
                                 ),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "search", String.class, Pageable.class))
                         )
                 );
     }
@@ -270,7 +273,8 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(SpexareApi.class, "retrieve", List.class, String.class, Locale.class))
                         )
                 );
     }
@@ -304,7 +308,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "create", SpexareCreateDto.class))
                         )
                 );
     }
@@ -335,7 +340,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -379,7 +385,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "update", Long.class, SpexareUpdateDto.class))
                         )
                 );
     }
@@ -423,7 +430,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "partialUpdate", Long.class, SpexareUpdateDto.class))
                         )
                 );
     }
@@ -451,7 +459,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -485,7 +494,8 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(SpexareApi.class, "downloadImage", Long.class))
                         )
                 );
     }
@@ -518,7 +528,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
-                                requestBody()
+                                requestBody(),
+                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, byte[].class, String.class))
                         )
                 );
     }
@@ -550,7 +561,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 requestParts(
                                         partWithName("file").description("The image to upload")
-                                )
+                                ),
+                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, MultipartFile.class))
                         )
                 );
     }
@@ -577,7 +589,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "deleteImage", Long.class))
                         )
                 );
     }
@@ -608,7 +621,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "retrievePartner", Long.class))
                         )
                 );
     }
@@ -638,7 +652,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "updatePartner", Long.class, Long.class))
                         )
                 );
     }
@@ -661,7 +676,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "deletePartner", Long.class))
                         )
                 );
     }
@@ -703,7 +719,8 @@ class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

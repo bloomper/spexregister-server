@@ -115,7 +115,8 @@ class StateApiTest extends AbstractApiTest {
                                 ),
                                 sortQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(StateApi.class, "retrieve", Sort.class))
                         )
                 );
     }
@@ -146,7 +147,8 @@ class StateApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(StateApi.class, "retrieve", String.class))
                         )
                 );
     }
@@ -188,7 +190,8 @@ class StateApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(StateApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

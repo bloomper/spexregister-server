@@ -18,6 +18,8 @@ package nu.fgv.register.server.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.config.SpexregisterConfig;
+import nu.fgv.register.server.util.docs.RoleExtractor;
+import nu.fgv.register.server.util.docs.SecuritySnippet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -156,6 +159,22 @@ public abstract class AbstractApiTest {
                         .withPort(443)
                         .withScheme("https"))
                 .build();
+    }
+
+    protected static SecuritySnippet noSecurity() {
+        return security(false, Collections.emptyList());
+    }
+
+    protected static SecuritySnippet security(final List<String> roles) {
+        return security(true, roles);
+    }
+
+    protected static SecuritySnippet security(final boolean authenticationRequired, final List<String> roles) {
+        return new SecuritySnippet(authenticationRequired, roles);
+    }
+
+    protected static List<String> getRolesFromMethod(final Class<?> clazz, final String method, final Class<?>... arguments) throws NoSuchMethodException {
+        return RoleExtractor.extractRoles(clazz.getMethod(method, arguments));
     }
 
     protected static class ConstrainedFields {

@@ -134,7 +134,8 @@ class AddressApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "retrieve", Long.class, Pageable.class, String.class))
                         )
                 );
     }
@@ -166,7 +167,8 @@ class AddressApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "retrieve", Long.class, Long.class))
                         )
                 );
     }
@@ -208,7 +210,8 @@ class AddressApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "create", Long.class, String.class, AddressCreateDto.class))
                         )
                 );
     }
@@ -253,7 +256,8 @@ class AddressApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "update", Long.class, String.class, Long.class, AddressUpdateDto.class))
                         )
                 );
     }
@@ -298,7 +302,8 @@ class AddressApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "partialUpdate", Long.class, String.class, Long.class, AddressUpdateDto.class))
                         )
                 );
     }
@@ -323,7 +328,8 @@ class AddressApiTest extends AbstractApiTest {
                                         parameterWithName("typeId").description("The type id of the address"),
                                         parameterWithName("id").description("The id of the address")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(AddressApi.class, "delete", Long.class, String.class, Long.class))
                         )
                 );
     }

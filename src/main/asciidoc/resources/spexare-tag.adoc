@@ -13,39 +13,16 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spexare-tag-add[snippets='request-headers,path-parameters,http-request,response-headers,http-response']
+operation::spexare-tag-add[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
 [[get_paged]]
 == Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::spexare-tag-get-all-paged[snippets='request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spexare-tag-get-all-paged[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[delete]]
 == Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::spexare-tag-remove[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spexare-tag-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

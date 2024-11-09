@@ -125,7 +125,8 @@ class ActorApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "retrieve", Long.class, Long.class, Long.class, Pageable.class, String.class))
                         )
                 );
     }
@@ -159,7 +160,8 @@ class ActorApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "retrieve", Long.class, Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -198,7 +200,8 @@ class ActorApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "create", Long.class, Long.class, Long.class, String.class, ActorCreateDto.class))
                         )
                 );
     }
@@ -238,7 +241,8 @@ class ActorApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "update", Long.class, Long.class, Long.class, String.class, Long.class, ActorUpdateDto.class))
                         )
                 );
     }
@@ -278,7 +282,8 @@ class ActorApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "partialUpdate", Long.class, Long.class, Long.class, String.class, Long.class, ActorUpdateDto.class))
                         )
                 );
     }
@@ -305,7 +310,8 @@ class ActorApiTest extends AbstractApiTest {
                                         parameterWithName("vocalId").description("The vocal id of the actor"),
                                         parameterWithName("id").description("The id of the task activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(ActorApi.class, "delete", Long.class, Long.class, Long.class, String.class, Long.class))
                         )
                 );
     }

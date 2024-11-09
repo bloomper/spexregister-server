@@ -135,7 +135,8 @@ class NewsApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -170,7 +171,8 @@ class NewsApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "create", NewsCreateDto.class))
                         )
                 );
     }
@@ -201,7 +203,8 @@ class NewsApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -243,7 +246,8 @@ class NewsApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "update", Long.class, NewsUpdateDto.class))
                         )
                 );
     }
@@ -285,7 +289,8 @@ class NewsApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "partialUpdate", Long.class, NewsUpdateDto.class))
                         )
                 );
     }
@@ -313,7 +318,8 @@ class NewsApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the news")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -355,7 +361,8 @@ class NewsApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(NewsApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

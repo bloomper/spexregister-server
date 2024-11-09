@@ -144,7 +144,7 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -156,7 +156,7 @@ public class SpexApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -193,7 +193,7 @@ public class SpexApi {
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<Object> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.savePoster(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
@@ -201,7 +201,7 @@ public class SpexApi {
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<Object> uploadPoster(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadPoster(id, file.getBytes(), file.getContentType());
@@ -214,7 +214,7 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{id}/poster")
-    @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
+    @RequiresAdminOrEditor
     public ResponseEntity<Object> deletePoster(@PathVariable final Long id) {
         return service.deletePoster(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())

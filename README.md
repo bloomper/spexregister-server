@@ -6,7 +6,8 @@ Spexregister Server is the second generation of the backend responsible for serv
 
 ## Learning more
 
-To learn more about Spexregister Server, please consult the [reference documentation][1].
+To learn more about Spexregister Server, please consult the [reference documentation][1]. When running locally,
+the reference documentation is also available [here][7].
 
 ## Building from source
 
@@ -35,3 +36,4 @@ Spexregister Server is open source software released under the [Apache 2.0 licen
 [4]: https://help.github.com/articles/using-pull-requests/
 [5]: CONTRIBUTING.md
 [6]: https://www.apache.org/licenses/LICENSE-2.0.html
+[7]: http://localhost:8080/docs/

@@ -111,7 +111,8 @@ class TaggingApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "retrieve", Long.class, Pageable.class))
                         )
                 );
     }
@@ -138,7 +139,8 @@ class TaggingApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the tag")
                                 ),
                                 secureRequestHeaders,
-                                createOnlyResponseHeaders
+                                createOnlyResponseHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "create", Long.class, Long.class))
                         )
                 );
     }
@@ -162,7 +164,8 @@ class TaggingApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("id").description("The id of the tag")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "delete", Long.class, Long.class))
                         )
                 );
     }

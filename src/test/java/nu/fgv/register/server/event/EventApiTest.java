@@ -115,7 +115,8 @@ class EventApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(EventApi.class, "retrieve", Integer.class))
                         )
                 );
     }
@@ -146,7 +147,8 @@ class EventApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(EventApi.class, "retrieveById", Long.class))
                         )
                 );
     }

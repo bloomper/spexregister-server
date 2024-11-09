@@ -142,7 +142,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -178,7 +179,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(TaskCategoryApi.class, "retrieve", List.class, String.class, Locale.class))
                         )
                 );
     }
@@ -211,7 +213,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "create", TaskCategoryCreateDto.class))
                         )
                 );
     }
@@ -242,7 +245,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -282,7 +286,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "update", Long.class, TaskCategoryUpdateDto.class))
                         )
                 );
     }
@@ -322,7 +327,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "partialUpdate", Long.class, TaskCategoryUpdateDto.class))
                         )
                 );
     }
@@ -350,7 +356,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the task category")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -392,7 +399,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

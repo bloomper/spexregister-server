@@ -148,7 +148,8 @@ class UserApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -180,7 +181,8 @@ class UserApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "create", UserCreateDto.class))
                         )
                 );
     }
@@ -211,7 +213,8 @@ class UserApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -250,7 +253,8 @@ class UserApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "update", Long.class, UserUpdateDto.class))
                         )
                 );
     }
@@ -289,7 +293,8 @@ class UserApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "partialUpdate", Long.class, UserUpdateDto.class))
                         )
                 );
     }
@@ -317,7 +322,8 @@ class UserApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the user")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -357,7 +363,8 @@ class UserApiTest extends AbstractApiTest {
                                         linksSubsection
                                 ),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieveAuthorities", Long.class))
                         )
                 );
     }
@@ -383,7 +390,8 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("userId").description("The id of the user"),
                                         parameterWithName("id").description("The id of the authority")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "addAuthority", Long.class, String.class))
                         )
                 );
     }
@@ -412,7 +420,8 @@ class UserApiTest extends AbstractApiTest {
                                 queryParameters(
                                         parameterWithName("ids").description("The ids of the authorities")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "addAuthorities", Long.class, List.class))
                         )
                 );
     }
@@ -438,7 +447,8 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("userId").description("The id of the user"),
                                         parameterWithName("id").description("The id of the authority")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "removeAuthority", Long.class, String.class))
                         )
                 );
     }
@@ -467,7 +477,8 @@ class UserApiTest extends AbstractApiTest {
                                 queryParameters(
                                         parameterWithName("ids").description("The ids of the authorities")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "removeAuthorities", Long.class, List.class))
                         )
                 );
     }
@@ -502,7 +513,8 @@ class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("lastModifiedAt").description("When was the state last modified")
                                 ),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieveState", Long.class))
                         )
                 );
     }
@@ -528,7 +540,8 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("userId").description("The id of the user"),
                                         parameterWithName("id").description("The id of the state")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "setState", Long.class, String.class))
                         )
                 );
     }
@@ -569,7 +582,8 @@ class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("lastModifiedAt").description("When was the spexare last modified")
                                 ),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieveSpexare", Long.class))
                         )
                 );
     }
@@ -595,7 +609,8 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("userId").description("The id of the user"),
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "addSpexare", Long.class, Long.class))
                         )
                 );
     }
@@ -620,7 +635,8 @@ class UserApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("userId").description("The id of the user")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(UserApi.class, "removeSpexare", Long.class))
                         )
                 );
     }
@@ -662,7 +678,8 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(UserApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

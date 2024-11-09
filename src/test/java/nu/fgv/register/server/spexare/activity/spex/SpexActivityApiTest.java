@@ -138,7 +138,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", Long.class, Long.class, Pageable.class))
                         )
                 );
     }
@@ -171,7 +172,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -202,7 +204,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(SpexActivityApi.class, "create", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -228,7 +231,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("id").description("The id of the spex activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexActivityApi.class, "update", Long.class, Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -253,7 +257,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("activityId").description("The id of the activity"),
                                         parameterWithName("id").description("The id of the spex activity")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                        security(getRolesFromMethod(SpexActivityApi.class, "delete", Long.class, Long.class, Long.class))
                         )
                 );
     }
@@ -288,7 +293,8 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 spexResponseFields,
                                 spexLinks,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieveSpex", Long.class, Long.class, Long.class))
                         )
                 );
     }

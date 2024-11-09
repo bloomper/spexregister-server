@@ -96,7 +96,8 @@ class SessionApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(SessionApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

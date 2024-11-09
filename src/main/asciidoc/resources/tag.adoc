@@ -13,83 +13,34 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::tag-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::tag-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-* USER
-!===
-
-operation::tag-get-all-paged[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::tag-get-all-paged[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
 [[get]]
 == Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::tag-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::tag-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
 [[update]]
 == Update
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::tag-update[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::tag-update[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[update_partial]]
 == Update (partial)
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::tag-update-partial[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::tag-update-partial[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[delete]]
 == Delete
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::tag-delete[snippets='request-headers,path-parameters,http-request,http-response']
+operation::tag-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 [[events]]
 == Events
@@ -97,13 +48,6 @@ operation::tag-delete[snippets='request-headers,path-parameters,http-request,htt
 [[events_get]]
 === Get
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-!===
-
-operation::tag-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::tag-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

@@ -140,7 +140,8 @@ class TagApiTest extends AbstractApiTest {
                                 pagingLinks,
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "retrieve", Pageable.class, String.class))
                         )
                 );
     }
@@ -176,7 +177,8 @@ class TagApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
-                                responseBody()
+                                responseBody(),
+                                security(getRolesFromMethod(TagApi.class, "retrieve", List.class, String.class, Locale.class))
                         )
                 );
     }
@@ -208,7 +210,8 @@ class TagApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                createResponseHeaders
+                                createResponseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "create", TagCreateDto.class))
                         )
                 );
     }
@@ -239,7 +242,8 @@ class TagApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "retrieve", Long.class))
                         )
                 );
     }
@@ -278,7 +282,8 @@ class TagApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "update", Long.class, TagUpdateDto.class))
                         )
                 );
     }
@@ -317,7 +322,8 @@ class TagApiTest extends AbstractApiTest {
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "partialUpdate", Long.class, TagUpdateDto.class))
                         )
                 );
     }
@@ -345,7 +351,8 @@ class TagApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the tag")
                                 ),
-                                secureRequestHeaders
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TagApi.class, "delete", Long.class))
                         )
                 );
     }
@@ -387,7 +394,8 @@ class TagApiTest extends AbstractApiTest {
                                 ),
                                 queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
                                 secureRequestHeaders,
-                                responseHeaders
+                                responseHeaders,
+                                security(getRolesFromMethod(TagApi.class, "retrieveEvents", Integer.class))
                         )
                 );
     }

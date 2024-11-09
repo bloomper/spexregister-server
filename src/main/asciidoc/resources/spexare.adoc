@@ -13,15 +13,7 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-!===
-|Requires authentication|Yes
-|Required roles
-a|
-* ADMIN
-* EDITOR
-!===
-
-operation::spexare-create[snippets='request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+operation::spexare-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)

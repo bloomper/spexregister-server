@@ -217,6 +217,7 @@ public class UserApi {
     }
 
     @DeleteMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
     public ResponseEntity<Serializable> removeAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
         try {
             return service.removeAuthorities(userId, ids) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();

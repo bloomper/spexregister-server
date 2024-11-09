@@ -1,0 +1,13 @@
+!===
+|Requires authentication|{{#authenticationRequired}}Yes{{/authenticationRequired}}{{^authenticationRequired}}No{{/authenticationRequired}}
+|Required roles
+{{#hasRoles}}
+a|
+{{#roles}}
+* {{.}}
+{{/roles}}
+{{/hasRoles}}
+{{^hasRoles}}
+|None
+{{/hasRoles}}
+!===
