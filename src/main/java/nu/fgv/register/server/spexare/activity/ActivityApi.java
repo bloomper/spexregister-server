@@ -111,7 +111,7 @@ public class ActivityApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> delete(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long id) {
         try {
             return service.deleteById(spexareId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {

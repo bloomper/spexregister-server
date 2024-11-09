@@ -163,7 +163,7 @@ public class TaskApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
@@ -191,7 +191,7 @@ public class TaskApi {
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<?> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
+    public ResponseEntity<Object> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
         try {
             return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
@@ -203,7 +203,7 @@ public class TaskApi {
     }
 
     @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> removeCategory(@PathVariable final Long taskId) {
+    public ResponseEntity<Object> removeCategory(@PathVariable final Long taskId) {
         try {
             return service.removeCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {

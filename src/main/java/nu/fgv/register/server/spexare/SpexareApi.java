@@ -174,7 +174,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
@@ -197,14 +197,14 @@ public class SpexareApi {
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public ResponseEntity<?> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+    public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.saveImage(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    public ResponseEntity<?> uploadImage(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadImage(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
@@ -216,7 +216,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping("/{id}/image")
-    public ResponseEntity<?> deleteImage(@PathVariable final Long id) {
+    public ResponseEntity<Object> deleteImage(@PathVariable final Long id) {
         return service.deleteImage(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -253,7 +253,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> deletePartner(@PathVariable final Long spexareId) {
+    public ResponseEntity<Object> deletePartner(@PathVariable final Long spexareId) {
         try {
             return service.deletePartner(spexareId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {

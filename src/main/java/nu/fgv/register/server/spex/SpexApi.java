@@ -169,7 +169,7 @@ public class SpexApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
@@ -194,7 +194,7 @@ public class SpexApi {
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
-    public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+    public ResponseEntity<Object> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.savePoster(id, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -202,7 +202,7 @@ public class SpexApi {
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
-    public ResponseEntity<?> uploadPoster(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadPoster(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadPoster(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
@@ -215,7 +215,7 @@ public class SpexApi {
 
     @DeleteMapping("/{id}/poster")
     @PreAuthorize("hasRole('spexregister_ADMIN') or hasRole('spexregister_EDITOR')")
-    public ResponseEntity<?> deletePoster(@PathVariable final Long id) {
+    public ResponseEntity<Object> deletePoster(@PathVariable final Long id) {
         return service.deletePoster(id)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -301,7 +301,7 @@ public class SpexApi {
 
     @DeleteMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<?> deleteRevival(@PathVariable final Long spexId, @PathVariable final String year) {
+    public ResponseEntity<Object> deleteRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         try {
             return service.deleteRevival(spexId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -330,7 +330,7 @@ public class SpexApi {
 
     @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<?> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<Object> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
         try {
             return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (final ResourceNotFoundException e) {
@@ -343,7 +343,7 @@ public class SpexApi {
 
     @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<?> removeCategory(@PathVariable final Long spexId) {
+    public ResponseEntity<Object> removeCategory(@PathVariable final Long spexId) {
         try {
             return service.removeCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {

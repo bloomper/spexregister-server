@@ -197,7 +197,7 @@ public class TaskCategoryApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {

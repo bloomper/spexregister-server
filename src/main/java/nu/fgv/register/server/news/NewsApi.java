@@ -128,7 +128,7 @@ public class NewsApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditor
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {

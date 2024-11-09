@@ -198,7 +198,7 @@ public class SpexCategoryApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<?> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id) {
         return service
                 .findById(id)
                 .map(dto -> {
@@ -223,7 +223,7 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdmin
-    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         return service.saveLogo(spexId, file, contentType)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -231,7 +231,7 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdmin
-    public ResponseEntity<?> uploadLogo(@PathVariable final Long spexId, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexId, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadLogo(spexId, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
@@ -244,7 +244,7 @@ public class SpexCategoryApi {
 
     @DeleteMapping("/{spexId}/logo")
     @RequiresAdmin
-    public ResponseEntity<?> deleteLogo(@PathVariable final Long spexId) {
+    public ResponseEntity<Object> deleteLogo(@PathVariable final Long spexId) {
         return service.deleteLogo(spexId)
                 .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));

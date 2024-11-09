@@ -115,7 +115,7 @@ public class SpexActivityApi {
     }
 
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
         try {
             return service.update(spexareId, activityId, spexId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
@@ -127,7 +127,7 @@ public class SpexActivityApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<?> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         try {
             return service.deleteById(spexareId, activityId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         } catch (final ResourceNotFoundException e) {
