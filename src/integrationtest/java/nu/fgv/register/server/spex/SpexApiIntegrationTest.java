@@ -941,6 +941,74 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Revival parent")
+    class RevivalParentTests {
+
+        @Test
+        void should_return_found() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+            final var revival = persistRevival(randomizeRevival(spex));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
+
+            //@formatter:off
+            final SpexDto result =
+                    given()
+                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .contentType(ContentType.JSON)
+                    .when()
+                        .get("/{spexId}/revivals/parent", revival.getId())
+                    .then()
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().as(SpexDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id", "title", "year")
+                    .contains(spex.getId(), spex.getDetails().getTitle(), spex.getYear());
+        }
+
+        @Test
+        void should_return_404_when_parent_not_found() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+            final var revival = persistRevival(randomizeRevival(spex));
+            revival.setParent(null);
+            repository.save(revival);
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexId}/revivals/parent", revival.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+        @Test
+        void should_return_404_when_spex_not_found() {
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/{spexId}/revivals/parent", 1L)
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+            //@formatter:on
+        }
+
+    }
+
+    @Nested
     @DisplayName("Revivals")
     class RevivalTests {
 
@@ -972,7 +1040,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_404_and_spex_not_found() {
+        void should_return_404_when_spex_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));

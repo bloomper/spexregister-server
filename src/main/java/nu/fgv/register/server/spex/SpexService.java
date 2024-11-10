@@ -201,6 +201,19 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public Optional<SpexDto> findParentByRevivalId(final Long id) {
+        if (doesSpexExist(id)) {
+            return repository
+                    .findById0(id)
+                    .filter(revival -> revival.getParent() != null)
+                    .map(Spex::getParent)
+                    .map(SPEX_MAPPER::toDto);
+        } else {
+            throw new ResourceNotFoundException(String.format("Spex %s does not exist", id));
+        }
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Optional<SpexDto> findRevivalById(final Long spexId, final Long id) {
         if (doesSpexExist(spexId)) {
             return repository
