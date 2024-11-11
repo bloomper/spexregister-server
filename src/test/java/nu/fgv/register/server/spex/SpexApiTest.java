@@ -570,7 +570,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_get_revival_parent() throws Exception {
         final var parent = SpexDto.builder().id(1L).year("2021").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(parent));
+        when(service.findParentByRevivalId(any(Long.class))).thenReturn(Optional.of(parent));
 
         mockMvc
                 .perform(
