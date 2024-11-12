@@ -33,7 +33,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -135,7 +134,7 @@ class ActorApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(actor));
+        when(service.findById(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
@@ -172,7 +171,7 @@ class ActorApiTest extends AbstractApiTest {
         final var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
         final var actor = ActorDto.builder().id(1L).role(dto.getRole()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(ActorCreateDto.class))).thenReturn(Optional.of(actor));
+        when(service.create(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(ActorCreateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
@@ -212,7 +211,7 @@ class ActorApiTest extends AbstractApiTest {
         final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
         final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
 
-        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(Optional.of(actor));
+        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
@@ -253,7 +252,7 @@ class ActorApiTest extends AbstractApiTest {
         final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
         final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
 
-        when(service.partialUpdate(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(Optional.of(actor));
+        when(service.partialUpdate(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
@@ -290,8 +289,6 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)

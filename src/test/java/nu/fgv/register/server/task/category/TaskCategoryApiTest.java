@@ -37,7 +37,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -223,7 +222,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findById(any(Long.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -257,7 +256,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
         final var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(true).name("Scenmästare").build();
 
-        when(service.update(any(TaskCategoryUpdateDto.class))).thenReturn(Optional.of(category));
+        when(service.update(any(TaskCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -298,7 +297,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
         final var category = TaskCategoryDto.builder().id(1L).name("category").hasActor(false).build();
         final var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(false).build();
 
-        when(service.partialUpdate(any(TaskCategoryUpdateDto.class))).thenReturn(Optional.of(category));
+        when(service.partialUpdate(any(TaskCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -337,7 +336,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findById(any(Long.class))).thenReturn(category);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc

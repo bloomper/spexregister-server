@@ -19,12 +19,12 @@ package nu.fgv.register.server.user.state;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 
@@ -49,10 +49,11 @@ public class StateService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<StateDto> findById(final String id) {
+    public StateDto findById(final String id) {
         return repository
                 .findById(id)
-                .map(STATE_MAPPER::toDto);
+                .map(STATE_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(State.class, id));
     }
 
 }

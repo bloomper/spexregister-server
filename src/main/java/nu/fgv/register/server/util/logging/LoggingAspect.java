@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.logging;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;

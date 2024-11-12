@@ -1,55 +1,13 @@
 [source,http,options="nowrap"]
 ----
-HTTP/1.1 200 OK
-Content-Type: application/hal+json
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json
 
 {
-  "id" : 1,
-  "event" : "CREATE",
-  "source" : "SPEX",
-  "createdBy" : null,
-  "createdAt" : null,
-  "_links" : {
-    "self" : {
-      "href" : "https://register.fgv.nu/api/v1/events/1",
-      "title" : "Nuvarande"
-    },
-    "news-events" : {
-      "href" : "https://register.fgv.nu/api/v1/news/events{?sinceInDays}",
-      "templated" : true
-    },
-    "session-events" : {
-      "href" : "https://register.fgv.nu/api/v1/sessions/events{?sinceInDays}",
-      "templated" : true
-    },
-    "spex-events" : {
-      "href" : "https://register.fgv.nu/api/v1/spex/events{?sinceInDays}",
-      "templated" : true
-    },
-    "spex-category-events" : {
-      "href" : "https://register.fgv.nu/api/v1/spex/categories/events{?sinceInDays}",
-      "templated" : true
-    },
-    "spexare-events" : {
-      "href" : "https://register.fgv.nu/api/v1/spexare/events{?sinceInDays}",
-      "templated" : true
-    },
-    "tag-events" : {
-      "href" : "https://register.fgv.nu/api/v1/tags/events{?sinceInDays}",
-      "templated" : true
-    },
-    "task-events" : {
-      "href" : "https://register.fgv.nu/api/v1/tasks/events{?sinceInDays}",
-      "templated" : true
-    },
-    "task-category-events" : {
-      "href" : "https://register.fgv.nu/api/v1/tasks/categories/events{?sinceInDays}",
-      "templated" : true
-    },
-    "user-events" : {
-      "href" : "https://register.fgv.nu/api/v1/users/events{?sinceInDays}",
-      "templated" : true
-    }
-  }
+    "detail": "Spex with id 1 does not exist",
+    "instance": "/api/v1/spex/1",
+    "status": 404,
+    "title": "Resource not found",
+    "type": "https://register.fgv.nu/errors/not-found"
 }
 ----

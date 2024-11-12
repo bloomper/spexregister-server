@@ -1053,14 +1053,14 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{spexId}/revivals/{id}", 1L, revival.getId())
+                .get("/{spexId}/revivals/{id}", -1L, revival.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
         }
 
         @Test
-        void should_return_409_when_incorrect_spex() {
+        void should_return_404_when_incorrect_spex() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
@@ -1257,11 +1257,12 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1269,7 +1270,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/revivals/{year}", spex.getId(), revival.getYear())
+                .delete("/{spexId}/revivals/{id}", spex.getId(), revival.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -1285,7 +1286,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/revivals/{year}", 1L, "2022")
+                .delete("/{spexId}/revivals/{id}", 1L, 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -1295,9 +1296,10 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_removing_and_year_not_found() {
+        void should_return_404_when_removing_and_revival_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -1307,9 +1309,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/revivals/{year}", spex.getId(), "2022")
+                .delete("/{spexId}/revivals/{id}", spex.getId(), -1L)
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
             //@formatter:off
@@ -1337,7 +1339,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .post("/{id}/revivals/{year}", 1L, "2022")
+                .post("/{spexId}/revivals/{year}", 1L, "2022")
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
@@ -1353,7 +1355,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/revivals/{year}", 1L, "2022")
+                .delete("/{spexId}/revivals/{id}", 1L, 1L)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value());
             //@formatter:on
@@ -1451,8 +1453,9 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_adding_and_category_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -1460,7 +1463,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{spexId}/category/{id}", spex.getId(), 1L)
+                .put("/{spexId}/category/{id}", spex.getId(), -1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -1492,7 +1495,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_removing_and_no_category() {
+        void should_return_204_when_removing_and_no_category() {
             final var spex = persistSpex(randomizeSpex(null));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -1504,7 +1507,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{spexId}/category", spex.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);

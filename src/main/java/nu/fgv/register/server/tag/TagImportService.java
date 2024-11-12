@@ -47,7 +47,10 @@ public class TagImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        return validator.validateSheet(messageSource, locale, workbook, TagDto.class, TagCreateDto.class, TagUpdateDto.class, id -> service.findById(id).isPresent());
+        return validator.validateSheet(messageSource, locale, workbook, TagDto.class, TagCreateDto.class, TagUpdateDto.class, id -> {
+            service.findById(id);
+            return true;
+        });
     }
 
 }

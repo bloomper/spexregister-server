@@ -27,7 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.util.Luhn;
+import nu.fgv.register.server.util.validation.Luhn;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;

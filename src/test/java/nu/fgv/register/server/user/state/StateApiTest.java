@@ -30,7 +30,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -125,7 +124,7 @@ class StateApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var state = StateDto.builder().id("PENDING").label("Pending").build();
 
-        when(service.findById(any(String.class))).thenReturn(Optional.of(state));
+        when(service.findById(any(String.class))).thenReturn(state);
 
         mockMvc
                 .perform(

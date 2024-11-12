@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.validation;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

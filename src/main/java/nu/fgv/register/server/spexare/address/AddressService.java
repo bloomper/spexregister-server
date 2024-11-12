@@ -19,18 +19,22 @@ package nu.fgv.register.server.spexare.address;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
 import nu.fgv.register.server.settings.TypeType;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 import static nu.fgv.register.server.spexare.address.AddressMapper.ADDRESS_MAPPER;
 import static nu.fgv.register.server.spexare.address.AddressSpecification.hasId;
@@ -53,10 +57,10 @@ public class AddressService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
 
-    public Page<AddressDto> findBySpexare(final Long spexareId, final String filter, final Pageable pageable) {
-        if (doesSpexareExist(spexareId)) {
+    public Page<AddressDto> findBySpexare(final Long id, final String filter, final Pageable pageable) {
+        if (doesSpexareExist(id)) {
             return spexareRepository
-                    .findById(spexareId)
+                    .findById0(id)
                     .map(spexare -> hasText(filter) ?
                             repository
                                     .findAll(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), pageable)
@@ -67,27 +71,28 @@ public class AddressService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 
-    public Optional<AddressDto> findById(final Long spexareId, final Long id) {
-        if (doesSpexareExist(spexareId)) {
+    public AddressDto findById(final Long spexareId, final Long id) {
+        if (doesSpexareExist(spexareId) && doesAddressExist(id)) {
             return repository
-                    .findById(id)
+                    .findById0(id)
                     .filter(address -> address.getSpexare().getId().equals(spexareId))
-                    .map(ADDRESS_MAPPER::toDto);
+                    .map(ADDRESS_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(Address.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Address.class), spexareId, id);
         }
     }
 
-    public Optional<AddressDto> create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
+    public AddressDto create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById(spexareId)
+                            .findById0(spexareId)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
                                 final Address address = ADDRESS_MAPPER.toModel(dto);
@@ -95,25 +100,26 @@ public class AddressService {
                                 address.setType(type);
                                 return repository.save(address);
                             })
-                            .map(ADDRESS_MAPPER::toDto)
-                    );
+                    )
+                    .map(ADDRESS_MAPPER::toDto)
+                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Address.class), Address_.TYPE, typeId, spexareId));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class), spexareId, typeId);
         }
     }
 
-    public Optional<AddressDto> update(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
+    public AddressDto update(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         return partialUpdate(spexareId, typeId, id, dto);
     }
 
-    public Optional<AddressDto> partialUpdate(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
+    public AddressDto partialUpdate(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById(spexareId)
+                            .findById0(spexareId)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
+                            .flatMap(spexare -> repository.findById0(id))
                             .filter(address -> address.getSpexare().getId().equals(spexareId))
                             .map(address -> {
                                 ADDRESS_MAPPER.toPartialModel(dto, address);
@@ -121,38 +127,40 @@ public class AddressService {
                             })
                             .map(repository::save)
                             .map(ADDRESS_MAPPER::toDto)
-                    );
+                    )
+                    .orElseThrow(() -> new ResourceNotFoundException(Address.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or address %s do not exist", spexareId, typeId, id));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Address.class), spexareId, typeId, id);
         }
     }
 
-    public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
+    public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
-            return typeRepository
+            typeRepository
                     .findById(typeId)
-                    .map(type -> spexareRepository
-                            .findById(spexareId)
+                    .ifPresent(type -> spexareRepository
+                            .findById0(spexareId)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
+                            .flatMap(spexare -> repository.findById0(id))
                             .filter(address -> address.getSpexare().getId().equals(spexareId))
-                            .map(address -> {
-                                repository.deleteById(address.getId());
-                                return true;
-                            })
-                            .orElse(false))
-                    .orElse(false);
+                            .ifPresentOrElse(
+                                    address -> repository.deleteById(address.getId()),
+                                    () -> {
+                                        throw new ResourceNotFoundException(Address.class, id);
+                                    }
+                            )
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or address %s do not exist", spexareId, typeId, id));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Address.class), spexareId, typeId, id);
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.existsById(id);
+        return spexareRepository.findById0(id).isPresent();
     }
 
     private boolean doesAddressExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

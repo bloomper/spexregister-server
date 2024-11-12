@@ -18,13 +18,13 @@ package nu.fgv.register.server.settings;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -43,11 +43,12 @@ public class CountryService {
                 .toList();
     }
 
-    public Optional<CountryDto> findByIsoCode(final String isoCode) {
+    public CountryDto findByIsoCode(final String isoCode) {
         return Stream.of(Locale.getISOCountries())
                 .filter(c -> c.equalsIgnoreCase(isoCode))
                 .map(this::mapDto)
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Country", isoCode));
     }
 
     private CountryDto mapDto(final String isoCode) {

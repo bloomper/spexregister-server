@@ -24,15 +24,12 @@ import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,91 +63,47 @@ public class SpexActivityApi {
     public ResponseEntity<PagedModel<EntityModel<SpexActivityDto>>> retrieve(@PathVariable final Long spexareId,
                                                                              @PathVariable final Long activityId,
                                                                              @SortDefault(sort = SpexActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
-        try {
-            final PagedModel<EntityModel<SpexActivityDto>> paged = pagedResourcesAssembler.toModel(service.findByActivity(spexareId, activityId, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId, activityId));
+        final PagedModel<EntityModel<SpexActivityDto>> paged = pagedResourcesAssembler.toModel(service.findByActivity(spexareId, activityId, pageable));
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve spex activities", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        paged.getContent().forEach(p -> addLinks(p, spexareId, activityId));
+
+        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findById(spexareId, activityId, id)
-                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve spex activity", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final SpexActivityDto dto = service.findById(spexareId, activityId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
     @PostMapping(value = "/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId) {
-        try {
-            return service
-                    .create(spexareId, activityId, spexId)
-                    .map(dto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toString())
-                            .body(EntityModel.of(dto, getLinks(dto, spexareId, activityId)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create spex activity for activity {}, spexare {} and spex {}", activityId, spexareId, spexId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final SpexActivityDto dto = service.create(spexareId, activityId, spexId);
+
+        return ResponseEntity.created(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toUri())
+                .body(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
-        try {
-            return service.update(spexareId, activityId, spexId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update spex activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.update(spexareId, activityId, spexId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
-        try {
-            return service.deleteById(spexareId, activityId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete spex activity {} for activity {} and spexare {}", id, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.deleteById(spexareId, activityId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/{id}/spex", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexDto>> retrieveSpex(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findSpexBySpexActivity(spexareId, activityId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexApi.getLinks(dto, false))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve spex for spex activity", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final SpexDto dto = service.findSpexBySpexActivity(spexareId, activityId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, spexApi.getLinks(dto, false)));
     }
 
     private void addLinks(final EntityModel<SpexActivityDto> entity, final Long spexareId, final Long activityId) {

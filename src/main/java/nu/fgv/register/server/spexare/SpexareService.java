@@ -20,6 +20,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.search.Facet;
@@ -31,7 +35,6 @@ import org.hibernate.search.util.common.SearchException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -94,10 +97,11 @@ public class SpexareService {
                         .map(SPEXARE_MAPPER::toDto);
     }
 
-    public Optional<SpexareDto> findById(final Long id) {
+    public SpexareDto findById(final Long id) {
         return repository
                 .findById(id)
-                .map(SPEXARE_MAPPER::toDto);
+                .map(SPEXARE_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
     public List<SpexareDto> findByIds(final List<Long> ids, final Sort sort) {
@@ -109,105 +113,126 @@ public class SpexareService {
     }
 
     public SpexareDto create(final SpexareCreateDto dto) {
-        return SPEXARE_MAPPER.toDto(repository.save(SPEXARE_MAPPER.toModel(dto)));
+        return Optional.of(SPEXARE_MAPPER.toModel(dto))
+                .map(model -> {
+                    repository.save(model);
+
+                    return SPEXARE_MAPPER.toDto(model);
+                })
+                .orElseThrow(() -> new InternalErrorException("Could not create spexare"));
     }
 
-    public Optional<SpexareDto> update(final SpexareUpdateDto dto) {
+    public SpexareDto update(final SpexareUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    public Optional<SpexareDto> partialUpdate(final SpexareUpdateDto dto) {
+    public SpexareDto partialUpdate(final SpexareUpdateDto dto) {
         return repository
-                .findById(dto.getId())
+                .findById0(dto.getId())
                 .map(spexare -> {
                     SPEXARE_MAPPER.toPartialModel(dto, spexare);
                     return spexare;
                 })
                 .map(repository::save)
-                .map(SPEXARE_MAPPER::toDto);
+                .map(SPEXARE_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, dto.getId()));
     }
 
     public void deleteById(final Long id) {
-        repository.deleteById(id);
+        if (doesSpexareExist(id)) {
+            repository.deleteById(id);
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
+        }
     }
 
-    public Optional<SpexareDto> saveImage(final Long id, final byte[] image, @Nullable final String contentType) {
+    public SpexareDto saveImage(final Long id, final byte[] image, @Nullable final String contentType) {
         return repository
-                .findById(id)
+                .findById0(id)
                 .map(spexare -> {
                     spexare.setImage(image);
                     spexare.setImageContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(image));
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
-    public Optional<SpexareDto> deleteImage(final Long id) {
+    public SpexareDto deleteImage(final Long id) {
         return repository
-                .findById(id)
+                .findById0(id)
                 .map(spexare -> {
                     spexare.setImage(null);
                     spexare.setImageContentType(null);
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
-    public Optional<Pair<byte[], String>> getImage(final Long id) {
+    public Pair<byte[], String> getImage(final Long id) {
+        if (!doesSpexareExist(id)) {
+            throw new ResourceNotFoundException(Spexare.class, id);
+        }
         return repository
                 .findById(id)
                 .filter(spexare -> spexare.getImage() != null && hasText(spexare.getImageContentType()))
-                .map(spexare -> Pair.of(spexare.getImage(), spexare.getImageContentType()));
+                .map(spexare -> Pair.of(spexare.getImage(), spexare.getImageContentType()))
+                .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.IMAGE, id));
     }
 
-    public Optional<SpexareDto> findPartnerBySpexare(final Long spexareId) {
-        return repository
-                .findById(spexareId)
-                .filter(spexare -> spexare.getPartner() != null)
-                .map(Spexare::getPartner)
-                .map(SPEXARE_MAPPER::toDto);
-    }
-
-    public Optional<SpexareDto> updatePartner(final Long spexareId, final Long id) {
-        if (doSpexareAndPartnerExist(spexareId, id)) {
-            repository
-                    .findById(spexareId)
-                    .ifPresent(spexare ->
-                            repository
-                                    .findById(id)
-                                    .ifPresent(partner -> {
-                                        spexare.setPartner(partner);
-                                        partner.setPartner(spexare);
-                                        repository.save(spexare);
-                                        repository.save(partner);
-                                    }));
-            return findById(spexareId);
+    public SpexareDto findPartnerBySpexare(final Long id) {
+        if (doesSpexareExist(id)) {
+            return repository
+                    .findById(id)
+                    .filter(spexare -> spexare.getPartner() != null)
+                    .map(Spexare::getPartner)
+                    .map(SPEXARE_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.PARTNER, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or partner %s do not exist", spexareId, id));
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 
-    public boolean deletePartner(final Long spexareId) {
-        if (doesSpexareExist(spexareId)) {
-            return repository
-                    .findById(spexareId)
-                    .filter(spexare -> spexare.getPartner() != null)
-                    .map(spexare -> {
-                        final Spexare partner = spexare.getPartner();
-                        spexare.setPartner(null);
-                        partner.setPartner(null);
-                        repository.save(spexare);
-                        repository.save(partner);
-                        return true;
-                    })
-                    .orElse(false);
+    public void updatePartner(final Long spexareId, final Long id) {
+        if (doSpexareAndPartnerExist(spexareId, id)) {
+            repository
+                    .findById0(spexareId)
+                    .ifPresent(spexare -> repository
+                            .findById0(id)
+                            .ifPresent(partner -> {
+                                spexare.setPartner(partner);
+                                partner.setPartner(spexare);
+                                repository.save(spexare);
+                                repository.save(partner);
+                            }));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourcesNotFoundException(new String[]{Spexare.class.getSimpleName(), "Partner"}, spexareId, id);
+        }
+    }
+
+    public void deletePartner(final Long id) {
+        if (doesSpexareExist(id)) {
+            repository
+                    .findById0(id)
+                    .ifPresent(spexare -> {
+                        final Spexare partner = spexare.getPartner();
+
+                        spexare.setPartner(null);
+                        repository.save(spexare);
+
+                        if (partner != null) {
+                            partner.setPartner(null);
+                            repository.save(partner);
+                        }
+                    });
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doSpexareAndPartnerExist(final Long spexareId, final Long partnerId) {

@@ -24,6 +24,7 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -91,6 +92,7 @@ public class TagApi {
     public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                     @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
+
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -105,18 +107,12 @@ public class TagApi {
     })
     @RequiresAdminOrEditor
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        try {
-            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tags" + export.getFirst() + "\"")
-                    .body(new ByteArrayResource(export.getSecond()));
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not export tags", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tags" + export.getFirst() + "\"")
+                .body(new ByteArrayResource(export.getSecond()));
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -124,20 +120,16 @@ public class TagApi {
     public ResponseEntity<EntityModel<TagDto>> create(@Valid @RequestBody final TagCreateDto dto) {
         final TagDto newDto = service.create(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(TagApi.class).retrieve(newDto.getId())).toString())
+        return ResponseEntity.created(linkTo(methodOn(TagApi.class).retrieve(newDto.getId())).toUri())
                 .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TagDto>> retrieve(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final TagDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
@@ -147,17 +139,11 @@ public class TagApi {
             })
     @RequiresAdminOrEditor
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale, final HttpMethod method) {
-        try {
-            final ImportResultDto result = importService.doImport(file, contentType, locale);
-            return ResponseEntity
-                    .status(result.isSuccess() ? (method == HttpMethod.POST ? HttpStatus.CREATED : HttpStatus.ACCEPTED) : HttpStatus.BAD_REQUEST)
-                    .body(result);
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not import tags", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final ImportResultDto result = importService.doImport(file, contentType, locale);
+
+        return ResponseEntity
+                .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                .body(result);
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
@@ -166,10 +152,7 @@ public class TagApi {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale, method);
         } catch (final IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not import tags %s", e);
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
@@ -179,10 +162,10 @@ public class TagApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .update(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final TagDto updatedDto = service.update(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -191,22 +174,18 @@ public class TagApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .partialUpdate(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final TagDto updatedDto = service.partialUpdate(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditor
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> {
-                    service.deleteById(id);
-                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

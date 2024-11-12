@@ -19,17 +19,15 @@ package nu.fgv.register.server.spexare.toggle;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.spexare.address.AddressApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,79 +59,40 @@ public class ToggleApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieve(@PathVariable final Long spexareId,
                                                                        @SortDefault(sort = Toggle_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
-        try {
-            final PagedModel<EntityModel<ToggleDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId));
+        final PagedModel<EntityModel<ToggleDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve toggles", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        paged.getContent().forEach(p -> addLinks(p, spexareId));
+
+        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findById(spexareId, id)
-                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve toggle", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final ToggleDto dto = service.findById(spexareId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @PostMapping(value = "/{typeId}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ToggleDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Boolean value) {
-        try {
-            return service
-                    .create(spexareId, typeId, value)
-                    .map(dto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(ToggleApi.class).retrieve(spexareId, dto.getId())).toString())
-                            .body(EntityModel.of(dto, getLinks(dto, spexareId)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create toggle for spexare {}", spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final ToggleDto dto = service.create(spexareId, typeId, value);
+
+        return ResponseEntity.created(linkTo(methodOn(AddressApi.class).retrieve(spexareId, dto.getId())).toUri())
+                .body(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @PutMapping(value = "/{typeId}/{id}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ToggleDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @PathVariable final Boolean value) {
-        try {
-            return service
-                    .update(spexareId, typeId, id, value)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto, spexareId))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update toggle {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final ToggleDto dto = service.update(spexareId, typeId, id, value);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
-        try {
-            return service.deleteById(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete toggle {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.deleteById(spexareId, typeId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<ToggleDto> entity, final Long spexareId) {

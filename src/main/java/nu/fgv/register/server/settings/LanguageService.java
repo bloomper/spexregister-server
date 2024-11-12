@@ -19,13 +19,13 @@ package nu.fgv.register.server.settings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.config.SpexregisterConfig;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
@@ -48,12 +48,13 @@ public class LanguageService {
                 .toList();
     }
 
-    public Optional<LanguageDto> findByIsoCode(final String isoCode) {
+    public LanguageDto findByIsoCode(final String isoCode) {
         return spexregisterConfig.getLanguages()
                 .stream()
                 .filter(l -> l.equals(isoCode))
                 .map(this::mapDto)
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Language", isoCode));
 
     }
 

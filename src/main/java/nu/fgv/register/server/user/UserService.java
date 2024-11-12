@@ -21,14 +21,22 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.user.authority.Authority;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.authority.AuthorityRepository;
 import nu.fgv.register.server.user.authority.AuthorityService;
+import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
-import nu.fgv.register.server.util.ResourceAlreadyExistsException;
+import nu.fgv.register.server.util.error.ExternalResourceNotFoundException;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceAlreadyExistsException;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -43,7 +51,6 @@ import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
@@ -98,17 +105,18 @@ public class UserService {
     }
 
     @RequiresAdmin
-    public Optional<UserDto> findById(final Long id) {
+    public UserDto findById(final Long id) {
         return repository
                 .findById0(id)
                 .flatMap(model ->
                         findResourceByExternalId(model.getExternalId())
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
-                );
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
     }
 
     @RequiresAdmin
-    public Optional<UserDto> create(final UserCreateDto dto) {
+    public UserDto create(final UserCreateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             final String temporaryPassword = generateTemporaryPassword();
 
@@ -129,23 +137,24 @@ public class UserService {
                                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
 
                                 return USER_MAPPER.toDto(model, resource.toRepresentation(), temporaryPassword);
-                            });
+                            })
+                            .orElseThrow(() -> new InternalErrorException("Could not retrieve newly created user in Keycloak"));
                 } else {
-                    return Optional.empty();
+                    throw new InternalErrorException("Could not create user in Keycloak");
                 }
             }
         } else {
-            throw new ResourceAlreadyExistsException(String.format("User with email %s already exists", dto.getEmail()));
+            throw new ResourceAlreadyExistsException(User.class, dto.getEmail());
         }
     }
 
     @RequiresAdmin
-    public Optional<UserDto> update(final UserUpdateDto dto) {
+    public UserDto update(final UserUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdmin
-    public Optional<UserDto> partialUpdate(final UserUpdateDto dto) {
+    public UserDto partialUpdate(final UserUpdateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             return repository
                     .findById0(dto.getId())
@@ -164,26 +173,31 @@ public class UserService {
                                 });
                         return findResourceByExternalId(model.getExternalId())
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
-                                .orElse(null);
-                    });
+                                .orElseThrow(() -> new InternalErrorException("Could not update user"));
+                    })
+                    .orElseThrow(() -> new ResourceNotFoundException(User.class, dto.getId()));
         } else {
-            throw new ResourceAlreadyExistsException(String.format("User with email %s already exists", dto.getEmail()));
+            throw new ResourceAlreadyExistsException(User.class, dto.getEmail());
         }
     }
 
     @RequiresAdmin
     public void deleteById(final Long id) {
-        repository.findById0(id)
-                .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                .ifPresent(UserResource::remove);
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(User.class, id));
+        if (doesUserExist(id)) {
+            repository.findById0(id)
+                    .flatMap(model -> findResourceByExternalId(model.getExternalId()))
+                    .ifPresent(UserResource::remove);
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(User.class, id));
+        } else {
+            throw new ResourceNotFoundException(User.class, id);
+        }
     }
 
     @RequiresAdmin
-    public Set<AuthorityDto> getAuthoritiesByUser(final Long userId) {
-        if (doesUserExist(userId)) {
-            return repository.findById0(userId)
+    public Set<AuthorityDto> getAuthoritiesByUser(final Long id) {
+        if (doesUserExist(id)) {
+            return repository.findById0(id)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .map(resource -> {
                         final List<RoleRepresentation> roleRepresentations = resource
@@ -196,92 +210,94 @@ public class UserService {
                                 .collect(Collectors.toSet());
                     })
                     .map(AUTHORITY_MAPPER::toDtos)
-                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId)));
+                    .orElseThrow(() -> new ExternalResourceNotFoundException(User.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("User %s does not exist", userId));
+            throw new ResourceNotFoundException(User.class, id);
         }
     }
 
     @RequiresAdmin
-    public boolean addAuthorities(final Long userId, final List<String> ids) {
+    public void addAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            return repository.findById0(userId)
+            repository.findById0(userId)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                    .map(resource -> {
-                        final List<RoleRepresentation> roleRepresentations = resource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .listAll();
-
-                        if (roleRepresentations.isEmpty() || ids.stream().noneMatch(i -> roleRepresentations.stream().noneMatch(r -> i.equals(r.getName())))) {
-                            final List<RoleRepresentation> rolesToAdd = ids.stream()
-                                    .map(authorityService::getRoleRepresentationById)
-                                    .toList();
-
-                            if (!rolesToAdd.isEmpty()) {
-                                resource
+                    .ifPresentOrElse(
+                            resource -> {
+                                final List<RoleRepresentation> roleRepresentations = resource
                                         .roles()
                                         .clientLevel(keycloakClientId)
-                                        .add(rolesToAdd);
+                                        .listAll();
 
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    })
-                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId)));
+                                if (roleRepresentations.isEmpty() || ids.stream().noneMatch(i -> roleRepresentations.stream().noneMatch(r -> i.equals(r.getName())))) {
+                                    final List<RoleRepresentation> rolesToAdd = ids.stream()
+                                            .map(authorityService::getRoleRepresentationById)
+                                            .toList();
+
+                                    if (!rolesToAdd.isEmpty()) {
+                                        resource
+                                                .roles()
+                                                .clientLevel(keycloakClientId)
+                                                .add(rolesToAdd);
+                                    } else {
+                                        throw new InternalErrorException("Could not determine roles to be added in Keycloak");
+                                    }
+                                } else {
+                                    throw new InternalErrorException("Could not determine a resource's roles in Keycloak");
+                                }
+                            },
+                            () -> {
+                                throw new ExternalResourceNotFoundException(User.class, userId);
+                            });
         } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or at least one authority in %s do not exist", userId, String.join(",", ids)));
+            throw new ResourcesNotFoundException(List.of(User.class, Authority.class), userId, String.join(",", ids));
         }
     }
 
     @RequiresAdmin
-    public boolean addAuthority(final Long userId, final String id) {
-        return addAuthorities(userId, List.of(id));
+    public void addAuthority(final Long userId, final String id) {
+        addAuthorities(userId, List.of(id));
     }
 
     @RequiresAdmin
-    public boolean removeAuthorities(final Long userId, final List<String> ids) {
+    public void removeAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            return repository.findById0(userId)
+            repository.findById0(userId)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                    .map(resource -> {
-                        final List<RoleRepresentation> roleRepresentations = resource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .listAll();
-
-                        if (ids.stream().allMatch(i -> roleRepresentations.stream().anyMatch(r -> i.equals(r.getName())))) {
-                            final List<RoleRepresentation> rolesToRemove = roleRepresentations.stream()
-                                    .filter(r -> ids.contains(r.getName()))
-                                    .toList();
-
-                            if (!rolesToRemove.isEmpty()) {
-                                resource
+                    .ifPresentOrElse(
+                            resource -> {
+                                final List<RoleRepresentation> roleRepresentations = resource
                                         .roles()
                                         .clientLevel(keycloakClientId)
-                                        .remove(rolesToRemove);
+                                        .listAll();
 
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    })
-                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId)));
+                                if (ids.stream().allMatch(i -> roleRepresentations.stream().anyMatch(r -> i.equals(r.getName())))) {
+                                    final List<RoleRepresentation> rolesToRemove = roleRepresentations.stream()
+                                            .filter(r -> ids.contains(r.getName()))
+                                            .toList();
+
+                                    if (!rolesToRemove.isEmpty()) {
+                                        resource
+                                                .roles()
+                                                .clientLevel(keycloakClientId)
+                                                .remove(rolesToRemove);
+                                    } else {
+                                        throw new InternalErrorException("Could not determine roles to be removed in Keycloak");
+                                    }
+                                } else {
+                                    throw new InternalErrorException("Could not determine a resource's roles in Keycloak");
+                                }
+                            },
+                            () -> {
+                                throw new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId));
+                            });
         } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or at least one authority in %s do not exist", userId, String.join(",", ids)));
+            throw new ResourcesNotFoundException(List.of(User.class, Authority.class), userId, String.join(",", ids));
         }
     }
 
     @RequiresAdmin
-    public boolean removeAuthority(final Long userId, final String id) {
-        return removeAuthorities(userId, List.of(id));
+    public void removeAuthority(final Long userId, final String id) {
+        removeAuthorities(userId, List.of(id));
     }
 
     @RequiresAdmin
@@ -290,74 +306,67 @@ public class UserService {
                 .findById0(id)
                 .map(User::getState)
                 .map(STATE_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("User %s does not exist", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
     }
 
     @RequiresAdmin
-    public boolean setState(final Long userId, final String id) {
+    public void setState(final Long userId, final String id) {
         if (doUserAndStateExist(userId, id)) {
-            return repository
+            repository
                     .findById0(userId)
-                    .map(user -> stateRepository
+                    .ifPresent(user -> stateRepository
                             .findById(id)
-                            .map(state -> {
+                            .ifPresent(state -> {
                                 user.setState(state);
                                 repository.save(user);
-                                return true;
                             })
-                            .orElse(false)
-                    )
-                    .orElse(false);
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or state %s does not exist", userId, id));
+            throw new ResourcesNotFoundException(List.of(User.class, State.class), userId, id);
         }
     }
 
     @RequiresAdmin
-    public Optional<SpexareDto> findSpexareByUser(final Long userId) {
-        if (doesUserExist(userId)) {
+    public SpexareDto findSpexareByUser(final Long id) {
+        if (doesUserExist(id)) {
             return repository
-                    .findById0(userId)
+                    .findById0(id)
                     .map(User::getSpexare)
-                    .map(SPEXARE_MAPPER::toDto);
+                    .map(SPEXARE_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNoValueException(User.class, User_.SPEXARE, id));
         } else {
-            throw new ResourceNotFoundException(String.format("User %s does not exist", userId));
+            throw new ResourceNotFoundException(User.class, id);
         }
     }
 
     @RequiresAdmin
-    public boolean addSpexare(final Long userId, final Long id) {
+    public void addSpexare(final Long userId, final Long id) {
         if (doUserAndSpexareExist(userId, id)) {
-            return repository
+            repository
                     .findById0(userId)
-                    .map(user -> spexareRepository
+                    .ifPresent(user -> spexareRepository
                             .findById(id)
-                            .map(spexare -> {
+                            .ifPresent(spexare -> {
                                 user.setSpexare(spexare);
                                 repository.save(user);
-                                return true;
                             })
-                            .orElse(false))
-                    .orElse(false);
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("User %s and/or spexare %s do not exist", userId, id));
+            throw new ResourcesNotFoundException(List.of(User.class, Spexare.class), userId, id);
         }
     }
 
     @RequiresAdmin
-    public boolean removeSpexare(final Long userId) {
-        if (doesUserExist(userId)) {
-            return repository
-                    .findById0(userId)
-                    .filter(user -> user.getSpexare() != null)
-                    .map(user -> {
+    public void removeSpexare(final Long id) {
+        if (doesUserExist(id)) {
+            repository
+                    .findById0(id)
+                    .ifPresent(user -> {
                         user.setSpexare(null);
                         repository.save(user);
-                        return true;
-                    })
-                    .orElse(false);
+                    });
         } else {
-            throw new ResourceNotFoundException(String.format("User %s does not exist", userId));
+            throw new ResourceNotFoundException(User.class, id);
         }
     }
 
@@ -396,11 +405,11 @@ public class UserService {
                     .users()
                     .get(externalId);
 
-            return Optional.ofNullable(userResource);
+            return Optional.of(userResource);
         } catch (final Exception e) {
             log.error("Error while retrieving user info from Keycloak for external id {}", externalId, e);
+            throw new InternalErrorException("Error while communicating with Keycloak");
         }
-        return Optional.empty();
     }
 
     private UserDto joinModelWithRepresentation(final User model) {
@@ -414,7 +423,7 @@ public class UserService {
     }
 
     private boolean doesUserExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doUserAndAuthoritiesExist(final Long userId, final List<String> authorityIds) {
@@ -426,7 +435,7 @@ public class UserService {
     }
 
     private boolean doUserAndSpexareExist(final Long userId, final Long spexareId) {
-        return doesUserExist(userId) && spexareRepository.existsById(spexareId);
+        return doesUserExist(userId) && spexareRepository.findById0(spexareId).isPresent();
     }
 
     private boolean doesUserWithEmailExist(final String email) {

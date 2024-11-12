@@ -121,8 +121,6 @@ class TaggingApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var tag = TagDto.builder().id(1L).name("tag").build();
 
-        when(service.create(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         post("/api/v1/spexare/{spexareId}/tags/{id}", 1L, tag.getId())
@@ -147,8 +145,6 @@ class TaggingApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/tags/{id}", 1L, 1L)

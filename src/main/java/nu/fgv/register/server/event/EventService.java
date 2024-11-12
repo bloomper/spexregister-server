@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static nu.fgv.register.server.event.EventMapper.EVENT_MAPPER;
 import static nu.fgv.register.server.event.EventSpecification.hasCreatedAtGreaterThanEqual;
@@ -73,10 +73,11 @@ public class EventService {
                 .toList();
     }
 
-    public Optional<EventDto> findById(final Long id) {
+    public EventDto findById(final Long id) {
         return repository
                 .findById(id)
-                .map(EVENT_MAPPER::toDto);
+                .map(EVENT_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Event.class, id));
     }
 
     public EventDto create(final String createdBy, final Event.EventType event, final Event.SourceType source) {

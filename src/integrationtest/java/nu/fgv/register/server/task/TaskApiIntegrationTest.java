@@ -749,8 +749,9 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_adding_and_category_not_found() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
 
             //@formatter:off
@@ -758,7 +759,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{taskId}/category/{id}", task.getId(), 1L)
+                .put("/{taskId}/category/{id}", task.getId(), -1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -788,7 +789,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_removing_and_no_category() {
+        void should_return_204_when_removing_and_no_category() {
             final var task = persistTask(randomizeTask(null));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
@@ -800,7 +801,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{taskId}/category", task.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);

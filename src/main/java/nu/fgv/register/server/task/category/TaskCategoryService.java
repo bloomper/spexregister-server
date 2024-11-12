@@ -20,6 +20,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -76,10 +78,11 @@ public class TaskCategoryService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<TaskCategoryDto> findById(final Long id) {
+    public TaskCategoryDto findById(final Long id) {
         return repository
                 .findById0(id)
-                .map(TASK_CATEGORY_MAPPER::toDto);
+                .map(TASK_CATEGORY_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, id));
     }
 
     @RequiresAdminOrEditorOrUser
@@ -104,16 +107,16 @@ public class TaskCategoryService {
 
                     return TASK_CATEGORY_MAPPER.toDto(category);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new InternalErrorException("Could not create task category"));
     }
 
     @RequiresAdmin
-    public Optional<TaskCategoryDto> update(final TaskCategoryUpdateDto dto) {
+    public TaskCategoryDto update(final TaskCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdmin
-    public Optional<TaskCategoryDto> partialUpdate(final TaskCategoryUpdateDto dto) {
+    public TaskCategoryDto partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
                 .map(category -> {
@@ -121,13 +124,21 @@ public class TaskCategoryService {
                     return category;
                 })
                 .map(repository::save)
-                .map(TASK_CATEGORY_MAPPER::toDto);
+                .map(TASK_CATEGORY_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, dto.getId()));
     }
 
     @RequiresAdmin
     public void deleteById(final Long id) {
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));
+        if (doesTaskCategoryExist(id)) {
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));
+        } else {
+            throw new ResourceNotFoundException(TaskCategory.class, id);
+        }
     }
 
+    private boolean doesTaskCategoryExist(final Long id) {
+        return repository.findById0(id).isPresent();
+    }
 }

@@ -37,7 +37,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -220,7 +219,7 @@ class TagApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var tag = TagDto.builder().id(1L).name("tag").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(tag));
+        when(service.findById(any(Long.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
@@ -254,7 +253,7 @@ class TagApiTest extends AbstractApiTest {
         final var tag = TagDto.builder().id(1L).name("tag").build();
         final var dto = TagUpdateDto.builder().id(1L).name("tag2").build();
 
-        when(service.update(any(TagUpdateDto.class))).thenReturn(Optional.of(tag));
+        when(service.update(any(TagUpdateDto.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
@@ -294,7 +293,7 @@ class TagApiTest extends AbstractApiTest {
         final var tag = TagDto.builder().id(1L).name("tag").build();
         final var dto = TagUpdateDto.builder().id(1L).build();
 
-        when(service.partialUpdate(any(TagUpdateDto.class))).thenReturn(Optional.of(tag));
+        when(service.partialUpdate(any(TagUpdateDto.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
@@ -332,7 +331,7 @@ class TagApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var tag = TagDto.builder().id(1L).name("tag").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(tag));
+        when(service.findById(any(Long.class))).thenReturn(tag);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc

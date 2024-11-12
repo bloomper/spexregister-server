@@ -24,15 +24,12 @@ import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,52 +68,26 @@ public class ActorApi {
                                                                       @PathVariable final Long taskActivityId,
                                                                       @SortDefault(sort = Actor_.ID, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                       @RequestParam(required = false, defaultValue = "") final String filter) {
-        try {
-            final PagedModel<EntityModel<ActorDto>> paged = pagedResourcesAssembler.toModel(service.findByTaskActivity(spexareId, activityId, taskActivityId, filter, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId, activityId, taskActivityId));
+        final PagedModel<EntityModel<ActorDto>> paged = pagedResourcesAssembler.toModel(service.findByTaskActivity(spexareId, activityId, taskActivityId, filter, pageable));
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve actors", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        paged.getContent().forEach(p -> addLinks(p, spexareId, activityId, taskActivityId));
+
+        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findById(spexareId, activityId, taskActivityId, id)
-                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId, activityId, taskActivityId)))
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve actor", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final ActorDto dto = service.findById(spexareId, activityId, taskActivityId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId, taskActivityId)));
     }
 
     @PostMapping(value = "/{vocalId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<ActorDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @Valid @RequestBody final ActorCreateDto dto) {
-        try {
-            return service
-                    .create(spexareId, activityId, taskActivityId, vocalId, dto)
-                    .map(newDto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, newDto.getId())).toString())
-                            .body(EntityModel.of(newDto, getLinks(newDto, spexareId, activityId, taskActivityId)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create actor for task activity {}, activity {} and spexare {}", taskActivityId, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final ActorDto createdDto = service.create(spexareId, activityId, taskActivityId, vocalId, dto);
+
+        return ResponseEntity.created(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, createdDto.getId())).toUri())
+                .body(EntityModel.of(createdDto, getLinks(createdDto, spexareId, activityId, taskActivityId)));
     }
 
     @PutMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -124,17 +95,10 @@ public class ActorApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        try {
-            return service
-                    .update(spexareId, activityId, taskActivityId, vocalId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update actor {} for task activity {}, activity {} and spexare {}", id, taskActivityId, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
+        final ActorDto updatedDto = service.update(spexareId, activityId, taskActivityId, vocalId, id, dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId)));
     }
 
     @PatchMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -142,29 +106,17 @@ public class ActorApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        try {
-            return service
-                    .partialUpdate(spexareId, activityId, taskActivityId, vocalId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update actor {} for task activity {}, activity {} and spexare {}", id, taskActivityId, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
+        final ActorDto updatedDto = service.partialUpdate(spexareId, activityId, taskActivityId, vocalId, id, dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId, activityId, taskActivityId)));
     }
 
     @DeleteMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id) {
-        try {
-            return service.deleteById(spexareId, activityId, taskActivityId, vocalId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete actor {} for task activity {}, activity {} and spexare {}", id, taskActivityId, activityId, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.deleteById(spexareId, activityId, taskActivityId, vocalId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<ActorDto> entity, final Long spexareId, final Long activityId, final Long taskActivityId) {

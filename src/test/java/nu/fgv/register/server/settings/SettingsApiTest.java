@@ -29,7 +29,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -146,7 +145,7 @@ class SettingsApiTest extends AbstractApiTest {
         void should_get_language() throws Exception {
             final var language = LanguageDto.builder().isoCode("sv").label("Svenska").build();
 
-            when(languageService.findByIsoCode(any(String.class))).thenReturn(Optional.of(language));
+            when(languageService.findByIsoCode(any(String.class))).thenReturn(language);
 
             mockMvc
                     .perform(
@@ -216,7 +215,7 @@ class SettingsApiTest extends AbstractApiTest {
         void should_get_country() throws Exception {
             final var country = CountryDto.builder().isoCode("SE").label("Sverige").build();
 
-            when(countryService.findByIsoCode(any(String.class))).thenReturn(Optional.of(country));
+            when(countryService.findByIsoCode(any(String.class))).thenReturn(country);
 
             mockMvc
                     .perform(
@@ -326,7 +325,7 @@ class SettingsApiTest extends AbstractApiTest {
         void should_get_type() throws Exception {
             final var type = TypeDto.builder().id("HOME").type(TypeType.ADDRESS).label("Hem").build();
 
-            when(typeService.findById(any(String.class))).thenReturn(Optional.of(type));
+            when(typeService.findById(any(String.class))).thenReturn(type);
 
             mockMvc
                     .perform(

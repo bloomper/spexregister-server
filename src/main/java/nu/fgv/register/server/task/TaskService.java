@@ -20,8 +20,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -30,7 +35,6 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -82,10 +86,11 @@ public class TaskService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<TaskDto> findById(final Long id) {
+    public TaskDto findById(final Long id) {
         return repository
                 .findById0(id)
-                .map(TASK_MAPPER::toDto);
+                .map(TASK_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Task.class, id));
     }
 
     @RequiresAdminOrEditorOrUser
@@ -110,16 +115,16 @@ public class TaskService {
 
                     return TASK_MAPPER.toDto(task);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new InternalErrorException("Could not create task"));
     }
 
     @RequiresAdminOrEditor
-    public Optional<TaskDto> update(final TaskUpdateDto dto) {
+    public TaskDto update(final TaskUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdminOrEditor
-    public Optional<TaskDto> partialUpdate(final TaskUpdateDto dto) {
+    public TaskDto partialUpdate(final TaskUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
                 .map(task -> {
@@ -127,69 +132,71 @@ public class TaskService {
                     return task;
                 })
                 .map(repository::save)
-                .map(TASK_MAPPER::toDto);
+                .map(TASK_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.getId()));
     }
 
     @RequiresAdmin
     public void deleteById(final Long id) {
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(Task.class, id));
+        if (doesTaskExist(id)) {
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(Task.class, id));
+        } else {
+            throw new ResourceNotFoundException(Task.class, id);
+        }
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<TaskCategoryDto> findCategoryByTask(final Long taskId) {
-        if (doesTaskExist(taskId)) {
+    public TaskCategoryDto findCategoryByTask(final Long id) {
+        if (doesTaskExist(id)) {
             return repository
-                    .findById0(taskId)
+                    .findById0(id)
+                    .filter(task -> task.getCategory() != null)
                     .map(Task::getCategory)
-                    .map(TASK_CATEGORY_MAPPER::toDto);
+                    .map(TASK_CATEGORY_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNoValueException(Task.class, Task_.CATEGORY, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Task %s does not exist", taskId));
+            throw new ResourceNotFoundException(Task.class, id);
         }
     }
 
     @RequiresAdmin
-    public boolean addCategory(final Long taskId, final Long id) {
+    public void addCategory(final Long taskId, final Long id) {
         if (doTaskAndCategoryExist(taskId, id)) {
-            return repository
+            repository
                     .findById0(taskId)
-                    .map(task -> categoryRepository
+                    .ifPresent(task -> categoryRepository
                             .findById(id)
-                            .map(category -> {
+                            .ifPresent(category -> {
                                 task.setCategory(category);
                                 repository.save(task);
-                                return true;
                             })
-                            .orElse(false))
-                    .orElse(false);
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("Task %s and/or category %s do not exist", taskId, id));
+            throw new ResourcesNotFoundException(List.of(Task.class, TaskCategory.class), taskId, id);
         }
     }
 
     @RequiresAdmin
-    public boolean removeCategory(final Long taskId) {
-        if (doesTaskExist(taskId)) {
-            return repository
-                    .findById0(taskId)
-                    .filter(task -> task.getCategory() != null)
-                    .map(task -> {
+    public void removeCategory(final Long id) {
+        if (doesTaskExist(id)) {
+            repository
+                    .findById0(id)
+                    .ifPresent(task -> {
                         task.setCategory(null);
                         repository.save(task);
-                        return true;
-                    })
-                    .orElse(false);
+                    });
         } else {
-            throw new ResourceNotFoundException(String.format("Task %s does not exist", taskId));
+            throw new ResourceNotFoundException(Task.class, id);
         }
     }
 
     private boolean doesTaskExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doTaskAndCategoryExist(final Long taskId, final Long categoryId) {
-        return doesTaskExist(taskId) && categoryRepository.existsById(categoryId);
+        return doesTaskExist(taskId) && categoryRepository.findById(categoryId).isPresent();
     }
 
 }

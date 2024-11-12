@@ -206,7 +206,7 @@ public class ExcelWriter {
                     }
                 });
             });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Could not write data to sheet {}", sheet.getSheetName(), e);
         }
         return sheetContainer;

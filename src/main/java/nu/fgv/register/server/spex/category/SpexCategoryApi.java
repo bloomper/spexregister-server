@@ -24,6 +24,7 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
@@ -104,18 +105,12 @@ public class SpexCategoryApi {
     })
     @RequiresAdmin
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        try {
-            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex_categories" + export.getFirst() + "\"")
-                    .body(new ByteArrayResource(export.getSecond()));
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not export spex categories", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex_categories" + export.getFirst() + "\"")
+                .body(new ByteArrayResource(export.getSecond()));
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -123,20 +118,16 @@ public class SpexCategoryApi {
     public ResponseEntity<EntityModel<SpexCategoryDto>> create(@Valid @RequestBody final SpexCategoryCreateDto dto) {
         final SpexCategoryDto newDto = service.create(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexCategoryApi.class).retrieve(newDto.getId())).toString())
+        return ResponseEntity.created(linkTo(methodOn(SpexCategoryApi.class).retrieve(newDto.getId())).toUri())
                 .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexCategoryDto>> retrieve(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final SpexCategoryDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
@@ -146,17 +137,11 @@ public class SpexCategoryApi {
             })
     @RequiresAdmin
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale, final HttpMethod method) {
-        try {
-            final ImportResultDto result = importService.doImport(file, contentType, locale);
-            return ResponseEntity
-                    .status(result.isSuccess() ? (method == HttpMethod.POST ? HttpStatus.CREATED : HttpStatus.ACCEPTED) : HttpStatus.BAD_REQUEST)
-                    .body(result);
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not import spex categories", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final ImportResultDto result = importService.doImport(file, contentType, locale);
+
+        return ResponseEntity
+                .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                .body(result);
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
@@ -165,10 +150,7 @@ public class SpexCategoryApi {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale, method);
         } catch (final IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not import spex categories %s", e);
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
@@ -178,10 +160,10 @@ public class SpexCategoryApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .update(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexCategoryDto updatedDto = service.update(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -190,64 +172,54 @@ public class SpexCategoryApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .partialUpdate(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexCategoryDto updatedDto = service.partialUpdate(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> {
-                    service.deleteById(id);
-                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{spexId}/logo")
+    @GetMapping("/{id}/logo")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long spexId) {
-        return service.getLogo(spexId)
-                .map(tuple -> {
-                    final Resource resource = new ByteArrayResource(tuple.getFirst());
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.valueOf(tuple.getSecond()))
-                            .body(resource);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long id) {
+        final Pair<byte[], String> logo = service.getLogo(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(logo.getSecond()))
+                .body(new ByteArrayResource(logo.getFirst()));
     }
 
-    @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        return service.saveLogo(spexId, file, contentType)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+        service.saveLogo(id, file, contentType);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(value = "/{spexId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexId, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
-            return uploadLogo(spexId, file.getBytes(), file.getContentType());
+            return uploadLogo(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not save logo for spex category {}", spexId, e);
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
-    @DeleteMapping("/{spexId}/logo")
+    @DeleteMapping("/{id}/logo")
     @RequiresAdmin
-    public ResponseEntity<Object> deleteLogo(@PathVariable final Long spexId) {
-        return service.deleteLogo(spexId)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Object> deleteLogo(@PathVariable final Long id) {
+        service.deleteLogo(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

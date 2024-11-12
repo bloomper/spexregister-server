@@ -31,7 +31,6 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,11 +73,9 @@ public class StateApi {
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<StateDto>> retrieve(@PathVariable final String id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final StateDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

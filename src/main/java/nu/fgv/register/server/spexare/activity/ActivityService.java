@@ -19,13 +19,15 @@ package nu.fgv.register.server.spexare.activity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 import static nu.fgv.register.server.spexare.activity.ActivityMapper.ACTIVITY_MAPPER;
 import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasId;
@@ -55,59 +57,62 @@ public class ActivityService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourceNotFoundException(Spexare.class, spexareId);
         }
     }
 
-    public Optional<ActivityDto> findById(final Long spexareId, final Long id) {
+    public ActivityDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
             return repository
                     .findById(id)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .map(ACTIVITY_MAPPER::toDto);
+                    .map(ACTIVITY_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(Activity.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, id);
         }
     }
 
-    public Optional<ActivityDto> create(final Long spexareId) {
+    public ActivityDto create(final Long spexareId) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById(spexareId)
+                    .findById0(spexareId)
                     .map(spexare -> {
                         final Activity activity = new Activity();
                         activity.setSpexare(spexare);
                         return repository.save(activity);
                     })
-                    .map(ACTIVITY_MAPPER::toDto);
+                    .map(ACTIVITY_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, spexareId));
+
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourceNotFoundException(Spexare.class, spexareId);
         }
     }
 
-    public boolean deleteById(final Long spexareId, final Long id) {
+    public void deleteById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId) && doesActivityExist(id)) {
-            return spexareRepository
+            spexareRepository
                     .findById(spexareId)
                     .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasId(id))))
                     .flatMap(spexare -> repository.findById(id))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .map(activity -> {
-                        repository.deleteById(activity.getId());
-                        return true;
-                    })
-                    .orElse(false);
+                    .ifPresentOrElse(
+                            activity -> repository.deleteById(activity.getId()),
+                            () -> {
+                                throw new ResourceNotFoundException(Activity.class, id);
+                            });
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, id);
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.existsById(id);
+        return spexareRepository.findById0(id).isPresent();
     }
 
     private boolean doesActivityExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
 }

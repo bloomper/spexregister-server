@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.config;
 
-import nu.fgv.register.server.util.LoggingAspect;
+import nu.fgv.register.server.util.logging.LoggingAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;

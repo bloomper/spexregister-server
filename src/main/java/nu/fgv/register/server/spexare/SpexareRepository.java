@@ -20,10 +20,18 @@ import nu.fgv.register.server.util.search.SearchEnabledJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Repository
 public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, Long>, JpaSpecificationExecutor<Spexare> {
+
+    //@PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    default Optional<Spexare> findById0(final Long id) {
+        return this
+                .findById(id);
+    }
 }

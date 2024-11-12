@@ -34,7 +34,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -181,7 +180,7 @@ class NewsApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
+        when(service.findById(any(Long.class))).thenReturn(news);
 
         mockMvc
                 .perform(
@@ -215,7 +214,7 @@ class NewsApiTest extends AbstractApiTest {
         final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
-        when(service.update(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
+        when(service.update(any(NewsUpdateDto.class))).thenReturn(news);
 
         mockMvc
                 .perform(
@@ -258,7 +257,7 @@ class NewsApiTest extends AbstractApiTest {
         final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
         final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
 
-        when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(Optional.of(news));
+        when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(news);
 
         mockMvc
                 .perform(
@@ -299,7 +298,7 @@ class NewsApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(news));
+        when(service.findById(any(Long.class))).thenReturn(news);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc

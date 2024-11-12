@@ -40,14 +40,12 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -159,7 +157,7 @@ class UserApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(UserCreateDto.class);
         final var dto = UserCreateDto.builder().email("email@somewhere.com").build();
 
-        when(service.create(any(UserCreateDto.class))).thenReturn(Optional.of(UserDto.builder().id(1L).email(dto.getEmail()).build()));
+        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).email(dto.getEmail()).build());
 
         mockMvc
                 .perform(
@@ -191,7 +189,7 @@ class UserApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
+        when(service.findById(any(Long.class))).thenReturn(user);
 
         mockMvc
                 .perform(
@@ -225,7 +223,7 @@ class UserApiTest extends AbstractApiTest {
         final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
         final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
-        when(service.update(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
+        when(service.update(any(UserUpdateDto.class))).thenReturn(user);
 
         mockMvc
                 .perform(
@@ -265,7 +263,7 @@ class UserApiTest extends AbstractApiTest {
         final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
         final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
 
-        when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(Optional.of(user));
+        when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(user);
 
         mockMvc
                 .perform(
@@ -303,7 +301,7 @@ class UserApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(user));
+        when(service.findById(any(Long.class))).thenReturn(user);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
@@ -371,8 +369,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_add_authority() throws Exception {
-        when(service.addAuthority(any(Long.class), any(String.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
@@ -398,8 +394,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_add_authorities() throws Exception {
-        when(service.addAuthorities(any(Long.class), anyList())).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/users/{userId}/authorities", 1)
@@ -428,8 +422,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_remove_authority() throws Exception {
-        when(service.removeAuthority(any(Long.class), any(String.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
@@ -455,8 +447,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_remove_authorities() throws Exception {
-        when(service.removeAuthorities(any(Long.class), anyList())).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/users/{userId}/authorities", 1)
@@ -521,8 +511,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_set_state() throws Exception {
-        when(service.setState(any(Long.class), any(String.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/users/{userId}/state/{id}", 1, "PENDING")
@@ -548,7 +536,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_spexare() throws Exception {
-        when(service.findSpexareByUser(any(Long.class))).thenReturn(Optional.of(SpexareDto.builder().id(1L).build()));
+        when(service.findSpexareByUser(any(Long.class))).thenReturn(SpexareDto.builder().id(1L).build());
 
         mockMvc
                 .perform(
@@ -590,8 +578,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_add_spexare() throws Exception {
-        when(service.addSpexare(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/users/{userId}/spexare/{id}", 1, 1)
@@ -617,8 +603,6 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_remove_spexare() throws Exception {
-        when(service.removeSpexare(any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/users/{userId}/spexare", 1)

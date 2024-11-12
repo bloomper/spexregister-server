@@ -19,18 +19,22 @@ package nu.fgv.register.server.spexare.membership;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
 import nu.fgv.register.server.settings.TypeType;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 import static nu.fgv.register.server.spexare.membership.MembershipMapper.MEMBERSHIP_MAPPER;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasId;
@@ -57,7 +61,7 @@ public class MembershipService {
     public Page<MembershipDto> findBySpexare(final Long spexareId, final String filter, final Pageable pageable) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById(spexareId)
+                    .findById0(spexareId)
                     .map(spexare -> hasText(filter) ?
                             repository
                                     .findAll(SpecificationsBuilder.<Membership>builder().build(FilterParser.parse(filter), MembershipSpecification::new).and(hasSpexare(spexare)), pageable)
@@ -68,27 +72,28 @@ public class MembershipService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourceNotFoundException(Spexare.class, spexareId);
         }
     }
 
-    public Optional<MembershipDto> findById(final Long spexareId, final Long id) {
+    public MembershipDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
             return repository
-                    .findById(id)
+                    .findById0(id)
                     .filter(membership -> membership.getSpexare().getId().equals(spexareId))
-                    .map(MEMBERSHIP_MAPPER::toDto);
+                    .map(MEMBERSHIP_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(Membership.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s does not exist", spexareId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Membership.class), spexareId, id);
         }
     }
 
-    public Optional<MembershipDto> create(final Long spexareId, final String typeId, final String year) {
+    public MembershipDto create(final Long spexareId, final String typeId, final String year) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById(spexareId)
+                            .findById0(spexareId)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(year))))
                             .map(spexare -> {
                                 final Membership membership = new Membership();
@@ -97,39 +102,41 @@ public class MembershipService {
                                 membership.setYear(year);
                                 return repository.save(membership);
                             })
-                            .map(MEMBERSHIP_MAPPER::toDto)
-                    );
+                    )
+                    .map(MEMBERSHIP_MAPPER::toDto)
+                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Membership.class), Membership_.YEAR, year, spexareId, typeId));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or type %s do not exist", spexareId, typeId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class), spexareId, typeId);
         }
     }
 
-    public boolean deleteById(final Long spexareId, final String typeId, final Long id) {
+    public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesMembershipExist(id)) {
-            return typeRepository
+            typeRepository
                     .findById(typeId)
-                    .map(type -> spexareRepository
-                            .findById(spexareId)
+                    .ifPresent(type -> spexareRepository
+                            .findById0(spexareId)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
+                            .flatMap(spexare -> repository.findById0(id))
                             .filter(membership -> membership.getSpexare().getId().equals(spexareId))
-                            .map(membership -> {
-                                repository.deleteById(membership.getId());
-                                return true;
-                            })
-                            .orElse(false))
-                    .orElse(false);
+                            .ifPresentOrElse(
+                                    membership -> repository.deleteById(membership.getId()),
+                                    () -> {
+                                        throw new ResourceNotFoundException(Membership.class, id);
+                                    }
+                            )
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, type %s and/or membership %s do not exist", spexareId, typeId, id));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Membership.class), spexareId, typeId, id);
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.existsById(id);
+        return spexareRepository.findById0(id).isPresent();
     }
 
     private boolean doesMembershipExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

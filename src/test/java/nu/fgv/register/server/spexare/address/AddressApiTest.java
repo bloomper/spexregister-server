@@ -33,7 +33,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -144,7 +143,7 @@ class AddressApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(address));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(address);
 
         mockMvc
                 .perform(
@@ -178,7 +177,7 @@ class AddressApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(AddressCreateDto.class);
         final var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
-        when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(Optional.of(AddressDto.builder().id(1L).streetAddress(dto.getStreetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build()));
+        when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(AddressDto.builder().id(1L).streetAddress(dto.getStreetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build());
 
         mockMvc
                 .perform(
@@ -222,7 +221,7 @@ class AddressApiTest extends AbstractApiTest {
         final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(Optional.of(address));
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(address);
 
         mockMvc
                 .perform(
@@ -268,7 +267,7 @@ class AddressApiTest extends AbstractApiTest {
         final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
         final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
 
-        when(service.partialUpdate(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(Optional.of(address));
+        when(service.partialUpdate(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(address);
 
         mockMvc
                 .perform(
@@ -310,8 +309,6 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)

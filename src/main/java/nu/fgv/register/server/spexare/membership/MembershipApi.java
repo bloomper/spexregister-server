@@ -21,15 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,64 +59,33 @@ public class MembershipApi {
     public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieve(@PathVariable final Long spexareId,
                                                                            @SortDefault(sort = Membership_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                            @RequestParam(required = false, defaultValue = "") final String filter) {
-        try {
-            final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId));
+        final PagedModel<EntityModel<MembershipDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve memberships", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        paged.getContent().forEach(p -> addLinks(p, spexareId));
+
+        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<MembershipDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findById(spexareId, id)
-                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve membership", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final MembershipDto dto = service.findById(spexareId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @PostMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<MembershipDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
-        try {
-            return service
-                    .create(spexareId, typeId, year)
-                    .map(dto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).toString())
-                            .body(EntityModel.of(dto, getLinks(dto, spexareId)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create membership for spexare {}", spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final MembershipDto dto = service.create(spexareId, typeId, year);
+
+        return ResponseEntity.created(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).toUri())
+                .body(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
-        try {
-            return service.deleteById(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete membership {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.deleteById(spexareId, typeId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<MembershipDto> entity, final Long spexareId) {

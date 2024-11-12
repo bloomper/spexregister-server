@@ -31,7 +31,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -143,7 +142,7 @@ class TaskActivityApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var taskActivity = TaskActivityDto.builder().id(1L).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
+        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(taskActivity);
 
         mockMvc
                 .perform(
@@ -177,7 +176,7 @@ class TaskActivityApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var taskActivity = TaskActivityDto.builder().id(1L).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(taskActivity));
+        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(taskActivity);
 
         mockMvc
                 .perform(
@@ -207,8 +206,6 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
@@ -234,8 +231,6 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
@@ -263,7 +258,7 @@ class TaskActivityApiTest extends AbstractApiTest {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         final var realTaskApi = new TaskApi(null, null, null, null, null, null);
 
-        when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(task));
+        when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(task);
         when(taskApi.getLinks(any(TaskDto.class), eq(false))).thenReturn(realTaskApi.getLinks(task, false));
 
         mockMvc

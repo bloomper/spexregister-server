@@ -19,16 +19,21 @@ package nu.fgv.register.server.spexare.activity.task;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
+import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.task.TaskRepository;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 import static nu.fgv.register.server.spexare.activity.task.TaskActivityMapper.TASK_ACTIVITY_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
@@ -54,7 +59,7 @@ public class TaskActivityService {
     public Page<TaskActivityDto> findByActivity(final Long spexareId, final Long activityId, final Pageable pageable) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return activityRepository
-                    .findById(activityId)
+                    .findById0(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> repository
                             .findByActivity(activity, pageable)
@@ -62,29 +67,30 @@ public class TaskActivityService {
                     )
                     .orElseGet(Page::empty);
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or activity %s do not exist", spexareId, activityId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, activityId);
         }
     }
 
-    public Optional<TaskActivityDto> findById(final Long spexareId, final Long activityId, final Long id) {
+    public TaskActivityDto findById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return repository
-                    .findById(id)
+                    .findById0(id)
                     .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
                     .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
-                    .map(TASK_ACTIVITY_MAPPER::toDto);
+                    .map(TASK_ACTIVITY_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s and/or activity %s do not exist", spexareId, activityId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, id);
         }
     }
 
-    public Optional<TaskActivityDto> create(final Long spexareId, final Long activityId, final Long taskId) {
+    public TaskActivityDto create(final Long spexareId, final Long activityId, final Long taskId) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId)) {
             return activityRepository
-                    .findById(activityId)
+                    .findById0(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .flatMap(activity -> taskRepository
-                            .findById(taskId)
+                            .findById0(taskId)
                             .filter(task -> !repository.existsByActivityAndTask(activity, task))
                             .map(task -> {
                                 final TaskActivity taskActivity = new TaskActivity();
@@ -92,83 +98,98 @@ public class TaskActivityService {
                                 taskActivity.setTask(task);
                                 return repository.save(taskActivity);
                             })
-                            .map(TASK_ACTIVITY_MAPPER::toDto)
+                    )
+                    .map(TASK_ACTIVITY_MAPPER::toDto)
+                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Activity.class, Task.class), TaskActivity_.TASK, taskId, spexareId, activityId));
+
+        } else {
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, Task.class), spexareId, activityId, taskId);
+        }
+    }
+
+    public void update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
+        if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId) && doesTaskActivityExist(id)) {
+            activityRepository
+                    .findById0(activityId)
+                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .ifPresentOrElse(
+                            activity -> taskRepository
+                                    .findById0(taskId)
+                                    .filter(task -> repository.existsByActivityAndId(activity, id))
+                                    .ifPresentOrElse(
+                                            task -> repository
+                                                    .findById0(id)
+                                                    .filter(taskActivity -> taskActivity.getActivity().equals(activity))
+                                                    .ifPresentOrElse(
+                                                            taskActivity -> {
+                                                                taskActivity.setTask(task);
+                                                                repository.save(taskActivity);
+                                                            },
+                                                            () -> {
+                                                                throw new ResourceNotFoundException(TaskActivity.class, id);
+                                                            }
+                                                    ),
+                                            () -> {
+                                                throw new ResourceNotFoundException(Task.class, taskId);
+                                            }
+                                    ),
+                            () -> {
+                                throw new ResourceNotFoundException(Activity.class, activityId);
+                            }
                     );
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or task %s do not exist", spexareId, activityId, taskId));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class, Task.class), spexareId, activityId, id, taskId);
         }
     }
 
-    public boolean update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
-        if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId) && doesTaskActivityExist(id)) {
-            return activityRepository
-                    .findById(activityId)
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .map(activity -> taskRepository
-                            .findById(taskId)
-                            .filter(task -> repository.existsByActivityAndId(activity, id))
-                            .map(task -> repository
-                                    .findById(id)
-                                    .filter(taskActivity -> taskActivity.getActivity().equals(activity))
-                                    .map(taskActivity -> {
-                                        taskActivity.setTask(task);
-                                        repository.save(taskActivity);
-                                        return true;
-                                    })
-                                    .orElse(false)
-                            )
-                            .orElse(false)
-                    )
-                    .orElse(false);
-        } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, activity %s, task activity %s and/or task %s do not exist", spexareId, activityId, id, taskId));
-        }
-    }
-
-    public boolean deleteById(final Long spexareId, final Long activityId, final Long id) {
+    public void deleteById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
-            return activityRepository
-                    .findById(activityId)
+            activityRepository
+                    .findById0(activityId)
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .filter(activity -> repository.existsByActivityAndId(activity, id))
-                    .map(activity -> repository
-                            .findById(id)
-                            .filter(taskActivity -> taskActivity.getActivity().equals(activity))
-                            .map(taskActivity -> {
-                                repository.deleteById(taskActivity.getId());
-                                return true;
-                            })
-                            .orElse(false)
-                    )
-                    .orElse(false);
+                    .ifPresentOrElse(
+                            activity -> repository
+                                    .findById0(id)
+                                    .filter(taskActivity -> taskActivity.getActivity().equals(activity))
+                                    .ifPresentOrElse(
+                                            taskActivity -> repository.deleteById(taskActivity.getId()),
+                                            () -> {
+                                                throw new ResourceNotFoundException(TaskActivity.class, id);
+                                            }),
+                            () -> {
+                                throw new ResourceNotFoundException(Activity.class, activityId);
+                            }
+                    );
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or task activity %s do not exist", spexareId, activityId, id));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, id);
         }
     }
 
-    public Optional<TaskDto> findTaskByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
+    public TaskDto findTaskByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
             return repository
-                    .findById(id)
+                    .findById0(id)
                     .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
                     .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
                     .map(TaskActivity::getTask)
-                    .map(TASK_MAPPER::toDto);
+                    .map(TASK_MAPPER::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id));
         } else {
-            throw new ResourceNotFoundException(String.format("Spexare %s, activity %s and/or task activity %s do not exist", spexareId, activityId, id));
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, id);
         }
     }
 
     private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.existsById(id);
+        return spexareRepository.findById0(id).isPresent();
     }
 
     private boolean doesTaskActivityExist(final Long id) {
-        return repository.existsById(id);
+        return repository.findById0(id).isPresent();
     }
 
     private boolean doesActivityExist(final Long id) {
-        return activityRepository.existsById(id);
+        return activityRepository.findById0(id).isPresent();
     }
 
     private boolean doSpexareAndActivityExist(final Long spexareId, final Long activityId) {
@@ -176,6 +197,6 @@ public class TaskActivityService {
     }
 
     private boolean doSpexareAndActivityAndTaskExist(final Long spexareId, final Long activityId, final Long taskId) {
-        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && taskRepository.existsById(taskId);
+        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && taskRepository.findById0(taskId).isPresent();
     }
 }

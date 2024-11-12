@@ -16,7 +16,9 @@
 
 package nu.fgv.register.server.util.impex.exporting;
 
+import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.ExportException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -31,9 +33,10 @@ import java.util.Locale;
  * @author Anders Jacobsson
  * @since 2.0
  */
+@Slf4j
 public abstract class AbstractExportService {
 
-    public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) throws IOException {
+    public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) {
         final Workbook workbook;
         final String extension;
         switch (type) {
@@ -50,13 +53,18 @@ public abstract class AbstractExportService {
         return Pair.of(extension, doExport(workbook, ids, locale));
     }
 
-    protected abstract byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException;
+    protected abstract byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale);
 
-    protected byte[] convertWorkbookToByteArray(final Workbook workbook) throws IOException {
-        final var outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        outputStream.close();
-        workbook.close();
-        return outputStream.toByteArray();
+    protected byte[] convertWorkbookToByteArray(final Workbook workbook) {
+        try {
+            final var outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            outputStream.close();
+            workbook.close();
+            return outputStream.toByteArray();
+        } catch (final IOException e) {
+            log.error("Unexpected error while exporting", e);
+            throw new ExportException(e.getMessage());
+        }
     }
 }

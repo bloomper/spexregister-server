@@ -31,7 +31,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -50,7 +49,7 @@ public class SpexExportService extends AbstractExportService {
     private final ExcelWriter writer = new ExcelWriter();
 
     @Override
-    protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) throws IOException {
+    protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) {
         final var dtos = retrieveDtos(ids);
         final var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).toList());
         final var categoryDtos = retrieveCategoryDtos();

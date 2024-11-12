@@ -31,7 +31,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -148,7 +147,7 @@ class SpexActivityApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var spexActivity = SpexActivityDto.builder().id(1L).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
+        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
@@ -182,7 +181,7 @@ class SpexActivityApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var spexActivity = SpexActivityDto.builder().id(1L).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spexActivity));
+        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
@@ -212,8 +211,6 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
-        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}/{spexId}", 1L, 1L, 1L, 1L)
@@ -239,8 +236,6 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities/{id}", 1L, 1L, 1L)
@@ -268,7 +263,7 @@ class SpexActivityApiTest extends AbstractApiTest {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
         final var realSpexApi = new SpexApi(null, null, null, null, null, null);
 
-        when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spex);
         when(spexApi.getLinks(any(SpexDto.class), eq(false))).thenReturn(realSpexApi.getLinks(spex, false));
 
         mockMvc

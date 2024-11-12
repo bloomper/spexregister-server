@@ -29,7 +29,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -123,7 +122,7 @@ class ActivityApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var activity = ActivityDto.builder().id(1L).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(activity));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(activity);
 
         mockMvc
                 .perform(
@@ -156,7 +155,7 @@ class ActivityApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var activity = ActivityDto.builder().id(1L).build();
 
-        when(service.create(any(Long.class))).thenReturn(Optional.of(activity));
+        when(service.create(any(Long.class))).thenReturn(activity);
 
         mockMvc
                 .perform(
@@ -184,8 +183,6 @@ class ActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/activities/{id}", 1L, 1L)

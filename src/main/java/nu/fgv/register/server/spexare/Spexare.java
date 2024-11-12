@@ -49,7 +49,7 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.security.CryptoConverter;
-import nu.fgv.register.server.util.Luhn;
+import nu.fgv.register.server.util.validation.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;

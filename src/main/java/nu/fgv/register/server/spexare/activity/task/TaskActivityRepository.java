@@ -23,12 +23,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Repository
 public interface TaskActivityRepository extends JpaRepository<TaskActivity, Long> {
+
+    //@PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    default Optional<TaskActivity> findById0(final Long id) {
+        return this
+                .findById(id);
+    }
 
     Page<TaskActivity> findByActivity(Activity activity, Pageable pageable);
 

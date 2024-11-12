@@ -24,8 +24,6 @@ import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.docs.RoleExtractor;
-import nu.fgv.register.server.util.docs.SecuritySnippet;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,10 +39,8 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -257,7 +253,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.findById(any(Long.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -291,7 +287,7 @@ class SpexApiTest extends AbstractApiTest {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
         final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
 
-        when(service.update(any(SpexUpdateDto.class))).thenReturn(Optional.of(spex));
+        when(service.update(any(SpexUpdateDto.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -332,7 +328,7 @@ class SpexApiTest extends AbstractApiTest {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
         final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
 
-        when(service.partialUpdate(any(SpexUpdateDto.class))).thenReturn(Optional.of(spex));
+        when(service.partialUpdate(any(SpexUpdateDto.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -371,7 +367,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.findById(any(Long.class))).thenReturn(spex);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
@@ -399,7 +395,7 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_download_poster() throws Exception {
         final var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
-        when(service.getPoster(any(Long.class))).thenReturn(Optional.of(poster));
+        when(service.getPoster(any(Long.class))).thenReturn(poster);
 
         mockMvc
                 .perform(
@@ -434,7 +430,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_upload_poster() throws Exception {
         final var poster = new byte[]{10, 12};
         final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
+        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -467,7 +463,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_upload_poster_via_multipart() throws Exception {
         final var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spex));
+        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -498,7 +494,7 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_delete_poster() throws Exception {
         final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.deletePoster(any(Long.class))).thenReturn(Optional.of(spex));
+        when(service.deletePoster(any(Long.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -570,7 +566,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_get_revival_parent() throws Exception {
         final var parent = SpexDto.builder().id(1L).year("2021").build();
 
-        when(service.findParentByRevivalId(any(Long.class))).thenReturn(Optional.of(parent));
+        when(service.findParentByRevivalId(any(Long.class))).thenReturn(parent);
 
         mockMvc
                 .perform(
@@ -602,7 +598,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_get_revival() throws Exception {
         final var revival = SpexDto.builder().id(1L).year("2021").build();
 
-        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(Optional.of(revival));
+        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(revival);
 
         mockMvc
                 .perform(
@@ -682,7 +678,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_add_revival() throws Exception {
         final var revival = SpexDto.builder().id(1L).year("2021").title("Bojan").revival(true).build();
 
-        when(service.addRevival(any(Long.class), any(String.class))).thenReturn(Optional.of(revival));
+        when(service.addRevival(any(Long.class), any(String.class))).thenReturn(revival);
 
         mockMvc
                 .perform(
@@ -711,11 +707,9 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_delete_revival() throws Exception {
-        when(service.deleteRevival(any(Long.class), any(String.class))).thenReturn(true);
-
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/{spexId}/revivals/{year}", 1L, "2021")
+                        delete("/api/v1/spex/{spexId}/revivals/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -726,10 +720,10 @@ class SpexApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("year").description("The year of the revival")
+                                        parameterWithName("id").description("The id of the revival")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "deleteRevival", Long.class, String.class))
+                                security(getRolesFromMethod(SpexApi.class, "deleteRevival", Long.class, Long.class))
                         )
                 );
     }
@@ -739,7 +733,7 @@ class SpexApiTest extends AbstractApiTest {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
         final var realCategoryApi = new SpexCategoryApi(null, null, null, null, null, null);
 
-        when(service.findCategoryBySpex(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findCategoryBySpex(any(Long.class))).thenReturn(category);
         when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
@@ -768,8 +762,6 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_add_category() throws Exception {
-        when(service.addCategory(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/spex/{spexId}/category/{id}", 1L, 1L)
@@ -793,8 +785,6 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_remove_category() throws Exception {
-        when(service.removeCategory(any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spex/{spexId}/category", 1L)

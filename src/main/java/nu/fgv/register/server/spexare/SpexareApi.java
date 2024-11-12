@@ -30,6 +30,7 @@ import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.spexare.tag.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -37,7 +38,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
@@ -47,7 +47,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -96,6 +95,7 @@ public class SpexareApi {
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
+
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -105,6 +105,7 @@ public class SpexareApi {
     public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q,
                                                                                 @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
+
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -118,37 +119,27 @@ public class SpexareApi {
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        try {
-            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spexare" + export.getFirst() + "\"")
-                    .body(new ByteArrayResource(export.getSecond()));
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not export spexare", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spexare" + export.getFirst() + "\"")
+                .body(new ByteArrayResource(export.getSecond()));
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexareDto>> create(@Valid @RequestBody final SpexareCreateDto dto) {
         final SpexareDto newDto = service.create(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexareApi.class).retrieve(newDto.getId())).toString())
+        return ResponseEntity.created(linkTo(methodOn(SpexareApi.class).retrieve(newDto.getId())).toUri())
                 .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final SpexareDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -156,10 +147,10 @@ public class SpexareApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .update(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexareDto updatedDto = service.update(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -167,40 +158,33 @@ public class SpexareApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .partialUpdate(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexareDto updatedDto = service.partialUpdate(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> {
-                    service.deleteById(id);
-                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/image")
     public ResponseEntity<Resource> downloadImage(@PathVariable final Long id) {
-        return service.getImage(id)
-                .map(tuple -> {
-                    final Resource resource = new ByteArrayResource(tuple.getFirst());
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.valueOf(tuple.getSecond()))
-                            .body(resource);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final Pair<byte[], String> image = service.getImage(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(image.getSecond()))
+                .body(new ByteArrayResource(image.getFirst()));
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        return service.saveImage(id, file, contentType)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        service.saveImage(id, file, contentType);
+
+        return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
@@ -208,60 +192,36 @@ public class SpexareApi {
         try {
             return uploadImage(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not save image for spexare {}", id, e);
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}/image")
     public ResponseEntity<Object> deleteImage(@PathVariable final Long id) {
-        return service.deleteImage(id)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        service.deleteImage(id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long spexareId) {
-        try {
-            return service
-                    .findPartnerBySpexare(spexareId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve partner for spexare", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @GetMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long id) {
+        final SpexareDto dto = service.findPartnerBySpexare(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @PutMapping(value = "/{spexareId}/partner/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<EntityModel<SpexareDto>> updatePartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        try {
-            return service
-                    .updatePartner(spexareId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT)); // Unreachable
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update partner for spexare {}", spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> updatePartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
+        service.updatePartner(spexareId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
-    public ResponseEntity<Object> deletePartner(@PathVariable final Long spexareId) {
-        try {
-            return service.deletePartner(spexareId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete partner for spexare {}", spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @DeleteMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<Object> deletePartner(@PathVariable final Long id) {
+        service.deletePartner(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

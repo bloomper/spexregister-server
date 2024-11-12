@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.error;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public class ResourceAlreadyExistsException extends RuntimeException {
+public class ImportException extends ResponseStatusException {
 
-    public ResourceAlreadyExistsException(final String message) {
-        super(message);
+    public ImportException(final String reason) {
+        super(HttpStatus.INTERNAL_SERVER_ERROR, reason, null);
     }
 }

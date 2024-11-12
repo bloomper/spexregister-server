@@ -50,7 +50,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -318,7 +317,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
+        when(service.findById(any(Long.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -352,7 +351,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
         final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
 
-        when(service.update(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
+        when(service.update(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -397,7 +396,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
         final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
 
-        when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(Optional.of(spexare));
+        when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -440,7 +439,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(spexare));
+        when(service.findById(any(Long.class))).thenReturn(spexare);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
@@ -469,7 +468,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_download_image() throws Exception {
         final var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
 
-        when(service.getImage(any(Long.class))).thenReturn(Optional.of(image));
+        when(service.getImage(any(Long.class))).thenReturn(image);
 
         mockMvc
                 .perform(
@@ -505,7 +504,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var image = new byte[]{10, 12};
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
+        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -539,7 +538,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(spexare));
+        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -571,7 +570,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_delete_image() throws Exception {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.deleteImage(any(Long.class))).thenReturn(Optional.of(spexare));
+        when(service.deleteImage(any(Long.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -599,7 +598,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_get_partner() throws Exception {
         final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
+        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(partner);
 
         mockMvc
                 .perform(
@@ -629,18 +628,13 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_update_partner() throws Exception {
-        final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-
-        when(service.updatePartner(any(Long.class), any(Long.class))).thenReturn(Optional.of(partner));
-
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/partner/{id}", 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
+                .andExpect(status().isNoContent())
                 .andDo(document(
                                 "spexare-partner-add",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -649,10 +643,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("id").description("The id of the partner")
                                 ),
-                                responseFields,
-                                links,
                                 secureRequestHeaders,
-                                responseHeaders,
                                 security(getRolesFromMethod(SpexareApi.class, "updatePartner", Long.class, Long.class))
                         )
                 );
@@ -660,8 +651,6 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_delete_partner() throws Exception {
-        when(service.deletePartner(any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/partner", 1L)

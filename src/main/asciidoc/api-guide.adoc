@@ -58,9 +58,6 @@ use of HTTP status codes.
 | `409 Conflict`
 | The request could not be completed due to already existing resource.
 
-| `422 Unprocessable Entity`
-| The request could not be processed due to invalid input related to sub-resource.
-
 | `500 Internal Server Error`
 | A fatal error has occurred.
 |===
@@ -69,12 +66,14 @@ use of HTTP status codes.
 == Errors
 
 Whenever an error response (status code >= 400) is returned, the body will contain a JSON object
-that describes the problem. The error object has the following structure:
+that describes the problem. The error object is RFC 9457 compliant and has the following structure:
 
 include::{static-snippets}/error/response-fields.adoc[]
 
-For example, a request that attempts to apply a non-existent tag to a spexare will produce a
-`400 Bad Request` response:
+More information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here].
+
+For example, a request that attempts to retrieve a non-existent spex will produce a
+`400 Not Found` response:
 
 include::{static-snippets}/error/http-response.adoc[]
 

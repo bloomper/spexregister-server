@@ -32,7 +32,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -129,7 +128,7 @@ class ToggleApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(toggle));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
@@ -162,7 +161,7 @@ class ToggleApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
+        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
@@ -194,7 +193,7 @@ class ToggleApiTest extends AbstractApiTest {
     void should_update() throws Exception {
         final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(toggle));
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
@@ -225,8 +224,6 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)

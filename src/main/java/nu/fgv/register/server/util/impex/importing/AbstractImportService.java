@@ -16,7 +16,9 @@
 
 package nu.fgv.register.server.util.impex.importing;
 
+import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.ImportException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -31,13 +33,17 @@ import java.util.Locale;
  * @author Anders Jacobsson
  * @since 2.0
  */
+@Slf4j
 public abstract class AbstractImportService {
 
-    public ImportResultDto doImport(final byte[] file, @Nullable final String type, final Locale locale) throws IOException {
+    public ImportResultDto doImport(final byte[] file, @Nullable final String type, final Locale locale) {
         try (final var workbook = convertByteArrayToWorkbook(file, type)) {
             final var validationResult = doValidate(workbook, locale);
 
             return validationResult.isSuccess() ? doImport(workbook, locale) : validationResult;
+        } catch (final IOException e) {
+            log.error("Unexpected error while importing", e);
+            throw new ImportException(e.getMessage());
         }
     }
 
@@ -45,16 +51,21 @@ public abstract class AbstractImportService {
 
     protected abstract ImportResultDto doValidate(final Workbook workbook, final Locale locale);
 
-    private Workbook convertByteArrayToWorkbook(final byte[] file, @Nullable final String type) throws IOException {
-        final var inputStream = new ByteArrayInputStream(file);
-        switch (type) {
-            case Constants.MediaTypes.APPLICATION_XLSX_VALUE -> {
-                return new XSSFWorkbook(inputStream);
+    private Workbook convertByteArrayToWorkbook(final byte[] file, @Nullable final String type) {
+        try {
+            final var inputStream = new ByteArrayInputStream(file);
+            switch (type) {
+                case Constants.MediaTypes.APPLICATION_XLSX_VALUE -> {
+                    return new XSSFWorkbook(inputStream);
+                }
+                case Constants.MediaTypes.APPLICATION_XLS_VALUE -> {
+                    return new HSSFWorkbook(inputStream);
+                }
+                case null, default -> throw new IllegalArgumentException("Unrecognized type");
             }
-            case Constants.MediaTypes.APPLICATION_XLS_VALUE -> {
-                return new HSSFWorkbook(inputStream);
-            }
-            case null, default -> throw new IllegalArgumentException("Unrecognized type");
+        } catch (final IOException e) {
+            log.error("Unexpected error while importing", e);
+            throw new ImportException(e.getMessage());
         }
     }
 

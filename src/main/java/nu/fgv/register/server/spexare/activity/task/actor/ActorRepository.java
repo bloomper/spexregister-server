@@ -20,10 +20,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Repository
 public interface ActorRepository extends JpaRepository<Actor, Long>, JpaSpecificationExecutor<Actor> {
+
+    //@PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    default Optional<Actor> findById0(final Long id) {
+        return this
+                .findById(id);
+    }
 }

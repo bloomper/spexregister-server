@@ -20,6 +20,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -76,9 +78,10 @@ public class NewsService {
                         .map(NEWS_MAPPER::toDto);
     }
 
-    public Optional<NewsDto> findById(final Long id) {
+    public NewsDto findById(final Long id) {
         return repository.findById0(id)
-                .map(NEWS_MAPPER::toDto);
+                .map(NEWS_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(News.class, id));
     }
 
     @RequiresAdminOrEditor
@@ -97,16 +100,16 @@ public class NewsService {
 
                     return NEWS_MAPPER.toDto(news);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new InternalErrorException("Could not create news"));
     }
 
     @RequiresAdminOrEditor
-    public Optional<NewsDto> update(final NewsUpdateDto dto) {
+    public NewsDto update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdminOrEditor
-    public Optional<NewsDto> partialUpdate(final NewsUpdateDto dto) {
+    public NewsDto partialUpdate(final NewsUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
                 .map(news -> {
@@ -125,13 +128,18 @@ public class NewsService {
 
                     return news;
                 })
-                .map(NEWS_MAPPER::toDto);
+                .map(NEWS_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(News.class, dto.getId()));
     }
 
     @RequiresAdminOrEditor
     public void deleteById(final Long id) {
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(News.class, id));
+        if (doesNewsExist(id)) {
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(News.class, id));
+        } else {
+            throw new ResourceNotFoundException(News.class, id);
+        }
     }
 
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
@@ -157,5 +165,9 @@ public class NewsService {
 
                     permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                 });
+    }
+
+    private boolean doesNewsExist(final Long id) {
+        return repository.findById0(id).isPresent();
     }
 }

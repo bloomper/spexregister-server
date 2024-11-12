@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util;
+package nu.fgv.register.server.util.error;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.io.Serializable;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@ControllerAdvice
-public class GlobalExceptionHandler {
+public class ExportException extends ResponseStatusException {
 
-    @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<Serializable> resourceAlreadyExists(final ResourceAlreadyExistsException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    public ExportException(final String reason) {
+        super(HttpStatus.INTERNAL_SERVER_ERROR, reason, null);
     }
 }

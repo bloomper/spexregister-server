@@ -229,7 +229,7 @@ public class ExcelValidator {
                         Object dto;
                         try {
                             dto = workbookContainer.getUpdateClazz().getDeclaredConstructor().newInstance();
-                        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException |
                                  NoSuchMethodException e) {
                             throw new RuntimeException(e);
                         }
@@ -241,7 +241,7 @@ public class ExcelValidator {
                             if (field.getType() == String.class) {
                                 try {
                                     field.set(dto, cell.getStringCellValue()); // NOSONAR
-                                } catch (IllegalAccessException e) {
+                                } catch (final IllegalAccessException e) {
                                     // TODO: Fix logging
                                     e.printStackTrace();
                                 }

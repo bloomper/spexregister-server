@@ -21,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.FileUtil;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -79,10 +82,11 @@ public class SpexCategoryService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<SpexCategoryDto> findById(final Long id) {
+    public SpexCategoryDto findById(final Long id) {
         return repository
                 .findById0(id)
-                .map(SPEX_CATEGORY_MAPPER::toDto);
+                .map(SPEX_CATEGORY_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
     @RequiresAdminOrEditorOrUser
@@ -107,16 +111,16 @@ public class SpexCategoryService {
 
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new InternalErrorException("Could not create spex category"));
     }
 
     @RequiresAdmin
-    public Optional<SpexCategoryDto> update(final SpexCategoryUpdateDto dto) {
+    public SpexCategoryDto update(final SpexCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdmin
-    public Optional<SpexCategoryDto> partialUpdate(final SpexCategoryUpdateDto dto) {
+    public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
                 .map(category -> {
@@ -124,44 +128,59 @@ public class SpexCategoryService {
                     return category;
                 })
                 .map(repository::save)
-                .map(SPEX_CATEGORY_MAPPER::toDto);
+                .map(SPEX_CATEGORY_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, dto.getId()));
     }
 
     @RequiresAdmin
     public void deleteById(final Long id) {
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
+        if (doesSpexCategoryExist(id)) {
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
+        } else {
+            throw new ResourceNotFoundException(SpexCategory.class, id);
+        }
     }
 
     @RequiresAdmin
-    public Optional<SpexCategoryDto> saveLogo(final Long spexId, final byte[] logo, @Nullable final String contentType) {
+    public SpexCategoryDto saveLogo(final Long id, final byte[] logo, @Nullable final String contentType) {
         return repository
-                .findById0(spexId)
+                .findById0(id)
                 .map(category -> {
                     category.setLogo(logo);
                     category.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
     @RequiresAdmin
-    public Optional<SpexCategoryDto> deleteLogo(final Long spexId) {
+    public SpexCategoryDto deleteLogo(final Long id) {
         return repository
-                .findById0(spexId)
+                .findById0(id)
                 .map(category -> {
                     category.setLogo(null);
                     category.setLogoContentType(null);
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<Pair<byte[], String>> getLogo(final Long spexId) {
+    public Pair<byte[], String> getLogo(final Long id) {
+        if (!doesSpexCategoryExist(id)) {
+            throw new ResourceNotFoundException(SpexCategory.class, id);
+        }
         return repository
-                .findById0(spexId)
+                .findById0(id)
                 .filter(category -> category.getLogo() != null && hasText(category.getLogoContentType()))
-                .map(category -> Pair.of(category.getLogo(), category.getLogoContentType()));
+                .map(category -> Pair.of(category.getLogo(), category.getLogoContentType()))
+                .orElseThrow(() -> new ResourceNoValueException(SpexCategory.class, SpexCategory_.LOGO, id));
+    }
+
+    private boolean doesSpexCategoryExist(final Long id) {
+        return repository.findById0(id).isPresent();
     }
 }

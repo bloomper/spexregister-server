@@ -33,7 +33,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
@@ -43,7 +42,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -102,18 +100,12 @@ public class TaskApi {
     })
     @RequiresAdmin
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        try {
-            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"task" + export.getFirst() + "\"")
-                    .body(new ByteArrayResource(export.getSecond()));
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not export task", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"task" + export.getFirst() + "\"")
+                .body(new ByteArrayResource(export.getSecond()));
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -121,20 +113,16 @@ public class TaskApi {
     public ResponseEntity<EntityModel<TaskDto>> create(@Valid @RequestBody final TaskCreateDto dto) {
         final TaskDto newDto = service.create(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(TaskApi.class).retrieve(newDto.getId())).toString())
+        return ResponseEntity.created(linkTo(methodOn(TaskApi.class).retrieve(newDto.getId())).toUri())
                 .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final TaskDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -143,10 +131,10 @@ public class TaskApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .update(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final TaskDto updatedDto = service.update(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -155,64 +143,42 @@ public class TaskApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .partialUpdate(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final TaskDto updatedDto = service.partialUpdate(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> {
-                    service.deleteById(id);
-                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final Long taskId) {
-        try {
-            return service
-                    .findCategoryByTask(taskId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, taskCategoryApi.getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve category for task {}", taskId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final Long id) {
+        final TaskCategoryDto dto = service.findCategoryByTask(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, taskCategoryApi.getLinks(dto)));
     }
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<Object> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
-        try {
-            return service.addCategory(taskId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not add category {} for task {}", id, taskId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.addCategory(taskId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> removeCategory(@PathVariable final Long taskId) {
-        try {
-            return service.removeCategory(taskId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not remove category for task {}", taskId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> removeCategory(@PathVariable final Long id) {
+        service.removeCategory(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

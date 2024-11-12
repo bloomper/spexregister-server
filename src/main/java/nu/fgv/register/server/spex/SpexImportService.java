@@ -52,9 +52,18 @@ public class SpexImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> service.findById(id).isPresent());
-        final ImportResultDto revivalValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> service.findById(id).isPresent(), messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
-        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> categoryService.findById(id).isPresent());
+        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> {
+            service.findById(id);
+            return true;
+        });
+        final ImportResultDto revivalValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> {
+            service.findById(id);
+            return true;
+        }, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
+        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> {
+            categoryService.findById(id);
+            return true;
+        });
         final List<String> messages = Stream.concat(
                         Stream.concat(
                                 validationResult.getMessages().stream(),

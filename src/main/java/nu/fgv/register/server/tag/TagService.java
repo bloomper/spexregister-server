@@ -20,6 +20,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -76,10 +78,11 @@ public class TagService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<TagDto> findById(final Long id) {
+    public TagDto findById(final Long id) {
         return repository
                 .findById0(id)
-                .map(TAG_MAPPER::toDto);
+                .map(TAG_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Tag.class, id));
     }
 
     @RequiresAdminOrEditorOrUser
@@ -105,16 +108,16 @@ public class TagService {
 
                     return TAG_MAPPER.toDto(tag);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new InternalErrorException("Could not create tag"));
     }
 
     @RequiresAdminOrEditor
-    public Optional<TagDto> update(final TagUpdateDto dto) {
+    public TagDto update(final TagUpdateDto dto) {
         return partialUpdate(dto);
     }
 
     @RequiresAdminOrEditor
-    public Optional<TagDto> partialUpdate(final TagUpdateDto dto) {
+    public TagDto partialUpdate(final TagUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
                 .map(tag -> {
@@ -122,13 +125,18 @@ public class TagService {
                     return tag;
                 })
                 .map(repository::save)
-                .map(TAG_MAPPER::toDto);
+                .map(TAG_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Tag.class, dto.getId()));
     }
 
     @RequiresAdminOrEditor
     public void deleteById(final Long id) {
-        repository.deleteById(id);
-        permissionService.deleteAcl(toObjectIdentity(Tag.class, id));
+        if (repository.findById0(id).isPresent()) {
+            repository.deleteById(id);
+            permissionService.deleteAcl(toObjectIdentity(Tag.class, id));
+        } else {
+            throw new ResourceNotFoundException(Tag.class, id);
+        }
     }
 
 }

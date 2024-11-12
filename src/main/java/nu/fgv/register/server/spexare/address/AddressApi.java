@@ -22,15 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,52 +64,26 @@ public class AddressApi {
     public ResponseEntity<PagedModel<EntityModel<AddressDto>>> retrieve(@PathVariable final Long spexareId,
                                                                         @SortDefault(sort = Address_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = "") final String filter) {
-        try {
-            final PagedModel<EntityModel<AddressDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
-            paged.getContent().forEach(p -> addLinks(p, spexareId));
+        final PagedModel<EntityModel<AddressDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve addresses", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        paged.getContent().forEach(p -> addLinks(p, spexareId));
+
+        return ResponseEntity.ok(paged);
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findById(spexareId, id)
-                    .map(dto -> EntityModel.of(dto, getLinks(dto, spexareId)))
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve address", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final AddressDto dto = service.findById(spexareId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<AddressDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final AddressCreateDto dto) {
-        try {
-            return service
-                    .create(spexareId, typeId, dto)
-                    .map(newDto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(AddressApi.class).retrieve(spexareId, newDto.getId())).toString())
-                            .body(EntityModel.of(newDto, getLinks(newDto, spexareId)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create address for spexare {}", spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final AddressDto createdDto = service.create(spexareId, typeId, dto);
+
+        return ResponseEntity.created(linkTo(methodOn(AddressApi.class).retrieve(spexareId, createdDto.getId())).toUri())
+                .body(EntityModel.of(createdDto, getLinks(createdDto, spexareId)));
     }
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -120,17 +91,10 @@ public class AddressApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        try {
-            return service
-                    .update(spexareId, typeId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update address {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
+        final AddressDto updatedDto = service.update(spexareId, typeId, id, dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId)));
     }
 
     @PatchMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -138,29 +102,17 @@ public class AddressApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        try {
-            return service
-                    .partialUpdate(spexareId, typeId, id, dto)
-                    .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not update address {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
+        final AddressDto updatedDto = service.partialUpdate(spexareId, typeId, id, dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId)));
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
-        try {
-            return service.deleteById(spexareId, typeId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete address {} for spexare {}", id, spexareId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.deleteById(spexareId, typeId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<AddressDto> entity, final Long spexareId) {

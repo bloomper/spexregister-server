@@ -32,7 +32,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -129,7 +128,7 @@ class ConsentApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(consent));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
@@ -162,7 +161,7 @@ class ConsentApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
@@ -194,7 +193,7 @@ class ConsentApiTest extends AbstractApiTest {
     void should_update() throws Exception {
         final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(Optional.of(consent));
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
@@ -225,8 +224,6 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)

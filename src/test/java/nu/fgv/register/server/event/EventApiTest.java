@@ -25,7 +25,6 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -125,7 +124,7 @@ class EventApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var event = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(event));
+        when(service.findById(any(Long.class))).thenReturn(event);
 
         mockMvc
                 .perform(

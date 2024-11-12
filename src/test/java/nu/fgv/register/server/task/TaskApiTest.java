@@ -39,7 +39,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -238,7 +237,7 @@ class TaskApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
+        when(service.findById(any(Long.class))).thenReturn(task);
 
         mockMvc
                 .perform(
@@ -272,7 +271,7 @@ class TaskApiTest extends AbstractApiTest {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
 
-        when(service.update(any(TaskUpdateDto.class))).thenReturn(Optional.of(task));
+        when(service.update(any(TaskUpdateDto.class))).thenReturn(task);
 
         mockMvc
                 .perform(
@@ -312,7 +311,7 @@ class TaskApiTest extends AbstractApiTest {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
         final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
 
-        when(service.partialUpdate(any(TaskUpdateDto.class))).thenReturn(Optional.of(task));
+        when(service.partialUpdate(any(TaskUpdateDto.class))).thenReturn(task);
 
         mockMvc
                 .perform(
@@ -350,7 +349,7 @@ class TaskApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(task));
+        when(service.findById(any(Long.class))).thenReturn(task);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
@@ -380,7 +379,7 @@ class TaskApiTest extends AbstractApiTest {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
         final var realCategoryApi = new TaskCategoryApi(null, null, null, null, null, null);
 
-        when(service.findCategoryByTask(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findCategoryByTask(any(Long.class))).thenReturn(category);
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
@@ -409,8 +408,6 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_add_category() throws Exception {
-        when(service.addCategory(any(Long.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         put("/api/v1/tasks/{taskId}/category/{id}", 1L, 1L)
@@ -434,8 +431,6 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_remove_category() throws Exception {
-        when(service.removeCategory(any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/tasks/{taskId}/category", 1L)

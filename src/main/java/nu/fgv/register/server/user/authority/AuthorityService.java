@@ -19,6 +19,7 @@ package nu.fgv.register.server.user.authority;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -28,7 +29,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 
@@ -57,10 +57,11 @@ public class AuthorityService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Optional<AuthorityDto> findById(final String id) {
+    public AuthorityDto findById(final String id) {
         return repository
                 .findById(id)
-                .map(AUTHORITY_MAPPER::toDto);
+                .map(AUTHORITY_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Authority.class, id));
     }
 
     @Cacheable("roleRepresentations")

@@ -32,7 +32,6 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -128,7 +127,7 @@ class MembershipApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(Optional.of(membership));
+        when(service.findById(any(Long.class), any(Long.class))).thenReturn(membership);
 
         mockMvc
                 .perform(
@@ -161,7 +160,7 @@ class MembershipApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(String.class))).thenReturn(Optional.of(membership));
+        when(service.create(any(Long.class), any(String.class), any(String.class))).thenReturn(membership);
 
         mockMvc
                 .perform(
@@ -191,8 +190,6 @@ class MembershipApiTest extends AbstractApiTest {
 
     @Test
     void should_delete() throws Exception {
-        when(service.deleteById(any(Long.class), any(String.class), any(Long.class))).thenReturn(true);
-
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)

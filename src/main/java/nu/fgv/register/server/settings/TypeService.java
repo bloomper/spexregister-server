@@ -18,10 +18,10 @@ package nu.fgv.register.server.settings;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
 import static nu.fgv.register.server.settings.TypeSpecification.hasType;
@@ -53,10 +53,11 @@ public class TypeService {
                 .toList();
     }
 
-    public Optional<TypeDto> findById(final String id) {
+    public TypeDto findById(final String id) {
         return repository
                 .findById(id)
-                .map(TYPE_MAPPER::toDto);
+                .map(TYPE_MAPPER::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(Type.class, id));
     }
 
     public boolean existsByIdAndType(final String id, final TypeType type) {

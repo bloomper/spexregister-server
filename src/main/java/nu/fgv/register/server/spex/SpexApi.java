@@ -26,6 +26,7 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -34,7 +35,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
@@ -44,11 +44,9 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -94,6 +92,7 @@ public class SpexApi {
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = Spex_.PARENT + ":" + FilterOperation.NULL) final String filter) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
+
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
@@ -108,18 +107,12 @@ public class SpexApi {
     })
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        try {
-            final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex" + export.getFirst() + "\"")
-                    .body(new ByteArrayResource(export.getSecond()));
-        } catch (final Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not export spex", e);
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spex" + export.getFirst() + "\"")
+                .body(new ByteArrayResource(export.getSecond()));
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
@@ -127,20 +120,16 @@ public class SpexApi {
     public ResponseEntity<EntityModel<SpexDto>> create(@Valid @RequestBody final SpexCreateDto dto) {
         final SpexDto newDto = service.create(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieve(newDto.getId())).toString())
+        return ResponseEntity.created(linkTo(methodOn(SpexApi.class).retrieve(newDto.getId())).toUri())
                 .body(EntityModel.of(newDto, getLinks(newDto, true)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> retrieve(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> EntityModel.of(dto, getLinks(dto)))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final SpexDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -149,10 +138,10 @@ public class SpexApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .update(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexDto updatedDto = service.update(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -161,43 +150,36 @@ public class SpexApi {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return service
-                .partialUpdate(dto)
-                .map(updatedDto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(updatedDto, getLinks(updatedDto))))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        final SpexDto updatedDto = service.partialUpdate(dto);
+
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
     }
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
-        return service
-                .findById(id)
-                .map(dto -> {
-                    service.deleteById(id);
-                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/poster")
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<Resource> downloadPoster(@PathVariable final Long id) {
-        return service.getPoster(id)
-                .map(tuple -> {
-                    final Resource resource = new ByteArrayResource(tuple.getFirst());
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.valueOf(tuple.getSecond()))
-                            .body(resource);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        final Pair<byte[], String> poster = service.getPoster(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(poster.getSecond()))
+                .body(new ByteArrayResource(poster.getFirst()));
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdminOrEditor
     public ResponseEntity<Object> uploadPoster(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        return service.savePoster(id, file, contentType)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        service.savePoster(id, file, contentType);
+
+        return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(value = "/{id}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
@@ -206,152 +188,93 @@ public class SpexApi {
         try {
             return uploadPoster(id, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not save poster for spex {}", id, e);
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}/poster")
     @RequiresAdminOrEditor
     public ResponseEntity<Object> deletePoster(@PathVariable final Long id) {
-        return service.deletePoster(id)
-                .map(entity -> ResponseEntity.status(HttpStatus.NO_CONTENT).build())
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        service.deletePoster(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivals(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivals(pageable));
+
         paged.getContent().forEach(this::addLinks);
 
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{spexId}/revivals/parent", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{id}/revivals/parent", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> retrieveRevivalParent(@PathVariable final Long spexId) {
-        try {
-            return service
-                    .findParentByRevivalId(spexId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve parent for spex", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<EntityModel<SpexDto>> retrieveRevivalParent(@PathVariable final Long id) {
+        final SpexDto dto = service.findParentByRevivalId(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @GetMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> retrieveRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
-        try {
-            return service
-                    .findRevivalById(spexId, id)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve parent for spex", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        final SpexDto dto = service.findRevivalById(spexId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
-    @GetMapping(value = "/{spexId}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{id}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long spexId,
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long id,
                                                                                      @SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
-        try {
-            final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(spexId, pageable));
-            paged.getContent().forEach(this::addLinks);
+        final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(id, pageable));
+        paged.getContent().forEach(this::addLinks);
 
-            return ResponseEntity.ok(paged);
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve revivals", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.ok(paged);
     }
 
-    @PostMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PostMapping(value = "/{id}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long spexId, @PathVariable final String year) {
-        try {
-            return service
-                    .addRevival(spexId, year)
-                    .map(dto -> ResponseEntity
-                            .status(HttpStatus.CREATED)
-                            .header(HttpHeaders.LOCATION, linkTo(methodOn(SpexApi.class).retrieveRevival(spexId, dto.getId())).toString())
-                            .body(EntityModel.of(dto, getLinks(dto)))
-                    )
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not create year {} for revivals for spex {}", year, spexId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long id, @PathVariable final String year) {
+        final SpexDto dto = service.addRevival(id, year);
+
+        return ResponseEntity.created(linkTo(methodOn(SpexApi.class).retrieveRevival(id, dto.getId())).toUri())
+                .body(EntityModel.of(dto, getLinks(dto)));
     }
 
-    @DeleteMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<Object> deleteRevival(@PathVariable final Long spexId, @PathVariable final String year) {
-        try {
-            return service.deleteRevival(spexId, year) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not delete year {} from revivals for spex {}", year, spexId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> deleteRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
+        service.deleteRevival(spexId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieveCategory(@PathVariable final Long spexId) {
-        try {
-            return service
-                    .findCategoryBySpex(spexId)
-                    .map(dto -> ResponseEntity.status(HttpStatus.OK).body(EntityModel.of(dto, spexCategoryApi.getLinks(dto))))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not retrieve category for spex", e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieveCategory(@PathVariable final Long id) {
+        final SpexCategoryDto dto = service.findCategoryBySpex(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, spexCategoryApi.getLinks(dto)));
     }
 
     @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<Object> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
-        try {
-            return service.addCategory(spexId, id) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not add category {} for spex {}", id, spexId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.addCategory(spexId, id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<Object> removeCategory(@PathVariable final Long spexId) {
-        try {
-            return service.removeCategory(spexId) ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        } catch (final ResourceNotFoundException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not remove category for spex {}", spexId, e);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        service.removeCategory(spexId);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)

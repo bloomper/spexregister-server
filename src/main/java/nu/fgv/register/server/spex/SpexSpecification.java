@@ -42,6 +42,10 @@ public class SpexSpecification extends BaseSpecification<Spex> {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get(Spex_.parent));
     }
 
+    public static Specification<Spex> hasId(final Long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.id), id);
+    }
+
     public static Specification<Spex> hasParent(final Spex parent) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.parent), parent);
     }

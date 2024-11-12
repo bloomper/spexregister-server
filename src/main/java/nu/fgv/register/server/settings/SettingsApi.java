@@ -61,12 +61,11 @@ public class SettingsApi {
 
     @GetMapping(value = "/languages/{isoCode}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<LanguageDto>> retrieveLanguage(@PathVariable final String isoCode) {
-        return languageService.findByIsoCode(isoCode)
-                .map(language -> EntityModel.of(language,
-                        linkTo(methodOn(SettingsApi.class).retrieveLanguage(language.getIsoCode())).withSelfRel(),
-                        linkTo(methodOn(SettingsApi.class).retrieveLanguages()).withRel("languages")))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        final LanguageDto dto = languageService.findByIsoCode(isoCode);
+
+        return ResponseEntity.ok(EntityModel.of(dto,
+                linkTo(methodOn(SettingsApi.class).retrieveLanguage(dto.getIsoCode())).withSelfRel(),
+                linkTo(methodOn(SettingsApi.class).retrieveLanguages()).withRel("languages")));
     }
 
     @GetMapping(value = "/countries", produces = MediaTypes.HAL_JSON_VALUE)
@@ -84,12 +83,11 @@ public class SettingsApi {
 
     @GetMapping(value = "/countries/{isoCode}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<CountryDto>> retrieveCountry(@PathVariable final String isoCode) {
-        return countryService.findByIsoCode(isoCode)
-                .map(country -> EntityModel.of(country,
-                        linkTo(methodOn(SettingsApi.class).retrieveCountry(country.getIsoCode())).withSelfRel(),
-                        linkTo(methodOn(SettingsApi.class).retrieveCountries()).withRel("countries")))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        final CountryDto dto = countryService.findByIsoCode(isoCode);
+
+        return ResponseEntity.ok(EntityModel.of(dto,
+                linkTo(methodOn(SettingsApi.class).retrieveCountry(dto.getIsoCode())).withSelfRel(),
+                linkTo(methodOn(SettingsApi.class).retrieveCountries()).withRel("countries")));
     }
 
     @GetMapping(value = "/types", produces = MediaTypes.HAL_JSON_VALUE)
@@ -120,12 +118,11 @@ public class SettingsApi {
 
     @GetMapping(value = "/types/{type}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final TypeType type, @PathVariable final String id) {
-        return typeService.findById(id)
-                .map(type0 -> EntityModel.of(type0,
-                        linkTo(methodOn(SettingsApi.class).retrieveType(type, type0.getId())).withSelfRel(),
-                        linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")))
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        final TypeDto dto = typeService.findById(id);
+        
+        return ResponseEntity.ok(EntityModel.of(dto,
+                linkTo(methodOn(SettingsApi.class).retrieveType(type, dto.getId())).withSelfRel(),
+                linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")));
     }
 
 }

@@ -39,7 +39,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -230,7 +229,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_get() throws Exception {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findById(any(Long.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -264,7 +263,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
         final var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").name("Chalmersspexet").build();
 
-        when(service.update(any(SpexCategoryUpdateDto.class))).thenReturn(Optional.of(category));
+        when(service.update(any(SpexCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -305,7 +304,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
         final var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").build();
 
-        when(service.partialUpdate(any(SpexCategoryUpdateDto.class))).thenReturn(Optional.of(category));
+        when(service.partialUpdate(any(SpexCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -344,7 +343,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.findById(any(Long.class))).thenReturn(category);
         doNothing().when(service).deleteById(any(Long.class));
 
         mockMvc
@@ -372,7 +371,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_download_logo() throws Exception {
         final var logo = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
-        when(service.getLogo(any(Long.class))).thenReturn(Optional.of(logo));
+        when(service.getLogo(any(Long.class))).thenReturn(logo);
 
         mockMvc
                 .perform(
@@ -407,7 +406,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_upload_logo() throws Exception {
         final var logo = new byte[]{10, 12};
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
+        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -440,7 +439,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_upload_logo_via_multipart() throws Exception {
         final var logo = new MockMultipartFile("file", "logo.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(Optional.of(category));
+        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -471,7 +470,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_delete_logo() throws Exception {
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.deleteLogo(any(Long.class))).thenReturn(Optional.of(category));
+        when(service.deleteLogo(any(Long.class))).thenReturn(category);
 
         mockMvc
                 .perform(
