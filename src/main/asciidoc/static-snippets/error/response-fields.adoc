@@ -21,4 +21,8 @@
 |`+String+`
 |An URI reference that identifies the location that resulted in the problem.
 
+|`+properties+`
+|`+Object+`
+|An optional map containing key/value pairs that provide more problem details.
+
 |===

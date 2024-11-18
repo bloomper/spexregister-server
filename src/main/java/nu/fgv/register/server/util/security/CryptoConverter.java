@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.security;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.Cipher;
@@ -66,7 +67,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
                 return Base64.getEncoder().encodeToString(cipher.doFinal(plainValue.getBytes()));
             } catch (final Exception e) {
                 log.error("Unexpected error during encryption", e);
-                throw new RuntimeException(e);
+                throw new InternalErrorException(e.getMessage());
             }
         } else {
             return "";
@@ -83,7 +84,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
                 return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedValue)));
             } catch (final Exception e) {
                 log.error("Unexpected error during decryption", e);
-                throw new RuntimeException(e);
+                throw new InternalErrorException(e.getMessage());
             }
         } else {
             return "";

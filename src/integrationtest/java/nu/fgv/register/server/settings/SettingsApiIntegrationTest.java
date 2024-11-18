@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -169,13 +170,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .contentType(ContentType.JSON)
             .when()
                 .get("/languages/{isoCode}", "123")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -262,13 +267,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .contentType(ContentType.JSON)
             .when()
                 .get("/countries/{isoCode}", "123")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -313,13 +322,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_400_when_unknown_type() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .contentType(ContentType.JSON)
             .when()
                 .get("/types/{type}", "whatever")
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
 
         @Test
@@ -384,13 +397,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .contentType(ContentType.JSON)
             .when()
                 .get("/types/{type}/{id}", TypeType.ADDRESS, 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 }

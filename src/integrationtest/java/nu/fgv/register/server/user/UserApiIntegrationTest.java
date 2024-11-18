@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,6 +78,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
@@ -247,16 +250,19 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get()
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -342,17 +348,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("filter", User_.EXTERNAL_ID + ":whatever")
             .when()
                 .get()
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -398,7 +407,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.email", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -410,17 +422,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserCreateDto dto = random.nextObject(UserCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -454,27 +469,35 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -554,7 +577,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.email", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -566,18 +592,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -585,17 +614,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -667,18 +699,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -686,17 +721,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -728,32 +766,38 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -883,17 +927,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_adding_and_user_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -903,18 +950,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/authorities/{id}", user.getId(), "whatever")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -947,18 +997,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_adding_multiple_and_user_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", getRandomAuthority(), getRandomAuthority()))
             .when()
                 .put("/{userId}/authorities", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -968,19 +1021,22 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -991,19 +1047,22 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", authority, "whatever"))
             .when()
                 .put("/{userId}/authorities", user.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1032,17 +1091,20 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_removing_and_user_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1052,18 +1114,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{userId}/authorities/{id}", user.getId(), "whatever")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1095,18 +1160,21 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var authorities = getRandomAuthorities(2);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
             .when()
                 .delete("/{userId}/authorities", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1116,19 +1184,22 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "whatever1", "whatever2"))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
             assertThat(getUsersCountInKeycloak()).isEqualTo(4);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1139,14 +1210,15 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", authority, "whatever"))
             .when()
                 .delete("/{userId}/authorities", user.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
@@ -1154,83 +1226,100 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
             assertThat(assignedRoles.stream().anyMatch(r -> authority.equals(r.getName()))).isTrue();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/authorities", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_adding_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_adding_multiple_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "1", "2"))
             .when()
                 .put("/{userId}/authorities", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_deleting_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{userId}/authorities/{id}", 1L, getRandomAuthority())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_deleting_multiple_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .queryParam("ids", String.join(",", "1", "2"))
             .when()
                 .delete("/{userId}/authorities", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -1300,14 +1389,18 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var state = persistState(randomizeState());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", 1L, state.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1317,40 +1410,52 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", user.getId(), "WHATEVER")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/state", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_setting_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/state/{id}", 1L, 2L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -1425,14 +1530,18 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", 1L, spexare.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1442,14 +1551,18 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", user.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1481,40 +1594,52 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{userId}/spexare", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{userId}/spexare", 1L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_adding_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", 1L, 2L)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -1550,14 +1675,18 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/events")
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

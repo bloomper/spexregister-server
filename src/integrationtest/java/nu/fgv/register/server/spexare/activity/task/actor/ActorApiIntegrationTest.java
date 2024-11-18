@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -555,7 +556,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -564,8 +565,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -579,7 +584,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -588,8 +593,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -603,7 +612,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -612,8 +621,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -627,7 +640,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -636,8 +649,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -652,7 +669,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
@@ -661,8 +678,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -677,17 +698,21 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                    .pathParam("activityId", activity1.getId())
-                    .pathParam("taskActivityId", taskActivity.getId())
-                .when()
-                    .get("/{id}", actor.getId())
-                .then()
-                    .statusCode(HttpStatus.NOT_FOUND.value());
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity1.getId())
+                .pathParam("taskActivityId", taskActivity.getId())
+            .when()
+                .get("/{id}", actor.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -702,7 +727,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -711,8 +736,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -789,7 +818,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -799,10 +828,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
 
         @Test
@@ -816,7 +848,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -826,10 +858,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -843,7 +878,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -853,8 +888,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -868,7 +907,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -878,8 +917,12 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -892,7 +935,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -902,10 +945,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", "dummy")
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -920,7 +966,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
@@ -930,10 +976,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
 
         @Test
@@ -948,7 +997,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -958,10 +1007,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{vocalId}", vocal.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
     }
 
@@ -1045,7 +1097,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1055,10 +1107,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1072,7 +1127,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -1082,10 +1137,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1099,7 +1157,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1109,10 +1167,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1126,7 +1187,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1136,10 +1197,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1153,7 +1217,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1163,10 +1227,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{vocalId}/{id}", "dummy", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1340,7 +1407,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1350,10 +1417,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1367,7 +1437,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -1377,10 +1447,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1394,7 +1467,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1404,10 +1477,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1421,7 +1497,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1431,10 +1507,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1448,7 +1527,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(ActorUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1458,10 +1537,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{vocalId}/{id}", "dummy", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1612,7 +1694,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1621,10 +1703,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{vocalId}/{id}", vocal.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1638,7 +1723,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", -1L)
@@ -1647,10 +1732,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1664,7 +1752,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1673,10 +1761,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -1690,7 +1781,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -1699,10 +1790,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test

@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -281,17 +282,20 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .post("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
 
         @Test
@@ -299,17 +303,20 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
                 .post("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }
@@ -386,17 +393,20 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", -1L)
             .when()
                 .delete("/{id}", tag.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }

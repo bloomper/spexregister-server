@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -133,14 +134,18 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/events")
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -257,15 +258,19 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -275,15 +280,19 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
                 .get("/{id}", toggle.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -342,17 +351,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.FALSE)
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
 
         @Test
@@ -360,15 +372,19 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
                 .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -376,17 +392,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .post("/{typeId}/{value}", "dummy", Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }
@@ -439,17 +458,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), 1L, Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -459,17 +481,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
                 .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.TRUE)
                 .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -479,17 +504,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .put("/{typeId}/{id}/{value}", "dummy", toggle.getId(), Boolean.TRUE)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -560,17 +588,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -580,17 +611,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", -1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -600,17 +634,20 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .delete("/{typeId}/{id}", "dummy", toggle.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test

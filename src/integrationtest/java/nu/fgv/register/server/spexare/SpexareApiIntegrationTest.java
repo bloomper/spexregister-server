@@ -43,6 +43,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.util.ResourceUtils;
@@ -387,17 +388,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setLastName(null);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
     }
 
@@ -429,14 +433,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -507,17 +515,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setFirstName(null);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
 
         @Test
@@ -526,17 +537,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setSocialSecurityNumber("20120606-4658");
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
 
         @Test
@@ -544,17 +558,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -624,17 +641,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }
@@ -663,16 +683,19 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -815,14 +838,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_retrieving_and_spexare_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{spexareId}/partner", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -830,14 +857,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{spexareId}/partner", spexare.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -859,14 +890,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", 1L, 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -874,14 +909,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -922,14 +961,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_removing_and_spexare_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }
@@ -965,14 +1008,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/events")
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

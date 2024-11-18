@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -362,15 +363,19 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -380,15 +385,19 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
                 .get("/{id}", address.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -451,7 +460,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -459,10 +468,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
 
         @Test
@@ -471,7 +483,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -479,10 +491,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", type.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -491,7 +506,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -499,10 +514,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{typeId}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
     }
@@ -574,7 +592,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -582,10 +600,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -594,18 +615,21 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
                 .put("/{typeId}/{id}", type.getId(), dto.getId())
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -614,7 +638,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -622,10 +646,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{typeId}/{id}", "dummy", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -719,7 +746,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -727,10 +754,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -739,7 +769,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -747,10 +777,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", type.getId(), dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -759,7 +792,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -767,10 +800,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .patch("/{typeId}/{id}", "dummy", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -844,17 +880,20 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .delete("/{typeId}/{id}", type.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -864,17 +903,20 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", -1L)
             .when()
                 .delete("/{typeId}/{id}", type.getId(), address.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -884,17 +926,20 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .delete("/{typeId}/{id}", "dummy", address.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test

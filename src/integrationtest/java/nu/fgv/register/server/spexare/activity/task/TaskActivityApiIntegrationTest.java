@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.lang.Nullable;
 import org.springframework.security.acls.model.AclCache;
@@ -314,7 +315,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -322,8 +323,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -335,7 +340,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -343,8 +348,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -356,7 +365,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -364,8 +373,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -378,7 +391,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
@@ -386,8 +399,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .get("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -400,16 +417,20 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                    .pathParam("activityId", activity1.getId())
-                .when()
-                    .get("/{id}", taskActivity.getId())
-                .then()
-                    .statusCode(HttpStatus.NOT_FOUND.value());
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity1.getId())
+            .when()
+                .get("/{id}", taskActivity.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -463,7 +484,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -471,10 +492,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{taskId}", task.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -485,7 +509,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -493,8 +517,12 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{taskId}", task.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -503,7 +531,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -511,10 +539,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{taskId}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -526,7 +557,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
@@ -534,10 +565,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post("/{taskId}", task.getId())
             .then()
-                .statusCode(HttpStatus.CONFLICT.value());
+                .statusCode(HttpStatus.CONFLICT.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
     }
 
@@ -594,7 +628,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -602,10 +636,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -617,7 +654,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -625,10 +662,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -640,7 +680,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -648,10 +688,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -752,7 +795,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -760,10 +803,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -774,7 +820,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
@@ -782,10 +828,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -797,7 +846,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -805,10 +854,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .delete("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test

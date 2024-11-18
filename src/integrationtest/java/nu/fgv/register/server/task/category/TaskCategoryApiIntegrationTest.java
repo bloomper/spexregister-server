@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +52,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * @author Anders Jacobsson
@@ -301,7 +304,10 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.name", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -312,17 +318,20 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryCreateDto dto = random.nextObject(TaskCategoryCreateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -355,14 +364,18 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}", 1L)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
@@ -441,7 +454,10 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.name", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
@@ -452,17 +468,20 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -470,17 +489,20 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -551,17 +573,20 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -569,17 +594,20 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
 
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .patch("/{id}", dto.getId())
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -609,31 +637,37 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -668,14 +702,18 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted() {
             //@formatter:off
-            given()
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/events")
             .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
