@@ -22,6 +22,8 @@ operation::spex-get-all-paged[snippets='security,request-headers,query-parameter
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
+Default filtering is ``parent:NULL``, i.e. exclude any revivals.
+
 [[get]]
 == Get
 

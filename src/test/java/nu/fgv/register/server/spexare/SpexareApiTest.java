@@ -118,6 +118,8 @@ class SpexareApiTest extends AbstractApiTest {
             fieldWithPath("lastName").description("The last name of the spexare"),
             fieldWithPath("nickName").description("The nickname of the spexare"),
             fieldWithPath("socialSecurityNumber").description("The social security number of the spexare"),
+            fieldWithPath("deceased").description("The deceased status of the spexare"),
+            fieldWithPath("published").description("The published status of the spexare"),
             fieldWithPath("graduation").description("The graduation of the spexare"),
             fieldWithPath("comment").description("The comment of the spexare"),
             fieldWithPath("image").description("The image of the spexare"),
@@ -281,7 +283,7 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(SpexareCreateDto.class);
-        final var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").build();
+        final var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").deceased(false).published(true).build();
 
         when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.getFirstName()).lastName(dto.getLastName()).build());
 
@@ -302,7 +304,9 @@ class SpexareApiTest extends AbstractApiTest {
                                 requestFields(
                                         fields.withPath("firstName").description("The first name of the spexare"),
                                         fields.withPath("lastName").description("The last name of the spexare"),
-                                        fields.withPath("nickName").description("The nickname of the spexare")
+                                        fields.withPath("nickName").description("The nickname of the spexare"),
+                                        fields.withPath("deceased").description("The deceased status of the spexare"),
+                                        fields.withPath("published").description("The published status of the spexare")
                                 ),
                                 responseFields,
                                 links,
@@ -349,7 +353,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SpexareUpdateDto.class);
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
+        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
 
         when(service.update(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
@@ -378,6 +382,8 @@ class SpexareApiTest extends AbstractApiTest {
                                         fields.withPath("lastName").description("The last name of the spexare"),
                                         fields.withPath("nickName").description("The nickname of the spexare"),
                                         fields.withPath("socialSecurityNumber").description("The social security number of the spexare"),
+                                        fields.withPath("deceased").description("The deceased status of the spexare"),
+                                        fields.withPath("published").description("The published status of the spexare"),
                                         fields.withPath("graduation").description("The graduation of the spexare"),
                                         fields.withPath("comment").description("The comment of the spexare")
                                 ),
@@ -394,7 +400,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(SpexUpdateDto.class);
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").build();
+        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
 
         when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
@@ -423,6 +429,8 @@ class SpexareApiTest extends AbstractApiTest {
                                         fields.withPath("lastName").description("The last name of the spexare").optional(),
                                         fields.withPath("nickName").description("The nickname of the spexare").optional(),
                                         fields.withPath("socialSecurityNumber").description("The social security number of the spexare").optional(),
+                                        fields.withPath("deceased").description("The deceased status of the spexare").optional(),
+                                        fields.withPath("published").description("The published status of the spexare").optional(),
                                         fields.withPath("graduation").description("The graduation of the spexare").optional(),
                                         fields.withPath("comment").description("The comment of the spexare").optional()
                                 ),

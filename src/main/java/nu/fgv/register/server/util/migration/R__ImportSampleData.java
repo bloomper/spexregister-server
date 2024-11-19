@@ -355,9 +355,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
         final List<Type> vocals = getVocals(jdbcClient);
         final String sql = """
                 INSERT INTO spexare
-                    (first_name, last_name, nick_name, social_security_number, graduation, comment, created_by, created_at)
+                    (first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, created_by, created_at)
                 VALUES
-                    (:firstName, :lastName, :nickName, :socialSecurityNumber, :graduation, :comment, :createdBy, :createdAt)
+                    (:firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt)
                 """;
 
         // TODO: Add ACL permissions!
@@ -379,6 +379,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                     .generate() :
                             null)
                     .param("socialSecurityNumber", rnd.nextBoolean() ? cryptoConverter.convertToDatabaseColumn(faker.idNumber().valid()) : null)
+                    .param("deceased", rnd.nextInt(4) == 0)
+                    .param("published", rnd.nextInt(4) != 0)
                     .param("graduation", rnd.nextBoolean() ? faker.regexify("[A|B|D|E|G|K|M|I|V|T]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)

@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS spexare
     last_name              VARCHAR(255)          NOT NULL,
     nick_name              VARCHAR(255)          NULL,
     social_security_number VARCHAR(255)          NULL,
+    deceased               BIT                   DEFAULT 0,
+    published              BIT                   DEFAULT 1,
     graduation             VARCHAR(255)          NULL,
     comment                LONGTEXT              NULL,
     image                  MEDIUMBLOB            NULL,

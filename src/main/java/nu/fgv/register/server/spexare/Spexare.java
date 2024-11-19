@@ -52,6 +52,7 @@ import nu.fgv.register.server.util.security.CryptoConverter;
 import nu.fgv.register.server.util.validation.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
@@ -120,6 +121,14 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @GenericField(searchable = Searchable.YES)
     @Nullable
     private String socialSecurityNumber;
+
+    @Column(name = "deceased")
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    private Boolean deceased;
+
+    @Column(name = "published")
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    private Boolean published;
 
     @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")

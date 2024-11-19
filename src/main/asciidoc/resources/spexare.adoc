@@ -31,6 +31,9 @@ operation::spexare-get-all-paged[snippets='request-headers,query-parameters,http
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
+Default filtering is ``published:TRUE``, i.e. exclude any non published spexare. Note that for USER such ones
+are always excluded regardless of filtering.
+
 [[get_search]]
 == Get (search)
 

@@ -23,6 +23,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
@@ -74,7 +75,7 @@ public class NewsApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = News_.VISIBLE_FROM, direction = Sort.Direction.ASC) final Pageable pageable,
-                                                                     @RequestParam(required = false, defaultValue = "") final String filter) {
+                                                                     @RequestParam(required = false, defaultValue = News_.PUBLISHED + ":" + FilterOperation.TRUE) final String filter) {
         final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
 
         paged.getContent().forEach(this::addLinks);

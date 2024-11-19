@@ -37,6 +37,10 @@ public enum FilterOperation {
 
     public static final String NULL = "NULL";
 
+    public static final String TRUE = "TRUE";
+
+    public static final String FALSE = "FALSE";
+
     public static FilterOperation getSimpleOperation(final char input) {
         return switch (input) {
             case ':' -> EQUALITY;

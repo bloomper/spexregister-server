@@ -18,7 +18,6 @@ package nu.fgv.register.server.spexare;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -49,8 +48,12 @@ public class SpexareCreateDto {
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
-    @Column(name = "nick_name")
     @JsonProperty("nickName")
     private String nickName;
 
+    @JsonProperty("deceased")
+    private Boolean deceased;
+
+    @JsonProperty("published")
+    private Boolean published;
 }

@@ -1,7 +1,6 @@
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('HOME', 'ADDRESS', '{ "en": "Home", "sv": "Hem" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('WORK', 'ADDRESS', '{ "en": "Work", "sv": "Arbete" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('OTHER', 'ADDRESS', '{ "en": "Other", "sv": "Annat" }', 'system', CURRENT_DATE());
-INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('PUBLISH', 'CONSENT', '{ "en": "Publish", "sv": "Publicering" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('CIRCULARS', 'CONSENT', '{ "en": "Circulars", "sv": "Utskick" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('EMAIL_CIRCULARS', 'CONSENT', '{ "en": "Email circulars", "sv": "Utskick via email" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('CING', 'MEMBERSHIP', '{ "en": "CING", "sv": "CING" }', 'system', CURRENT_DATE());
@@ -16,4 +15,3 @@ INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('S2', 'VOCAL
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('A1', 'VOCAL', '{ "en": "A1", "sv": "A1" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('A2', 'VOCAL', '{ "en": "A2", "sv": "A2" }', 'system', CURRENT_DATE());
 INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('CHALMERS_STUDENT', 'TOGGLE', '{ "en": "Student at Chalmers", "sv": "Chalmersstudent" }', 'system', CURRENT_DATE());
-INSERT INTO type (id, type, labels, created_by, created_at) VALUES ('DECEASED', 'TOGGLE', '{ "en": "Deceased", "sv": "Avliden" }', 'system', CURRENT_DATE());

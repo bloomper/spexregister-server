@@ -805,7 +805,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private News randomizeNews() {
-        return random.nextObject(News.class);
+        final var news = random.nextObject(News.class);
+
+        news.setPublished(true);
+
+        return news;
     }
 
     private News persistNews(final News news) {

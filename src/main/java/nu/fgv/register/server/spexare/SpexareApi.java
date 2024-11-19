@@ -93,7 +93,7 @@ public class SpexareApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
-                                                                        @RequestParam(required = false, defaultValue = "") final String filter) {
+                                                                        @RequestParam(required = false, defaultValue = Spexare_.PUBLISHED + ":true") final String filter) {
         final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
 
         paged.getContent().forEach(this::addLinks);

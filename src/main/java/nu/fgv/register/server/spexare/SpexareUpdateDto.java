@@ -18,7 +18,6 @@ package nu.fgv.register.server.spexare;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -27,8 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.util.validation.Luhn;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
+import nu.fgv.register.server.util.validation.Luhn;
 
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
@@ -58,7 +57,6 @@ public class SpexareUpdateDto {
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
-    @Column(name = "nick_name")
     @JsonProperty("nickName")
     private String nickName;
 
@@ -66,6 +64,12 @@ public class SpexareUpdateDto {
     @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @JsonProperty("socialSecurityNumber")
     private String socialSecurityNumber;
+
+    @JsonProperty("deceased")
+    private Boolean deceased;
+
+    @JsonProperty("published")
+    private Boolean published;
 
     @Size(max = 255, message = "{spexare.graduation.size}")
     @JsonProperty("graduation")

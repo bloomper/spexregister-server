@@ -43,6 +43,10 @@ public class BaseSpecification<T> implements Specification<T> {
             case EQUALITY -> {
                 if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
                     yield builder.isNull(root.get(criteria.getKey()));
+                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
+                    yield builder.isTrue(root.get(criteria.getKey()));
+                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
+                    yield builder.isFalse(root.get(criteria.getKey()));
                 } else {
                     yield builder.equal(root.get(criteria.getKey()), criteria.getValue());
                 }
@@ -50,6 +54,10 @@ public class BaseSpecification<T> implements Specification<T> {
             case NEGATION -> {
                 if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
                     yield builder.isNotNull(root.get(criteria.getKey()));
+                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
+                    yield builder.isFalse(root.get(criteria.getKey()));
+                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
+                    yield builder.isTrue(root.get(criteria.getKey()));
                 } else {
                     yield builder.notEqual(root.get(criteria.getKey()), criteria.getValue());
                 }
