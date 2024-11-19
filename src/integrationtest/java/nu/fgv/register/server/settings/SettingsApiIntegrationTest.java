@@ -299,7 +299,7 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.types", TypeDto.class);
             //@formatter:on
 
-            assertThat(result).hasSize(19);
+            assertThat(result).hasSize(17);
         }
 
         @Test
