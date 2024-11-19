@@ -18,6 +18,7 @@ package nu.fgv.register.server.util.filter;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.Getter;
@@ -39,36 +40,47 @@ public class BaseSpecification<T> implements Specification<T> {
 
     @Override
     public Predicate toPredicate(final Root<T> root, @Nullable final CriteriaQuery<?> query, final CriteriaBuilder builder) {
+        final Path<T> path = getPath(root, criteria.getKey());
+
         return switch (criteria.getOperation()) {
             case EQUALITY -> {
                 if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isNull(root.get(criteria.getKey()));
+                    yield builder.isNull(path);
                 } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isTrue(root.get(criteria.getKey()));
+                    yield builder.isTrue(path.as(Boolean.class));
                 } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isFalse(root.get(criteria.getKey()));
+                    yield builder.isFalse(path.as(Boolean.class));
                 } else {
-                    yield builder.equal(root.get(criteria.getKey()), criteria.getValue());
+                    yield builder.equal(path, criteria.getValue());
                 }
             }
             case NEGATION -> {
                 if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isNotNull(root.get(criteria.getKey()));
+                    yield builder.isNotNull(path);
                 } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isFalse(root.get(criteria.getKey()));
+                    yield builder.isFalse(path.as(Boolean.class));
                 } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
-                    yield builder.isTrue(root.get(criteria.getKey()));
+                    yield builder.isTrue(path.as(Boolean.class));
                 } else {
-                    yield builder.notEqual(root.get(criteria.getKey()), criteria.getValue());
+                    yield builder.notEqual(path, criteria.getValue());
                 }
             }
-            case GREATER_THAN -> builder.greaterThan(root.get(criteria.getKey()), criteria.getValue().toString());
-            case LESS_THAN -> builder.lessThan(root.get(criteria.getKey()), criteria.getValue().toString());
-            case LIKE -> builder.like(root.get(criteria.getKey()), criteria.getValue().toString());
-            case STARTS_WITH -> builder.like(root.get(criteria.getKey()), criteria.getValue() + "%");
-            case ENDS_WITH -> builder.like(root.get(criteria.getKey()), "%" + criteria.getValue());
-            case CONTAINS -> builder.like(root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
+            case GREATER_THAN -> builder.greaterThan(path.as(String.class), criteria.getValue().toString());
+            case LESS_THAN -> builder.lessThan(path.as(String.class), criteria.getValue().toString());
+            case LIKE -> builder.like(path.as(String.class), criteria.getValue().toString());
+            case STARTS_WITH -> builder.like(path.as(String.class), criteria.getValue() + "%");
+            case ENDS_WITH -> builder.like(path.as(String.class), "%" + criteria.getValue());
+            case CONTAINS -> builder.like(path.as(String.class), "%" + criteria.getValue() + "%");
         };
     }
 
+    private Path<T> getPath(final Root<T> root, final String attributePath) {
+        Path<T> path = root;
+
+        for (final String part : attributePath.split("\\.")) {
+            path = path.get(part);
+        }
+
+        return path;
+    }
 }

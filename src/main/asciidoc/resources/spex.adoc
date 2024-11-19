@@ -24,6 +24,14 @@ For details on filtering, refer to this xref:../api-guide.adoc#filtering[section
 
 Default filtering is ``parent:NULL``, i.e. exclude any revivals.
 
+[sidebar]
+.NOTE
+--
+When filtering on ``title``, it needs to be prefixed with ``details.``.
+
+It is also possible to filter spex by category. Use ``details.category.<category field>``.
+--
+
 [[get]]
 == Get
 

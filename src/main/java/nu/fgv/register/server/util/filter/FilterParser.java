@@ -34,7 +34,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class FilterParser {
     private static final Map<String, Operator> OPERATIONS;
 
-    private static final Pattern SPECIFICATION_CRITERIA_PATTERN = Pattern.compile("^(\\w+?)(" + Joiner.on("|").join(FilterOperation.SIMPLE_OPERATION_SET) + ")(\\*+)?([^*]+)?(\\*+)?$");
+    private static final Pattern SPECIFICATION_CRITERIA_PATTERN = Pattern.compile("^([\\w.]+?)(" + Joiner.on("|").join(FilterOperation.SIMPLE_OPERATION_SET) + ")(\\*+)?([^*]+)?(\\*+)?$");
 
     static {
         OPERATIONS = Map.of("AND", Operator.AND, "OR", Operator.OR, "or", Operator.OR, "and", Operator.AND);
