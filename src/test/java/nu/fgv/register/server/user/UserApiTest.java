@@ -562,6 +562,8 @@ class UserApiTest extends AbstractApiTest {
                                         fieldWithPath("nickName").description("The nickname of the spexare"),
                                         fieldWithPath("image").description("The image of the spexare"),
                                         fieldWithPath("socialSecurityNumber").description("The social security number of the spexare"),
+                                        fieldWithPath("deceased").description("The deceased status of the spexare"),
+                                        fieldWithPath("published").description("The published status of the spexare"),
                                         fieldWithPath("graduation").description("The graduation of the spexare"),
                                         fieldWithPath("comment").description("The comment of the spexare"),
                                         fieldWithPath("createdBy").description("Who created the spexare"),
