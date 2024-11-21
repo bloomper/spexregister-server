@@ -158,6 +158,7 @@ public class UserService {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             return repository
                     .findById0(dto.getId())
+                    .map(permissionService::checkWritePermission)
                     .map(user -> {
                         USER_MAPPER.toPartialModel(dto, user);
                         return user;
@@ -185,10 +186,16 @@ public class UserService {
     public void deleteById(final Long id) {
         if (doesUserExist(id)) {
             repository.findById0(id)
+                    .map(permissionService::checkDeletePermission)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
-                    .ifPresent(UserResource::remove);
-            repository.deleteById(id);
-            permissionService.deleteAcl(toObjectIdentity(User.class, id));
+                    .flatMap(resource -> {
+                        resource.remove();
+                        return repository.findById0(id);
+                    })
+                    .ifPresent(user -> {
+                        permissionService.deleteAcl(toObjectIdentity(User.class, id));
+                        repository.delete(user);
+                    });
         } else {
             throw new ResourceNotFoundException(User.class, id);
         }
@@ -220,6 +227,7 @@ public class UserService {
     public void addAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
             repository.findById0(userId)
+                    .map(permissionService::checkWritePermission)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .ifPresentOrElse(
                             resource -> {
@@ -262,6 +270,7 @@ public class UserService {
     public void removeAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
             repository.findById0(userId)
+                    .map(permissionService::checkWritePermission)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .ifPresentOrElse(
                             resource -> {
@@ -314,6 +323,7 @@ public class UserService {
         if (doUserAndStateExist(userId, id)) {
             repository
                     .findById0(userId)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(user -> stateRepository
                             .findById(id)
                             .ifPresent(state -> {
@@ -344,6 +354,7 @@ public class UserService {
         if (doUserAndSpexareExist(userId, id)) {
             repository
                     .findById0(userId)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(user -> spexareRepository
                             .findById(id)
                             .ifPresent(spexare -> {
@@ -361,6 +372,7 @@ public class UserService {
         if (doesUserExist(id)) {
             repository
                     .findById0(id)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(user -> {
                         user.setSpexare(null);
                         repository.save(user);

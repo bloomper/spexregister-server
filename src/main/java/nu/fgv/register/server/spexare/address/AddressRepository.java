@@ -29,7 +29,7 @@ import java.util.Optional;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long>, JpaSpecificationExecutor<Address> {
 
-    //@PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    //@PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Address> findById0(final Long id) {
         return this
                 .findById(id);

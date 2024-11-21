@@ -32,7 +32,7 @@ import java.util.Optional;
 @Repository
 public interface TaskActivityRepository extends JpaRepository<TaskActivity, Long> {
 
-    //@PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    //@PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<TaskActivity> findById0(final Long id) {
         return this
                 .findById(id);

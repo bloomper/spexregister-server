@@ -421,13 +421,13 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final String json =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                            .contentType(ContentType.JSON)
-                            .body(dto)
+                        .contentType(ContentType.JSON)
+                        .body(dto)
                     .when()
-                            .put("/{id}", category.getId())
+                        .put("/{id}", category.getId())
                     .then()
-                            .statusCode(HttpStatus.OK.value())
-                            .extract().body().asString();
+                        .statusCode(HttpStatus.OK.value())
+                        .extract().body().asString();
             //@formatter:on
 
             final SpexCategoryDto updated = objectMapper.readValue(json, SpexCategoryDto.class);
@@ -495,7 +495,47 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+
+            //@formatter:off
+            final SpexCategoryDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", category.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexCategoryDto.class);
+            //@formatter:on
+
+            final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
+                    .id(before.getId())
+                    .name(before.getName() + "_")
+                    .firstYear(before.getFirstYear())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
             //@formatter:off
@@ -600,7 +640,47 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+
+            //@formatter:off
+            final SpexCategoryDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", category.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexCategoryDto.class);
+            //@formatter:on
+
+            final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
+                    .id(before.getId())
+                    .name(before.getName() + "_")
+                    .firstYear(before.getFirstYear())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
             //@formatter:off
@@ -663,7 +743,28 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", category.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -789,6 +890,89 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
+        }
+
+        @Test
+        void should_return_403_when_updating_not_permitted_due_to_insufficient_permission() throws Exception {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(MediaType.IMAGE_PNG_VALUE)
+                .body(logo)
+            .when()
+                .post("/{id}/logo", category.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_updating_not_permitted_due_to_insufficient_role() throws Exception {
+            final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(MediaType.IMAGE_PNG_VALUE)
+                .body(logo)
+            .when()
+                .post("/{id}/logo", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() throws Exception {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/logo", category.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/logo", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

@@ -129,10 +129,9 @@ public class SpexService {
                     final Spex spex = repository.save(model);
                     final ObjectIdentity oid = toObjectIdentity(Spex.class, spex.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return SPEX_MAPPER.toDto(spex);
                 })
@@ -148,6 +147,7 @@ public class SpexService {
     public SpexDto partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
+                .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     SPEX_MAPPER.toPartialModel(dto, spex);
                     return spex;
@@ -165,14 +165,15 @@ public class SpexService {
         if (doesSpexExist(id)) {
             repository
                     .findById0(id)
+                    .map(permissionService::checkDeletePermission)
                     .ifPresent(spex -> {
                         repository.findAll(hasParent(spex)).forEach(revival -> {
-                            repository.deleteById(revival.getId());
                             permissionService.deleteAcl(toObjectIdentity(Spex.class, revival.getId()));
+                            repository.delete(revival);
                         });
-                        repository.deleteById(spex.getId());
                         permissionService.deleteAcl(toObjectIdentity(Spex.class, id));
-                        detailsRepository.deleteById(spex.getDetails().getId());
+                        repository.delete(spex);
+                        detailsRepository.delete(spex.getDetails());
                     });
         } else {
             throw new ResourceNotFoundException(Spex.class, id);
@@ -183,6 +184,7 @@ public class SpexService {
     public SpexDto savePoster(final Long id, final byte[] poster, @Nullable final String contentType) {
         return repository
                 .findById0(id)
+                .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(poster);
                     spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
@@ -196,6 +198,7 @@ public class SpexService {
     public SpexDto deletePoster(final Long id) {
         return repository
                 .findById0(id)
+                .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(null);
                     spex.getDetails().setPosterContentType(null);
@@ -272,6 +275,7 @@ public class SpexService {
         if (doesSpexExist(id)) {
             return repository
                     .findById0(id)
+                    .map(permissionService::checkWritePermission)
                     .filter(parent -> !repository.exists(hasParent(parent).and(hasYear(year))))
                     .map(parent -> {
                         final Spex spex = new Spex();
@@ -282,10 +286,9 @@ public class SpexService {
                         final Spex revival = repository.save(spex);
                         final ObjectIdentity oid = toObjectIdentity(Spex.class, revival.getId());
 
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                        permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                        permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                        permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                        permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                         return revival;
                     })
@@ -301,6 +304,7 @@ public class SpexService {
         if (doSpexAndRevivalExist(spexId, id)) {
             repository
                     .findById0(spexId)
+                    .map(permissionService::checkWritePermission)
                     .filter(parent -> repository.exists(hasParent(parent).and(hasId(id))))
                     .flatMap(parent -> repository.findOne(hasParent(parent).and(hasId(id))))
                     .ifPresentOrElse(
@@ -336,6 +340,7 @@ public class SpexService {
         if (doSpexAndCategoryExist(spexId, id)) {
             repository
                     .findById0(spexId)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(spex -> categoryRepository
                             .findById0(id)
                             .ifPresent(category -> {
@@ -353,6 +358,7 @@ public class SpexService {
         if (doesSpexExist(id)) {
             repository
                     .findById0(id)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(spex -> {
                         spex.getDetails().setCategory(null);
                         detailsRepository.save(spex.getDetails());

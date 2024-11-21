@@ -19,6 +19,7 @@ package nu.fgv.register.server.config;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.acls.AclPermissionCacheOptimizer;
@@ -92,5 +93,10 @@ public class AclSecurityConfig {
         aclService.setSidIdentityQuery("SELECT @@IDENTITY");
 
         return aclService;
+    }
+
+    @Bean
+    public PermissionEvaluator permissionEvaluator() {
+        return new AclPermissionEvaluator(aclService());
     }
 }

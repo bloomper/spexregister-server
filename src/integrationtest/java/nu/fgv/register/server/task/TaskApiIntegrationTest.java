@@ -509,7 +509,48 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+
+            //@formatter:off
+            final TaskDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", task.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(TaskDto.class);
+            //@formatter:on
+
+            final TaskUpdateDto dto = TaskUpdateDto.builder()
+                    .id(before.getId())
+                    .name(before.getName() + "_")
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final TaskUpdateDto dto = random.nextObject(TaskUpdateDto.class);
 
             //@formatter:off
@@ -616,7 +657,48 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+
+            //@formatter:off
+            final TaskDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", task.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(TaskDto.class);
+            //@formatter:on
+
+            final TaskUpdateDto dto = TaskUpdateDto.builder()
+                    .id(before.getId())
+                    .name(before.getName() + "_")
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final TaskUpdateDto dto = random.nextObject(TaskUpdateDto.class);
 
             //@formatter:off
@@ -681,7 +763,30 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", task.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -869,7 +974,30 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_not_permitted() {
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_permission() {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{taskId}/category/{id}", task.getId(), category.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -887,7 +1015,30 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_removing_not_permitted() {
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_permission() {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{taskId}/category", task.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())

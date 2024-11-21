@@ -30,7 +30,7 @@ import java.util.Optional;
 @Repository
 public interface TaskRepository extends AclJpaRepository<Task, Long>, JpaSpecificationExecutor<Task> {
 
-    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Task> findById0(final Long id) {
         return this
                 .findById(id);

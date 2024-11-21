@@ -610,7 +610,47 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final UserDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", user.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(UserDto.class);
+            //@formatter:on
+
+            final UserUpdateDto dto = UserUpdateDto.builder()
+                    .id(before.getId())
+                    .email("a" + before.getEmail())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
@@ -717,7 +757,47 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final UserDto before =
+                    given()
+                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                            .contentType(ContentType.JSON)
+                            .when()
+                            .get("/{id}", user.getId())
+                            .then()
+                            .statusCode(HttpStatus.OK.value())
+                            .extract().body().as(UserDto.class);
+            //@formatter:on
+
+            final UserUpdateDto dto = UserUpdateDto.builder()
+                    .id(before.getId())
+                    .email("a" + before.getEmail())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
 
             //@formatter:off
@@ -783,7 +863,29 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", user.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1231,7 +1333,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1249,7 +1351,30 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_not_permitted() {
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state), authorities.getFirst());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/authorities/{id}", user.getId(), getRandomAuthority())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1267,7 +1392,31 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_multiple_not_permitted() {
+        void should_return_403_when_adding_multiple_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authorities))
+            .when()
+                .put("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_multiple_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1286,7 +1435,30 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_deleting_not_permitted() {
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var authority = getRandomAuthority();
+            final var user = persistUser(randomizeUser(state), authority);
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/authorities/{id}", user.getId(), authority)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1304,7 +1476,31 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_deleting_multiple_not_permitted() {
+        void should_return_403_when_deleting_multiple_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var authorities = getRandomAuthorities(2);
+            final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .queryParam("ids", String.join(",", authorities))
+            .when()
+                .delete("/{userId}/authorities", user.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_multiple_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1425,7 +1621,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1442,7 +1638,29 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_setting_not_permitted() {
+        void should_return_403_when_setting_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var newState = persistState(randomizeState());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/state/{id}", user.getId(), newState.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_setting_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1609,7 +1827,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1626,13 +1844,76 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_not_permitted() {
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{userId}/spexare/{id}", user.getId(), spexare.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{userId}/spexare/{id}", 1L, 2L)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_permission() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/spexare", user.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_role() {
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{userId}/spexare", 1L)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

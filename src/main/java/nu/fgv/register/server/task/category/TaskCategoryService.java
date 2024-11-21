@@ -101,9 +101,9 @@ public class TaskCategoryService {
                 .map(category -> {
                     final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, category.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return TASK_CATEGORY_MAPPER.toDto(category);
                 })
@@ -119,6 +119,7 @@ public class TaskCategoryService {
     public TaskCategoryDto partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
+                .map(permissionService::checkWritePermission)
                 .map(category -> {
                     TASK_CATEGORY_MAPPER.toPartialModel(dto, category);
                     return category;
@@ -131,8 +132,12 @@ public class TaskCategoryService {
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesTaskCategoryExist(id)) {
-            repository.deleteById(id);
-            permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));
+            repository.findById0(id)
+                    .map(permissionService::checkDeletePermission)
+                    .ifPresent(category -> {
+                        permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));
+                        repository.delete(category);
+                    });
         } else {
             throw new ResourceNotFoundException(TaskCategory.class, id);
         }

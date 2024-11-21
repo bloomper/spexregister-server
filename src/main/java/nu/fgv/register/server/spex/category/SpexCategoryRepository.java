@@ -30,7 +30,7 @@ import java.util.Optional;
 @Repository
 public interface SpexCategoryRepository extends AclJpaRepository<SpexCategory, Long>, JpaSpecificationExecutor<SpexCategory> {
 
-    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<SpexCategory> findById0(final Long id) {
         return this
                 .findById(id);

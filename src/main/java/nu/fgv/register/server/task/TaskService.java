@@ -108,10 +108,9 @@ public class TaskService {
                     final Task task = repository.save(model);
                     final ObjectIdentity oid = toObjectIdentity(Task.class, task.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return TASK_MAPPER.toDto(task);
                 })
@@ -127,6 +126,7 @@ public class TaskService {
     public TaskDto partialUpdate(final TaskUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
+                .map(permissionService::checkWritePermission)
                 .map(task -> {
                     TASK_MAPPER.toPartialModel(dto, task);
                     return task;
@@ -139,8 +139,12 @@ public class TaskService {
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesTaskExist(id)) {
-            repository.deleteById(id);
-            permissionService.deleteAcl(toObjectIdentity(Task.class, id));
+            repository.findById0(id)
+                    .map(permissionService::checkDeletePermission)
+                    .ifPresent(task -> {
+                        permissionService.deleteAcl(toObjectIdentity(Task.class, id));
+                        repository.delete(task);
+                    });
         } else {
             throw new ResourceNotFoundException(Task.class, id);
         }
@@ -165,6 +169,7 @@ public class TaskService {
         if (doTaskAndCategoryExist(taskId, id)) {
             repository
                     .findById0(taskId)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(task -> categoryRepository
                             .findById(id)
                             .ifPresent(category -> {
@@ -182,6 +187,7 @@ public class TaskService {
         if (doesTaskExist(id)) {
             repository
                     .findById0(id)
+                    .map(permissionService::checkWritePermission)
                     .ifPresent(task -> {
                         task.setCategory(null);
                         repository.save(task);

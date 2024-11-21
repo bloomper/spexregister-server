@@ -487,7 +487,47 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var news = persistNews(randomizeNews());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+
+            //@formatter:off
+            final NewsDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", news.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(NewsDto.class);
+            //@formatter:on
+
+            final NewsUpdateDto dto = NewsUpdateDto.builder()
+                    .id(before.getId())
+                    .subject(before.getSubject() + "_")
+                    .text(before.getText())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
             //@formatter:off
@@ -593,7 +633,48 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var news = persistNews(randomizeNews());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+
+            //@formatter:off
+            final NewsDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", news.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(NewsDto.class);
+            //@formatter:on
+
+            final NewsUpdateDto dto = NewsUpdateDto.builder()
+                    .id(before.getId())
+                    .subject(before.getSubject() + "_")
+                    .text(before.getText())
+                    .visibleFrom(LocalDate.now().minusDays(3))
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
             //@formatter:off
@@ -657,7 +738,28 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var news = persistNews(randomizeNews());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", news.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())

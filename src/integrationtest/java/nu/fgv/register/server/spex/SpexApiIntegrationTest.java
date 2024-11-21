@@ -228,8 +228,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -252,8 +252,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             //@formatter:off
@@ -545,7 +545,49 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final SpexDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", spex.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexDto.class);
+            //@formatter:on
+
+            final SpexUpdateDto dto = SpexUpdateDto.builder()
+                    .id(before.getId())
+                    .title(before.getTitle() + "_")
+                    .year(before.getYear())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
 
             //@formatter:off
@@ -655,7 +697,49 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final SpexDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", spex.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexDto.class);
+            //@formatter:on
+
+            final SpexUpdateDto dto = SpexUpdateDto.builder()
+                    .id(before.getId())
+                    .title(before.getTitle() + "_")
+                    .year(before.getYear())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
 
             //@formatter:off
@@ -722,7 +806,30 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", spex.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -824,7 +931,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
@@ -863,7 +970,32 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_updating_not_permitted() throws Exception {
+        void should_return_403_when_updating_not_permitted_due_to_insufficient_permission() throws Exception {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+            final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(MediaType.IMAGE_PNG_VALUE)
+                .body(poster)
+            .when()
+                .post("/{id}/poster", spex.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_updating_not_permitted_due_to_insufficient_role() throws Exception {
             final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
@@ -884,7 +1016,31 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_deleting_not_permitted() {
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() throws Exception {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}/poster", spex.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1296,7 +1452,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_adding_and_year_already_exists() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -1406,7 +1562,31 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_not_permitted() {
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .post("/{spexId}/revivals/{year}", spex.getId(), "2022")
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1425,7 +1605,33 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_deleting_not_permitted() {
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+            final var revival = persistRevival(randomizeRevival(spex));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{spexId}/revivals/{id}", spex.getId(), revival.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(2);
+            assertThat(detailsRepository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1497,7 +1703,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_add_and_return_204() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -1563,7 +1769,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_remove_and_return_204() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
@@ -1622,7 +1828,31 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_adding_not_permitted() {
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .put("/{spexId}/category/{id}", spex.getId(), category.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
@@ -1641,7 +1871,31 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_removing_not_permitted() {
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{spexId}/category", spex.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(detailsRepository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_removing_not_permitted_due_to_insufficient_role() {
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())

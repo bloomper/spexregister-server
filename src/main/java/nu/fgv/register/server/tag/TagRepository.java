@@ -30,7 +30,7 @@ import java.util.Optional;
 @Repository
 public interface TagRepository extends AclJpaRepository<Tag, Long>, JpaSpecificationExecutor<Tag> {
 
-    @PostAuthorize("!returnObject.isEmpty() ? hasPermission(returnObject.get(), 'READ') : true")
+    @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Tag> findById0(final Long id) {
         return this
                 .findById(id);

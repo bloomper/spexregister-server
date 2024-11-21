@@ -105,9 +105,9 @@ public class SpexCategoryService {
                 .map(category -> {
                     final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, category.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID);
 
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
@@ -123,6 +123,7 @@ public class SpexCategoryService {
     public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
+                .map(permissionService::checkWritePermission)
                 .map(category -> {
                     SPEX_CATEGORY_MAPPER.toPartialModel(dto, category);
                     return category;
@@ -135,8 +136,12 @@ public class SpexCategoryService {
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesSpexCategoryExist(id)) {
-            repository.deleteById(id);
-            permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
+            repository.findById0(id)
+                    .map(permissionService::checkDeletePermission)
+                    .ifPresent(category -> {
+                        permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
+                        repository.delete(category);
+                    });
         } else {
             throw new ResourceNotFoundException(SpexCategory.class, id);
         }
@@ -146,6 +151,7 @@ public class SpexCategoryService {
     public SpexCategoryDto saveLogo(final Long id, final byte[] logo, @Nullable final String contentType) {
         return repository
                 .findById0(id)
+                .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(logo);
                     category.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
@@ -159,6 +165,7 @@ public class SpexCategoryService {
     public SpexCategoryDto deleteLogo(final Long id) {
         return repository
                 .findById0(id)
+                .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(null);
                     category.setLogoContentType(null);

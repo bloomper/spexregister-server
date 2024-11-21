@@ -19,6 +19,9 @@ package nu.fgv.register.server.acl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
@@ -26,6 +29,7 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -42,6 +46,7 @@ import java.util.List;
 public class PermissionService {
 
     private final MutableAclService mutableAclService;
+    private final PermissionEvaluator permissionEvaluator;
 
     public void grantPermission(final ObjectIdentity oid, final Permission permission, final Sid... recipients) {
         Arrays.asList(recipients).forEach(r -> grantPermission(oid, r, permission));
@@ -120,4 +125,57 @@ public class PermissionService {
             return false;
         }
     }
+
+    public <T> boolean hasReadPermission(final T object) {
+        return hasPermission(object, BasePermission.READ) || hasAdministrationPermission(object);
+    }
+
+    public <T> T checkReadPermission(final T object) {
+        if (hasReadPermission(object)) {
+            return object;
+        } else {
+            throw new AccessDeniedException("Access denied");
+        }
+    }
+
+    public <T> boolean hasWritePermission(final T object) {
+        return hasPermission(object, BasePermission.WRITE) || hasAdministrationPermission(object);
+    }
+
+    public <T> T checkWritePermission(final T object) {
+        if (hasWritePermission(object)) {
+            return object;
+        } else {
+            throw new AccessDeniedException("Access denied");
+        }
+    }
+
+    public <T> boolean hasDeletePermission(final T object) {
+        return hasPermission(object, BasePermission.DELETE) || hasAdministrationPermission(object);
+    }
+
+    public <T> T checkDeletePermission(final T object) {
+        if (hasDeletePermission(object)) {
+            return object;
+        } else {
+            throw new AccessDeniedException("Access denied");
+        }
+    }
+
+    public <T> boolean hasAdministrationPermission(final T object) {
+        return hasPermission(object, BasePermission.ADMINISTRATION);
+    }
+
+    public <T> T checkAdministrationPermission(final T object) {
+        if (hasAdministrationPermission(object)) {
+            return object;
+        } else {
+            throw new AccessDeniedException("Access denied");
+        }
+    }
+
+    public <T> boolean hasPermission(final T object, final Permission permission) {
+        return permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(), object, permission);
+    }
+
 }

@@ -101,10 +101,9 @@ public class TagService {
                     final Tag tag = repository.save(model);
                     final ObjectIdentity oid = toObjectIdentity(Tag.class, tag.getId());
 
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return TAG_MAPPER.toDto(tag);
                 })
@@ -120,6 +119,7 @@ public class TagService {
     public TagDto partialUpdate(final TagUpdateDto dto) {
         return repository
                 .findById0(dto.getId())
+                .map(permissionService::checkWritePermission)
                 .map(tag -> {
                     TAG_MAPPER.toPartialModel(dto, tag);
                     return tag;
@@ -131,12 +131,20 @@ public class TagService {
 
     @RequiresAdminOrEditor
     public void deleteById(final Long id) {
-        if (repository.findById0(id).isPresent()) {
-            repository.deleteById(id);
-            permissionService.deleteAcl(toObjectIdentity(Tag.class, id));
+        if (doesTagExist(id)) {
+            repository.findById0(id)
+                    .map(permissionService::checkDeletePermission)
+                    .ifPresent(tag -> {
+                        permissionService.deleteAcl(toObjectIdentity(Tag.class, id));
+                        repository.delete(tag);
+                    });
         } else {
             throw new ResourceNotFoundException(Tag.class, id);
         }
+    }
+
+    private boolean doesTagExist(final Long id) {
+        return repository.findById0(id).isPresent();
     }
 
 }
