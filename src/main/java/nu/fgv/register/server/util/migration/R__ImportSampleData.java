@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.migration;
 
+import jakarta.ws.rs.core.Response;
 import net.datafaker.Faker;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.news.News;
@@ -26,12 +27,20 @@ import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -86,23 +95,36 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_MEMBERSHIPS_OF_EACH_TYPE = 3;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
+    private static final int NUMBER_OF_SAMPLES_USERS = 50;
     private static final String SYSTEM_USER = "system";
+    private static final String SAMPLE_PASSWORD = "s3cr3t";
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
 
     private final PermissionService permissionService;
+    private final AuthorityService authorityService;
     @Value("${spexregister.sample-data.import:false}")
     private final boolean importSampleData;
+    private final Keycloak keycloakAdminClient;
+    private final String keycloakClientId;
+    @Value("${spexregister.keycloak.realm}")
+    private String keycloakRealm;
 
     private final Random rnd = new SecureRandom();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CryptoConverter cryptoConverter;
 
     public R__ImportSampleData(final PermissionService permissionService,
+                               final AuthorityService authorityService,
+                               final Keycloak keycloakAdminClient,
+                               final String keycloakClientId,
                                @Value("${spexregister.sample-data.import:false}") final boolean importSampleData,
                                @Value("${spexregister.crypto.algorithm}") final String algorithm,
                                @Value("${spexregister.crypto.secret-key}") final String secretKey,
                                @Value("${spexregister.crypto.initialization-vector}") final String iv) {
         this.permissionService = permissionService;
+        this.authorityService = authorityService;
+        this.keycloakAdminClient = keycloakAdminClient;
+        this.keycloakClientId = keycloakClientId;
         this.importSampleData = importSampleData;
         cryptoConverter = new CryptoConverter(algorithm, secretKey, iv);
     }
@@ -118,6 +140,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
             final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(context.getConnection(), true));
 
             purgeAllRelevantTables(jdbcClient);
+            purgeKeycloak();
             SecurityContextHolder.getContext().setAuthentication(AUTH);
 
             createSampleTaskCategoriesAndTasks(context.getConnection(), jdbcClient);
@@ -125,6 +148,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
             createSampleNews(jdbcClient);
             createSampleTags(jdbcClient);
             createSampleSpexare(jdbcClient);
+            createSampleUsers(jdbcClient);
 
             SecurityContextHolder.clearContext();
         }
@@ -168,6 +192,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 "spex_category",
                 "news",
                 "tag",
+                "user",
                 "acl_entry",
                 "acl_object_identity",
                 "acl_class",
@@ -179,6 +204,25 @@ public class R__ImportSampleData extends BaseJavaMigration {
                         .sql("DELETE FROM %s".formatted(table))
                         .update()
         );
+    }
+
+    private void purgeKeycloak() {
+        keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .list()
+                .stream()
+                .filter(r -> !r.getEmail().endsWith("@spexregister.com"))
+                .forEach(representation -> {
+                    try (final Response response = keycloakAdminClient
+                            .realm(keycloakRealm)
+                            .users()
+                            .delete(representation.getId())) {
+                        if (response.getStatus() != HttpStatus.NO_CONTENT.value()) {
+                            throw new IllegalStateException("Unable to delete user " + representation.getEmail());
+                        }
+                    }
+                });
     }
 
     private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
@@ -669,6 +713,96 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .update();
                     }
                 });
+            }
+        });
+    }
+
+    private void createSampleUsers(final JdbcClient jdbcClient) {
+        final List<RoleRepresentation> authorities = new ArrayList<>();
+
+        jdbcClient.sql("SELECT id FROM authority")
+                .query()
+                .listOfRows()
+                .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) row.get("id"))));
+
+        final List<String> states = new ArrayList<>();
+
+        jdbcClient.sql("SELECT id FROM state")
+                .query()
+                .listOfRows()
+                .forEach(row -> states.add((String) row.get("id")));
+
+        final List<Long> spexare = new ArrayList<>();
+
+        jdbcClient.sql("SELECT id FROM spexare")
+                .query()
+                .listOfRows()
+                .forEach(row -> spexare.add((Long) row.get("id")));
+
+        final String sql = """
+                INSERT INTO user
+                    (external_id, state_id, spexare_id, created_by, created_at)
+                VALUES
+                    (:externalId, :stateId, :spexareId, :createdBy, :createdAt)
+                """;
+        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(SAMPLE_PASSWORD);
+        credentialRepresentation.setTemporary(false);
+
+        IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
+            final UserRepresentation userRepresentation = new UserRepresentation();
+
+            userRepresentation.setEmail(faker.internet().emailAddress());
+            userRepresentation.setEnabled(true);
+            userRepresentation.setCredentials(List.of(credentialRepresentation));
+
+            try (final Response response = keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .users()
+                    .create(userRepresentation)
+            ) {
+                if (response.getStatus() == HttpStatus.CREATED.value()) {
+                    final String locationPath = response.getLocation().getPath();
+                    final String externalId = locationPath.substring(locationPath.lastIndexOf('/') + 1);
+
+                    try {
+                        final UserResource userResource = keycloakAdminClient
+                                .realm(keycloakRealm)
+                                .users()
+                                .get(externalId);
+
+                        final RoleRepresentation authority = authorities.get(rnd.nextInt(authorities.size()));
+
+                        userResource
+                                .roles()
+                                .clientLevel(keycloakClientId)
+                                .add(List.of(authority));
+
+                        final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+                        jdbcClient
+                                .sql(sql)
+                                .param("externalId", externalId)
+                                .param("stateId", states.get(rnd.nextInt(states.size())))
+                                .param("spexareId", spexare.get(rnd.nextInt(spexare.size())))
+                                .param("createdBy", SYSTEM_USER)
+                                .param("createdAt", LocalDateTime.now())
+                                .update(keyHolder);
+
+                        if (keyHolder.getKey() != null) {
+                            final long id = keyHolder.getKey().longValue();
+                            final ObjectIdentity oid = toObjectIdentity(User.class, id);
+
+                            permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                        }
+                    } catch (final Exception e) {
+                        throw new IllegalStateException("Could not retrieve newly created user in Keycloak");
+                    }
+                } else {
+                    throw new IllegalStateException("Could not create user in Keycloak");
+                }
             }
         });
     }

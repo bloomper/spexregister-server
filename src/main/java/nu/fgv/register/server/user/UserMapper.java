@@ -29,6 +29,8 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -81,6 +83,8 @@ public interface UserMapper {
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
         credentialRepresentation.setValue(temporaryPassword);
         credentialRepresentation.setTemporary(true);
+
+        userRepresentation.setCredentials(List.of(credentialRepresentation));
 
         return userRepresentation;
     }

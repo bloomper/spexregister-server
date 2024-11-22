@@ -65,7 +65,6 @@ public class AuthorityService {
     }
 
     @Cacheable("roleRepresentations")
-    @RequiresAdminOrEditorOrUser
     public RoleRepresentation getRoleRepresentationById(final String id) {
         final List<RoleRepresentation> roles = keycloakAdminClient.realm(keycloakRealm).clients().get(keycloakClientId).roles().list();
 
