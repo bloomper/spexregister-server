@@ -51,7 +51,7 @@ services:
       - |
         export KC_DB_PASSWORD=$$(cat /run/secrets/MYSQL_KEYCLOAK_USER_PASSWORD)
         export KEYCLOAK_ADMIN_PASSWORD=$$(cat /run/secrets/KEYCLOAK_ADMIN_PASSWORD)
-        /opt/keycloak/bin/kc.sh start --hostname localhost --http-port 8081 --http-enabled true --import-realm
+        /opt/keycloak/bin/kc.sh start-dev --hostname localhost --http-port 8081 --http-enabled true --import-realm
     environment:
       KC_HTTP_RELATIVE_PATH: /auth
       KC_HEALTH_ENABLED: true
@@ -77,6 +77,7 @@ services:
       mysql-keycloak:
         condition: service_started
     volumes:
+      - ./build/keycloak-providers:/opt/keycloak/providers
       - keycloak_log_data:/opt/keycloak/data/log
       - ./src/test/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
     networks:

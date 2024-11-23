@@ -98,14 +98,28 @@ to real individuals, i.e. no personally identifiable information (PII).
 Any existing data will be wiped out.
 --
 
+[[keycloak]]
+== Keycloak
+
+[[keycloak_customization]]
+=== Customization
+
+In order to support passwords from the previous Spexregister generation, a custom password hashing
+provider has been implemented. At first login, the password is re-hashed using the default password
+hashing provider.
+
+The JAR file ``spexregister-server-2.0.0-keycloak.jar`` found in ``build/keycloak-providers`` need to
+be installed into Keycloak. This is done by copying the file into ``/opt/keycloak/providers`` in the
+Docker image.
+
 [[keycloak_administration]]
-== Keycloak administration
+=== Administration UI
 
 The administrative UI of Keycloak can be accessed at http://localhost:8081/auth. The username is set
 by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
 
-[[keycloak_administration_setup]]
-=== Keycloak setup
+[[keycloak_setup]]
+=== Setup
 
 These are the steps to create a realm in Keycloak:
 

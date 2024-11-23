@@ -33,12 +33,22 @@ sourceSets {
         }
         resources.srcDir file('src/integrationtest/resources')
     }
+    keycloak {
+        java {
+            compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            runtimeClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            srcDir file('src/keycloak/java')
+        }
+        resources.srcDir file('src/keycloak/resources')
+    }
 }
 
 configurations {
     compileOnly.extendsFrom annotationProcessor
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    keycloakImplementation.extendsFrom developmentOnly
+    keycloakRuntimeOnly.extendsFrom runtimeOnly
     asciidoctorExtensions
 }
 
@@ -48,11 +58,15 @@ repositories {
 
 ext {
     set('snippetsDir', file('build/generated-snippets'))
+    set('keycloakProvidersDir', file('build/keycloak-providers'))
 }
 
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.keycloak:keycloak-core:26.0.6'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.0.6'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.0.6'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -83,7 +97,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.8.3'
     implementation 'com.google.guava:guava:33.3.1-jre'
-    implementation 'org.keycloak:keycloak-admin-client:26.0.1'
+    implementation 'org.keycloak:keycloak-admin-client:26.0.3'
     implementation 'org.passay:passay:1.6.6'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
@@ -151,6 +165,12 @@ tasks.register('createSnippetsDir') {
     }
 }
 
+tasks.register('createKeycloakProvidersDir') {
+    doLast {
+        project.mkdir keycloakProvidersDir
+    }
+}
+
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
@@ -198,6 +218,19 @@ asciidoctor {
         'snippets': file('build/generated-snippets'),
         'static-snippets': file('src/main/asciidoc/static-snippets')
 }
+
+rootProject.tasks.named("processKeycloakResources") {
+    duplicatesStrategy = 'include'
+}
+
+tasks.register('keycloakJar', Jar) {
+    archiveClassifier = 'keycloak'
+    from sourceSets.keycloak.output
+    dependsOn configurations.keycloakRuntimeClasspath
+    destinationDirectory = file(keycloakProvidersDir)
+}
+
+assemble.dependsOn keycloakJar
 
 bootJar {
     dependsOn asciidoctor, javadoc
