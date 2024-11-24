@@ -751,6 +751,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
         credentialRepresentation.setValue(SAMPLE_PASSWORD);
         credentialRepresentation.setTemporary(false);
 
+        final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
+
         IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
             final UserRepresentation userRepresentation = new UserRepresentation();
 
@@ -786,7 +788,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .sql(sql)
                                 .param("externalId", externalId)
                                 .param("stateId", states.get(rnd.nextInt(states.size())))
-                                .param("spexareId", spexare.get(rnd.nextInt(spexare.size())))
+                                .param("spexareId", getRandomSpexareId(spexare, alreadyPickedSpexareIds))
                                 .param("createdBy", SYSTEM_USER)
                                 .param("createdAt", LocalDateTime.now())
                                 .update(keyHolder);
@@ -927,5 +929,21 @@ public class R__ImportSampleData extends BaseJavaMigration {
         } catch (final IOException e) {
             return imageToByteArray(faker.image().base64PNG());
         }
+    }
+
+    private Long getRandomSpexareId(final List<Long> spexareIds, final List<Long> alreadyPickedSpexareIds) {
+        final List<Long> availableSpexareIds = spexareIds.stream()
+                .filter(id -> !alreadyPickedSpexareIds.contains(id))
+                .toList();
+
+        if (alreadyPickedSpexareIds.isEmpty()) {
+            throw new IllegalStateException("No spexare ids available");
+        }
+
+        final Long pickedSpexareId = availableSpexareIds.get(rnd.nextInt(availableSpexareIds.size()));
+
+        alreadyPickedSpexareIds.add(pickedSpexareId);
+
+        return pickedSpexareId;
     }
 }
