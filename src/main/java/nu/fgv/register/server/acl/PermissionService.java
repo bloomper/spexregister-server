@@ -65,6 +65,10 @@ public class PermissionService {
         mutableAclService.updateAcl(acl);
     }
 
+    public void revokePermission(final ObjectIdentity oid, final Permission permission, final Sid... recipients) {
+        Arrays.asList(recipients).forEach(r -> revokePermission(oid, r, permission));
+    }
+
     public void revokePermission(final ObjectIdentity oid, final Sid recipient, final Permission permission) {
         try {
             final MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);

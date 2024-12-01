@@ -22,6 +22,7 @@ import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsMapper;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.tag.Tag;
@@ -47,6 +48,7 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -274,7 +276,6 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
 
                     jdbcClient
                             .sql(categorySql)
@@ -401,10 +402,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     (:firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt)
                 """;
 
-        // TODO: Add ACL permissions!
-
         IntStream.range(0, NUMBER_OF_SAMPLES_SPEXARE).forEach(i -> {
             final KeyHolder keyHolder = new GeneratedKeyHolder();
+            final boolean published = rnd.nextInt(4) != 0;
 
             jdbcClient
                     .sql(sql)
@@ -421,7 +421,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             null)
                     .param("socialSecurityNumber", rnd.nextBoolean() ? cryptoConverter.convertToDatabaseColumn(faker.idNumber().valid()) : null)
                     .param("deceased", rnd.nextInt(4) == 0)
-                    .param("published", rnd.nextInt(4) != 0)
+                    .param("published", published)
                     .param("graduation", rnd.nextBoolean() ? faker.regexify("[A|B|D|E|G|K|M|I|V|T]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)
@@ -430,6 +430,13 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
             if (keyHolder.getKey() != null) {
                 final long spexareId = keyHolder.getKey().longValue();
+                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
+
+                permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                if (published) {
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                }
 
                 if (rnd.nextBoolean()) {
                     createSpexareImage(jdbcClient, spexareId);
@@ -783,12 +790,13 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .add(List.of(authority));
 
                         final KeyHolder keyHolder = new GeneratedKeyHolder();
+                        final long spexareId = getRandomSpexareId(spexare, alreadyPickedSpexareIds);
 
                         jdbcClient
                                 .sql(sql)
                                 .param("externalId", externalId)
                                 .param("stateId", states.get(rnd.nextInt(states.size())))
-                                .param("spexareId", getRandomSpexareId(spexare, alreadyPickedSpexareIds))
+                                .param("spexareId", spexareId)
                                 .param("createdBy", SYSTEM_USER)
                                 .param("createdAt", LocalDateTime.now())
                                 .update(keyHolder);
@@ -796,16 +804,31 @@ public class R__ImportSampleData extends BaseJavaMigration {
                         if (keyHolder.getKey() != null) {
                             final long id = keyHolder.getKey().longValue();
                             final ObjectIdentity oid = toObjectIdentity(User.class, id);
+                            final ObjectIdentity spexareOid = toObjectIdentity(Spexare.class, spexareId);
 
                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                            permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
                         }
                     } catch (final Exception e) {
-                        throw new IllegalStateException("Could not retrieve newly created user in Keycloak");
+                        throw new IllegalStateException("Could not retrieve newly created user in Keycloak", e);
                     }
                 } else {
                     throw new IllegalStateException("Could not create user in Keycloak");
                 }
             }
+
+            jdbcClient
+                    .sql("SELECT u.external_id, s.id FROM user u LEFT JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
+                    .query()
+                    .listOfRows()
+                    .forEach(row -> {
+                        final String externalId = (String) row.get("external_id");
+                        final Long spexareId = (Long) row.get("id");
+
+                        final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
+
+                        permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
+                    });
         });
     }
 
@@ -936,7 +959,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .filter(id -> !alreadyPickedSpexareIds.contains(id))
                 .toList();
 
-        if (alreadyPickedSpexareIds.isEmpty()) {
+        if (availableSpexareIds.isEmpty()) {
             throw new IllegalStateException("No spexare ids available");
         }
 

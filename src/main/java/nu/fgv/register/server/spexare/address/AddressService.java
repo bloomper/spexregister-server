@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.address;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
@@ -30,6 +31,7 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,11 +58,14 @@ public class AddressService {
     private final SpexareRepository spexareRepository;
     private final TypeRepository typeRepository;
     private final TypeService typeService;
+    private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public Page<AddressDto> findBySpexare(final Long id, final String filter, final Pageable pageable) {
         if (doesSpexareExist(id)) {
             return spexareRepository
                     .findById0(id)
+                    .map(permissionService::checkReadPermission)
                     .map(spexare -> hasText(filter) ?
                             repository
                                     .findAll(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), pageable)
@@ -75,10 +80,13 @@ public class AddressService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public AddressDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId) && doesAddressExist(id)) {
-            return repository
-                    .findById0(id)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> repository.findById(id))
                     .filter(address -> address.getSpexare().getId().equals(spexareId))
                     .map(ADDRESS_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Address.class, id));
@@ -87,12 +95,14 @@ public class AddressService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public AddressDto create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
                                 final Address address = ADDRESS_MAPPER.toModel(dto);
@@ -108,18 +118,21 @@ public class AddressService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public AddressDto update(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         return partialUpdate(spexareId, typeId, id, dto);
     }
 
+    @RequiresAdminOrEditorOrUser
     public AddressDto partialUpdate(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById0(id))
+                            .flatMap(spexare -> repository.findById(id))
                             .filter(address -> address.getSpexare().getId().equals(spexareId))
                             .map(address -> {
                                 ADDRESS_MAPPER.toPartialModel(dto, address);
@@ -134,14 +147,16 @@ public class AddressService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
             typeRepository
                     .findById(typeId)
                     .ifPresent(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById0(id))
+                            .flatMap(spexare -> repository.findById(id))
                             .filter(address -> address.getSpexare().getId().equals(spexareId))
                             .ifPresentOrElse(
                                     address -> repository.deleteById(address.getId()),
@@ -160,7 +175,7 @@ public class AddressService {
     }
 
     private boolean doesAddressExist(final Long id) {
-        return repository.findById0(id).isPresent();
+        return repository.findById(id).isPresent();
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

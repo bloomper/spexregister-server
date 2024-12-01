@@ -245,6 +245,10 @@ public abstract class AbstractIntegrationTest {
         permissionService.grantPermission(oid, sid, permission);
     }
 
+    protected void revokePermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {
+        permissionService.revokePermission(oid, sid, permission);
+    }
+
     protected void grantReadPermissionToUser(final ObjectIdentity oid) {
         grantPermission(oid, TEST_USER_SID, BasePermission.READ);
     }
@@ -269,4 +273,11 @@ public abstract class AbstractIntegrationTest {
         grantPermission(oid, ROLE_ADMIN_SID, BasePermission.DELETE);
     }
 
+    protected void grantAdministrationPermissionToRoleAdmin(final ObjectIdentity oid) {
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.ADMINISTRATION);
+    }
+
+    protected void revokeWritePermissionFromRoleAdmin(final ObjectIdentity oid) {
+        revokePermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
+    }
 }

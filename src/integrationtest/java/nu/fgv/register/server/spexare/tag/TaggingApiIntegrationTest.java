@@ -33,7 +33,6 @@ import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -55,6 +54,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -64,7 +64,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Disabled
 class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -153,6 +152,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<TagDto> result =
@@ -174,6 +174,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
             spexare.setTags(Set.of(tag));
             persistSpexare(spexare);
@@ -199,6 +200,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var taggings = new ArrayList<Tag>();
             IntStream.range(0, size).forEach(i -> {
                 final var tag = persistTag(randomizeTag());
@@ -234,11 +236,13 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -250,7 +254,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -268,11 +272,13 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -283,7 +289,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -304,7 +310,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -314,11 +320,53 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
-            assertThat(repository.count()).isZero();
+            assertThat(repository.countTaggings()).isZero();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var tag = persistTag(randomizeTag());
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .post("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.countTaggings()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var tag = persistTag(randomizeTag());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .post("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.countTaggings()).isZero();
+        }
     }
 
     @Nested
@@ -328,11 +376,13 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -343,7 +393,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -355,7 +405,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TagDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -371,34 +421,18 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_deleting_non_existing_value() {
+        void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
                 .delete("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
-            //@formatter:on
-
-            assertThat(repository.count()).isZero();
-        }
-
-        @Test
-        void should_return_404_when_deleting_and_spexare_not_found() {
-            final var tag = persistTag(randomizeTag());
-
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", -1L)
-            .when()
-                .delete("/{id}", tag.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -409,6 +443,83 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
+        @Test
+        void should_return_404_when_deleting_and_spexare_not_found() {
+            final var tag = persistTag(randomizeTag());
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", -1L)
+            .when()
+                .delete("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.countTaggings()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var tag = persistTag(randomizeTag());
+
+            //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .post("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.CREATED.value());
+            //@formatter:on
+
+            revokeWritePermissionFromRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .delete("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var tag = persistTag(randomizeTag());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .delete("/{id}", tag.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.countTaggings()).isZero();
+        }
     }
 
     private Tag randomizeTag() {

@@ -54,6 +54,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
@@ -360,6 +361,10 @@ public class UserService {
                             .ifPresent(spexare -> {
                                 user.setSpexare(spexare);
                                 repository.save(user);
+
+                                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
+
+                                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(user.getExternalId()));
                             })
                     );
         } else {
@@ -373,7 +378,12 @@ public class UserService {
             repository
                     .findById0(id)
                     .map(permissionService::checkWritePermission)
+                    .filter(user -> user.getSpexare() != null)
                     .ifPresent(user -> {
+                        final ObjectIdentity oid = toObjectIdentity(Spexare.class, user.getSpexare().getId());
+
+                        permissionService.revokePermission(oid, BasePermission.WRITE, new PrincipalSid(user.getExternalId()));
+
                         user.setSpexare(null);
                         repository.save(user);
                     });

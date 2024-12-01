@@ -33,7 +33,6 @@ import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -58,7 +57,10 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
@@ -67,7 +69,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Disabled
 class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -162,7 +163,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_one() {
-            persistSpexare(randomizeSpexare());
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -183,7 +185,10 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_many() {
             final int size = 42;
-            IntStream.range(0, size).forEach(i -> persistSpexare(randomizeSpexare()));
+            IntStream.range(0, size).forEach(i -> {
+                final var spexare = persistSpexare(randomizeSpexare());
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            });
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -232,6 +237,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -258,7 +264,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     spexare.setFirstName("whatever");
                 }
-                persistSpexare(spexare);
+                final var spexare0 = persistSpexare(spexare);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare0.getId()));
             });
 
             //@formatter:off
@@ -307,6 +314,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<SpexareDto> result =
@@ -314,7 +322,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-
+                        .queryParam("q", spexare.getNickName())
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
@@ -332,6 +340,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 persistSpexare(spexare);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
 
             //@formatter:off
@@ -352,6 +361,49 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(size);
         }
 
+        @Test
+        void should_return_zero_if_not_published_and_not_permitted() {
+            final var spexare = persistSpexare(randomizeSpexare(false));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .queryParam("q", spexare.getNickName())
+                    .get()
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body()
+                    .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_one_if_not_published_and_permitted() {
+            final var spexare = persistSpexare(randomizeSpexare(false));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+
+            //@formatter:off
+            final List<SpexareDto> result =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .queryParam("q", spexare.getNickName())
+                    .get()
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body()
+                    .jsonPath().getList("_embedded.spexare", SpexareDto.class);
+            //@formatter:on
+
+            assertThat(result).hasSize(1);
+        }
     }
 
     @Nested
@@ -365,7 +417,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -388,6 +440,27 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setLastName(null);
 
             //@formatter:off
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .post()
+            .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.lastName", notNullValue());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
+
+        @Test
+        void should_return_400_when_not_permitted() {
+            final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
+
+            //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
@@ -395,13 +468,13 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .post()
             .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -411,6 +484,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final SpexareDto result =
@@ -455,11 +529,14 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final SpexareDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -478,7 +555,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -493,7 +570,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto after =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -515,20 +592,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setFirstName(null);
 
             //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract().body().as(ProblemDetail.class);
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.firstName", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
 
         @Test
@@ -537,20 +614,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             dto.setSocialSecurityNumber("20120606-4658");
 
             //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
                 .put("/{id}", dto.getId())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract().body().as(ProblemDetail.class);
+                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+                .body("errors", notNullValue())
+                .body("errors.socialSecurityNumber", notNullValue());
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         }
 
         @Test
@@ -559,7 +636,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
@@ -573,6 +650,64 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+
+            //@formatter:off
+            final SpexareDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", spexare.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexareDto.class);
+            //@formatter:on
+
+            final SpexareUpdateDto dto = SpexareUpdateDto.builder()
+                    .id(before.getId())
+                    .firstName(before.getFirstName() + "_")
+                    .lastName(before.getLastName())
+                    .nickName(before.getNickName())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .put("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -582,11 +717,14 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final SpexareDto before =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}", spexare.getId())
@@ -605,7 +743,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final String json =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .body(dto)
                     .when()
@@ -657,6 +795,63 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+
+            //@formatter:off
+            final SpexareDto before =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", spexare.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexareDto.class);
+            //@formatter:on
+
+            final SpexareUpdateDto dto = SpexareUpdateDto.builder()
+                    .id(before.getId())
+                    .firstName(before.getFirstName() + "_")
+                    .lastName(before.getLastName())
+                    .nickName(before.getNickName())
+                    .build();
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .body(dto)
+            .when()
+                .patch("/{id}", dto.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -666,10 +861,12 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", spexare.getId())
@@ -684,7 +881,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", 123)
@@ -697,6 +894,44 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", spexare.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .delete("/{id}", 123)
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
     }
 
     @Nested
@@ -706,11 +941,13 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_image_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
@@ -722,7 +959,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/image", spexare.getId())
@@ -738,11 +975,13 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_image_via_multipart_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = ResourceUtils.getFile("classpath:test.png");
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .multiPart("file", image, MediaType.IMAGE_PNG_VALUE)
             .when()
                 .post("/{id}/image", spexare.getId())
@@ -753,7 +992,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final byte[] result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{id}/image", spexare.getId())
@@ -769,11 +1008,13 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_image_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
@@ -784,7 +1025,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/image", spexare.getId())
@@ -794,7 +1035,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{id}/image", spexare.getId())
@@ -811,7 +1052,11 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_200() {
             final var partner = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -820,7 +1065,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final SpexareDto result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
                         .get("/{spexareId}/partner", spexare.getId())
@@ -855,10 +1100,12 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_retrieving_and_partner_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .get("/{spexareId}/partner", spexare.getId())
@@ -874,16 +1121,20 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var partner = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
             .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
         }
 
@@ -907,10 +1158,12 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_partner_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .put("/{spexareId}/partner/{id}", spexare.getId(), 1L)
@@ -926,7 +1179,11 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var partner = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -934,7 +1191,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", spexare.getId())
@@ -944,17 +1201,19 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_removing_and_no_partner() {
+        void should_return_204_when_removing_and_no_partner() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexareId}/partner", spexare.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
         }
 
@@ -1024,7 +1283,15 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
+        return randomizeSpexare(true);
+    }
+
+    private Spexare randomizeSpexare(final boolean published) {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setPublished(published);
+
+        return spexare;
     }
 
     private Spexare persistSpexare(final Spexare spexare) {

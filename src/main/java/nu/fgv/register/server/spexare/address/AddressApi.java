@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -61,6 +62,7 @@ public class AddressApi {
     private final PagedResourcesAssembler<AddressDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<AddressDto>>> retrieve(@PathVariable final Long spexareId,
                                                                         @SortDefault(sort = Address_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = "") final String filter) {
@@ -72,6 +74,7 @@ public class AddressApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         final AddressDto dto = service.findById(spexareId, id);
 
@@ -79,6 +82,7 @@ public class AddressApi {
     }
 
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final AddressCreateDto dto) {
         final AddressDto createdDto = service.create(spexareId, typeId, dto);
 
@@ -87,6 +91,7 @@ public class AddressApi {
     }
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -98,6 +103,7 @@ public class AddressApi {
     }
 
     @PatchMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -109,6 +115,7 @@ public class AddressApi {
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
         service.deleteById(spexareId, typeId, id);
 

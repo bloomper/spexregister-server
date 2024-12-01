@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.activity.task.actor;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
@@ -34,6 +35,7 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -62,11 +64,15 @@ public class ActorService {
     private final SpexareRepository spexareRepository;
     private final TypeRepository typeRepository;
     private final TypeService typeService;
+    private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public Page<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long taskActivityId, final String filter, final Pageable pageable) {
         if (doSpexareAndActivityAndTaskActivityExist(spexareId, activityId, taskActivityId)) {
-            return taskActivityRepository
-                    .findById0(taskActivityId)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> taskActivityRepository.findById(taskActivityId))
                     .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
                     .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
                     .map(activity -> hasText(filter) ?
@@ -83,10 +89,13 @@ public class ActorService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActorDto findById(final Long spexareId, final Long activityId, final Long taskActivityId, final Long id) {
         if (doSpexareAndActivityAndTaskActivityExist(spexareId, activityId, taskActivityId)) {
-            return repository
-                    .findById0(id)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> repository.findById(id))
                     .filter(actor -> actor.getTaskActivity().getId().equals(taskActivityId))
                     .filter(actor -> actor.getTaskActivity().getActivity().getId().equals(activityId))
                     .filter(actor -> actor.getTaskActivity().getActivity().getSpexare().getId().equals(spexareId))
@@ -97,12 +106,15 @@ public class ActorService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActorDto create(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final ActorCreateDto dto) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId)) {
-            return typeRepository
-                    .findById(vocalId)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkWritePermission)
+                    .flatMap(spexare -> typeRepository.findById(vocalId))
                     .flatMap(vocal -> taskActivityRepository
-                            .findById0(taskActivityId)
+                            .findById(taskActivityId)
                             .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
                             .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
                             .filter(taskActivity -> !repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal))))
@@ -120,18 +132,22 @@ public class ActorService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActorDto update(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id, final ActorUpdateDto dto) {
         return partialUpdate(spexareId, activityId, taskActivityId, vocalId, id, dto);
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActorDto partialUpdate(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id, final ActorUpdateDto dto) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId) && doesActorExist(id)) {
-            return typeRepository
-                    .findById(vocalId)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkWritePermission)
+                    .flatMap(spexare -> typeRepository.findById(vocalId))
                     .flatMap(vocal -> taskActivityRepository
-                            .findById0(taskActivityId)
+                            .findById(taskActivityId)
                             .filter(taskActivity -> repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal)).and(hasId(id))))
-                            .flatMap(taskActivity -> repository.findById0(id))
+                            .flatMap(taskActivity -> repository.findById(id))
                             .filter(actor -> actor.getTaskActivity().getId().equals(taskActivityId))
                             .filter(actor -> actor.getTaskActivity().getActivity().getId().equals(activityId))
                             .filter(actor -> actor.getTaskActivity().getActivity().getSpexare().getId().equals(spexareId))
@@ -148,15 +164,18 @@ public class ActorService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId) && doesActorExist(id)) {
-            typeRepository
-                    .findById(vocalId)
+            spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkWritePermission)
+                    .flatMap(spexare -> typeRepository.findById(vocalId))
                     .ifPresentOrElse(
                             vocal -> taskActivityRepository
-                                    .findById0(taskActivityId)
+                                    .findById(taskActivityId)
                                     .filter(taskActivity -> repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal)).and(hasId(id))))
-                                    .flatMap(taskActivity -> repository.findById0(id))
+                                    .flatMap(taskActivity -> repository.findById(id))
                                     .filter(actor -> actor.getTaskActivity().getId().equals(taskActivityId))
                                     .filter(actor -> actor.getTaskActivity().getActivity().getId().equals(activityId))
                                     .filter(actor -> actor.getTaskActivity().getActivity().getSpexare().getId().equals(spexareId))
@@ -179,15 +198,15 @@ public class ActorService {
     }
 
     private boolean doesActorExist(final Long id) {
-        return repository.findById0(id).isPresent();
+        return repository.findById(id).isPresent();
     }
 
     private boolean doesTaskActivityExist(final Long id) {
-        return taskActivityRepository.findById0(id).isPresent();
+        return taskActivityRepository.findById(id).isPresent();
     }
 
     private boolean doesActivityExist(final Long id) {
-        return activityRepository.findById0(id).isPresent();
+        return activityRepository.findById(id).isPresent();
     }
 
     private boolean doSpexareAndActivityAndTaskActivityExist(final Long spexareId, final Long activityId, final Long taskActivityId) {

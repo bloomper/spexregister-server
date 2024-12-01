@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -63,6 +64,7 @@ public class ActorApi {
     private final PagedResourcesAssembler<ActorDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<ActorDto>>> retrieve(@PathVariable final Long spexareId,
                                                                       @PathVariable final Long activityId,
                                                                       @PathVariable final Long taskActivityId,
@@ -76,6 +78,7 @@ public class ActorApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final Long id) {
         final ActorDto dto = service.findById(spexareId, activityId, taskActivityId, id);
 
@@ -83,6 +86,7 @@ public class ActorApi {
     }
 
     @PostMapping(value = "/{vocalId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActorDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @Valid @RequestBody final ActorCreateDto dto) {
         final ActorDto createdDto = service.create(spexareId, activityId, taskActivityId, vocalId, dto);
 
@@ -91,6 +95,7 @@ public class ActorApi {
     }
 
     @PutMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActorDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -102,6 +107,7 @@ public class ActorApi {
     }
 
     @PatchMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActorDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -113,6 +119,7 @@ public class ActorApi {
     }
 
     @DeleteMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id) {
         service.deleteById(spexareId, activityId, taskActivityId, vocalId, id);
 

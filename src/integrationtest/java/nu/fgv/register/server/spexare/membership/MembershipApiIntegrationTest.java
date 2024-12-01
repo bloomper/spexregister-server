@@ -35,7 +35,6 @@ import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,6 +55,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -65,7 +65,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Disabled
 class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -161,6 +160,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<MembershipDto> result =
@@ -182,6 +182,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             persistMembership(randomizeMembership(type, spexare));
 
@@ -206,6 +207,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> persistMembership(randomizeMembership(type, spexare)));
 
@@ -251,6 +253,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final List<MembershipDto> result =
@@ -273,6 +276,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -298,11 +302,14 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> {
                 final var membership = randomizeMembership(type, spexare);
                 if (i % 2 == 0) {
-                    membership.setYear("whatever");
+                    membership.setYear("1900");
+                } else if (membership.getYear().equals("1900")) {
+                    membership.setYear("2000");
                 }
                 persistMembership(membership);
             });
@@ -313,7 +320,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
-                        .queryParam("filter", Membership_.YEAR + ":whatever")
+                        .queryParam("filter", Membership_.YEAR + ":1900")
                         .queryParam("size", size)
                     .when()
                         .get()
@@ -334,6 +341,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -359,6 +367,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -379,6 +388,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -406,11 +416,13 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -422,7 +434,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<MembershipDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -440,11 +452,13 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -455,7 +469,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -476,7 +490,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
             .when()
@@ -494,10 +508,12 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -512,6 +528,48 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var type = persistType(randomizeType());
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .post("/{typeId}/{year}", type.getId(), "2023")
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var type = persistType(randomizeType());
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .post("/{typeId}/{year}", type.getId(), "2023")
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -521,12 +579,14 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -538,7 +598,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<MembershipDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                     .when()
@@ -556,11 +616,13 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -578,12 +640,14 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", -1L)
             .when()
@@ -601,12 +665,14 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
@@ -622,21 +688,73 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_deleting_and_incorrect_spexare() {
+        void should_return_404_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare2));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
             .when()
                 .delete("/{typeId}/{id}", type.getId(), membership.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .delete("/{typeId}/{id}", type.getId(), membership.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var type = persistType(randomizeType());
+            final var membership = persistMembership(randomizeMembership(type, spexare));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+            .when()
+                .delete("/{typeId}/{id}", type.getId(), membership.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);

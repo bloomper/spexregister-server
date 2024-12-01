@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.consent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -56,6 +57,7 @@ public class ConsentApi {
     private final PagedResourcesAssembler<ConsentDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieve(@PathVariable final Long spexareId,
                                                                         @SortDefault(sort = Consent_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<ConsentDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
@@ -66,6 +68,7 @@ public class ConsentApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ConsentDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         final ConsentDto dto = service.findById(spexareId, id);
 
@@ -73,6 +76,7 @@ public class ConsentApi {
     }
 
     @PostMapping(value = "/{typeId}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ConsentDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Boolean value) {
         final ConsentDto dto = service.create(spexareId, typeId, value);
 
@@ -81,6 +85,7 @@ public class ConsentApi {
     }
 
     @PutMapping(value = "/{typeId}/{id}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ConsentDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @PathVariable final Boolean value) {
         final ConsentDto dto = service.update(spexareId, typeId, id, value);
 
@@ -88,6 +93,7 @@ public class ConsentApi {
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
         service.deleteById(spexareId, typeId, id);
 

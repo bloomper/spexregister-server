@@ -764,14 +764,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final UserDto before =
-                    given()
-                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                            .contentType(ContentType.JSON)
-                            .when()
-                            .get("/{id}", user.getId())
-                            .then()
-                            .statusCode(HttpStatus.OK.value())
-                            .extract().body().as(UserDto.class);
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{id}", user.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(UserDto.class);
             //@formatter:on
 
             final UserUpdateDto dto = UserUpdateDto.builder()
@@ -1726,9 +1726,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             //@formatter:off
             given()

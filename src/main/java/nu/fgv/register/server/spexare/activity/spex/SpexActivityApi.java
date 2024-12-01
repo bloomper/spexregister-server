@@ -22,6 +22,7 @@ import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -60,6 +61,7 @@ public class SpexActivityApi {
     private final SpexApi spexApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexActivityDto>>> retrieve(@PathVariable final Long spexareId,
                                                                              @PathVariable final Long activityId,
                                                                              @SortDefault(sort = SpexActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -71,6 +73,7 @@ public class SpexActivityApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         final SpexActivityDto dto = service.findById(spexareId, activityId, id);
 
@@ -78,6 +81,7 @@ public class SpexActivityApi {
     }
 
     @PostMapping(value = "/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId) {
         final SpexActivityDto dto = service.create(spexareId, activityId, spexId);
 
@@ -86,6 +90,7 @@ public class SpexActivityApi {
     }
 
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
         service.update(spexareId, activityId, spexId, id);
 
@@ -93,6 +98,7 @@ public class SpexActivityApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         service.deleteById(spexareId, activityId, id);
 
@@ -100,6 +106,7 @@ public class SpexActivityApi {
     }
 
     @GetMapping(value = "/{id}/spex", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> retrieveSpex(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         final SpexDto dto = service.findSpexBySpexActivity(spexareId, activityId, id);
 

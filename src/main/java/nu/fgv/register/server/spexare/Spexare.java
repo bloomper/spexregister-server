@@ -127,7 +127,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private Boolean deceased;
 
     @Column(name = "published")
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private Boolean published;
 
     @Size(max = 255, message = "{spexare.graduation.size}")

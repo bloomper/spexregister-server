@@ -63,4 +63,10 @@ public interface TaggingRepository extends JpaRepository<Tag, Long> {
     )
     boolean existsBySpexareIdAndTagId(@Param("spexareId") Long spexareId, @Param("tagId") Long tagId);
 
+    @Query(value = """
+            SELECT COUNT(*) FROM tagging
+            """,
+            nativeQuery = true)
+    long countTaggings();
+
 }

@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.membership;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -56,6 +57,7 @@ public class MembershipApi {
     private final PagedResourcesAssembler<MembershipDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<MembershipDto>>> retrieve(@PathVariable final Long spexareId,
                                                                            @SortDefault(sort = Membership_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                            @RequestParam(required = false, defaultValue = "") final String filter) {
@@ -67,6 +69,7 @@ public class MembershipApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<MembershipDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         final MembershipDto dto = service.findById(spexareId, id);
 
@@ -74,6 +77,7 @@ public class MembershipApi {
     }
 
     @PostMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<MembershipDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
         final MembershipDto dto = service.create(spexareId, typeId, year);
 
@@ -82,6 +86,7 @@ public class MembershipApi {
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
         service.deleteById(spexareId, typeId, id);
 

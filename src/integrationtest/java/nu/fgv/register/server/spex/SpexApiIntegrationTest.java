@@ -545,7 +545,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted_due_to_insufficient_role() {
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -587,7 +587,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+        void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
 
             //@formatter:off
@@ -814,7 +814,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}", spex.getId())
@@ -1016,7 +1016,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() throws Exception {
+        void should_return_403_when_deleting_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -1025,7 +1025,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{id}/poster", spex.getId())
@@ -1615,7 +1615,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
                 .delete("/{spexId}/revivals/{id}", spex.getId(), revival.getId())

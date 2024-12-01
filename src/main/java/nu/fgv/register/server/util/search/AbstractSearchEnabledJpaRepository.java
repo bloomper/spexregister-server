@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util.search;
 
 import jakarta.persistence.EntityManager;
+import nu.fgv.register.server.acl.SimpleAclJpaRepository;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.engine.search.sort.dsl.CompositeSortComponentsStep;
@@ -28,7 +29,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.security.util.FieldUtils;
 
 import java.io.Serializable;
@@ -46,7 +46,7 @@ import static org.springframework.util.StringUtils.hasText;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements SearchEnabledJpaRepository<T, ID> {
+public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializable> extends SimpleAclJpaRepository<T, ID> implements SearchEnabledJpaRepository<T, ID> {
 
     private final EntityManager entityManager;
 
@@ -62,7 +62,7 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
 
     @Override
     public SearchResult<T> search(final String query, final Pageable pageable) {
-        return getSearchResult(Search.session(entityManager), parseQuery(query), pageable);
+        return search(Search.session(entityManager), parseQuery(query), pageable);
     }
 
     protected SearchQuery parseQuery(final String query) {

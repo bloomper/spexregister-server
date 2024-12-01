@@ -34,6 +34,7 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -92,6 +93,7 @@ public class SpexareApi {
     private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = Spexare_.PUBLISHED + ":true") final String filter) {
         final PagedModel<EntityModel<SpexareDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
@@ -102,6 +104,7 @@ public class SpexareApi {
     }
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"q"})
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q,
                                                                                 @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
@@ -118,6 +121,7 @@ public class SpexareApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
+    @RequiresAdmin
     public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
         final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
 
@@ -128,6 +132,7 @@ public class SpexareApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
     public ResponseEntity<EntityModel<SpexareDto>> create(@Valid @RequestBody final SpexareCreateDto dto) {
         final SpexareDto newDto = service.create(dto);
 
@@ -136,6 +141,7 @@ public class SpexareApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final Long id) {
         final SpexareDto dto = service.findById(id);
 
@@ -143,6 +149,7 @@ public class SpexareApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -154,6 +161,7 @@ public class SpexareApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
         if (!Objects.equals(id, dto.getId())) {
             return ResponseEntity.badRequest().build();
@@ -165,6 +173,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping("/{id}")
+    @RequiresAdmin
     public ResponseEntity<Object> delete(@PathVariable final Long id) {
         service.deleteById(id);
 
@@ -172,6 +181,7 @@ public class SpexareApi {
     }
 
     @GetMapping("/{id}/image")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Resource> downloadImage(@PathVariable final Long id) {
         final Pair<byte[], String> image = service.getImage(id);
 
@@ -181,6 +191,7 @@ public class SpexareApi {
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
         service.saveImage(id, file, contentType);
 
@@ -188,6 +199,7 @@ public class SpexareApi {
     }
 
     @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadImage(id, file.getBytes(), file.getContentType());
@@ -197,6 +209,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping("/{id}/image")
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> deleteImage(@PathVariable final Long id) {
         service.deleteImage(id);
 
@@ -204,6 +217,7 @@ public class SpexareApi {
     }
 
     @GetMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long id) {
         final SpexareDto dto = service.findPartnerBySpexare(id);
 
@@ -211,6 +225,7 @@ public class SpexareApi {
     }
 
     @PutMapping(value = "/{spexareId}/partner/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> updatePartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
         service.updatePartner(spexareId, id);
 
@@ -218,6 +233,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> deletePartner(@PathVariable final Long id) {
         service.deletePartner(id);
 

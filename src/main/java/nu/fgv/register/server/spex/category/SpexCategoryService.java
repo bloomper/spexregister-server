@@ -107,7 +107,6 @@ public class SpexCategoryService {
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_ADMIN_SID);
 
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })

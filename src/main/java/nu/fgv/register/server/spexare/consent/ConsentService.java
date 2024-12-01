@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.consent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
@@ -28,6 +29,7 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -53,11 +55,14 @@ public class ConsentService {
     private final SpexareRepository spexareRepository;
     private final TypeRepository typeRepository;
     private final TypeService typeService;
+    private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public Page<ConsentDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
                     .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
                     .map(spexare -> repository
                             .findAll(hasSpexare(spexare), pageable)
                             .map(CONSENT_MAPPER::toDto)
@@ -68,10 +73,13 @@ public class ConsentService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ConsentDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
-            return repository
-                    .findById0(id)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> repository.findById(id))
                     .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                     .map(CONSENT_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Consent.class, id));
@@ -80,12 +88,14 @@ public class ConsentService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ConsentDto create(final Long spexareId, final String typeId, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
                                 final Consent consent = new Consent();
@@ -102,14 +112,16 @@ public class ConsentService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ConsentDto update(final Long spexareId, final String typeId, final Long id, final Boolean value) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById0(id))
+                            .flatMap(spexare -> repository.findById(id))
                             .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .map(consent -> {
                                 consent.setValue(value);
@@ -123,14 +135,16 @@ public class ConsentService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             typeRepository
                     .findById(typeId)
                     .ifPresent(type -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById0(id))
+                            .flatMap(spexare -> repository.findById(id))
                             .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .ifPresentOrElse(
                                     consent -> repository.deleteById(consent.getId()),
@@ -149,7 +163,7 @@ public class ConsentService {
     }
 
     private boolean doesConsentExist(final Long id) {
-        return repository.findById0(id).isPresent();
+        return repository.findById(id).isPresent();
     }
 
     private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {

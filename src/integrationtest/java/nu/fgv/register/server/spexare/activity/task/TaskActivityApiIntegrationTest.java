@@ -39,7 +39,6 @@ import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -61,6 +60,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -70,7 +70,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Disabled
 class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
     private static String basePath;
@@ -179,6 +178,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
@@ -202,8 +202,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             persistTaskActivity(randomizeTaskActivity(activity, task));
 
@@ -229,8 +232,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             IntStream.range(0, size).forEach(i -> persistTaskActivity(randomizeTaskActivity(activity, task)));
 
@@ -256,7 +262,9 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero_when_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
@@ -284,8 +292,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
@@ -312,6 +323,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
@@ -334,8 +346,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
@@ -359,8 +374,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
@@ -384,9 +402,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
@@ -410,8 +432,11 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
@@ -441,13 +466,17 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -460,7 +489,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskActivityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -479,13 +508,17 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -504,13 +537,17 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -528,11 +565,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_task_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -551,14 +590,20 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
@@ -573,6 +618,59 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
         }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .post("/{taskId}", task.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .post("/{taskId}", task.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+            //@formatter:on
+
+            assertThat(repository.count()).isZero();
+        }
     }
 
     @Nested
@@ -582,15 +680,20 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task1 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task1.getId()));
             final var task2 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -603,7 +706,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskActivityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -622,14 +725,18 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -648,14 +755,18 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -674,14 +785,18 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_spex_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -698,48 +813,123 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_updating_and_incorrect_spexare() {
+        void should_return_404_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        void should_return_422_when_updating_and_incorrect_activity() {
+        void should_return_404_when_updating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task1 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task1.getId()));
+            final var task2 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task2.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .put("/{id}/{taskId}", taskActivity.getId(), task2.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task1 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task1.getId()));
+            final var task2 = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task2.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .put("/{id}/{taskId}", taskActivity.getId(), task2.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
@@ -753,14 +943,18 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -773,7 +967,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:off
             final List<TaskActivityDto> result =
                     given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                         .pathParam("spexareId", spexare.getId())
                         .pathParam("activityId", activity.getId())
@@ -792,11 +986,13 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity.getId())
@@ -815,13 +1011,15 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
                 .pathParam("activityId", activity.getId())
@@ -840,14 +1038,18 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", 1L)
@@ -864,48 +1066,119 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_422_when_deleting_and_incorrect_spexare() {
+        void should_return_404_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
                 .pathParam("activityId", activity.getId())
             .when()
                 .delete("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        void should_return_422_when_deleting_and_incorrect_activity() {
+        void should_return_404_when_deleting_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
             //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
                 .pathParam("activityId", activity1.getId())
             .when()
                 .delete("/{id}", taskActivity.getId())
             .then()
-                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void should_return_403_when_not_permitted_due_to_insufficient_permission() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .delete("/{id}", taskActivity.getId())
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+
+        @Test
+        void should_return_401_when_not_permitted_due_to_insufficient_role() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
+            final var task = persistTask(randomizeTask(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+
+            //@formatter:off
+            given()
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .delete("/{id}", taskActivity.getId())
+            .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);
@@ -925,9 +1198,9 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
     private Activity randomizeActivity(@Nullable final Spexare spexare) {
         final var activity = random.nextObject(Activity.class);
-        if (spexare != null) {
-            activity.setSpexare(spexare);
-        }
+
+        activity.setSpexare(spexare);
+
         return activity;
     }
 

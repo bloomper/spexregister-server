@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivityApi;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityApi;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -57,6 +58,7 @@ public class ActivityApi {
     private final PagedResourcesAssembler<ActivityDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<ActivityDto>>> retrieve(@PathVariable final Long spexareId,
                                                                          @SortDefault(sort = Activity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<ActivityDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
@@ -67,6 +69,7 @@ public class ActivityApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         final ActivityDto dto = service.findById(spexareId, id);
 
@@ -74,6 +77,7 @@ public class ActivityApi {
     }
 
     @PostMapping(value = "", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActivityDto>> create(@PathVariable final Long spexareId) {
         final ActivityDto dto = service.create(spexareId);
 
@@ -82,6 +86,7 @@ public class ActivityApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long id) {
         service.deleteById(spexareId, id);
 

@@ -31,5 +31,5 @@ public class Facet {
 
     private String name;
 
-    private Map<String, Long> values;
+    private Map<Object, Long> values;
 }

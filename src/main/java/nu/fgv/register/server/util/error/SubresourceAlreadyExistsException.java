@@ -35,7 +35,7 @@ public class SubresourceAlreadyExistsException extends ResponseStatusException {
                                              final Object resourceIdentifier,
                                              final Object... secondaryResourceIdentifiers) {
         super(HttpStatus.CONFLICT, null, null,
-                ErrorResponse.getDefaultDetailMessageCode(ResourcesNotFoundException.class,
+                ErrorResponse.getDefaultDetailMessageCode(SubresourceAlreadyExistsException.class,
                         String.join("|", resourceTypes)),
                 Stream.concat(
                         Stream.concat(

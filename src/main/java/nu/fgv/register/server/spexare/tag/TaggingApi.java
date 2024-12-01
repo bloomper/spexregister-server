@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.tag.Tag_;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -57,6 +58,7 @@ public class TaggingApi {
     private final PagedResourcesAssembler<TagDto> pagedResourcesAssembler;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@PathVariable final Long spexareId,
                                                                     @SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
@@ -67,6 +69,7 @@ public class TaggingApi {
     }
 
     @PostMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> create(@PathVariable final Long spexareId, @PathVariable final Long id) {
         service.create(spexareId, id);
 
@@ -74,6 +77,7 @@ public class TaggingApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long id) {
         service.deleteById(spexareId, id);
 

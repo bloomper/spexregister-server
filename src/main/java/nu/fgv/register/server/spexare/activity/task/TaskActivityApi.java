@@ -23,6 +23,7 @@ import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.activity.task.actor.ActorApi;
 import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.TaskDto;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -61,6 +62,7 @@ public class TaskActivityApi {
     private final TaskApi taskApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<TaskActivityDto>>> retrieve(@PathVariable final Long spexareId,
                                                                              @PathVariable final Long activityId,
                                                                              @SortDefault(sort = TaskActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
@@ -72,6 +74,7 @@ public class TaskActivityApi {
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         final TaskActivityDto dto = service.findById(spexareId, activityId, id);
 
@@ -79,6 +82,7 @@ public class TaskActivityApi {
     }
 
     @PostMapping(value = "/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId) {
         final TaskActivityDto dto = service.create(spexareId, activityId, taskId);
 
@@ -87,6 +91,7 @@ public class TaskActivityApi {
     }
 
     @PutMapping(value = "/{id}/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId, @PathVariable final Long id) {
         service.update(spexareId, activityId, taskId, id);
 
@@ -94,6 +99,7 @@ public class TaskActivityApi {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         service.deleteById(spexareId, activityId, id);
 
@@ -101,6 +107,7 @@ public class TaskActivityApi {
     }
 
     @GetMapping(value = "/{id}/task", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskDto>> retrieveTask(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
         final TaskDto dto = service.findTaskByTaskActivity(spexareId, activityId, id);
 

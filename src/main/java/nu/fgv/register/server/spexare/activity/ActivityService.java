@@ -19,10 +19,12 @@ package nu.fgv.register.server.spexare.activity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,13 +46,15 @@ import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasS
 public class ActivityService {
 
     private final ActivityRepository repository;
-
     private final SpexareRepository spexareRepository;
+    private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public Page<ActivityDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById(spexareId)
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
                     .map(spexare -> repository
                             .findAll(hasSpexare(spexare), pageable)
                             .map(ACTIVITY_MAPPER::toDto)
@@ -61,10 +65,13 @@ public class ActivityService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActivityDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
-            return repository
-                    .findById(id)
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> repository.findById(id))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(ACTIVITY_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Activity.class, id));
@@ -73,10 +80,12 @@ public class ActivityService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public ActivityDto create(final Long spexareId) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
                     .findById0(spexareId)
+                    .map(permissionService::checkWritePermission)
                     .map(spexare -> {
                         final Activity activity = new Activity();
                         activity.setSpexare(spexare);
@@ -90,10 +99,12 @@ public class ActivityService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId) && doesActivityExist(id)) {
             spexareRepository
-                    .findById(spexareId)
+                    .findById0(spexareId)
+                    .map(permissionService::checkWritePermission)
                     .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasId(id))))
                     .flatMap(spexare -> repository.findById(id))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
@@ -112,7 +123,7 @@ public class ActivityService {
     }
 
     private boolean doesActivityExist(final Long id) {
-        return repository.findById0(id).isPresent();
+        return repository.findById(id).isPresent();
     }
 
 }

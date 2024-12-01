@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
@@ -27,6 +28,7 @@ import nu.fgv.register.server.tag.Tag_;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,25 +48,32 @@ import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 public class TaggingService {
 
     private final TaggingRepository repository;
-
     private final SpexareRepository spexareRepository;
+    private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public Page<TagDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         if (doesSpexareExist(spexareId)) {
-            return repository
-                    .findBySpexareId(spexareId, pageable)
-                    .map(TAG_MAPPER::toDto);
+            if (spexareRepository.findById0(spexareId).map(permissionService::checkReadPermission).isPresent()) {
+                return repository
+                        .findBySpexareId(spexareId, pageable)
+                        .map(TAG_MAPPER::toDto);
+            } else {
+                throw new ResourceNotFoundException(Spexare.class, spexareId);
+            }
         } else {
             throw new ResourceNotFoundException(Spexare.class, spexareId);
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void create(final Long spexareId, final Long id) {
         if (doSpexareAndTagExist(spexareId, id)) {
             repository
                     .findById(id)
                     .ifPresent(tag -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.existsBySpexareIdAndTagId(spexare.getId(), tag.getId()))
                             .ifPresentOrElse(
                                     spexare -> {
@@ -83,12 +92,14 @@ public class TaggingService {
         }
     }
 
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long id) {
         if (doSpexareAndTagExist(spexareId, id)) {
             repository
                     .findById(id)
                     .ifPresent(tag -> spexareRepository
                             .findById0(spexareId)
+                            .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.existsBySpexareIdAndTagId(spexare.getId(), tag.getId()))
                             .ifPresentOrElse(
                                     spexare -> {

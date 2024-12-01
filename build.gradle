@@ -140,7 +140,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom 'org.testcontainers:testcontainers-bom:1.20.3'
-        mavenBom 'org.hibernate.search:hibernate-search-bom:7.2.1.Final'
+        mavenBom 'org.hibernate.search:hibernate-search-bom:7.2.2.Final'
     }
 }
 
