@@ -21,11 +21,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.headers.RequestHeadersSnippet;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,13 +62,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SettingsApi.class)
 class SettingsApiTest extends AbstractApiTest {
 
-    @MockBean
+    @MockitoBean
     private LanguageService languageService;
 
-    @MockBean
+    @MockitoBean
     private CountryService countryService;
 
-    @MockBean
+    @MockitoBean
     private TypeService typeService;
 
     private final ResponseFieldsSnippet languageResponseFields = responseFields(

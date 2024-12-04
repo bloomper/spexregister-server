@@ -24,7 +24,6 @@ import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +34,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -83,19 +83,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexCategoryApi.class)
 class SpexCategoryApiTest extends AbstractApiTest {
 
-    @MockBean
+    @MockitoBean
     private SpexCategoryService service;
 
-    @MockBean
+    @MockitoBean
     private SpexCategoryImportService importService;
 
-    @MockBean
+    @MockitoBean
     private SpexCategoryExportService exportService;
 
-    @MockBean
+    @MockitoBean
     private EventService eventService;
 
-    @MockBean
+    @MockitoBean
     private EventApi eventApi;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(

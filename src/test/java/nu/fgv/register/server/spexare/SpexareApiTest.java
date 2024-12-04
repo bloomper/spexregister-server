@@ -31,7 +31,6 @@ import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +44,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -94,22 +94,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexareApi.class)
 class SpexareApiTest extends AbstractApiTest {
 
-    @MockBean
+    @MockitoBean
     private SpexareService service;
 
-    @MockBean
+    @MockitoBean
     private SpexareImportService importService;
 
-    @MockBean
+    @MockitoBean
     private SpexareExportService exportService;
 
-    @MockBean
+    @MockitoBean
     private EventService eventService;
 
-    @MockBean
+    @MockitoBean
     private EventApi eventApi;
 
-    @MockBean
+    @MockitoBean
     private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
