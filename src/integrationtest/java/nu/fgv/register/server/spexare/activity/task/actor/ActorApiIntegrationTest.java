@@ -55,6 +55,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -154,13 +155,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
-        repository.deleteAll();
-        spexareRepository.deleteAll();
-        activityRepository.deleteAll();
-        taskActivityRepository.deleteAll();
-        taskRepository.deleteAll();
-        taskCategoryRepository.deleteAll();
-        typeRepository.deleteAll();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "type", "task_activity", "activity", "spexare", "task", "task_category", "event");
     }
 
     @AfterEach

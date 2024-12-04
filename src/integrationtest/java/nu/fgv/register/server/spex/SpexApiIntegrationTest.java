@@ -49,6 +49,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.lang.Nullable;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -131,10 +132,16 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
-        repository.deleteAll();
-        detailsRepository.deleteAll();
-        categoryRepository.deleteAll();
-        eventRepository.deleteAll();
+        jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NOT NULL")
+                .query()
+                .listOfRows()
+                .forEach(row ->
+                        jdbcClient
+                                .sql("UPDATE spex SET parent_id = NULL WHERE id = :id")
+                                .param("id", row.get("id"))
+                                .update()
+                );
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "event");
     }
 
     @AfterEach
@@ -1984,6 +1991,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
     private Spex persistSpex(final Spex spex) {
         spex.setId(null);
+        spex.getDetails().setId(null);
         final var details = detailsRepository.save(spex.getDetails());
         spex.setDetails(details);
         return repository.save(spex);

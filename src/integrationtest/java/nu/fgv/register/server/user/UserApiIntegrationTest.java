@@ -62,6 +62,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.SecureRandom;
@@ -166,10 +167,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
-        repository.deleteAll();
-        stateRepository.deleteAll();
-        spexareRepository.deleteAll();
-        eventRepository.deleteAll();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "event");
     }
 
     @AfterEach
@@ -1945,7 +1943,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(3L);
+            assertThat(eventRepository.count()).isEqualTo(2L);
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
             assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
@@ -1972,9 +1970,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private User randomizeUser(final State state) {
         final var user = random.nextObject(User.class);
-        if (state != null) {
-            user.setState(state);
-        }
+
+        user.setState(state);
+
         return user;
     }
 

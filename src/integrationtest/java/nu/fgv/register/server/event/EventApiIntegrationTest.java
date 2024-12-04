@@ -38,6 +38,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -93,7 +94,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
-        eventRepository.deleteAll();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "event");
     }
 
     @AfterEach

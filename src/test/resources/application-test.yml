@@ -8,6 +8,7 @@ spring:
     properties:
       hibernate:
         search:
-          backend:
-            directory:
-              type: local-heap
+          indexing:
+            plan:
+              synchronization:
+                strategy: sync

@@ -101,7 +101,7 @@ public abstract class AbstractIntegrationTest {
 
     private static URI authorizationURI;
 
-    private final JdbcClient jdbcClient;
+    protected final JdbcClient jdbcClient;
     private final AclCache aclCache;
     protected final Keycloak keycloakAdminClient;
     protected final String keycloakClientId;

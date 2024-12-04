@@ -44,6 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -122,8 +123,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
 
-        repository.deleteAll();
-        spexareRepository.deleteAll();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tagging", "tag", "spexare", "event");
     }
 
     @AfterEach
@@ -177,7 +177,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
             spexare.setTags(Set.of(tag));
-            persistSpexare(spexare);
+            spexareRepository.save(spexare);
 
             //@formatter:off
             final List<TagDto> result =
@@ -207,7 +207,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 taggings.add(tag);
             });
             spexare.setTags(Set.copyOf(taggings));
-            persistSpexare(spexare);
+            spexareRepository.save(spexare);
 
             //@formatter:off
             final List<TagDto> result =
