@@ -49,6 +49,7 @@ import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jeasy.random.FieldPredicates.named;
 
 /**
  * @author Anders Jacobsson
@@ -76,6 +77,8 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
+        parameters
+                .excludeField(named("id"));
         random = new EasyRandom(parameters);
     }
 

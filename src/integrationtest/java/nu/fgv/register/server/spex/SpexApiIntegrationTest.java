@@ -111,6 +111,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .randomize(
                         named("firstYear"), new YearRandomizer()
                 )
+                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
