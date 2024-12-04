@@ -111,7 +111,6 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .randomize(
                         named("firstYear"), new YearRandomizer()
                 )
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -1984,16 +1983,21 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spex persistSpex(final Spex spex) {
+        spex.setId(null);
         final var details = detailsRepository.save(spex.getDetails());
         spex.setDetails(details);
         return repository.save(spex);
     }
 
     private Spex persistRevival(final Spex spex) {
+        spex.setId(null);
+
         return repository.save(spex);
     }
 
     private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
         return categoryRepository.save(category);
     }
 }

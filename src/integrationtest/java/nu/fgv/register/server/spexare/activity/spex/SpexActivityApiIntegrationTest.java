@@ -128,7 +128,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("spexActivity").and(ofType(SpexActivity.class)).and(inClass(Activity.class)))
                 .excludeField(named("taskActivities").and(ofType(Set.class)).and(inClass(Activity.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -1198,6 +1197,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private SpexActivity persistSpexActivity(final SpexActivity spexActivity) {
+        spexActivity.setId(null);
+
         return repository.save(spexActivity);
     }
 
@@ -1210,6 +1211,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
         return activityRepository.save(activity);
     }
 
@@ -1218,6 +1221,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return spexareRepository.save(spexare);
     }
 
@@ -1231,6 +1236,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spex persistSpex(final Spex spex) {
+        spex.setId(null);
         final var details = spexDetailsRepository.save(spex.getDetails());
         spex.setDetails(details);
         return spexRepository.save(spex);
@@ -1241,6 +1247,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
         return spexCategoryRepository.save(category);
     }
 

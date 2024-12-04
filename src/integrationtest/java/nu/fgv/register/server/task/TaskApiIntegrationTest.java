@@ -58,7 +58,6 @@ import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.jeasy.random.FieldPredicates.named;
 
 /**
  * @author Anders Jacobsson
@@ -95,8 +94,6 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
-        parameters
-                .excludeField(named("id"));
         random = new EasyRandom(parameters);
     }
 
@@ -1118,10 +1115,14 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Task persistTask(final Task task) {
+        task.setId(null);
+
         return repository.save(task);
     }
 
     private TaskCategory persistTaskCategory(final TaskCategory category) {
+        category.setId(null);
+
         return categoryRepository.save(category);
     }
 }

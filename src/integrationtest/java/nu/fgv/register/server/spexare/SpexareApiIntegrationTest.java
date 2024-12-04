@@ -110,7 +110,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -1296,6 +1295,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return repository.save(spexare);
     }
 

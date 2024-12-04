@@ -105,7 +105,6 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -853,6 +852,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Consent persistConsent(final Consent consent) {
+        consent.setId(null);
+
         return repository.save(consent);
     }
 
@@ -871,6 +872,8 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return spexareRepository.save(spexare);
     }
 

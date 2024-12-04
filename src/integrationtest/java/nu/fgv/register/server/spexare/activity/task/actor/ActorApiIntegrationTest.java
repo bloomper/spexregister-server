@@ -134,7 +134,6 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("spexActivity").and(ofType(SpexActivity.class)).and(inClass(Activity.class)))
                 .excludeField(named("taskActivities").and(ofType(Set.class)).and(inClass(Activity.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -2377,6 +2376,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Actor persistActor(final Actor actor) {
+        actor.setId(null);
+
         return repository.save(actor);
     }
 
@@ -2388,6 +2389,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private TaskActivity persistTaskActivity(final TaskActivity taskActivity) {
+        taskActivity.setId(null);
+
         return taskActivityRepository.save(taskActivity);
     }
 
@@ -2398,6 +2401,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
         return activityRepository.save(activity);
     }
 
@@ -2406,6 +2411,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return spexareRepository.save(spexare);
     }
 
@@ -2416,6 +2423,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Task persistTask(final Task task) {
+        task.setId(null);
+
         return taskRepository.save(task);
     }
 
@@ -2424,6 +2433,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private TaskCategory persistTaskCategory(final TaskCategory category) {
+        category.setId(null);
+
         return taskCategoryRepository.save(category);
     }
 

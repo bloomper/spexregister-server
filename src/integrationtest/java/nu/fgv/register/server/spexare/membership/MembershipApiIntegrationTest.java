@@ -109,7 +109,6 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -770,6 +769,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Membership persistMembership(final Membership membership) {
+        membership.setId(null);
+
         return repository.save(membership);
     }
 
@@ -788,6 +789,8 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return spexareRepository.save(spexare);
     }
 

@@ -146,7 +146,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
-                .excludeField(named("id"))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
@@ -1980,6 +1979,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private User persistUser(final User user, final String... roles) {
+        user.setId(null);
         final var representation = persistUserInKeycloak(roles);
         user.setExternalId(representation.getId());
         return repository.save(user);
@@ -2113,6 +2113,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
         return spexareRepository.save(spexare);
     }
 }

@@ -96,8 +96,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         parameters
                 .randomize(
                         named("firstYear"), new YearRandomizer()
-                )
-                .excludeField(named("id"));
+                );
         random = new EasyRandom(parameters);
     }
 
@@ -1028,6 +1027,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
         return repository.save(category);
     }
 }
