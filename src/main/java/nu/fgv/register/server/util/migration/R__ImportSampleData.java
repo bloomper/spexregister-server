@@ -807,7 +807,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             final ObjectIdentity spexareOid = toObjectIdentity(Spexare.class, spexareId);
 
                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                            permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
+                            permissionService.grantPermission(spexareOid, BasePermission.WRITE, new PrincipalSid(externalId));
                         }
                     } catch (final Exception e) {
                         throw new IllegalStateException("Could not retrieve newly created user in Keycloak", e);
