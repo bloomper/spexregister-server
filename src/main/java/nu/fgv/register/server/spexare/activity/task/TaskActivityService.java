@@ -38,6 +38,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static nu.fgv.register.server.spexare.activity.task.TaskActivityMapper.TASK_ACTIVITY_MAPPER;
+import static nu.fgv.register.server.spexare.activity.task.TaskActivitySpecification.hasActivity;
+import static nu.fgv.register.server.spexare.activity.task.TaskActivitySpecification.hasId;
+import static nu.fgv.register.server.spexare.activity.task.TaskActivitySpecification.hasTask;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 /**
@@ -65,7 +68,7 @@ public class TaskActivityService {
                     .flatMap(spexare -> activityRepository.findById(activityId))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .map(activity -> repository
-                            .findByActivity(activity, pageable)
+                            .findAll(hasActivity(activity), pageable)
                             .map(TASK_ACTIVITY_MAPPER::toDto)
                     )
                     .orElseGet(Page::empty);
@@ -100,7 +103,7 @@ public class TaskActivityService {
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
                     .flatMap(activity -> taskRepository
                             .findById0(taskId)
-                            .filter(task -> !repository.existsByActivityAndTask(activity, task))
+                            .filter(task -> !repository.exists(hasActivity(activity).and(hasTask(task))))
                             .map(task -> {
                                 final TaskActivity taskActivity = new TaskActivity();
                                 taskActivity.setActivity(activity);
@@ -127,7 +130,7 @@ public class TaskActivityService {
                     .ifPresentOrElse(
                             activity -> taskRepository
                                     .findById0(taskId)
-                                    .filter(task -> repository.existsByActivityAndId(activity, id))
+                                    .filter(task -> repository.exists(hasActivity(activity).and(hasId(id))))
                                     .ifPresentOrElse(
                                             task -> repository
                                                     .findById(id)
@@ -162,7 +165,7 @@ public class TaskActivityService {
                     .map(permissionService::checkWritePermission)
                     .flatMap(spexare -> activityRepository.findById(activityId))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .filter(activity -> repository.existsByActivityAndId(activity, id))
+                    .filter(activity -> repository.exists(hasActivity(activity).and(hasId(id))))
                     .ifPresentOrElse(
                             activity -> repository
                                     .findById(id)
