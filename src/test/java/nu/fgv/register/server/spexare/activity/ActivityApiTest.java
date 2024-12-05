@@ -70,7 +70,7 @@ class ActivityApiTest extends AbstractApiTest {
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
-            linkWithRel("spex-activities").description("Link to the current spexare's spex activities"),
+            linkWithRel("spex-activity").description("Link to the current spexare's spex activity"),
             linkWithRel("task-activities").description("Link to the current spexare's task activities")
     );
 

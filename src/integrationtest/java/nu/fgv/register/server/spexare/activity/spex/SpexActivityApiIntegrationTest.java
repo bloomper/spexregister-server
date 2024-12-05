@@ -58,7 +58,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
@@ -159,50 +158,65 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Retrieve paged")
-    class RetrievePagedTests {
+    @DisplayName("Retrieve")
+    class RetrieveTests {
 
         @Test
-        void should_return_404() {
+        void should_return_found() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
+
             //@formatter:off
-            given()
+            final SpexActivityDto result =
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                    .pathParam("spexareId", spexare.getId())
+                    .pathParam("activityId", activity.getId())
+                .when()
+                    .get()
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexActivityDto.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id")
+                    .isEqualTo(spexActivity.getId());
+        }
+
+        @Test
+        void should_return_404_when_not_found() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var activity = persistActivity(randomizeActivity(spexare));
+
+            //@formatter:off
+            final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
-                .pathParam("spexareId",1L)
-                .pathParam("activityId",1L)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity.getId())
             .when()
                 .get()
             .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        void should_return_zero() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
-            final var activity = persistActivity(randomizeActivity(spexare));
-
-            //@formatter:off
-            final List<SpexActivityDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
-            //@formatter:on
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        void should_return_one() {
+        void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
@@ -210,30 +224,27 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
-            persistSpexActivity(randomizeSpexActivity(activity, spex));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
-            final List<SpexActivityDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", 1L)
+                .pathParam("activityId", activity.getId())
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
-            assertThat(result).hasSize(1);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        @Disabled
-        void should_return_many() {
-            final int size = 42;
+        void should_return_404_when_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
@@ -241,57 +252,88 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
-            IntStream.range(0, size).forEach(i -> persistSpexActivity(randomizeSpexActivity(activity, spex)));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
-            final List<SpexActivityDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", 1L)
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
-            assertThat(result).hasSize(size);
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        void should_return_zero_when_incorrect_spexare() {
+        void should_return_404_when_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare2.getId()));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             //@formatter:off
-            final List<SpexActivityDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare1.getId())
-                        .pathParam("activityId", activity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare1.getId())
+                .pathParam("activityId", activity.getId())
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
-            assertThat(result).isEmpty();
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void should_return_404_when_incorrect_activity() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+            final var activity1 = persistActivity(randomizeActivity(spexare));
+            final var activity2 = persistActivity(randomizeActivity(spexare));
+            final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
+
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+                .pathParam("spexareId", spexare.getId())
+                .pathParam("activityId", activity1.getId())
+            .when()
+                .get()
+            .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
     }
 
     @Nested
-    @DisplayName("Retrieve")
-    class RetrieveTests {
+    @DisplayName("Retrieve by id")
+    class RetrieveByIdTests {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
@@ -490,7 +532,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<SpexActivityDto> result =
+            final SpexActivityDto result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
@@ -500,12 +542,11 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
+                        .extract().body().as(SpexActivityDto.class);
             //@formatter:on
 
-            assertThat(result).hasSize(1);
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
         }
 
         @Test
@@ -707,7 +748,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             //@formatter:off
-            final List<SpexActivityDto> result =
+            final SpexActivityDto result =
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
@@ -717,12 +758,14 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                         .get()
                     .then()
                         .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-activities", SpexActivityDto.class);
+                        .extract().body().as(SpexActivityDto.class);
             //@formatter:on
 
-            assertThat(result).hasSize(1);
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id")
+                    .isEqualTo(spexActivity.getId());
         }
 
         @Test

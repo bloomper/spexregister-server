@@ -31,8 +31,6 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,18 +58,17 @@ public class SpexActivityService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public Page<SpexActivityDto> findByActivity(final Long spexareId, final Long activityId, final Pageable pageable) {
+    public SpexActivityDto findByActivity(final Long spexareId, final Long activityId) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return spexareRepository
                     .findById0(spexareId)
                     .map(permissionService::checkReadPermission)
                     .flatMap(spexare -> activityRepository.findById(activityId))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .map(activity -> repository
-                            .findAll(hasActivity(activity), pageable)
-                            .map(SPEX_ACTIVITY_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
+                    .flatMap(activity -> repository
+                            .findOne(hasActivity(activity))
+                            .map(SPEX_ACTIVITY_MAPPER::toDto))
+                    .orElseThrow(() -> new ResourceNotFoundException(Activity.class, activityId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, activityId);
         }

@@ -108,7 +108,7 @@ public class ActivityApi {
 
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
-        links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, dto.getId(), Pageable.unpaged())).withRel("spex-activities"));
+        links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, dto.getId())).withRel("spex-activity"));
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, dto.getId(), Pageable.unpaged())).withRel("task-activities"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 

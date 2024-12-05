@@ -24,13 +24,9 @@ import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,23 +49,19 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activities")
+@RequestMapping("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity")
 public class SpexActivityApi {
 
     private final SpexActivityService service;
-    private final PagedResourcesAssembler<SpexActivityDto> pagedResourcesAssembler;
     private final SpexApi spexApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<SpexActivityDto>>> retrieve(@PathVariable final Long spexareId,
-                                                                             @PathVariable final Long activityId,
-                                                                             @SortDefault(sort = SpexActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
-        final PagedModel<EntityModel<SpexActivityDto>> paged = pagedResourcesAssembler.toModel(service.findByActivity(spexareId, activityId, pageable));
+    public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId,
+                                                                 @PathVariable final Long activityId) {
+        final SpexActivityDto dto = service.findByActivity(spexareId, activityId);
 
-        paged.getContent().forEach(p -> addLinks(p, spexareId, activityId));
-
-        return ResponseEntity.ok(paged);
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -128,7 +120,7 @@ public class SpexActivityApi {
 
         links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(SpexActivityApi.class).retrieveSpex(spexareId, activityId, dto.getId())).withRel("spex"));
-        links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, Pageable.unpaged())).withRel("spex-activities"));
+        links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId)).withRel("spex-activity"));
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("activities"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(spexareId)).withRel("spexare"));
 
