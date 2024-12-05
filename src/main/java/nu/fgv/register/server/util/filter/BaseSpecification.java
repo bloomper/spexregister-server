@@ -25,6 +25,8 @@ import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
+import java.time.LocalDate;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -32,14 +34,23 @@ import org.springframework.lang.Nullable;
 @Getter
 public class BaseSpecification<T> implements Specification<T> {
 
+    @Nullable
     private final FilterCriteria criteria;
 
-    public BaseSpecification(final FilterCriteria criteria) {
+    protected BaseSpecification() {
+        this.criteria = null;
+    }
+
+    protected BaseSpecification(final FilterCriteria criteria) {
         this.criteria = criteria;
     }
 
     @Override
+    @Nullable
     public Predicate toPredicate(final Root<T> root, @Nullable final CriteriaQuery<?> query, final CriteriaBuilder builder) {
+        if (criteria == null) {
+            return null;
+        }
         final Path<T> path = getPath(root, criteria.getKey());
 
         return switch (criteria.getOperation()) {
@@ -50,6 +61,8 @@ public class BaseSpecification<T> implements Specification<T> {
                     yield builder.isTrue(path.as(Boolean.class));
                 } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
                     yield builder.isFalse(path.as(Boolean.class));
+                } else if (path.getJavaType().equals(LocalDate.class)) {
+                    yield builder.equal(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
                 } else {
                     yield builder.equal(path, criteria.getValue());
                 }
@@ -61,12 +74,26 @@ public class BaseSpecification<T> implements Specification<T> {
                     yield builder.isFalse(path.as(Boolean.class));
                 } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
                     yield builder.isTrue(path.as(Boolean.class));
+                } else if (path.getJavaType().equals(LocalDate.class)) {
+                    yield builder.notEqual(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
                 } else {
                     yield builder.notEqual(path, criteria.getValue());
                 }
             }
-            case GREATER_THAN -> builder.greaterThan(path.as(String.class), criteria.getValue().toString());
-            case LESS_THAN -> builder.lessThan(path.as(String.class), criteria.getValue().toString());
+            case GREATER_THAN -> {
+                if (path.getJavaType().equals(LocalDate.class)) {
+                    yield builder.greaterThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                } else {
+                    yield builder.greaterThan(path.as(String.class), criteria.getValue().toString());
+                }
+            }
+            case LESS_THAN -> {
+                if (path.getJavaType().equals(LocalDate.class)) {
+                    yield builder.lessThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                } else {
+                    yield builder.lessThan(path.as(String.class), criteria.getValue().toString());
+                }
+            }
             case LIKE -> builder.like(path.as(String.class), criteria.getValue().toString());
             case STARTS_WITH -> builder.like(path.as(String.class), criteria.getValue() + "%");
             case ENDS_WITH -> builder.like(path.as(String.class), "%" + criteria.getValue());
