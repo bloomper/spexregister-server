@@ -106,6 +106,8 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
     @AfterEach
     void tearDown() {
         RestAssured.reset();
+
+        JdbcTestUtils.deleteFromTables(jdbcClient, "authority");
     }
 
     @Nested
