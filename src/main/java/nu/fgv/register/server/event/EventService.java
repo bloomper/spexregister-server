@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class EventService {
 
     private final EventRepository repository;
 
+    @RequiresAdmin
     public List<EventDto> find(final Integer sinceInDays) {
         final List<EventDto> events = new ArrayList<>();
 
@@ -65,6 +67,7 @@ public class EventService {
         return events;
     }
 
+    @RequiresAdmin
     public List<EventDto> findBySource(final Integer sinceInDays, final Event.SourceType source) {
         return repository
                 .findAll(hasCreatedAtGreaterThanEqual(getInstantFromSinceInDays(sinceInDays)).and(hasSource(source)), Sort.by("createdAt").descending())
@@ -73,6 +76,7 @@ public class EventService {
                 .toList();
     }
 
+    @RequiresAdmin
     public EventDto findById(final Long id) {
         return repository
                 .findById(id)
@@ -80,6 +84,7 @@ public class EventService {
                 .orElseThrow(() -> new ResourceNotFoundException(Event.class, id));
     }
 
+    @RequiresAdmin
     public EventDto create(final String createdBy, final Event.EventType event, final Event.SourceType source) {
         final Event model = EVENT_MAPPER.toModel(createdBy, event, source);
         return EVENT_MAPPER.toDto(repository.save(model));

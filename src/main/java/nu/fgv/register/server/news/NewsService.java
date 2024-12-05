@@ -25,6 +25,7 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -60,6 +61,7 @@ public class NewsService {
     private final NewsRepository repository;
     private final PermissionService permissionService;
 
+    @RequiresAdminOrEditorOrUser
     public List<NewsDto> findAll(final Sort sort) {
         return repository
                 .findAll(sort, BasePermission.READ)
@@ -68,6 +70,7 @@ public class NewsService {
                 .toList();
     }
 
+    @RequiresAdminOrEditorOrUser
     public Page<NewsDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
@@ -78,6 +81,7 @@ public class NewsService {
                         .map(NEWS_MAPPER::toDto);
     }
 
+    @RequiresAdminOrEditorOrUser
     public NewsDto findById(final Long id) {
         return repository.findById0(id)
                 .map(NEWS_MAPPER::toDto)
