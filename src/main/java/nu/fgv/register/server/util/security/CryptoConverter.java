@@ -21,6 +21,7 @@ import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -58,6 +59,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
     }
 
     @Override
+    @Nullable
     public synchronized String convertToDatabaseColumn(final String plainValue) {
         if (hasText(plainValue)) {
             final Key key = new SecretKeySpec(secretKey, "AES");
@@ -70,11 +72,12 @@ public class CryptoConverter implements AttributeConverter<String, String> {
                 throw new InternalErrorException(e.getMessage());
             }
         } else {
-            return "";
+            return null;
         }
     }
 
     @Override
+    @Nullable
     public synchronized String convertToEntityAttribute(final String encryptedValue) {
         if (hasText(encryptedValue)) {
             final Key key = new SecretKeySpec(secretKey, "AES");
@@ -87,7 +90,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
                 throw new InternalErrorException(e.getMessage());
             }
         } else {
-            return "";
+            return null;
         }
     }
 }

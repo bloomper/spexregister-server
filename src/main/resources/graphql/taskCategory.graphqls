@@ -1,0 +1,42 @@
+extend type Query {
+    taskCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["name"], direction: SortDirection = ASC): TaskCategoryConnection
+    taskCategory(id: ID!): TaskCategory
+    taskCategoryEvents(sinceInDays: Int = 90): [Event]
+}
+
+extend type Mutation {
+    taskCategoryCreate(input: TaskCategoryCreate!): TaskCategory
+    taskCategoryUpdate(input: TaskCategoryUpdate!): TaskCategory
+    taskCategoryDelete(id: ID!): Void
+}
+
+type TaskCategory {
+    id: ID!
+    name: String!
+    actorPresent: Boolean!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type TaskCategoryConnection {
+    edges: [TaskCategoryEdge]!
+    pageInfo: PageInfo!
+}
+
+type TaskCategoryEdge {
+    cursor: String!
+    node: TaskCategory!
+}
+
+input TaskCategoryCreate {
+    name: String!
+    actorPresent: Boolean!
+}
+
+input TaskCategoryUpdate {
+    id: ID!
+    name: String!
+    actorPresent: Boolean!
+}

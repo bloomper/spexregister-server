@@ -1,0 +1,10 @@
+mutation membershipCreate ($spexareId: ID!, $typeId: ID!, $year: Year!) {
+    membershipCreate(spexareId: $spexareId, typeId: $typeId, input: { year: $year }) {
+        id
+        year
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

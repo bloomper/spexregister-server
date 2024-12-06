@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -868,7 +867,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(poster)
             .when()
-                .put("/{id}/poster", spex.getId())
+                .put("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -879,7 +878,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/poster", spex.getId())
+                        .get("/{spexId}/poster", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -904,7 +903,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .multiPart("file", poster, MediaType.IMAGE_PNG_VALUE)
             .when()
-                .post("/{id}/poster", spex.getId())
+                .post("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -915,7 +914,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/poster", spex.getId())
+                        .get("/{spexId}/poster", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -941,7 +940,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(poster)
             .when()
-                .put("/{id}/poster", spex.getId())
+                .put("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -951,7 +950,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/poster", spex.getId())
+                .delete("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -961,7 +960,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}/poster", spex.getId())
+                .get("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -984,7 +983,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(poster)
             .when()
-                .post("/{id}/poster", spex.getId())
+                .post("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1005,7 +1004,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(poster)
             .when()
-                .post("/{id}/poster", 123)
+                .post("/{spexId}/poster", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1029,7 +1028,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/poster", spex.getId())
+                .delete("/{spexId}/poster", spex.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1047,7 +1046,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/poster", 123)
+                .delete("/{spexId}/poster", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1060,89 +1059,11 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("All revivals")
-    class AllRevivalTests {
+    @DisplayName("Revivals")
+    class RevivalTests {
 
         @Test
-        void should_return_zero() {
-            //@formatter:off
-            final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/revivals")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
-            //@formatter:on
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        void should_return_one() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
-
-            //@formatter:off
-            final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/revivals")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
-            //@formatter:on
-
-            assertThat(result).hasSize(1);
-        }
-
-        @Test
-        void should_return_many() {
-            final int size = 42;
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            IntStream.range(0, size).forEach(i -> {
-                final var spex = persistSpex(randomizeSpex(category));
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-                final var revival = persistRevival(randomizeRevival(spex));
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
-            });
-
-            //@formatter:off
-            final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get("/revivals")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
-            //@formatter:on
-
-            assertThat(result).hasSize(size);
-        }
-
-    }
-
-    @Nested
-    @DisplayName("Revival parent")
-    class RevivalParentTests {
-
-        @Test
-        void should_return_found() {
+        void should_return_parent_when_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -1152,14 +1073,14 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final SpexDto result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{spexId}/revivals/parent", revival.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexDto.class);
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{spexId}/parent", revival.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body().as(SpexDto.class);
             //@formatter:on
 
             assertThat(result).isNotNull();
@@ -1175,8 +1096,6 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             final var spex = persistSpex(randomizeSpex(category));
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            revival.setParent(null);
-            repository.save(revival);
             grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             //@formatter:off
@@ -1184,7 +1103,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{spexId}/revivals/parent", revival.getId())
+                .get("/{spexId}/parent", spex.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1193,29 +1112,6 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
-
-        @Test
-        void should_return_404_when_spex_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{spexId}/revivals/parent", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
-
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        }
-
-    }
-
-    @Nested
-    @DisplayName("Revivals")
-    class RevivalTests {
 
         @Test
         void should_return_found() {
@@ -1303,15 +1199,15 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}/revivals", spex.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{spexId}/revivals", spex.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body()
+                    .jsonPath().getList("_embedded.spex", SpexDto.class);
             //@formatter:on
 
             assertThat(result).isEmpty();
@@ -1321,13 +1217,13 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_non_existent_spex() {
             //@formatter:off
             final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}/revivals", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                    .when()
+                    .get("/{spexId}/revivals", 1L)
+                    .then()
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
             assertThat(result).isNotNull();
@@ -1345,15 +1241,15 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}/revivals", spex.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get("/{spexId}/revivals", spex.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body()
+                    .jsonPath().getList("_embedded.spex", SpexDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(1);
@@ -1373,16 +1269,16 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
             //@formatter:off
             final List<SpexDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get("/{id}/revivals", spex.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex", SpexDto.class);
+                given()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .contentType(ContentType.JSON)
+                    .queryParam("size", size)
+                .when()
+                    .get("/{spexId}/revivals", spex.getId())
+                .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .extract().body()
+                    .jsonPath().getList("_embedded.spex", SpexDto.class);
             //@formatter:on
 
             assertThat(result).hasSize(size);
@@ -1402,7 +1298,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .post("/{id}/revivals/{year}", spex.getId(), "2022")
+                        .post("/{spexId}/revivals/{year}", spex.getId(), "2022")
                     .then()
                         .statusCode(HttpStatus.CREATED.value())
                         .extract().body().asString();
@@ -1419,7 +1315,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/revivals", spex.getId())
+                        .get("/{spexId}/revivals", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()
@@ -1438,7 +1334,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .post("/{id}/revivals/{year}", 1L, "2022")
+                .post("/{spexId}/revivals/{year}", 1L, "2022")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1465,7 +1361,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .post("/{id}/revivals/{year}", spex.getId(), revival.getYear())
+                .post("/{spexId}/revivals/{year}", spex.getId(), revival.getYear())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1550,7 +1446,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/revivals", spex.getId())
+                        .get("/{spexId}/revivals", spex.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .extract().body()

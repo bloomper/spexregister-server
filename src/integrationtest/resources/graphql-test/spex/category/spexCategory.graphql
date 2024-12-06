@@ -1,0 +1,12 @@
+query spexCategory ($id: ID!) {
+    spexCategory (id: $id) {
+        id
+        name
+        firstYear
+        logoUrl
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

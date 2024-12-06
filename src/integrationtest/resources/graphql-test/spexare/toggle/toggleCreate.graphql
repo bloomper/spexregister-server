@@ -1,0 +1,10 @@
+mutation toggleCreate ($spexareId: ID!, $typeId: ID!, $value: Boolean!) {
+    toggleCreate(spexareId: $spexareId, typeId: $typeId, input: { value: $value }) {
+        id
+        value
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

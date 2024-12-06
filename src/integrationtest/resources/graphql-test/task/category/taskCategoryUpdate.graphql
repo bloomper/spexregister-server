@@ -1,0 +1,11 @@
+mutation taskCategoryUpdate ($id: ID!, $name: String!, $actorPresent: Boolean!) {
+    taskCategoryUpdate(input: { id: $id, name: $name, actorPresent: $actorPresent }) {
+        id
+        name
+        actorPresent
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

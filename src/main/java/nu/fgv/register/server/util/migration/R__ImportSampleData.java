@@ -18,13 +18,14 @@ package nu.fgv.register.server.util.migration;
 
 import jakarta.ws.rs.core.Response;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.IdNumber;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsMapper;
 import nu.fgv.register.server.settings.Type;
-import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.category.SpexCategory;
+import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
@@ -98,6 +99,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
     private static final int NUMBER_OF_SAMPLES_USERS = 50;
+    private static final int SPEXARE_MIN_AGE = 18;
+    private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
     private static final String SAMPLE_PASSWORD = "s3cr3t";
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
@@ -113,6 +116,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
     private final Random rnd = new SecureRandom();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
+    private final CustomSwedenIdNumber customSwedenIdNumber = new CustomSwedenIdNumber();
     private final CryptoConverter cryptoConverter;
 
     public R__ImportSampleData(final PermissionService permissionService,
@@ -340,7 +344,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     .param("text", faker.lorem().paragraphs(5).stream().collect(Collectors.joining(System.lineSeparator())))
                     .param("published", NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault())))
                     .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now())
+                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                     .update(keyHolder);
 
             if (keyHolder.getKey() != null) {
@@ -372,7 +376,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     .sql(sql)
                     .param("name", faker.lorem().word())
                     .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now())
+                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                     .update(keyHolder);
 
             if (keyHolder.getKey() != null) {
@@ -419,13 +423,15 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                     .maxLen(1)
                                     .generate() :
                             null)
-                    .param("socialSecurityNumber", rnd.nextBoolean() ? cryptoConverter.convertToDatabaseColumn(faker.idNumber().valid()) : null)
+                    .param("socialSecurityNumber", rnd.nextBoolean() ?
+                            cryptoConverter.convertToDatabaseColumn(customSwedenIdNumber.generateValid(faker, new IdNumber.IdNumberRequest(SPEXARE_MIN_AGE, SPEXARE_MAX_AGE, IdNumber.GenderRequest.ANY)).idNumber()) :
+                            null)
                     .param("deceased", rnd.nextInt(4) == 0)
                     .param("published", published)
                     .param("graduation", rnd.nextBoolean() ? faker.regexify("[A|B|D|E|G|K|M|I|V|T]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now())
+                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                     .update(keyHolder);
 
             if (keyHolder.getKey() != null) {
@@ -518,7 +524,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .param("typeId", typeId)
                                 .param("spexareId", spexareId)
                                 .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", LocalDateTime.now())
+                                .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                                 .update();
                     }
                 });
@@ -543,7 +549,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             .param("typeId", typeId)
                             .param("spexareId", spexareId)
                             .param("createdBy", SYSTEM_USER)
-                            .param("createdAt", LocalDateTime.now())
+                            .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                             .update();
                 });
     }
@@ -572,7 +578,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                         .param("typeId", typeId)
                                         .param("spexareId", spexareId)
                                         .param("createdBy", SYSTEM_USER)
-                                        .param("createdAt", LocalDateTime.now())
+                                        .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                                         .update()
                         );
                     }
@@ -598,7 +604,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             .param("typeId", typeId)
                             .param("spexareId", spexareId)
                             .param("createdBy", SYSTEM_USER)
-                            .param("createdAt", LocalDateTime.now())
+                            .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                             .update();
                 });
     }
@@ -666,7 +672,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     .sql(activitySql)
                     .param("spexareId", spexareId)
                     .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now())
+                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                     .update(activityKeyHolder);
 
             if (activityKeyHolder.getKey() != null) {
@@ -682,7 +688,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                         .param("activityId", activityId)
                         .param("spexId", spexId)
                         .param("createdBy", SYSTEM_USER)
-                        .param("createdAt", LocalDateTime.now())
+                        .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                         .update();
 
                 IntStream.range(0, rnd.nextInt(NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY)).forEach(j -> {
@@ -696,10 +702,10 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             .param("activityId", activityId)
                             .param("taskId", taskId)
                             .param("createdBy", SYSTEM_USER)
-                            .param("createdAt", LocalDateTime.now())
+                            .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                             .update(taskActivityKeyHolder);
 
-                    if (taskActivityKeyHolder.getKey() != null && taskCategory.getHasActor()) {
+                    if (taskActivityKeyHolder.getKey() != null && taskCategory.getActorPresent()) {
                         final long taskActivityId = taskActivityKeyHolder.getKey().longValue();
 
                         jdbcClient
@@ -716,7 +722,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                                 .generate() :
                                         null)
                                 .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", LocalDateTime.now())
+                                .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                                 .update();
                     }
                 });
@@ -798,7 +804,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .param("stateId", states.get(rnd.nextInt(states.size())))
                                 .param("spexareId", spexareId)
                                 .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", LocalDateTime.now())
+                                .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                                 .update(keyHolder);
 
                         if (keyHolder.getKey() != null) {
@@ -905,12 +911,12 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
     private List<TaskCategory> getTaskCategories(final JdbcClient jdbcClient) {
         return jdbcClient
-                .sql("SELECT id, has_actor FROM task_category")
+                .sql("SELECT id, actor_present FROM task_category")
                 .query((resultSet, rowNum) -> {
                     final TaskCategory taskCategory = new TaskCategory();
 
                     taskCategory.setId(resultSet.getLong("id"));
-                    taskCategory.setHasActor(resultSet.getBoolean("has_actor"));
+                    taskCategory.setActorPresent(resultSet.getBoolean("actor_present"));
 
                     return taskCategory;
                 })

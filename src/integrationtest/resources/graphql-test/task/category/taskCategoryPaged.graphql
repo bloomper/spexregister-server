@@ -1,0 +1,22 @@
+query taskCategoryPaged ($first: Int = 10, $filter: String = "") {
+    taskCategoryPaged (first: $first, filter: $filter) {
+        edges {
+            cursor
+            node {
+                id
+                name
+                actorPresent
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

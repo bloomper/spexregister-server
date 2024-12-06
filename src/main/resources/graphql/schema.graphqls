@@ -1,0 +1,44 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    noOp: Void
+}
+
+type Mutation {
+    noOp: Void
+}
+
+type Facet {
+    name: String!
+    values: [FacetValue]!
+}
+
+type FacetValue {
+    value: String!
+    count: Int!
+}
+
+type PageInfo {
+    hasPreviousPage: Boolean!
+    hasNextPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
+
+enum SortDirection {
+    ASC
+    DESC
+}
+
+scalar Date @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
+scalar DateTime @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
+scalar Instant @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
+scalar Locale @specifiedBy(url:"https://tools.ietf.org/html/bcp47")
+scalar CountryCode @specifiedBy(url:"https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2")
+scalar Email
+scalar Year
+scalar SocialSecurityNumber
+scalar Void

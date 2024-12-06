@@ -116,40 +116,31 @@ public class SpexActivityService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public void update(final Long spexareId, final Long activityId, final Long spexId, final Long id) {
+    public SpexActivityDto update(final Long spexareId, final Long activityId, final Long spexId, final Long id) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId) && doesSpexActivityExist(id)) {
-            spexareRepository
+            return spexareRepository
                     .findById0(spexareId)
                     .map(permissionService::checkWritePermission)
                     .flatMap(spexare -> activityRepository.findById(activityId))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .ifPresentOrElse(
-                            activity ->
-                                    spexRepository
-                                            .findById0(spexId)
-                                            .filter(spex -> repository.exists(hasActivity(activity).and(hasId(id))))
-                                            .ifPresentOrElse(
-                                                    spex ->
-                                                            repository
-                                                                    .findById(id)
-                                                                    .filter(spexActivity -> spexActivity.getActivity().equals(activity))
-                                                                    .ifPresentOrElse(
-                                                                            spexActivity -> {
-                                                                                spexActivity.setSpex(spex);
-                                                                                repository.save(spexActivity);
-                                                                            },
-                                                                            () -> {
-                                                                                throw new ResourceNotFoundException(SpexActivity.class, id);
-                                                                            }
-                                                                    ),
-                                                    () -> {
-                                                        throw new ResourceNotFoundException(Spex.class, spexId);
-                                                    }
-                                            ),
-                            () -> {
-                                throw new ResourceNotFoundException(Activity.class, activityId);
-                            }
-                    );
+                    .map(activity ->
+                            spexRepository
+                                    .findById0(spexId)
+                                    .filter(spex -> repository.exists(hasActivity(activity).and(hasId(id))))
+                                    .map(spex ->
+                                            repository
+                                                    .findById(id)
+                                                    .filter(spexActivity -> spexActivity.getActivity().equals(activity))
+                                                    .map(spexActivity -> {
+                                                        spexActivity.setSpex(spex);
+
+                                                        return SPEX_ACTIVITY_MAPPER.toDto(repository.save(spexActivity));
+                                                    })
+                                                    .orElseThrow(() -> new ResourceNotFoundException(SpexActivity.class, id))
+                                    )
+                                    .orElseThrow(() -> new ResourceNotFoundException(Spex.class, spexId))
+                    )
+                    .orElseThrow(() -> new ResourceNotFoundException(Activity.class, activityId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, SpexActivity.class, Spex.class), spexareId, activityId, id, spexId);
         }

@@ -1,0 +1,12 @@
+mutation spexCategoryUpdate ($id: ID!, $name: String!, $firstYear: Year!) {
+    spexCategoryUpdate(input: { id: $id, name: $name, firstYear: $firstYear }) {
+        id
+        name
+        firstYear
+        logoUrl
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

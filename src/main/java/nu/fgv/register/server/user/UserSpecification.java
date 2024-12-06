@@ -27,6 +27,11 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 @Getter
 public class UserSpecification extends BaseSpecification<User> {
 
+    public static final UserSpecification NO_FILTER = new UserSpecification();
+
+    private UserSpecification() {
+    }
+
     public UserSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

@@ -73,14 +73,6 @@ public class AddressApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        final AddressDto dto = service.findById(spexareId, id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
-    }
-
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final AddressCreateDto dto) {
@@ -88,6 +80,14 @@ public class AddressApi {
 
         return ResponseEntity.created(linkTo(methodOn(AddressApi.class).retrieve(spexareId, createdDto.getId())).toUri())
                 .body(EntityModel.of(createdDto, getLinks(createdDto, spexareId)));
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+        final AddressDto dto = service.findById(spexareId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

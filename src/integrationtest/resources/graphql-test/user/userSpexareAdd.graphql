@@ -1,0 +1,3 @@
+mutation userSpexareAdd ($userId: ID!, $id: ID!) {
+    userSpexareAdd(userId: $userId, id: $id)
+}

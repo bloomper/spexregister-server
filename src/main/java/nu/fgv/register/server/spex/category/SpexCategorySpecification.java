@@ -30,6 +30,11 @@ import java.util.List;
 @Getter
 public class SpexCategorySpecification extends BaseSpecification<SpexCategory> {
 
+    public static final SpexCategorySpecification NO_FILTER = new SpexCategorySpecification();
+
+    private SpexCategorySpecification() {
+    }
+
     public SpexCategorySpecification(final FilterCriteria criteria) {
         super(criteria);
     }

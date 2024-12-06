@@ -1,0 +1,10 @@
+mutation toggleUpdate ($spexareId: ID!, $typeId: ID!, $id: ID!, $value: Boolean!) {
+    toggleUpdate(spexareId: $spexareId, typeId: $typeId, input: { id: $id, value: $value }) {
+        id
+        value
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

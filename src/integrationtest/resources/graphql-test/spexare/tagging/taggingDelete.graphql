@@ -1,0 +1,3 @@
+mutation taggingDelete ($spexareId: ID!, $tagId: ID!) {
+    taggingDelete(spexareId: $spexareId, tagId: $tagId)
+}

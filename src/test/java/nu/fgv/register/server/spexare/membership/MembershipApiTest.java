@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -49,6 +50,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -158,15 +160,19 @@ class MembershipApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
+        final var fields = new ConstrainedFields(MembershipCreateDto.class);
+        final var dto = MembershipCreateDto.builder().year("2023").build();
         final var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(String.class))).thenReturn(membership);
+        when(service.create(any(Long.class), any(String.class), any(MembershipCreateDto.class))).thenReturn(membership);
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}/{year}", 1L, "FGV", "2023")
+                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}", 1L, "FGV")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -176,14 +182,16 @@ class MembershipApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the membership"),
-                                        parameterWithName("year").description("The year of the membership")
+                                        parameterWithName("typeId").description("The type id of the membership")
+                                ),
+                                requestFields(
+                                        fields.withPath("year").description("The year of the membership")
                                 ),
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(MembershipApi.class, "create", Long.class, String.class, String.class))
+                                security(getRolesFromMethod(MembershipApi.class, "create", Long.class, String.class, MembershipCreateDto.class))
                         )
                 );
     }

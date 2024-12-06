@@ -453,8 +453,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("email")
-                    .isEqualTo(result.getEmail());
+                    .extracting("id")
+                    .isEqualTo(result.getId());
         }
 
         @Test
@@ -995,8 +995,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_add_and_return_204() {
             final var state = persistState(randomizeState());
-            final var authorities = getRandomAuthorities(2);
-            final var user = persistUser(randomizeUser(state), authorities.getFirst());
+            final var authorities = getRandomAuthorities(1);
+            final var user = persistUser(randomizeUser(state));
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1601,7 +1601,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/state/{id}", user.getId(), "WHATEVER")
+                .put("/{userId}/state/{id}", user.getId(), "whatever")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1799,8 +1799,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_removing_and_user_not_found() {
-            final var spexare = persistSpexare(randomizeSpexare());
-
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
@@ -1863,7 +1861,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .put("/{userId}/spexare/{id}", 1L, 2L)
+                .put("/{userId}/spexare/{id}", 1L, 1L)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

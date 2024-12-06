@@ -1,0 +1,14 @@
+mutation newsCreate ($subject: String!, $text: String!, $visibleFrom: Date, $visibleTo: Date) {
+    newsCreate(input: { subject: $subject, text: $text, visibleFrom: $visibleFrom, visibleTo: $visibleTo }) {
+        id
+        subject
+        text
+        visibleFrom
+        visibleTo
+        published
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

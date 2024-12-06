@@ -1,0 +1,3 @@
+mutation spexPosterDelete ($id: ID!) {
+    spexPosterDelete(id: $id)
+}

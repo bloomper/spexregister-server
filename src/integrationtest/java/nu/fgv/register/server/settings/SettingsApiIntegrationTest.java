@@ -397,7 +397,7 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = given()
                 .contentType(ContentType.JSON)
             .when()
-                .get("/types/{type}/{id}", TypeType.ADDRESS, 1L)
+                .get("/types/{type}/{id}", TypeType.ADDRESS, "whatever")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);

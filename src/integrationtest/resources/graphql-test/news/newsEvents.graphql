@@ -1,0 +1,9 @@
+query newsEvents ($sinceInDays: Int = 90) {
+    newsEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

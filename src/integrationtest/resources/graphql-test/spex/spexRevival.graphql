@@ -1,0 +1,39 @@
+query spex ($spexId: ID!, $id: ID!) {
+    spexRevival (spexId: $spexId, id: $id) {
+        id
+        year
+        title
+        revival
+        parent {
+            id
+            year
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        posterUrl
+        category {
+            id
+            name
+            firstYear
+            logoUrl
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        revivals {
+            id
+            year
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

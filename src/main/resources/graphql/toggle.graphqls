@@ -1,0 +1,39 @@
+extend type Query {
+    togglePaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["type"], direction: SortDirection = ASC): ToggleConnection
+    toggle(spexareId: ID!, id: ID!): Toggle
+}
+
+extend type Mutation {
+    toggleCreate(spexareId: ID!, typeId: ID!, input: ToggleCreate): Toggle
+    toggleUpdate(spexareId: ID!, typeId: ID!, input: ToggleUpdate): Toggle
+    toggleDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
+}
+
+type Toggle {
+    id: ID!
+    value: Boolean!
+    type: Type!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type ToggleConnection {
+    edges: [ToggleEdge]!
+    pageInfo: PageInfo!
+}
+
+type ToggleEdge {
+    cursor: String!
+    node: Toggle!
+}
+
+input ToggleCreate {
+    value: Boolean!
+}
+
+input ToggleUpdate {
+    id: ID!
+    value: Boolean!
+}

@@ -8,6 +8,9 @@ spring:
     properties:
       hibernate:
         search:
+          backend:
+            directory:
+              root: ./test-data/index_data
           indexing:
             plan:
               synchronization:

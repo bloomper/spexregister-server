@@ -44,8 +44,8 @@ public class TaskCategoryCreateDto {
     @ExcelImportCell(position = 1)
     private String name;
 
-    @JsonProperty("hasActor")
+    @JsonProperty("actorPresent")
     @ExcelImportCell(position = 2)
-    private boolean hasActor;
+    private boolean actorPresent;
 
 }

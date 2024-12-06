@@ -792,7 +792,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
-                .put("/{id}/logo", category.getId())
+                .put("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -803,7 +803,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/logo", category.getId())
+                        .get("/{spexCategoryId}/logo", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -825,7 +825,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .multiPart("file", logo, MediaType.IMAGE_PNG_VALUE)
             .when()
-                .post("/{id}/logo", category.getId())
+                .post("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -836,7 +836,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/logo", category.getId())
+                        .get("/{spexCategoryId}/logo", category.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -859,7 +859,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
-                .put("/{id}/logo", category.getId())
+                .put("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -869,7 +869,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/logo", category.getId())
+                .delete("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -879,7 +879,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}/logo", category.getId())
+                .get("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
@@ -897,7 +897,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
-                .post("/{id}/logo", category.getId())
+                .post("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -918,7 +918,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(logo)
             .when()
-                .post("/{id}/logo", 123)
+                .post("/{spexCategoryId}/logo", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -939,7 +939,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/logo", category.getId())
+                .delete("/{spexCategoryId}/logo", category.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -957,7 +957,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/logo", 123)
+                .delete("/{spexCategoryId}/logo", 123)
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

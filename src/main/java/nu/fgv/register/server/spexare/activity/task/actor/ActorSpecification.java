@@ -19,6 +19,7 @@ package nu.fgv.register.server.spexare.activity.task.actor;
 import lombok.Getter;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spexare.activity.task.TaskActivity;
+import nu.fgv.register.server.spexare.activity.task.TaskActivitySpecification;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,6 +30,11 @@ import org.springframework.data.jpa.domain.Specification;
  */
 @Getter
 public class ActorSpecification extends BaseSpecification<Actor> {
+
+    public static final ActorSpecification NO_FILTER = new ActorSpecification();
+
+    private ActorSpecification() {
+    }
 
     public ActorSpecification(final FilterCriteria criteria) {
         super(criteria);

@@ -1,0 +1,3 @@
+mutation tagDelete ($id: ID!) {
+    tagDelete(id: $id)
+}

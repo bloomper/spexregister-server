@@ -1,20 +1,20 @@
 -- Task categories
-INSERT INTO task_category (name, has_actor, created_by, created_at)
+INSERT INTO task_category (name, actor_present, created_by, created_at)
 VALUES ('Kommitté', 0, 'system', CURRENT_TIME);
 SET
 @task_category_kommitte = LAST_INSERT_ID();
 
-INSERT INTO task_category (name, has_actor, created_by, created_at)
+INSERT INTO task_category (name, actor_present, created_by, created_at)
 VALUES ('Orkester', 0, 'system', CURRENT_TIME);
 SET
 @task_category_orkester = LAST_INSERT_ID();
 
-INSERT INTO task_category (name, has_actor, created_by, created_at)
+INSERT INTO task_category (name, actor_present, created_by, created_at)
 VALUES ('Ensemble', 1, 'system', CURRENT_TIME);
 SET
 @task_category_ensemble = LAST_INSERT_ID();
 
-INSERT INTO task_category (name, has_actor, created_by, created_at)
+INSERT INTO task_category (name, actor_present, created_by, created_at)
 VALUES ('Bandet', 0, 'system', CURRENT_TIME);
 SET
 @task_category_bandet = LAST_INSERT_ID();

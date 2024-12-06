@@ -68,14 +68,6 @@ public class ActivityApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        final ActivityDto dto = service.findById(spexareId, id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
-    }
-
     @PostMapping(value = "", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActivityDto>> create(@PathVariable final Long spexareId) {
@@ -83,6 +75,14 @@ public class ActivityApi {
 
         return ResponseEntity.created(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).toUri())
                 .body(EntityModel.of(dto, getLinks(dto, spexareId)));
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<ActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+        final ActivityDto dto = service.findById(spexareId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

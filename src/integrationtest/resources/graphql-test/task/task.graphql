@@ -1,0 +1,19 @@
+query task ($id: ID!) {
+    task (id: $id) {
+        id
+        name
+        category {
+            id
+            name
+            actorPresent
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

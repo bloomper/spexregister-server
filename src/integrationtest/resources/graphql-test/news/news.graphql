@@ -1,0 +1,14 @@
+query news ($id: ID!) {
+    news (id: $id) {
+        id
+        subject
+        text
+        visibleFrom
+        visibleTo
+        published
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

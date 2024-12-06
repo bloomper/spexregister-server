@@ -1,0 +1,3 @@
+mutation userAuthoritiesAdd ($userId: ID!, $ids: [ID]!) {
+    userAuthoritiesAdd(userId: $userId, ids: $ids)
+}

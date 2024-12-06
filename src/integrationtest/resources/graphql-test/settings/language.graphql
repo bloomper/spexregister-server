@@ -1,0 +1,6 @@
+query language ($isoCode: Locale!) {
+    language (isoCode: $isoCode) {
+        isoCode
+        label
+    }
+}

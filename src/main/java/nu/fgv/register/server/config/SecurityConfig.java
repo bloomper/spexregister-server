@@ -28,6 +28,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.DelegatingJwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -51,29 +52,37 @@ public class SecurityConfig {
     private final String keycloakAdminClientId;
     private final String keycloakAdminClientSecret;
     private final String keycloakClientClientId;
+    private final String graphqlBaseUrl;
 
     public SecurityConfig(@Value("${spexregister.keycloak.url}") final String keycloakUrl,
                           @Value("${spexregister.keycloak.realm}") final String keycloakRealm,
                           @Value("${spexregister.keycloak.admin.client-id}") final String keycloakAdminClientId,
                           @Value("${spexregister.keycloak.admin.client-secret}") final String keycloakAdminClientSecret,
-                          @Value("${spexregister.keycloak.client.client-id}") final String keycloakClientClientId) {
+                          @Value("${spexregister.keycloak.client.client-id}") final String keycloakClientClientId,
+                          @Value("${spring.graphql.path}") final String graphqlBaseUrl) {
         this.keycloakUrl = keycloakUrl;
         this.keycloakRealm = keycloakRealm;
         this.keycloakAdminClientId = keycloakAdminClientId;
         this.keycloakAdminClientSecret = keycloakAdminClientSecret;
         this.keycloakClientClientId = keycloakClientClientId;
+        this.graphqlBaseUrl = graphqlBaseUrl;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/docs/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/graphiql/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "%s/**".formatted(graphqlBaseUrl)).permitAll()
+                                .requestMatchers(HttpMethod.GET, "%s/schema".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/settings/**").permitAll()
                                 .anyRequest().authenticated()
                 )
+                .securityContext(context -> context.requireExplicitSave(false))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
         return http.build();
     }

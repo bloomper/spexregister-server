@@ -1,0 +1,23 @@
+query spexCategoryPaged ($first: Int = 10, $filter: String = "") {
+    spexCategoryPaged (first: $first, filter: $filter) {
+        edges {
+            cursor
+            node {
+                id
+                name
+                firstYear
+                logoUrl
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

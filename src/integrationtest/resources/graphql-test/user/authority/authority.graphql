@@ -1,0 +1,10 @@
+query authority ($id: ID!) {
+    authority (id: $id) {
+        id
+        label
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

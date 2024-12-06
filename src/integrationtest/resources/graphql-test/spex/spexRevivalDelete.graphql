@@ -1,0 +1,3 @@
+mutation spexRevivalDelete ($spexId: ID!, $id: ID!) {
+    spexRevivalDelete(spexId: $spexId, id: $id)
+}

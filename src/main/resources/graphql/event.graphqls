@@ -1,0 +1,12 @@
+extend type Query {
+    event(id: ID!): Event
+    events(sinceInDays: Int = 90): [Event]
+}
+
+type Event {
+    id: ID!
+    event: String!
+    source: String!
+    createdBy: String!
+    createdAt: Instant!
+}

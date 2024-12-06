@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -563,6 +562,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .firstName(before.getFirstName() + "_")
                     .lastName(before.getLastName())
                     .nickName(before.getNickName())
+                    .deceased(Boolean.FALSE)
+                    .published(Boolean.TRUE)
                     .build();
 
             //@formatter:off
@@ -686,6 +687,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .firstName(before.getFirstName() + "_")
                     .lastName(before.getLastName())
                     .nickName(before.getNickName())
+                    .deceased(Boolean.FALSE)
+                    .published(Boolean.TRUE)
                     .build();
 
             //@formatter:off
@@ -964,7 +967,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
-                .put("/{id}/image", spexare.getId())
+                .put("/{spexareId}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -975,7 +978,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/image", spexare.getId())
+                        .get("/{spexareId}/image", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -997,7 +1000,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .multiPart("file", image, MediaType.IMAGE_PNG_VALUE)
             .when()
-                .post("/{id}/image", spexare.getId())
+                .post("/{spexareId}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -1008,7 +1011,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                         .contentType(ContentType.JSON)
                     .when()
-                        .get("/{id}/image", spexare.getId())
+                        .get("/{spexareId}/image", spexare.getId())
                     .then()
                         .statusCode(HttpStatus.OK.value())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
@@ -1031,7 +1034,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.IMAGE_PNG_VALUE)
                 .body(image)
             .when()
-                .put("/{id}/image", spexare.getId())
+                .put("/{spexareId}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -1041,7 +1044,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .delete("/{id}/image", spexare.getId())
+                .delete("/{spexareId}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             //@formatter:on
@@ -1051,7 +1054,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
             .when()
-                .get("/{id}/image", spexare.getId())
+                .get("/{spexareId}/image", spexare.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on

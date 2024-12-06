@@ -95,7 +95,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
-            fieldWithPath("hasActor").description("The flag telling whether the task category can have associated actor information"),
+            fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
             linksSubsection
     );
 
@@ -130,7 +130,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded.task-categories[]").description("The elements"),
                                         fieldWithPath("_embedded.task-categories[].id").description("The id of the task category"),
                                         fieldWithPath("_embedded.task-categories[].name").description("The name of the task category"),
-                                        fieldWithPath("_embedded.task-categories[].hasActor").description("The flag telling whether the task category can have associated actor information"),
+                                        fieldWithPath("_embedded.task-categories[].actorPresent").description("The flag telling whether the task category can have associated actor information"),
                                         fieldWithPath("_embedded.task-categories[].createdBy").description("Who created the task category"),
                                         fieldWithPath("_embedded.task-categories[].createdAt").description("When was the task category created"),
                                         fieldWithPath("_embedded.task-categories[].lastModifiedBy").description("Who last modified the task category"),
@@ -187,9 +187,9 @@ class TaskCategoryApiTest extends AbstractApiTest {
     @Test
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(TaskCategoryCreateDto.class);
-        final var dto = TaskCategoryCreateDto.builder().hasActor(false).name("Scenmästare").build();
+        final var dto = TaskCategoryCreateDto.builder().actorPresent(false).name("Scenmästare").build();
 
-        when(service.create(any(TaskCategoryCreateDto.class))).thenReturn(TaskCategoryDto.builder().id(1L).hasActor(dto.isHasActor()).name(dto.getName()).build());
+        when(service.create(any(TaskCategoryCreateDto.class))).thenReturn(TaskCategoryDto.builder().id(1L).actorPresent(dto.isActorPresent()).name(dto.getName()).build());
 
         mockMvc
                 .perform(
@@ -207,7 +207,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 requestFields(
                                         fields.withPath("name").description("The name of the task category"),
-                                        fields.withPath("hasActor").description("The flag telling whether the task category can have associated actor information")
+                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information")
                                 ),
                                 responseFields,
                                 links,
@@ -254,7 +254,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        final var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(true).name("Scenmästare").build();
+        final var dto = TaskCategoryUpdateDto.builder().id(1L).actorPresent(true).name("Scenmästare").build();
 
         when(service.update(any(TaskCategoryUpdateDto.class))).thenReturn(category);
 
@@ -280,7 +280,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 requestFields(
                                         fields.withPath("id").description("The id of the task category"),
                                         fields.withPath("name").description("The name of the task category"),
-                                        fields.withPath("hasActor").description("The flag telling whether the task category can have associated actor information")
+                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information")
                                 ),
                                 responseFields,
                                 links,
@@ -294,8 +294,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
-        final var category = TaskCategoryDto.builder().id(1L).name("category").hasActor(false).build();
-        final var dto = TaskCategoryUpdateDto.builder().id(1L).hasActor(false).build();
+        final var category = TaskCategoryDto.builder().id(1L).name("category").actorPresent(false).build();
+        final var dto = TaskCategoryUpdateDto.builder().id(1L).actorPresent(false).build();
 
         when(service.partialUpdate(any(TaskCategoryUpdateDto.class))).thenReturn(category);
 
@@ -321,7 +321,7 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 requestFields(
                                         fields.withPath("id").description("The id of the task category"),
                                         fields.withPath("name").description("The name of the task category").optional(),
-                                        fields.withPath("hasActor").description("The flag telling whether the task category can have associated actor information").optional()
+                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information").optional()
                                 ),
                                 responseFields,
                                 links,

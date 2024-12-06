@@ -1,0 +1,7 @@
+query type ($id: ID!) {
+    type (id: $id) {
+        id
+        label
+        type
+    }
+}

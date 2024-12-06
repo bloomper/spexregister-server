@@ -28,6 +28,8 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class ToggleSpecification {
 
+    public static final ToggleSpecification NO_FILTER = new ToggleSpecification();
+
     private ToggleSpecification() {
     }
 

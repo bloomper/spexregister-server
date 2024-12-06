@@ -1,0 +1,3 @@
+mutation userStateSet ($userId: ID!, $id: ID!) {
+    userStateSet(userId: $userId, id: $id)
+}

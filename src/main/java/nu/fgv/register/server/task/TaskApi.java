@@ -173,10 +173,10 @@ public class TaskApi {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> removeCategory(@PathVariable final Long id) {
-        service.removeCategory(id);
+    public ResponseEntity<Object> removeCategory(@PathVariable final Long taskId) {
+        service.removeCategory(taskId);
 
         return ResponseEntity.noContent().build();
     }

@@ -1,0 +1,10 @@
+query tag ($id: ID!) {
+    tag (id: $id) {
+        id
+        name
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

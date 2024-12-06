@@ -32,6 +32,11 @@ import org.springframework.data.jpa.domain.Specification;
 @Getter
 public class AddressSpecification extends BaseSpecification<Address> {
 
+    public static final AddressSpecification NO_FILTER = new AddressSpecification();
+
+    private AddressSpecification() {
+    }
+
     public AddressSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

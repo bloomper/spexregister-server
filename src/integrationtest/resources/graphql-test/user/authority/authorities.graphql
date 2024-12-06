@@ -1,0 +1,10 @@
+query authorities {
+    authorities {
+        id
+        label
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

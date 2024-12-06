@@ -24,6 +24,7 @@ import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.search.Facet;
+import nu.fgv.register.server.util.search.FacetValue;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
@@ -49,7 +50,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -187,7 +187,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_search_paged() throws Exception {
         final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
         final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
-        final var facets = List.of(Facet.builder().name("facet").values(Map.of("whatever", 2L)).build());
+        final var facets = List.of(Facet.builder().name("facet").values(List.of(FacetValue.builder().value("whatever").count(2L).build())).build());
         final var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
         final var pageWithFacetsModel = PagedWithFacetsModel.of(
                 pageWithFacets.stream().map(EntityModel::of).toList(),
@@ -229,7 +229,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.spexare[].lastModifiedBy").description("Who last modified the spexare"),
                                         fieldWithPath("_embedded.spexare[].lastModifiedAt").description("When was the spexare last modified"),
                                         subsectionWithPath("_embedded.spexare[]._links").description("The spexare links"),
-                                        subsectionWithPath("_facets").description("The facets"),
+                                        subsectionWithPath("facets").description("The facets"),
                                         linksSubsection
                                 ),
                                 pagingLinks,
@@ -480,7 +480,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{id}/image", 1L)
+                        get("/api/v1/spexare/{spexareId}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -494,7 +494,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spexare")
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders.and(
@@ -516,7 +516,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{id}/image", 1L)
+                        put("/api/v1/spexare/{spexareId}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.IMAGE_PNG)
@@ -530,7 +530,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spexare")
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
@@ -550,7 +550,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spexare/{id}/image", 1L)
+                        multipart("/api/v1/spexare/{spexareId}/image", 1L)
                                 .file(image)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -563,7 +563,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spexare")
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
                                 requestParts(
@@ -582,7 +582,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{id}/image", 1L)
+                        delete("/api/v1/spexare/{spexareId}/image", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -594,7 +594,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spexare")
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
                                 security(getRolesFromMethod(SpexareApi.class, "deleteImage", Long.class))
@@ -610,7 +610,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{id}/partner", 1L)
+                        get("/api/v1/spexare/{spexareId}/partner", 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -623,7 +623,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
-                                        parameterWithName("id").description("The id of the spexare")
+                                        parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 responseFields,
                                 links,
@@ -635,7 +635,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_update_partner() throws Exception {
+    void should_add_partner() throws Exception {
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/partner/{id}", 1L, 1L)
@@ -652,13 +652,13 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the partner")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "updatePartner", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "addPartner", Long.class, Long.class))
                         )
                 );
     }
 
     @Test
-    void should_delete_partner() throws Exception {
+    void should_remove_partner() throws Exception {
         mockMvc
                 .perform(
                         delete("/api/v1/spexare/{spexareId}/partner", 1L)
@@ -674,7 +674,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "deletePartner", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "removePartner", Long.class))
                         )
                 );
     }

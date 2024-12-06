@@ -1,0 +1,3 @@
+mutation userAuthorityRemove ($userId: ID!, $id: ID!) {
+    userAuthorityRemove(userId: $userId, id: $id)
+}

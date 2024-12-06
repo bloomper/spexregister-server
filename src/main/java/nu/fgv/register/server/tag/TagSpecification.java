@@ -30,6 +30,10 @@ import java.util.List;
 @Getter
 public class TagSpecification extends BaseSpecification<Tag> {
 
+    public static final TagSpecification NO_FILTER = new TagSpecification();
+
+    private TagSpecification() {
+    }
     public TagSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

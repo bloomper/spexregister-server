@@ -29,6 +29,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -91,6 +92,9 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
         parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
@@ -307,14 +311,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -343,14 +349,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -360,8 +368,9 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.FALSE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .extract().body().as(ProblemDetail.class);
@@ -375,14 +384,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -397,14 +408,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", "dummy", Boolean.TRUE)
+                .post("/{typeId}", "dummy")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -420,14 +433,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -444,13 +459,15 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleCreateDto.class);
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
@@ -470,14 +487,18 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
+            dto.setValue(Boolean.FALSE);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.FALSE)
+                .put("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
                 .statusCode(HttpStatus.OK.value());
             //@formatter:on
@@ -509,14 +530,17 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(1L);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), 1L, Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -534,14 +558,17 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), toggle.getId())
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -559,14 +586,17 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", "dummy", toggle.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", "dummy", toggle.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -587,14 +617,17 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare2));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -611,14 +644,17 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), toggle.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), toggle.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -636,13 +672,16 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
+            final var dto = random.nextObject(ToggleUpdateDto.class);
+            dto.setId(toggle.getId());
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", "dummy", toggle.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", "dummy", toggle.getId())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on

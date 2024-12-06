@@ -28,6 +28,8 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class ConsentSpecification {
 
+    public static final ConsentSpecification NO_FILTER = new ConsentSpecification();
+
     private ConsentSpecification() {
     }
 

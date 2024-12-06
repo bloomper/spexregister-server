@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.filter;
 
+import nu.fgv.register.server.util.error.InternalErrorException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
@@ -60,7 +61,7 @@ public class SpecificationsBuilder<T> {
         }
 
         if (specificationStack.isEmpty()) {
-            throw new IllegalStateException("Expected non-empty specification stack");
+            throw new InternalErrorException("Expected non-empty specification stack");
         }
         return specificationStack.pop();
     }

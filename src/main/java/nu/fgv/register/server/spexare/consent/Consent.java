@@ -71,7 +71,7 @@ public class Consent extends AbstractAuditable implements Serializable {
 
     @NotNull(message = "{consent.value.notEmpty}")
     @Column(name = "value", nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private Boolean value;
 
     @NotNull(message = "{consent.type.notEmpty}")

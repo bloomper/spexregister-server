@@ -77,14 +77,6 @@ public class ActorApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final Long id) {
-        final ActorDto dto = service.findById(spexareId, activityId, taskActivityId, id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId, taskActivityId)));
-    }
-
     @PostMapping(value = "/{vocalId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ActorDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @Valid @RequestBody final ActorCreateDto dto) {
@@ -92,6 +84,14 @@ public class ActorApi {
 
         return ResponseEntity.created(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, createdDto.getId())).toUri())
                 .body(EntityModel.of(createdDto, getLinks(createdDto, spexareId, activityId, taskActivityId)));
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final Long id) {
+        final ActorDto dto = service.findById(spexareId, activityId, taskActivityId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId, taskActivityId)));
     }
 
     @PutMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

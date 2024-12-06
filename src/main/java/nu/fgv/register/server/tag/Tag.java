@@ -65,7 +65,7 @@ public class Tag extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{tag.name.notEmpty}")
     @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private String name;
 
     @Override

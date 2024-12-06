@@ -1,0 +1,9 @@
+query taskCategoryEvents ($sinceInDays: Int = 90) {
+    taskCategoryEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

@@ -24,15 +24,18 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Mapper(
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        imports = {Optional.class, WebMvcLinkBuilder.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -42,6 +45,7 @@ public interface SpexareMapper {
 
     SpexareMapper SPEXARE_MAPPER = Mappers.getMapper(SpexareMapper.class);
 
+    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
     SpexareDto toDto(Spexare model);
 
     List<SpexareDto> toDtos(List<Spexare> models);

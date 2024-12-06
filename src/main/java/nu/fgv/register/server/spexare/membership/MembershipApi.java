@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare.membership;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,21 +70,21 @@ public class MembershipApi {
         return ResponseEntity.ok(paged);
     }
 
+    @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<MembershipDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final MembershipCreateDto dto) {
+        final MembershipDto updatedDto = service.create(spexareId, typeId, dto);
+
+        return ResponseEntity.created(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, updatedDto.getId())).toUri())
+                .body(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId)));
+    }
+
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<MembershipDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
         final MembershipDto dto = service.findById(spexareId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
-    }
-
-    @PostMapping(value = "/{typeId}/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<MembershipDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final String year) {
-        final MembershipDto dto = service.create(spexareId, typeId, year);
-
-        return ResponseEntity.created(linkTo(methodOn(MembershipApi.class).retrieve(spexareId, dto.getId())).toUri())
-                .body(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

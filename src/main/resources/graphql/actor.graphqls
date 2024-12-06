@@ -1,0 +1,39 @@
+extend type Query {
+    actorPaged(spexareId: ID!, activityId: ID!, taskActivityId: ID!, first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): ActorConnection
+    actor(spexareId: ID!, activityId: ID!, taskActivityId: ID!, id: ID!): Actor
+}
+
+extend type Mutation {
+    actorCreate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorCreate!): Actor
+    actorUpdate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorUpdate!): Actor
+    actorDelete(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, id: ID!): Void
+}
+
+type Actor {
+    id: ID!
+    role: String
+    vocal: Type
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type ActorConnection {
+    edges: [ActorEdge]!
+    pageInfo: PageInfo!
+}
+
+type ActorEdge {
+    cursor: String!
+    node: Actor!
+}
+
+input ActorCreate {
+    role: String
+}
+
+input ActorUpdate {
+    id: ID!
+    role: String
+}

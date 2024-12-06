@@ -1,0 +1,10 @@
+mutation userCreate ($email: Email!) {
+    userCreate(input: { email: $email }) {
+        id
+        email
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

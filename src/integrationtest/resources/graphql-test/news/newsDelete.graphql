@@ -1,0 +1,3 @@
+mutation newsDelete ($id: ID!) {
+    newsDelete(id: $id)
+}

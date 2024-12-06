@@ -1,0 +1,3 @@
+mutation spexActivityDelete ($spexareId: ID!, $activityId: ID!, $id: ID!) {
+    spexActivityDelete(spexareId: $spexareId, activityId: $activityId, id: $id)
+}

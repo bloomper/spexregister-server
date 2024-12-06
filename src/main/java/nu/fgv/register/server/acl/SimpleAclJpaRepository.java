@@ -25,15 +25,21 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -45,6 +51,7 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
@@ -57,6 +64,8 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
     private final JpaEntityInformation<T, ?> entityInformation;
     private final EntityManager entityManager;
+    @Nullable
+    private ProjectionFactory projectionFactory;
 
     public SimpleAclJpaRepository(final JpaEntityInformation<T, ?> entityInformation, final EntityManager entityManager) {
         super(entityInformation, entityManager);
@@ -125,6 +134,25 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
         return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) :
                 readPage(query, getDomainClass(), pageable, spec, sid, authoritySids, permission);
+    }
+
+    @Override
+    public <S extends T, R> R findBy(@Nullable final Specification<T> spec,
+                                     final Permission permission,
+                                     final Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+        Assert.notNull(spec, "Specification must not be null");
+        Assert.notNull(queryFunction, "Query function must not be null");
+
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (null == authentication || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Permission filtering not possible for anonymous user");
+        }
+
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
+        final List<GrantedAuthoritySid> authoritySids = getRelevantAuthorities(authentication);
+
+        return doFindBy(spec, getDomainClass(), sid, authoritySids, permission, queryFunction);
     }
 
     protected <S extends T> Page<S> readPage(final TypedQuery<S> query,
@@ -222,7 +250,6 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
             } else {
                 query.where(filterPermitted(root, query, domainClass, sid, authoritySids, permission));
             }
-
         }
 
         return root;
@@ -304,5 +331,49 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
                 .filter(g -> g.getAuthority().startsWith("ROLE_spexregister_"))
                 .map(GrantedAuthoritySid::new)
                 .toList();
+    }
+
+    private <S extends T, R> R doFindBy(final Specification<T> spec,
+                                        final Class<T> domainClass,
+                                        final PrincipalSid sid,
+                                        final List<GrantedAuthoritySid> authoritySids,
+                                        final Permission permission,
+                                        final Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+        Assert.notNull(spec, "Specification must not be null");
+        Assert.notNull(queryFunction, "Query function must not be null");
+
+        final FluentQuerySupport.ScrollQueryFactory scrollFunction = (sort, scrollPosition) -> {
+            Specification<T> specToUse = spec;
+            if (scrollPosition instanceof final KeysetScrollPosition keyset) {
+                final KeysetScrollSpecification<T> keysetSpec = new KeysetScrollSpecification(keyset, sort, entityInformation);
+
+                sort = keysetSpec.sort();
+                specToUse = spec.and(keysetSpec);
+            }
+
+            final TypedQuery<T> query = getQuery(specToUse, domainClass, sort, sid, authoritySids, permission);
+
+            if (scrollPosition instanceof final OffsetScrollPosition offset) {
+                if (!offset.isInitial()) {
+                    query.setFirstResult(Math.toIntExact(offset.getOffset()) + 1);
+                }
+            }
+
+            return query;
+        };
+
+        final Function<Sort, TypedQuery<T>> finder = (sort) -> getQuery(spec, domainClass, sort, sid, authoritySids, permission);
+        final FetchableFluentQueryBySpecification.SpecificationScrollDelegate<T> scrollDelegate = new FetchableFluentQueryBySpecification.SpecificationScrollDelegate(scrollFunction, entityInformation);
+        final FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification(spec, domainClass, finder, scrollDelegate, count -> count(spec), exists -> exists(spec), entityManager, getProjectionFactory());
+
+        return queryFunction.apply((FluentQuery.FetchableFluentQuery<S>) fluentQuery);
+    }
+
+    private ProjectionFactory getProjectionFactory() {
+        if (this.projectionFactory == null) {
+            this.projectionFactory = new SpelAwareProxyProjectionFactory();
+        }
+
+        return this.projectionFactory;
     }
 }

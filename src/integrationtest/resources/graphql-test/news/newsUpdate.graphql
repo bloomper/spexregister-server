@@ -1,0 +1,14 @@
+mutation newsUpdate ($id: ID!, $subject: String!, $text: String!, $visibleFrom: Date, $visibleTo: Date) {
+    newsUpdate(input: { id: $id, subject: $subject, text: $text, visibleFrom: $visibleFrom, visibleTo: $visibleTo }) {
+        id
+        subject
+        text
+        visibleFrom
+        visibleTo
+        published
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

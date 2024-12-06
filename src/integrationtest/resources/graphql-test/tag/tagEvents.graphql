@@ -1,0 +1,9 @@
+query tagEvents ($sinceInDays: Int = 90) {
+    tagEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

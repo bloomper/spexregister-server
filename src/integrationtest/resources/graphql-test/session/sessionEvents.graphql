@@ -1,0 +1,9 @@
+query sessionEvents ($sinceInDays: Int = 90) {
+    sessionEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

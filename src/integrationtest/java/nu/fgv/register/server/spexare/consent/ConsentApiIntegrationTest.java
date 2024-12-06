@@ -29,6 +29,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -91,6 +92,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
         parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
                 )
@@ -307,14 +311,16 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -343,14 +349,16 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -360,8 +368,9 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.FALSE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .extract().body().as(ProblemDetail.class);
@@ -375,14 +384,16 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -398,14 +409,16 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", "dummy", Boolean.TRUE)
+                .post("/{typeId}", "dummy")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -421,14 +434,16 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -445,13 +460,14 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentCreateDto.class);
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
             .when()
-                .post("/{typeId}/{value}", type.getId(), Boolean.TRUE)
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
@@ -471,14 +487,20 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
+            consent.setValue(Boolean.TRUE);
+            repository.save(consent);
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(consent.getId());
+            dto.setValue(Boolean.FALSE);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.FALSE)
+                .put("/{typeId}/{id}", type.getId(), consent.getId())
             .then()
                 .statusCode(HttpStatus.OK.value());
             //@formatter:on
@@ -510,14 +532,17 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(1L);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), 1L, Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), 1L)
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -535,14 +560,17 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(consent.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), consent.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -560,14 +588,17 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(consent.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", "dummy", consent.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", "dummy", consent.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -588,14 +619,17 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare2));
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(consent.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare1.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), consent.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -612,14 +646,17 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
+            final var dto = random.nextObject(ConsentUpdateDto.class);
+            dto.setId(consent.getId());
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), consent.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -637,13 +674,15 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = randomizeConsent(type, spexare);
+            final var dto = random.nextObject(ConsentUpdateDto.class);
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .put("/{typeId}/{id}/{value}", type.getId(), consent.getId(), Boolean.TRUE)
+                .put("/{typeId}/{id}", type.getId(), consent.getId())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on

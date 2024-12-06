@@ -1,0 +1,9 @@
+query spexCategoryEvents ($sinceInDays: Int = 90) {
+    spexCategoryEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

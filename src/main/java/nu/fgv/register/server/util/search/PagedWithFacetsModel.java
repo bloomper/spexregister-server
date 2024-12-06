@@ -136,7 +136,7 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
         return new PagedWithFacetsModel<>(content, metadata, links, facets);
     }
 
-    @JsonProperty("_facets")
+    @JsonProperty("facets")
     public Collection<Facet> getFacets() {
         return facets;
     }

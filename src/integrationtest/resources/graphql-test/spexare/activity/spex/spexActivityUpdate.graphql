@@ -1,0 +1,61 @@
+mutation spexActivityUpdate ($spexareId: ID!, $activityId: ID!, $spexId: ID!, $id: ID!, $first: Int = 10) {
+    spexActivityUpdate(spexareId: $spexareId, activityId: $activityId, spexId: $spexId, id: $id) {
+        id
+        spex {
+            id
+            year
+            title
+            revival
+            parent {
+                id
+                year
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            posterUrl
+            category {
+                id
+                name
+                firstYear
+                logoUrl
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            revivals {
+                id
+                year
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            revivalsPaged (first: $first) {
+                edges {
+                    cursor
+                    node {
+                        id
+                        year
+                        createdBy
+                        createdAt
+                        lastModifiedBy
+                        lastModifiedAt
+                    }
+                }
+                pageInfo {
+                    hasPreviousPage
+                    hasNextPage
+                    startCursor
+                    endCursor
+                }
+            }
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

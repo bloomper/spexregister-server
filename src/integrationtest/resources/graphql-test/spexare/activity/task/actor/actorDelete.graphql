@@ -1,0 +1,3 @@
+mutation actorDelete ($spexareId: ID!, $activityId: ID!, $taskActivityId: ID!, $vocalId: ID!, $id: ID!) {
+    actorDelete(spexareId: $spexareId, activityId: $activityId, taskActivityId: $taskActivityId, vocalId: $vocalId, id: $id)
+}

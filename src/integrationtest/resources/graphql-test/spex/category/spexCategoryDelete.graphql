@@ -1,0 +1,3 @@
+mutation spexCategoryDelete ($id: ID!) {
+    spexCategoryDelete(id: $id)
+}

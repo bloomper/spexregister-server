@@ -35,12 +35,19 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorMapper.ACTOR_MAPPER;
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecification.hasId;
@@ -67,26 +74,49 @@ public class ActorService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public Page<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long taskActivityId, final String filter, final Pageable pageable) {
-        if (doSpexareAndActivityAndTaskActivityExist(spexareId, activityId, taskActivityId)) {
-            return spexareRepository
-                    .findById0(spexareId)
-                    .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> taskActivityRepository.findById(taskActivityId))
-                    .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
-                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
-                    .map(activity -> hasText(filter) ?
-                            repository
-                                    .findAll(SpecificationsBuilder.<Actor>builder().build(FilterParser.parse(filter), ActorSpecification::new).and(hasTaskActivity(activity)), pageable)
-                                    .map(ACTOR_MAPPER::toDto) :
-                            repository
-                                    .findAll(hasTaskActivity(activity), pageable)
-                                    .map(ACTOR_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, taskActivityId);
-        }
+    public List<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
+        return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
+                        repository
+                                .findAll(hasTaskActivity(taskActivity), Pageable.unpaged(Sort.by(Actor_.ID)))
+                                .stream()
+                                .map(ACTOR_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
+                        hasText(filter) ?
+                                repository
+                                        .findBy(SpecificationsBuilder.<Actor>builder().build(FilterParser.parse(filter), ActorSpecification::new).and(hasTaskActivity(taskActivity)), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(ACTOR_MAPPER::toDto) :
+                                repository
+                                        .findBy(hasTaskActivity(taskActivity), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(ACTOR_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Page<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final Pageable pageable) {
+        return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
+                        hasText(filter) ?
+                                repository
+                                        .findAll(SpecificationsBuilder.<Actor>builder().build(FilterParser.parse(filter), ActorSpecification::new).and(hasTaskActivity(taskActivity)), pageable)
+                                        .map(ACTOR_MAPPER::toDto) :
+                                repository
+                                        .findAll(hasTaskActivity(taskActivity), pageable)
+                                        .map(ACTOR_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -190,6 +220,21 @@ public class ActorService {
                     );
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class, Type.class, Actor.class), spexareId, activityId, taskActivityId, vocalId, id);
+        }
+    }
+
+    private <T> T findBySpexareByTaskActivity(final Long spexareId, final Long activityId, final Long id, final Function<TaskActivity, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doSpexareAndActivityAndTaskActivityExist(spexareId, activityId, id)) {
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> taskActivityRepository.findById(id))
+                    .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
+                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, id);
         }
     }
 

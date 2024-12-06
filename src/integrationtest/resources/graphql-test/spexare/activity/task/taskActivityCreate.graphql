@@ -1,0 +1,61 @@
+mutation taskActivityCreate ($spexareId: ID!, $activityId: ID!, $taskId: ID!, $first: Int = 10) {
+    taskActivityCreate(spexareId: $spexareId, activityId: $activityId, taskId: $taskId) {
+        id
+        task {
+            id
+            name
+            category {
+                id
+                name
+                actorPresent
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        actorsPaged(first: $first) {
+            edges {
+                cursor
+                node {
+                    id
+                    role
+                    vocal {
+                        id
+                        label
+                    }
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+            }
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+            }
+        }
+        actors {
+            id
+            role
+            vocal {
+                id
+                label
+            }
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -20,12 +20,4 @@ operation::user-state-get-all[snippets='security,request-headers,query-parameter
 
 operation::user-state-get-2[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
-[[events]]
-== Events
-
-[[events_get]]
-=== Get
-
-operation::user-state-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
-
 xref:../api-guide.adoc[Back to API guide]

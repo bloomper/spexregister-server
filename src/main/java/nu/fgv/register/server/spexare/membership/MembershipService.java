@@ -31,12 +31,19 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.membership.MembershipMapper.MEMBERSHIP_MAPPER;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasId;
@@ -62,23 +69,49 @@ public class MembershipService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
+    public List<MembershipDto> findBySpexare(final Long id) {
+        return findBySpexare(id, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Membership_.TYPE)))
+                                .stream()
+                                .map(MEMBERSHIP_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<MembershipDto> findBySpexare(final Long spexareId, final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexare(spexareId, spexare ->
+                        hasText(filter) ?
+                                repository
+                                        .findBy(SpecificationsBuilder.<Membership>builder().build(FilterParser.parse(filter), MembershipSpecification::new).and(hasSpexare(spexare)), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(MEMBERSHIP_MAPPER::toDto) :
+                                repository
+                                        .findBy(hasSpexare(spexare), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(MEMBERSHIP_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Page<MembershipDto> findBySpexare(final Long spexareId, final String filter, final Pageable pageable) {
-        if (doesSpexareExist(spexareId)) {
-            return spexareRepository
-                    .findById0(spexareId)
-                    .map(permissionService::checkReadPermission)
-                    .map(spexare -> hasText(filter) ?
-                            repository
-                                    .findAll(SpecificationsBuilder.<Membership>builder().build(FilterParser.parse(filter), MembershipSpecification::new).and(hasSpexare(spexare)), pageable)
-                                    .map(MEMBERSHIP_MAPPER::toDto) :
-                            repository
-                                    .findAll(hasSpexare(spexare), pageable)
-                                    .map(MEMBERSHIP_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourceNotFoundException(Spexare.class, spexareId);
-        }
+        return findBySpexare(spexareId, spexare ->
+                        hasText(filter) ?
+                                repository
+                                        .findAll(SpecificationsBuilder.<Membership>builder().build(FilterParser.parse(filter), MembershipSpecification::new).and(hasSpexare(spexare)), pageable)
+                                        .map(MEMBERSHIP_MAPPER::toDto) :
+                                repository
+                                        .findAll(hasSpexare(spexare), pageable)
+                                        .map(MEMBERSHIP_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -97,24 +130,24 @@ public class MembershipService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public MembershipDto create(final Long spexareId, final String typeId, final String year) {
+    public MembershipDto create(final Long spexareId, final String typeId, final MembershipCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
                             .map(permissionService::checkWritePermission)
-                            .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(year))))
+                            .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(dto.getYear()))))
                             .map(spexare -> {
                                 final Membership membership = new Membership();
                                 membership.setSpexare(spexare);
                                 membership.setType(type);
-                                membership.setYear(year);
+                                membership.setYear(dto.getYear());
                                 return repository.save(membership);
                             })
                     )
                     .map(MEMBERSHIP_MAPPER::toDto)
-                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Membership.class), Membership_.YEAR, year, spexareId, typeId));
+                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Membership.class), Membership_.YEAR, dto.getYear(), spexareId, typeId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class), spexareId, typeId);
         }
@@ -140,6 +173,18 @@ public class MembershipService {
                     );
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Membership.class), spexareId, typeId, id);
+        }
+    }
+
+    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doesSpexareExist(id)) {
+            return spexareRepository
+                    .findById0(id)
+                    .map(permissionService::checkReadPermission)
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 

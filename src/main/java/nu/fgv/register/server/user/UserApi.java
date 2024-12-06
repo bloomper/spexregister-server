@@ -138,10 +138,10 @@ public class UserApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long id) {
-        final Set<EntityModel<AuthorityDto>> authorities = service.getAuthoritiesByUser(id).stream()
+    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long userId) {
+        final Set<EntityModel<AuthorityDto>> authorities = service.getAuthoritiesByUser(userId).stream()
                 .map(dto -> EntityModel.of(dto, authorityApi.getLinks(dto)))
                 .collect(Collectors.toSet());
 
@@ -182,10 +182,10 @@ public class UserApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}/state", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{userId}/state", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final Long id) {
-        final StateDto dto = service.getStateByUser(id);
+    public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final Long userId) {
+        final StateDto dto = service.getStateByUser(userId);
 
         return ResponseEntity.ok(EntityModel.of(dto, stateApi.getLinks(dto)));
     }
@@ -198,10 +198,10 @@ public class UserApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long id) {
-        final SpexareDto dto = service.findSpexareByUser(id);
+    public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long userId) {
+        final SpexareDto dto = service.findSpexareByUser(userId);
 
         return ResponseEntity.ok(EntityModel.of(dto, spexareApi.getLinks(dto)));
     }
@@ -214,10 +214,10 @@ public class UserApi {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping(value = "/{id}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> removeSpexare(@PathVariable final Long id) {
-        service.removeSpexare(id);
+    public ResponseEntity<Serializable> removeSpexare(@PathVariable final Long userId) {
+        service.removeSpexare(userId);
 
         return ResponseEntity.noContent().build();
     }

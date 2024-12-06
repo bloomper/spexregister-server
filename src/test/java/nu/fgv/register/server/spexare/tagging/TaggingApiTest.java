@@ -1,0 +1,169 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package nu.fgv.register.server.spexare.tagging;
+
+import nu.fgv.register.server.tag.TagDto;
+import nu.fgv.register.server.util.AbstractApiTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.restdocs.hypermedia.LinksSnippet;
+import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyHeaders;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
+@WebMvcTest(value = TaggingApi.class)
+class TaggingApiTest extends AbstractApiTest {
+
+    @MockitoBean
+    private TaggingService service;
+
+    private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
+            fieldWithPath("id").description("The id of the tag"),
+            fieldWithPath("name").description("The name of the tag"),
+            linksSubsection
+    );
+
+    private final LinksSnippet links = baseLinks.and(
+            linkWithRel("spexare").description("Link to the current spexare"),
+            linkWithRel("tags").description("Link to the current spexare's tags")
+    );
+
+    @Test
+    void should_get_paged() throws Exception {
+        final var tag1 = TagDto.builder().id(1L).name("tag1").build();
+        final var tag2 = TagDto.builder().id(2L).name("tag2").build();
+
+        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
+
+        mockMvc
+                .perform(
+                        get("/api/v1/spexare/{spexareId}/taggings?page=1&size=2&sort=name,desc", 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.tags", hasSize(2)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare-tagging-get-all-paged",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexareId").description("The id of the spexare")
+                                ),
+                                pageLinks.and(
+                                        subsectionWithPath("_embedded").description("The embedded section"),
+                                        subsectionWithPath("_embedded.tags[]").description("The elements"),
+                                        fieldWithPath("_embedded.tags[].id").description("The id of the tag"),
+                                        fieldWithPath("_embedded.tags[].name").description("The name of the tag"),
+                                        fieldWithPath("_embedded.tags[].createdBy").description("Who created the tag"),
+                                        fieldWithPath("_embedded.tags[].createdAt").description("When was the tag created"),
+                                        fieldWithPath("_embedded.tags[].lastModifiedBy").description("Who last modified the tag"),
+                                        fieldWithPath("_embedded.tags[].lastModifiedAt").description("When was the tag last modified"),
+                                        subsectionWithPath("_embedded.tags[]._links").description("The tag links"),
+                                        linksSubsection
+                                ),
+                                pagingLinks,
+                                pagingQueryParameters,
+                                secureRequestHeaders,
+                                responseHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "retrieve", Long.class, Pageable.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_create() throws Exception {
+        final var tag = TagDto.builder().id(1L).name("tag").build();
+
+        mockMvc
+                .perform(
+                        post("/api/v1/spexare/{spexareId}/taggings/{tagId}", 1L, tag.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isCreated())
+                .andDo(document(
+                                "spexare-tagging-add",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexareId").description("The id of the spexare"),
+                                        parameterWithName("tagId").description("The id of the tag")
+                                ),
+                                secureRequestHeaders,
+                                createOnlyResponseHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "create", Long.class, Long.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_delete() throws Exception {
+        mockMvc
+                .perform(
+                        delete("/api/v1/spexare/{spexareId}/taggings/{tagId}", 1L, 1L)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isNoContent())
+                .andDo(document(
+                                "spexare-tagging-remove",
+                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                pathParameters(
+                                        parameterWithName("spexareId").description("The id of the spexare"),
+                                        parameterWithName("tagId").description("The id of the tag")
+                                ),
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(TaggingApi.class, "delete", Long.class, Long.class))
+                        )
+                );
+    }
+
+}

@@ -51,6 +51,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
+import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -83,28 +85,28 @@ public class Address extends AbstractAuditable implements Serializable {
 
     @Size(max = 255, message = "{address.city.size}")
     @Column(name = "city")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String city;
 
     @Size(max = 255, message = "{address.country.size}")
     @Column(name = "country")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String country;
 
     @Size(max = 255, message = "{address.phone.size}")
     @Column(name = "phone")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String phone;
 
     @Size(max = 255, message = "{address.phoneMobile.size}")
     @Column(name = "phone_mobile")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String phoneMobile;
 
     @Size(max = 255, message = "{address.emailAddress.size}")
     @Email(message = "{address.emailAddress.valid}")
     @Column(name = "email_address")
-    @KeywordField(searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String emailAddress;
 
     @NotNull(message = "{address.type.notEmpty}")

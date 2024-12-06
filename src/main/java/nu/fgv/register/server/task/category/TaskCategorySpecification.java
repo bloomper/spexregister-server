@@ -30,6 +30,11 @@ import java.util.List;
 @Getter
 public class TaskCategorySpecification extends BaseSpecification<TaskCategory> {
 
+    public static final TaskCategorySpecification NO_FILTER = new TaskCategorySpecification();
+
+    private TaskCategorySpecification() {
+    }
+
     public TaskCategorySpecification(final FilterCriteria criteria) {
         super(criteria);
     }

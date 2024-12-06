@@ -65,7 +65,12 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         return search(Search.session(entityManager), parseQuery(query), pageable);
     }
 
-    protected SearchQuery parseQuery(final String query) {
+    @Override
+    public SearchResult<T> search(final String query, final int offset, final int limit, final Sort sort) {
+        return search(Search.session(entityManager), parseQuery(query), offset, limit, sort);
+    }
+
+    SearchQuery parseQuery(final String query) {
         // Query syntax: <free text query>:aggregation1:aggregation1Value:aggregation2:aggregation2Value
         // Query example: colgate:tags.name:detaljen
 
@@ -79,8 +84,7 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
             final String freeTextQuery = parts[0].strip();
             final List<Aggregation> aggregations = new ArrayList<>();
 
-
-            for (int i = 2; (i + 1) < parts.length; i = i + 2) {
+            for (int i = 1; (i + 1) < parts.length; i = i + 2) {
                 final String name = parts[i];
                 final String value = parts[i + 1];
 

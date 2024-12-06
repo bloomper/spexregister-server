@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -57,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EventApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
-    private final EventRepository eventRepository;
+    private final EventRepository repository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -67,9 +66,9 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                                    final String keycloakClientId,
                                    final PermissionService permissionService,
                                    final ObjectMapper objectMapper,
-                                   final EventRepository eventRepository) {
+                                   final EventRepository repository) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
-        this.eventRepository = eventRepository;
+        this.repository = repository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -119,7 +118,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isZero();
+            assertThat(repository.count()).isZero();
             assertThat(result).isEmpty();
         }
 
@@ -140,7 +139,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(1);
+            assertThat(repository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
         }
 
@@ -162,7 +161,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.events", EventDto.class);
             //@formatter:on
 
-            assertThat(eventRepository.count()).isEqualTo(size);
+            assertThat(repository.count()).isEqualTo(size);
             assertThat(result).hasSize(size);
         }
 
@@ -251,7 +250,7 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
     private Event persistEvent(final Event event) {
         event.setId(null);
 
-        return eventRepository.save(event);
+        return repository.save(event);
     }
 
 }

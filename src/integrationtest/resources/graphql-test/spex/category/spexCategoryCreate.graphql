@@ -1,0 +1,11 @@
+mutation spexCategoryCreate ($name: String!, $firstYear: Year!) {
+    spexCategoryCreate(input: { name: $name, firstYear: $firstYear }) {
+        id
+        name
+        firstYear
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -31,12 +31,19 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.address.AddressMapper.ADDRESS_MAPPER;
 import static nu.fgv.register.server.spexare.address.AddressSpecification.hasId;
@@ -61,23 +68,49 @@ public class AddressService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
+    public List<AddressDto> findBySpexare(final Long id) {
+        return findBySpexare(id, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Address_.TYPE)))
+                                .stream()
+                                .map(ADDRESS_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<AddressDto> findBySpexare(final Long id, final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexare(id, spexare ->
+                        hasText(filter) ?
+                                repository
+                                        .findBy(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(ADDRESS_MAPPER::toDto) :
+                                repository
+                                        .findBy(hasSpexare(spexare), query -> query
+                                                .limit(limit)
+                                                .sortBy(sort)
+                                                .scroll(scrollPosition))
+                                        .map(ADDRESS_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Page<AddressDto> findBySpexare(final Long id, final String filter, final Pageable pageable) {
-        if (doesSpexareExist(id)) {
-            return spexareRepository
-                    .findById0(id)
-                    .map(permissionService::checkReadPermission)
-                    .map(spexare -> hasText(filter) ?
-                            repository
-                                    .findAll(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), pageable)
-                                    .map(ADDRESS_MAPPER::toDto) :
-                            repository
-                                    .findAll(hasSpexare(spexare), pageable)
-                                    .map(ADDRESS_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourceNotFoundException(Spexare.class, id);
-        }
+        return findBySpexare(id, spexare ->
+                        hasText(filter) ?
+                                repository
+                                        .findAll(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), pageable)
+                                        .map(ADDRESS_MAPPER::toDto) :
+                                repository
+                                        .findAll(hasSpexare(spexare), pageable)
+                                        .map(ADDRESS_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -167,6 +200,18 @@ public class AddressService {
                     );
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Address.class), spexareId, typeId, id);
+        }
+    }
+
+    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doesSpexareExist(id)) {
+            return spexareRepository
+                    .findById0(id)
+                    .map(permissionService::checkReadPermission)
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 

@@ -1,0 +1,197 @@
+mutation activityCreate ($spexareId: ID!, $first: Int = 10) {
+    activityCreate(spexareId: $spexareId) {
+        id
+        spexActivity {
+            id
+            spex {
+                id
+                year
+                title
+                revival
+                parent {
+                    id
+                    year
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                posterUrl
+                category {
+                    id
+                    name
+                    firstYear
+                    logoUrl
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                revivals {
+                    id
+                    year
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                revivalsPaged (first: $first) {
+                    edges {
+                        cursor
+                        node {
+                            id
+                            year
+                            createdBy
+                            createdAt
+                            lastModifiedBy
+                            lastModifiedAt
+                        }
+                    }
+                    pageInfo {
+                        hasPreviousPage
+                        hasNextPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        taskActivitiesPaged(first: $first) {
+            edges {
+                cursor
+                node {
+                    id
+                    task {
+                        id
+                        name
+                        category {
+                            id
+                            name
+                            actorPresent
+                            createdBy
+                            createdAt
+                            lastModifiedBy
+                            lastModifiedAt
+                        }
+                        createdBy
+                        createdAt
+                        lastModifiedBy
+                        lastModifiedAt
+                    }
+                    actorsPaged(first: $first) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                role
+                                vocal {
+                                    id
+                                    label
+                                }
+                                createdBy
+                                createdAt
+                                lastModifiedBy
+                                lastModifiedAt
+                            }
+                        }
+                        pageInfo {
+                            hasPreviousPage
+                            hasNextPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                    actors {
+                        id
+                        role
+                        vocal {
+                            id
+                            label
+                        }
+                        createdBy
+                        createdAt
+                        lastModifiedBy
+                        lastModifiedAt
+                    }
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+            }
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+            }
+        }
+        taskActivities {
+            id
+            task {
+                id
+                name
+                category {
+                    id
+                    name
+                    actorPresent
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            actorsPaged(first: $first) {
+                edges {
+                    cursor
+                    node {
+                        id
+                        role
+                        vocal {
+                            id
+                            label
+                        }
+                        createdBy
+                        createdAt
+                        lastModifiedBy
+                        lastModifiedAt
+                    }
+                }
+                pageInfo {
+                    hasPreviousPage
+                    hasNextPage
+                    startCursor
+                    endCursor
+                }
+            }
+            actors {
+                id
+                role
+                vocal {
+                    id
+                    label
+                }
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

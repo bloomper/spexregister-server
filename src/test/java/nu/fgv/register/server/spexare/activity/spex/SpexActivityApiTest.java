@@ -78,6 +78,7 @@ class SpexActivityApiTest extends AbstractApiTest {
             fieldWithPath("year").description("The year of the spex"),
             fieldWithPath("title").description("The title of the spex"),
             fieldWithPath("revival").description("The revival flag of the spex"),
+            fieldWithPath("posterUrl").description("The poster URL of the spex"),
             linksSubsection
     );
 
@@ -191,13 +192,17 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
+        final var spexActivity = SpexActivityDto.builder().id(1L).build();
+
+        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
+
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/{spexId}", 1L, 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andDo(document(
                                 "spexare-activity-spex-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -208,7 +213,10 @@ class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("spexId").description("The id of the spex"),
                                         parameterWithName("id").description("The id of the spex activity")
                                 ),
+                                responseFields,
+                                links,
                                 secureRequestHeaders,
+                                responseHeaders,
                                 security(getRolesFromMethod(SpexActivityApi.class, "update", Long.class, Long.class, Long.class, Long.class))
                         )
                 );
@@ -233,7 +241,7 @@ class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex activity")
                                 ),
                                 secureRequestHeaders,
-                        security(getRolesFromMethod(SpexActivityApi.class, "delete", Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "delete", Long.class, Long.class, Long.class))
                         )
                 );
     }

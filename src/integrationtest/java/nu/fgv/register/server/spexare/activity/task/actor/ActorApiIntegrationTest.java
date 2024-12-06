@@ -38,6 +38,7 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -113,6 +114,9 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
         parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
                 .randomize(
                         named("year"), new YearRandomizer()
                 )

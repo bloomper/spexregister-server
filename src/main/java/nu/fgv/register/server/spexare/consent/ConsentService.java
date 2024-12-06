@@ -29,12 +29,19 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.consent.ConsentMapper.CONSENT_MAPPER;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasId;
@@ -58,19 +65,38 @@ public class ConsentService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
+    public List<ConsentDto> findBySpexare(final Long id) {
+        return findBySpexare(id, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Consent_.TYPE)))
+                                .stream()
+                                .map(CONSENT_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<ConsentDto> findBySpexare(final Long spexareId, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexare(spexareId, spexare ->
+                        repository
+                                .findBy(hasSpexare(spexare), query -> query
+                                        .limit(limit)
+                                        .sortBy(sort)
+                                        .scroll(scrollPosition))
+                                .map(CONSENT_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Page<ConsentDto> findBySpexare(final Long spexareId, final Pageable pageable) {
-        if (doesSpexareExist(spexareId)) {
-            return spexareRepository
-                    .findById0(spexareId)
-                    .map(permissionService::checkReadPermission)
-                    .map(spexare -> repository
-                            .findAll(hasSpexare(spexare), pageable)
-                            .map(CONSENT_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourceNotFoundException(Spexare.class, spexareId);
-        }
+        return findBySpexare(spexareId, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), pageable)
+                                .map(CONSENT_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -89,7 +115,7 @@ public class ConsentService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public ConsentDto create(final Long spexareId, final String typeId, final Boolean value) {
+    public ConsentDto create(final Long spexareId, final String typeId, final ConsentCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -101,7 +127,7 @@ public class ConsentService {
                                 final Consent consent = new Consent();
                                 consent.setSpexare(spexare);
                                 consent.setType(type);
-                                consent.setValue(value);
+                                consent.setValue(dto.getValue());
                                 return repository.save(consent);
                             })
                     )
@@ -113,7 +139,7 @@ public class ConsentService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public ConsentDto update(final Long spexareId, final String typeId, final Long id, final Boolean value) {
+    public ConsentDto update(final Long spexareId, final String typeId, final Long id, final ConsentUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             return typeRepository
                     .findById(typeId)
@@ -124,7 +150,7 @@ public class ConsentService {
                             .flatMap(spexare -> repository.findById(id))
                             .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .map(consent -> {
-                                consent.setValue(value);
+                                consent.setValue(dto.getValue());
                                 return repository.save(consent);
                             })
                             .map(CONSENT_MAPPER::toDto)
@@ -155,6 +181,18 @@ public class ConsentService {
                     );
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Consent.class), spexareId, typeId, id);
+        }
+    }
+
+    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doesSpexareExist(id)) {
+            return spexareRepository
+                    .findById0(id)
+                    .map(permissionService::checkReadPermission)
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 

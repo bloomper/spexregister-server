@@ -76,7 +76,7 @@ public class Membership extends AbstractAuditable implements Serializable {
     @Size(max = 4, message = "{membership.year.maxSize}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
     @Column(name = "year", length = 4, nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private String year;
 
     @NotNull(message = "{membership.type.notEmpty}")

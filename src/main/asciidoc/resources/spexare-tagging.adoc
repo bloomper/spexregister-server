@@ -1,0 +1,28 @@
+= Tag
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[create]]
+== Create
+
+operation::spexare-tagging-add[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
+
+[[get_paged]]
+== Get (paged)
+
+operation::spexare-tagging-get-all-paged[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[delete]]
+== Delete
+
+operation::spexare-tagging-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

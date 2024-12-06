@@ -1,0 +1,12 @@
+mutation spexUpdate ($id: ID!, $year: Year!, $title: String!) {
+    spexUpdate(input: { id: $id, year: $year, title: $title }) {
+        id
+        year
+        title
+        posterUrl
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

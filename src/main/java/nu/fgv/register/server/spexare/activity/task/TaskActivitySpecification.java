@@ -26,6 +26,8 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class TaskActivitySpecification {
 
+    public static final TaskActivitySpecification NO_FILTER = new TaskActivitySpecification();
+
     private TaskActivitySpecification() {
     }
 

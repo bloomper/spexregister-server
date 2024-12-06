@@ -29,6 +29,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -41,7 +42,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -93,6 +93,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
         parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
                 .randomize(
                         named("emailAddress"), new EmailRandomizer()
                 )

@@ -1,0 +1,33 @@
+extend type Query {
+    membershipPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["year"], direction: SortDirection = ASC): MembershipConnection
+    membership(spexareId: ID!, id: ID!): Membership
+}
+
+extend type Mutation {
+    membershipCreate(spexareId: ID!, typeId: ID!, input: MembershipCreate): Membership
+    membershipDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
+}
+
+type Membership {
+    id: ID!
+    year: Year!
+    type: Type!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type MembershipConnection {
+    edges: [MembershipEdge]!
+    pageInfo: PageInfo!
+}
+
+type MembershipEdge {
+    cursor: String!
+    node: Membership!
+}
+
+input MembershipCreate {
+    year: Year!
+}

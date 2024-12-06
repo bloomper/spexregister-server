@@ -59,7 +59,7 @@ public class Type extends AbstractAuditable implements Serializable {
     @Id
     @Size(max = 255, message = "{type.value.size}")
     @Column(name = "id")
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private String id;
 
     @org.hibernate.annotations.Type(JsonType.class)

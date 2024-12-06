@@ -50,15 +50,15 @@ public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {
     @ExcelCell(header = "Name", position = 1, updatable = true, mandatory = true)
     private String name;
 
-    @JsonProperty("hasActor")
-    @ExcelCell(header = "Has actor", position = 2, updatable = true, mandatory = true)
-    private boolean hasActor;
+    @JsonProperty("actorPresent")
+    @ExcelCell(header = "Actor present", position = 2, updatable = true, mandatory = true)
+    private boolean actorPresent;
 
     @Builder
     public TaskCategoryDto(
             final Long id,
             final String name,
-            final boolean hasActor,
+            final boolean actorPresent,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -67,6 +67,6 @@ public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {
         super(createdBy, createdAt, lastModifiedBy, lastModifiedAt);
         this.id = id;
         this.name = name;
-        this.hasActor = hasActor;
+        this.actorPresent = actorPresent;
     }
 }

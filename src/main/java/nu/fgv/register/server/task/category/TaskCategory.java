@@ -16,7 +16,15 @@
 
 package nu.fgv.register.server.task.category;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,15 +33,6 @@ import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
@@ -41,6 +40,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+
+import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
  * @author Anders Jacobsson
@@ -66,11 +67,11 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
     @NotNull
     @Size(max = 255)
     @Column(name = "name", nullable = false)
-    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String name;
 
-    @Column(name = "has_actor")
-    private Boolean hasActor;
+    @Column(name = "actor_present")
+    private Boolean actorPresent;
 
     @Override
     public boolean equals(final Object o) {

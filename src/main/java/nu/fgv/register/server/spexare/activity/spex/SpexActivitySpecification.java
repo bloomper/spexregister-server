@@ -26,6 +26,8 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class SpexActivitySpecification {
 
+    public static final SpexActivitySpecification NO_FILTER = new SpexActivitySpecification();
+
     private SpexActivitySpecification() {
     }
 

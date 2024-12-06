@@ -1,0 +1,10 @@
+mutation spexRevivalCreate ($spexId: ID!, $year: Year!) {
+    spexRevivalCreate(spexId: $spexId, year: $year) {
+        id
+        year
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

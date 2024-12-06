@@ -186,38 +186,38 @@ public class SpexCategoryApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/logo")
+    @GetMapping("/{spexCategoryId}/logo")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long id) {
-        final Pair<byte[], String> logo = service.getLogo(id);
+    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long spexCategoryId) {
+        final Pair<byte[], String> logo = service.getLogo(spexCategoryId);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(logo.getSecond()))
                 .body(new ByteArrayResource(logo.getFirst()));
     }
 
-    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        service.saveLogo(id, file, contentType);
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexCategoryId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+        service.saveLogo(spexCategoryId, file, contentType);
 
         return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(value = "/{id}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexCategoryId, @RequestParam("file") final MultipartFile file) {
         try {
-            return uploadLogo(id, file.getBytes(), file.getContentType());
+            return uploadLogo(spexCategoryId, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }
     }
 
-    @DeleteMapping("/{id}/logo")
+    @DeleteMapping("/{spexCategoryId}/logo")
     @RequiresAdmin
-    public ResponseEntity<Object> deleteLogo(@PathVariable final Long id) {
-        service.deleteLogo(id);
+    public ResponseEntity<Object> deleteLogo(@PathVariable final Long spexCategoryId) {
+        service.deleteLogo(spexCategoryId);
 
         return ResponseEntity.noContent().build();
     }

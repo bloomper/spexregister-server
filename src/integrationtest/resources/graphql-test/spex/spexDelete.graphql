@@ -1,0 +1,3 @@
+mutation spexDelete ($id: ID!) {
+    spexDelete(id: $id)
+}

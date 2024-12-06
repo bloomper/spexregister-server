@@ -30,12 +30,19 @@ import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.activity.task.TaskActivityMapper.TASK_ACTIVITY_MAPPER;
 import static nu.fgv.register.server.spexare.activity.task.TaskActivitySpecification.hasActivity;
@@ -60,21 +67,38 @@ public class TaskActivityService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public Page<TaskActivityDto> findByActivity(final Long spexareId, final Long activityId, final Pageable pageable) {
-        if (doSpexareAndActivityExist(spexareId, activityId)) {
-            return spexareRepository
-                    .findById0(spexareId)
-                    .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .map(activity -> repository
-                            .findAll(hasActivity(activity), pageable)
-                            .map(TASK_ACTIVITY_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, activityId);
-        }
+    public List<TaskActivityDto> findByActivity(final Long spexareId, final Long id) {
+        return findBySpexareByActivity(spexareId, id, activity ->
+                        repository
+                                .findAll(hasActivity(activity), Pageable.unpaged(Sort.by(TaskActivity_.ID)))
+                                .stream()
+                                .map(TASK_ACTIVITY_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexareByActivity(spexareId, id, activity ->
+                        repository
+                                .findBy(hasActivity(activity), query -> query
+                                        .limit(limit)
+                                        .sortBy(sort)
+                                        .scroll(scrollPosition))
+                                .map(TASK_ACTIVITY_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Page<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final Pageable pageable) {
+        return findBySpexareByActivity(spexareId, id, activity ->
+                        repository
+                                .findAll(hasActivity(activity), pageable)
+                                .map(TASK_ACTIVITY_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -120,38 +144,29 @@ public class TaskActivityService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public void update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
+    public TaskActivityDto update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId) && doesTaskActivityExist(id)) {
-            spexareRepository
+            return spexareRepository
                     .findById0(spexareId)
                     .map(permissionService::checkWritePermission)
                     .flatMap(spexare -> activityRepository.findById(activityId))
                     .filter(activity -> activity.getSpexare().getId().equals(spexareId))
-                    .ifPresentOrElse(
-                            activity -> taskRepository
-                                    .findById0(taskId)
-                                    .filter(task -> repository.exists(hasActivity(activity).and(hasId(id))))
-                                    .ifPresentOrElse(
-                                            task -> repository
-                                                    .findById(id)
-                                                    .filter(taskActivity -> taskActivity.getActivity().equals(activity))
-                                                    .ifPresentOrElse(
-                                                            taskActivity -> {
-                                                                taskActivity.setTask(task);
-                                                                repository.save(taskActivity);
-                                                            },
-                                                            () -> {
-                                                                throw new ResourceNotFoundException(TaskActivity.class, id);
-                                                            }
-                                                    ),
-                                            () -> {
-                                                throw new ResourceNotFoundException(Task.class, taskId);
-                                            }
-                                    ),
-                            () -> {
-                                throw new ResourceNotFoundException(Activity.class, activityId);
-                            }
-                    );
+                    .map(activity -> taskRepository
+                            .findById0(taskId)
+                            .filter(task -> repository.exists(hasActivity(activity).and(hasId(id))))
+                            .map(task -> repository
+                                    .findById(id)
+                                    .filter(taskActivity -> taskActivity.getActivity().equals(activity))
+                                    .map(taskActivity -> {
+                                        taskActivity.setTask(task);
+
+                                        return TASK_ACTIVITY_MAPPER.toDto(repository.save(taskActivity));
+                                    })
+                                    .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id))
+                            )
+                            .orElseThrow(() -> new ResourceNotFoundException(Task.class, taskId))
+                    )
+                    .orElseThrow(() -> new ResourceNotFoundException(Activity.class, activityId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class, Task.class), spexareId, activityId, id, taskId);
         }
@@ -198,6 +213,20 @@ public class TaskActivityService {
                     .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class), spexareId, activityId, id);
+        }
+    }
+
+    private <T> T findBySpexareByActivity(final Long spexareId, final Long id, final Function<Activity, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doSpexareAndActivityExist(spexareId, id)) {
+            return spexareRepository
+                    .findById0(spexareId)
+                    .map(permissionService::checkReadPermission)
+                    .flatMap(spexare -> activityRepository.findById(id))
+                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, id);
         }
     }
 

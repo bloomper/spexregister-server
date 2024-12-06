@@ -1,0 +1,39 @@
+extend type Query {
+    consentPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["type"], direction: SortDirection = ASC): ConsentConnection
+    consent(spexareId: ID!, id: ID!): Consent
+}
+
+extend type Mutation {
+    consentCreate(spexareId: ID!, typeId: ID!, input: ConsentCreate): Consent
+    consentUpdate(spexareId: ID!, typeId: ID!, input: ConsentUpdate): Consent
+    consentDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
+}
+
+type Consent {
+    id: ID!
+    value: Boolean!
+    type: Type!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type ConsentConnection {
+    edges: [ConsentEdge]!
+    pageInfo: PageInfo!
+}
+
+type ConsentEdge {
+    cursor: String!
+    node: Consent!
+}
+
+input ConsentCreate {
+    value: Boolean!
+}
+
+input ConsentUpdate {
+    id: ID!
+    value: Boolean!
+}

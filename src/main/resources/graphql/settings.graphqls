@@ -1,0 +1,33 @@
+extend type Query {
+    languages: [Language]
+    language(isoCode: Locale!): Language
+    countries: [Country]
+    country(isoCode: CountryCode!): Country
+    types: [Type]
+    typesOfType(type: TypeType!): [Type]
+    type(id: ID!): Type
+}
+
+type Language {
+    isoCode: Locale!
+    label: String
+}
+
+type Country {
+    isoCode: CountryCode!
+    label: String
+}
+
+type Type {
+    id: ID!
+    label: String!
+    type: TypeType!
+}
+
+enum TypeType {
+    ADDRESS
+    CONSENT
+    MEMBERSHIP
+    VOCAL
+    TOGGLE
+}

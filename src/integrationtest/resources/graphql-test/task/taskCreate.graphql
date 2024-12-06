@@ -1,0 +1,10 @@
+mutation taskCreate ($name: String!) {
+    taskCreate(input: { name: $name }) {
+        id
+        name
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -13,7 +13,7 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-operation::spexare-address-add[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spexare-address-add[snippets='security,request-headers,path-parameters,request-body,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
@@ -28,12 +28,12 @@ operation::spexare-address-get[snippets='security,request-headers,path-parameter
 [[update]]
 == Update
 
-operation::spexare-address-update[snippets='security,request-headers,path-parameters,http-request,http-response']
+operation::spexare-address-update[snippets='security,request-headers,path-parameters,request-body,http-request,http-response']
 
 [[update_partial]]
 == Update (partial)
 
-operation::spexare-address-update-partial[snippets='security,request-headers,path-parameters,http-request,http-response']
+operation::spexare-address-update-partial[snippets='security,request-headers,path-parameters,request-body,http-request,http-response']
 
 [[delete]]
 == Delete

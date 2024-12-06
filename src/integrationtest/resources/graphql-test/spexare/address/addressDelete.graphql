@@ -1,0 +1,3 @@
+mutation addressDelete ($spexareId: ID!, $typeId: ID!, $id: ID!) {
+    addressDelete(spexareId: $spexareId, typeId: $typeId, id: $id)
+}

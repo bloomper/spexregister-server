@@ -1,0 +1,3 @@
+mutation spexareDelete ($id: ID!) {
+    spexareDelete(id: $id)
+}

@@ -1,0 +1,3 @@
+mutation taskCategoryDelete ($id: ID!) {
+    taskCategoryDelete(id: $id)
+}

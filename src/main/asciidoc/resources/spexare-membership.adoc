@@ -13,7 +13,7 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-operation::spexare-membership-add[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spexare-membership-add[snippets='security,request-headers,path-parameters,request-body,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)

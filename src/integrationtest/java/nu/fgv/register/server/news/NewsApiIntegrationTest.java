@@ -818,6 +818,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                         .jsonPath().getList("_embedded.news", NewsDto.class);
             //@formatter:on
 
+            assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isEmpty();
         }
 
@@ -897,6 +898,22 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(news.getCreatedBy());
         }
 
+        @Test
+        void should_return_403_when_not_permitted() {
+            //@formatter:off
+            final ProblemDetail result = given()
+                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                .contentType(ContentType.JSON)
+            .when()
+                .get("/events")
+            .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract().body().as(ProblemDetail.class);
+            //@formatter:on
+
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
     }
 
     private News randomizeNews() {

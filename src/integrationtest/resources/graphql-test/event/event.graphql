@@ -1,0 +1,9 @@
+query event ($id: ID!) {
+    event (id: $id) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

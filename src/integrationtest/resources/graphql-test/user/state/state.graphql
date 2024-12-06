@@ -1,0 +1,10 @@
+query state ($id: ID!) {
+    state (id: $id) {
+        id
+        label
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

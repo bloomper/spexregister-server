@@ -1,0 +1,15 @@
+query membership ($spexareId: ID!, $id: ID!) {
+    membership (spexareId: $spexareId, id: $id) {
+        id
+        year
+        type {
+            id
+            label
+            type
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

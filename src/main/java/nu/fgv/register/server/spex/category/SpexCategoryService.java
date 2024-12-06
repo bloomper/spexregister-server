@@ -30,7 +30,9 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
 import org.springframework.security.acls.domain.BasePermission;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
+import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
@@ -68,6 +71,23 @@ public class SpexCategoryService {
                 .stream()
                 .map(SPEX_CATEGORY_MAPPER::toDto)
                 .toList();
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<SpexCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return hasText(filter) ?
+                repository
+                        .findBy(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(SPEX_CATEGORY_MAPPER::toDto) :
+                repository
+                        .findBy(NO_FILTER, BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
     @RequiresAdminOrEditorOrUser

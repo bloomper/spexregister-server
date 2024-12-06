@@ -78,16 +78,6 @@ operation::spex-poster-remove[snippets='security,request-headers,path-parameters
 [[revivals]]
 == Revivals
 
-[[revivals_get_all]]
-=== Get all (paged)
-
-operation::spex-revival-get-all[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
-
-[[revivals_get_parent]]
-=== Get parent
-
-operation::spex-revival-get-parent[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
-
 [[revivals_get]]
 === Get
 

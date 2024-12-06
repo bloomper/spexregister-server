@@ -1,0 +1,3 @@
+mutation userSpexareRemove ($userId: ID!) {
+    userSpexareRemove(userId: $userId)
+}

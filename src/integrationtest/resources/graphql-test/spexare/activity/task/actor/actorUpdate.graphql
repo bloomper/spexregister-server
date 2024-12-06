@@ -1,0 +1,14 @@
+mutation actorUpdate ($spexareId: ID!, $activityId: ID!, $taskActivityId: ID!, $vocalId: ID!, $id: ID!, $role: String) {
+    actorUpdate(spexareId: $spexareId, activityId: $activityId, taskActivityId: $taskActivityId, vocalId: $vocalId, input: {id: $id, role: $role}) {
+        id
+        role
+        vocal {
+            id
+            label
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

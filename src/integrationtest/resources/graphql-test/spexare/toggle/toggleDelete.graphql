@@ -1,0 +1,3 @@
+mutation toggleDelete ($spexareId: ID!, $typeId: ID!, $id: ID!) {
+    toggleDelete(spexareId: $spexareId, typeId: $typeId, id: $id)
+}

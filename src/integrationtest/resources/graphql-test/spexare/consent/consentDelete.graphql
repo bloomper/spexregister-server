@@ -1,0 +1,3 @@
+mutation consentDelete ($spexareId: ID!, $typeId: ID!, $id: ID!) {
+    consentDelete(spexareId: $spexareId, typeId: $typeId, id: $id)
+}

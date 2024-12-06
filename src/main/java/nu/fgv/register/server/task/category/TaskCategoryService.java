@@ -28,7 +28,9 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
+import static nu.fgv.register.server.task.category.TaskCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.task.category.TaskCategorySpecification.hasIds;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
@@ -64,6 +67,23 @@ public class TaskCategoryService {
                 .stream()
                 .map(TASK_CATEGORY_MAPPER::toDto)
                 .toList();
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<TaskCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return hasText(filter) ?
+                repository
+                        .findBy(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(TASK_CATEGORY_MAPPER::toDto) :
+                repository
+                        .findBy(NO_FILTER, BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
     @RequiresAdminOrEditorOrUser

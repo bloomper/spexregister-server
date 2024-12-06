@@ -1,0 +1,26 @@
+query togglePaged ($spexareId: ID!, $first: Int = 10) {
+    togglePaged (spexareId: $spexareId, first: $first) {
+        edges {
+            cursor
+            node {
+                id
+                value
+                type {
+                    id
+                    label
+                    type
+                }
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

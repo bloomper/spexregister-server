@@ -1,0 +1,25 @@
+query newsPaged ($first: Int = 10, $filter: String = "") {
+    newsPaged (first: $first, filter: $filter) {
+        edges {
+            cursor
+            node {
+                id
+                subject
+                text
+                visibleFrom
+                visibleTo
+                published
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

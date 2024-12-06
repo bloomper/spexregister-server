@@ -19,7 +19,7 @@ package nu.fgv.register.server.util.search;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author Anders Jacobsson
@@ -31,5 +31,5 @@ public class Facet {
 
     private String name;
 
-    private Map<Object, Long> values;
+    private List<FacetValue> values;
 }

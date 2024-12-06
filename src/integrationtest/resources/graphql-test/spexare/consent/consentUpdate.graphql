@@ -1,0 +1,10 @@
+mutation consentUpdate ($spexareId: ID!, $typeId: ID!, $id: ID!, $value: Boolean!) {
+    consentUpdate(spexareId: $spexareId, typeId: $typeId, input: { id: $id, value: $value }) {
+        id
+        value
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -1,0 +1,58 @@
+query spex ($id: ID!, $first: Int = 10) {
+    spex (id: $id) {
+        id
+        year
+        title
+        revival
+        parent {
+            id
+            year
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        posterUrl
+        category {
+            id
+            name
+            firstYear
+            logoUrl
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        revivals {
+            id
+            year
+            createdBy
+            createdAt
+            lastModifiedBy
+            lastModifiedAt
+        }
+        revivalsPaged (first: $first) {
+            edges {
+                cursor
+                node {
+                    id
+                    year
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+            }
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+            }
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -1,0 +1,10 @@
+mutation tagCreate ($name: String!) {
+    tagCreate(input: { name: $name }) {
+        id
+        name
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

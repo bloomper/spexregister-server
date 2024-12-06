@@ -24,12 +24,19 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.activity.ActivityMapper.ACTIVITY_MAPPER;
 import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasId;
@@ -50,19 +57,38 @@ public class ActivityService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
+    public List<ActivityDto> findBySpexare(final Long id) {
+        return findBySpexare(id, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Activity_.ID)))
+                                .stream()
+                                .map(ACTIVITY_MAPPER::toDto)
+                                .toList(),
+                Collections::emptyList
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<ActivityDto> findBySpexare(final Long id, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return findBySpexare(id, spexare ->
+                        repository
+                                .findBy(hasSpexare(spexare), query -> query
+                                        .limit(limit)
+                                        .sortBy(sort)
+                                        .scroll(scrollPosition))
+                                .map(ACTIVITY_MAPPER::toDto),
+                GraphqlUtil::emptyWindow
+        );
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Page<ActivityDto> findBySpexare(final Long spexareId, final Pageable pageable) {
-        if (doesSpexareExist(spexareId)) {
-            return spexareRepository
-                    .findById0(spexareId)
-                    .map(permissionService::checkReadPermission)
-                    .map(spexare -> repository
-                            .findAll(hasSpexare(spexare), pageable)
-                            .map(ACTIVITY_MAPPER::toDto)
-                    )
-                    .orElseGet(Page::empty);
-        } else {
-            throw new ResourceNotFoundException(Spexare.class, spexareId);
-        }
+        return findBySpexare(spexareId, spexare ->
+                        repository
+                                .findAll(hasSpexare(spexare), pageable)
+                                .map(ACTIVITY_MAPPER::toDto),
+                Page::empty
+        );
     }
 
     @RequiresAdminOrEditorOrUser
@@ -115,6 +141,18 @@ public class ActivityService {
                             });
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class), spexareId, id);
+        }
+    }
+
+    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+        if (doesSpexareExist(id)) {
+            return spexareRepository
+                    .findById0(id)
+                    .map(permissionService::checkReadPermission)
+                    .map(queryFunction)
+                    .orElseGet(emptyResult);
+        } else {
+            throw new ResourceNotFoundException(Spexare.class, id);
         }
     }
 

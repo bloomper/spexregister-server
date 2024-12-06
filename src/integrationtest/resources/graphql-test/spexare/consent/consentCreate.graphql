@@ -1,0 +1,10 @@
+mutation consentCreate ($spexareId: ID!, $typeId: ID!, $value: Boolean!) {
+    consentCreate(spexareId: $spexareId, typeId: $typeId, input: { value: $value }) {
+        id
+        value
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

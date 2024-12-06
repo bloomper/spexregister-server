@@ -1,0 +1,10 @@
+mutation taskUpdate ($id: ID!, $name: String!) {
+    taskUpdate(input: { id: $id, name: $name }) {
+        id
+        name
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

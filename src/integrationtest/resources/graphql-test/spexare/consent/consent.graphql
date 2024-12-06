@@ -1,0 +1,15 @@
+query consent ($spexareId: ID!, $id: ID!) {
+    consent (spexareId: $spexareId, id: $id) {
+        id
+        value
+        type {
+            id
+            label
+            type
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

@@ -1,0 +1,3 @@
+mutation spexarePartnerAdd ($spexareId: ID!, $id: ID!) {
+    spexarePartnerAdd(spexareId: $spexareId, id: $id)
+}

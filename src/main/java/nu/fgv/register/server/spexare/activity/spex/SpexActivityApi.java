@@ -83,10 +83,10 @@ public class SpexActivityApi {
 
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId, @PathVariable final Long id) {
-        service.update(spexareId, activityId, spexId, id);
+    public ResponseEntity<EntityModel<SpexActivityDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id, @PathVariable final Long spexId) {
+        final SpexActivityDto dto = service.update(spexareId, activityId, spexId, id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

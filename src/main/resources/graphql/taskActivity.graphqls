@@ -1,0 +1,31 @@
+extend type Query {
+    taskActivityPaged(spexareId: ID!, activityId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TaskActivityConnection
+    taskActivity(spexareId: ID!, activityId: ID!, id: ID!): TaskActivity
+}
+
+extend type Mutation {
+    taskActivityCreate(spexareId: ID!, activityId: ID!, taskId: ID!): TaskActivity
+    taskActivityUpdate(spexareId: ID!, activityId: ID!, taskId: ID!, id: ID!): TaskActivity
+    taskActivityDelete(spexareId: ID!, activityId: ID!, id: ID!): Void
+}
+
+type TaskActivity {
+    id: ID!
+    task: Task!
+    actorsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): ActorConnection
+    actors: [Actor]
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type TaskActivityConnection {
+    edges: [TaskActivityEdge]!
+    pageInfo: PageInfo!
+}
+
+type TaskActivityEdge {
+    cursor: String!
+    node: TaskActivity!
+}

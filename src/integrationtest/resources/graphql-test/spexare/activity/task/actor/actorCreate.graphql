@@ -1,0 +1,14 @@
+mutation actorCreate ($spexareId: ID!, $activityId: ID!, $taskActivityId: ID!, $vocalId: ID!, $role: String) {
+    actorCreate(spexareId: $spexareId, activityId: $activityId, taskActivityId: $taskActivityId, vocalId: $vocalId, input: {role: $role}) {
+        id
+        role
+        vocal {
+            id
+            label
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

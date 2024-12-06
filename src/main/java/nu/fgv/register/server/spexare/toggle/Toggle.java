@@ -71,8 +71,8 @@ public class Toggle extends AbstractAuditable implements Serializable {
 
     @NotNull(message = "{toggle.value.notEmpty}")
     @Column(name = "value", nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
-    private Boolean value;
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
+    private Boolean value = Boolean.TRUE;
 
     @NotNull(message = "{toggle.type.notEmpty}")
     @ManyToOne(optional = false)

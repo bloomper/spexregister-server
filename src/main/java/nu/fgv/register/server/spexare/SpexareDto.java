@@ -27,7 +27,6 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import nu.fgv.register.server.util.impex.model.ExcelCell;
 import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
-import org.springframework.lang.Nullable;
 
 import java.time.Instant;
 
@@ -72,8 +71,7 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     private String comment;
 
     @JsonProperty("image")
-    @Nullable
-    private String image;
+    private String imageUrl;
 
     @Builder
     public SpexareDto(
@@ -86,6 +84,7 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
             final Boolean published,
             final String graduation,
             final String comment,
+            final String imageUrl,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -101,5 +100,6 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
         this.published = published;
         this.graduation = graduation;
         this.comment = comment;
+        this.imageUrl = imageUrl;
     }
 }

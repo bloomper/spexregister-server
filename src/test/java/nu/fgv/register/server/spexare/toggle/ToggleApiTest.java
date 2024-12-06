@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -50,6 +51,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -159,15 +161,19 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
+        final var fields = new ConstrainedFields(ToggleCreateDto.class);
+        final var dto = ToggleCreateDto.builder().value(Boolean.TRUE).build();
         final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(toggle);
+        when(service.create(any(Long.class), any(String.class), any(ToggleCreateDto.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}/{value}", 1L, toggle.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}", 1L, toggle.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -177,29 +183,35 @@ class ToggleApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the toggle"),
-                                        parameterWithName("value").description("The value of the toggle")
+                                        parameterWithName("typeId").description("The type id of the toggle")
+                                ),
+                                requestFields(
+                                        fields.withPath("value").description("The value of the toggle")
                                 ),
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "create", Long.class, String.class, Boolean.class))
+                                security(getRolesFromMethod(ToggleApi.class, "create", Long.class, String.class, ToggleCreateDto.class))
                         )
                 );
     }
 
     @Test
     void should_update() throws Exception {
+        final var fields = new ConstrainedFields(ToggleUpdateDto.class);
+        final var dto = ToggleUpdateDto.builder().id(1L).value(Boolean.TRUE).build();
         final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(toggle);
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(ToggleUpdateDto.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}/{value}", 1L, toggle.getType().getId(), toggle.getId(), Boolean.FALSE)
+                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, toggle.getType().getId(), toggle.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -210,14 +222,17 @@ class ToggleApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("typeId").description("The type id of the toggle"),
-                                        parameterWithName("id").description("The id of the toggle"),
-                                        parameterWithName("value").description("The value of the toggle")
+                                        parameterWithName("id").description("The id of the toggle")
+                                ),
+                                requestFields(
+                                        fields.withPath("id").description("The id of the toggle"),
+                                        fields.withPath("value").description("The value of the toggle")
                                 ),
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "update", Long.class, String.class, Long.class, Boolean.class))
+                                security(getRolesFromMethod(ToggleApi.class, "update", Long.class, String.class, Long.class, ToggleUpdateDto.class))
                         )
                 );
     }

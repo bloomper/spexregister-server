@@ -1,0 +1,7 @@
+query types ($type: TypeType!) {
+    typesOfType (type: $type) {
+        id
+        label
+        type
+    }
+}

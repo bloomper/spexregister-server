@@ -22,10 +22,8 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
 import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
@@ -51,6 +49,7 @@ import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jeasy.random.FieldPredicates.named;
 
 /**
  * @author Anders Jacobsson
@@ -60,7 +59,6 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final AuthorityRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -70,14 +68,17 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                                        final String keycloakClientId,
                                        final PermissionService permissionService,
                                        final ObjectMapper objectMapper,
-                                       final AuthorityRepository repository,
-                                       final EventRepository eventRepository) {
+                                       final AuthorityRepository repository) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
+        parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
+                .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }
 
@@ -96,8 +97,6 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
         RestAssured.config = config()
                 .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
                 .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
-
-        JdbcTestUtils.deleteFromTables(jdbcClient, "event");
     }
 
     @AfterEach
@@ -159,7 +158,6 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                     given()
                         .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                         .contentType(ContentType.JSON)
-                        .queryParam("size", size)
                     .when()
                         .get()
                     .then()
@@ -195,7 +193,7 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "label")
-                    .contains(result.getId(), result.getLabel());
+                    .contains(authority.getId(), authority.getLabels().get("sv"));
         }
 
         @Test
@@ -213,52 +211,6 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var authority = persistAuthority(randomizeAuthority());
-
-            //@formatter:off
-            final List<EventDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/events")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.events", EventDto.class);
-            //@formatter:on
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getLast().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getLast().getSource()).isEqualTo(Event.SourceType.AUTHORITY.name());
-            assertThat(result.getLast().getCreatedBy()).isEqualTo(authority.getCreatedBy());
-        }
-
-        @Test
-        void should_return_403_when_not_permitted() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/events")
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
-
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

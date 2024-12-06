@@ -1,0 +1,6 @@
+query country ($isoCode: CountryCode!) {
+    country (isoCode: $isoCode) {
+        isoCode
+        label
+    }
+}

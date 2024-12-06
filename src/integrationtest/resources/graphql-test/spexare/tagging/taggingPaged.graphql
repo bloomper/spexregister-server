@@ -1,0 +1,21 @@
+query taggingPaged ($spexareId: ID!, $first: Int = 10) {
+    taggingPaged (spexareId: $spexareId, first: $first) {
+        edges {
+            cursor
+            node {
+                id
+                name
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

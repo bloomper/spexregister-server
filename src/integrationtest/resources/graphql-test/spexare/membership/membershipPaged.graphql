@@ -1,0 +1,26 @@
+query membershipPaged ($spexareId: ID!, $first: Int = 10, $filter: String = "") {
+    membershipPaged (spexareId: $spexareId, first: $first, filter: $filter) {
+        edges {
+            cursor
+            node {
+                id
+                year
+                type {
+                    id
+                    label
+                    type
+                }
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}

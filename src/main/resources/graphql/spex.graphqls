@@ -1,0 +1,82 @@
+extend type Query {
+    spexPaged(first: Int, after: String, last: Int, before: String, filter: String = "parent:NULL", sort: [String] = ["year"], direction: SortDirection = ASC): SpexConnection
+    spex(id: ID!): Spex
+    spexRevival(spexId: ID!, id: ID!): Spex
+    spexEvents(sinceInDays: Int = 90): [Event]
+}
+
+extend type Mutation {
+    spexCreate(input: SpexCreate!): Spex
+    spexUpdate(input: SpexUpdate!): Spex
+    spexDelete(id: ID!): Void
+    spexPosterDelete(id: ID!): Void
+    spexRevivalCreate(spexId: ID!, year: Year!): SpexRevival
+    spexRevivalDelete(spexId: ID!, id: ID!): Void
+    spexCategoryAdd(spexId: ID!, id: ID!): Void
+    spexCategoryRemove(spexId: ID!): Void
+}
+
+type Spex {
+    id: ID!
+    year: Year!
+    title: String!
+    revival: Boolean
+    parent: SpexParent
+    posterUrl: String
+    category: SpexCategory
+    revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
+    revivals: [SpexRevival]
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type SpexParent {
+    id: ID!
+    year: Year!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type SpexRevival {
+    id: ID!
+    year: Year!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type SpexConnection {
+    edges: [SpexEdge]!
+    pageInfo: PageInfo!
+}
+
+type SpexEdge {
+    cursor: String!
+    node: Spex!
+}
+
+type SpexRevivalConnection {
+    edges: [SpexRevivalEdge]!
+    pageInfo: PageInfo!
+}
+
+type SpexRevivalEdge {
+    cursor: String!
+    node: SpexRevival!
+}
+
+input SpexCreate {
+    year: Year!
+    title: String!
+}
+
+input SpexUpdate {
+    id: ID!
+    year: Year!
+    title: String!
+}

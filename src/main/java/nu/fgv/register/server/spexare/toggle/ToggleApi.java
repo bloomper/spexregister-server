@@ -16,10 +16,10 @@
 
 package nu.fgv.register.server.spexare.toggle;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
-import nu.fgv.register.server.spexare.address.AddressApi;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -35,11 +35,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -68,6 +70,15 @@ public class ToggleApi {
         return ResponseEntity.ok(paged);
     }
 
+    @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<ToggleDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final ToggleCreateDto dto) {
+        final ToggleDto createdDto = service.create(spexareId, typeId, dto);
+
+        return ResponseEntity.created(linkTo(methodOn(ToggleApi.class).retrieve(spexareId, createdDto.getId())).toUri())
+                .body(EntityModel.of(createdDto, getLinks(createdDto, spexareId)));
+    }
+
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
@@ -76,21 +87,16 @@ public class ToggleApi {
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
     }
 
-    @PostMapping(value = "/{typeId}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
+    @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ToggleDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Boolean value) {
-        final ToggleDto dto = service.create(spexareId, typeId, value);
+    public ResponseEntity<EntityModel<ToggleDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final ToggleUpdateDto dto) {
+        if (!Objects.equals(id, dto.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        return ResponseEntity.created(linkTo(methodOn(AddressApi.class).retrieve(spexareId, dto.getId())).toUri())
-                .body(EntityModel.of(dto, getLinks(dto, spexareId)));
-    }
+        final ToggleDto updatedDto = service.update(spexareId, typeId, id, dto);
 
-    @PutMapping(value = "/{typeId}/{id}/{value}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ToggleDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @PathVariable final Boolean value) {
-        final ToggleDto dto = service.update(spexareId, typeId, id, value);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
+        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto, spexareId)));
     }
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

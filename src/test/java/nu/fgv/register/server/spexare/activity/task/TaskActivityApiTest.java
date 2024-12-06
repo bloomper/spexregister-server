@@ -206,13 +206,17 @@ class TaskActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_update() throws Exception {
+        final var taskActivity = TaskActivityDto.builder().id(1L).build();
+
+        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(taskActivity);
+
         mockMvc
                 .perform(
                         put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andDo(document(
                                 "spexare-activity-task-update",
                                 preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
@@ -223,7 +227,10 @@ class TaskActivityApiTest extends AbstractApiTest {
                                         parameterWithName("taskId").description("The id of the task"),
                                         parameterWithName("id").description("The id of the task activity")
                                 ),
+                                responseFields,
+                                links,
                                 secureRequestHeaders,
+                                responseHeaders,
                                 security(getRolesFromMethod(TaskActivityApi.class, "update", Long.class, Long.class, Long.class, Long.class))
                         )
                 );

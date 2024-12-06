@@ -1,0 +1,3 @@
+mutation spexarePartnerRemove ($spexareId: ID!) {
+    spexarePartnerRemove(spexareId: $spexareId)
+}

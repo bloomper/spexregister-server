@@ -733,7 +733,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
             //@formatter:off
-            given()
+            final SpexActivityDto result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -741,21 +741,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{spexId}", spexActivity.getId(), spex2.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
-
-            //@formatter:off
-            final SpexActivityDto result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexActivityDto.class);
+                .statusCode(HttpStatus.OK.value())
+                .extract().body().as(SpexActivityDto.class);
             //@formatter:on
 
             assertThat(repository.count()).isEqualTo(1);

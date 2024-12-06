@@ -1,0 +1,3 @@
+mutation membershipDelete ($spexareId: ID!, $typeId: ID!, $id: ID!) {
+    membershipDelete(spexareId: $spexareId, typeId: $typeId, id: $id)
+}

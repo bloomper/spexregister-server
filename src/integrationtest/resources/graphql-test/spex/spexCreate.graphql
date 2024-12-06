@@ -1,0 +1,11 @@
+mutation spexCreate ($year: Year!, $title: String!) {
+    spexCreate(input: { year: $year, title: $title }) {
+        id
+        year
+        title
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

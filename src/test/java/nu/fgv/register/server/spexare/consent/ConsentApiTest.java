@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -50,6 +51,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -159,15 +161,19 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_create() throws Exception {
+        final var fields = new ConstrainedFields(ConsentCreateDto.class);
+        final var dto = ConsentCreateDto.builder().value(Boolean.TRUE).build();
         final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(Boolean.class))).thenReturn(consent);
+        when(service.create(any(Long.class), any(String.class), any(ConsentCreateDto.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/consents/{typeId}/{value}", 1L, consent.getId(), Boolean.TRUE)
+                        post("/api/v1/spexare/{spexareId}/consents/{typeId}", 1L, consent.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -177,29 +183,35 @@ class ConsentApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
-                                        parameterWithName("typeId").description("The type id of the consent"),
-                                        parameterWithName("value").description("The value of the consent")
+                                        parameterWithName("typeId").description("The type id of the consent")
+                                ),
+                                requestFields(
+                                        fields.withPath("value").description("The value of the consent")
                                 ),
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "create", Long.class, String.class, Boolean.class))
+                                security(getRolesFromMethod(ConsentApi.class, "create", Long.class, String.class, ConsentCreateDto.class))
                         )
                 );
     }
 
     @Test
     void should_update() throws Exception {
+        final var fields = new ConstrainedFields(ConsentUpdateDto.class);
+        final var dto = ConsentUpdateDto.builder().id(1L).value(Boolean.TRUE).build();
         final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(Boolean.class))).thenReturn(consent);
+        when(service.update(any(Long.class), any(String.class), any(Long.class), any(ConsentUpdateDto.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}/{value}", 1L, consent.getType().getId(), consent.getId(), Boolean.FALSE)
+                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, consent.getType().getId(), consent.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(notNullValue())))
@@ -210,14 +222,17 @@ class ConsentApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("spexareId").description("The id of the spexare"),
                                         parameterWithName("typeId").description("The type id of the consent"),
-                                        parameterWithName("id").description("The id of the consent"),
-                                        parameterWithName("value").description("The value of the consent")
+                                        parameterWithName("id").description("The id of the consent")
+                                ),
+                                requestFields(
+                                        fields.withPath("id").description("The id of the consent"),
+                                        fields.withPath("value").description("The value of the consent")
                                 ),
                                 responseFields,
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "update", Long.class, String.class, Long.class, Boolean.class))
+                                security(getRolesFromMethod(ConsentApi.class, "update", Long.class, String.class, Long.class, ConsentUpdateDto.class))
                         )
                 );
     }

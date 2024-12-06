@@ -1,0 +1,11 @@
+query taskCategory ($id: ID!) {
+    taskCategory (id: $id) {
+        id
+        name
+        actorPresent
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

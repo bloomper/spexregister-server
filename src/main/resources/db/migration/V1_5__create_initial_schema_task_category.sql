@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS task_category
 (
     id                BIGINT AUTO_INCREMENT NOT NULL,
     name              VARCHAR(255)          NOT NULL,
-    has_actor         BIT                   NULL,
+    actor_present     BIT                   NULL,
     created_by        VARCHAR(255)          NOT NULL,
     created_at        DATETIME              NOT NULL,
     last_modified_by  VARCHAR(255)          NULL,

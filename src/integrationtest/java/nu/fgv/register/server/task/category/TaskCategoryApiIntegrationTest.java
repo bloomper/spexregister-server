@@ -279,8 +279,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto result = objectMapper.readValue(json, TaskCategoryDto.class);
             assertThat(result)
-                    .extracting("name", "hasActor")
-                    .contains(dto.getName(), dto.isHasActor());
+                    .extracting("name", "actorPresent")
+                    .contains(dto.getName(), dto.isActorPresent());
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -350,8 +350,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result)
-                    .extracting("id", "name", "hasActor")
-                    .contains(category.getId(), category.getName(), category.getHasActor());
+                    .extracting("id", "name", "actorPresent")
+                    .contains(category.getId(), category.getName(), category.getActorPresent());
         }
 
         @Test
@@ -397,7 +397,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .hasActor(before.isHasActor())
+                    .actorPresent(before.isActorPresent())
                     .build();
 
             //@formatter:off
@@ -497,7 +497,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .hasActor(before.isHasActor())
+                    .actorPresent(before.isActorPresent())
                     .build();
 
             //@formatter:off
@@ -564,7 +564,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .hasActor(before.isHasActor())
+                    .actorPresent(before.isActorPresent())
                     .build();
 
             //@formatter:off
@@ -642,7 +642,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .hasActor(before.isHasActor())
+                    .actorPresent(before.isActorPresent())
                     .build();
 
             //@formatter:off

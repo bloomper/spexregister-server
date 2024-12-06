@@ -16,10 +16,6 @@
 
 package nu.fgv.register.server.user.state;
 
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -48,7 +44,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,12 +57,6 @@ class StateApiTest extends AbstractApiTest {
 
     @MockitoBean
     private StateService service;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the state"),
@@ -109,7 +98,7 @@ class StateApiTest extends AbstractApiTest {
                                         fieldWithPath("_embedded.states[].createdAt").description("When was the state created"),
                                         fieldWithPath("_embedded.states[].lastModifiedBy").description("Who last modified the state"),
                                         fieldWithPath("_embedded.states[].lastModifiedAt").description("When was the state last modified"),
-                                        subsectionWithPath("_embedded.states[]._links").description("The event links"),
+                                        subsectionWithPath("_embedded.states[]._links").description("The state links"),
                                         linksSubsection
                                 ),
                                 sortQueryParameters,
@@ -152,46 +141,4 @@ class StateApiTest extends AbstractApiTest {
                 );
     }
 
-    @Test
-    void should_get_events() throws Exception {
-        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.AUTHORITY.name()).build();
-        final var realEventApi = new EventApi(null);
-
-        when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
-        when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
-        when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
-
-        mockMvc
-                .perform(
-                        get("/api/v1/users/states/events?sinceInDays=30")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.events", hasSize(2)))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "user-state-event-get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                responseFields(
-                                        subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.events[]").description("The elements"),
-                                        fieldWithPath("_embedded.events[].id").description("The id of the event"),
-                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
-                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
-                                        fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
-                                        fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
-                                        subsectionWithPath("_embedded.events[]._links").description("The event links"),
-                                        linksSubsection
-                                ),
-                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(StateApi.class, "retrieveEvents", Integer.class))
-                        )
-                );
-    }
 }

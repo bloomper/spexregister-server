@@ -18,12 +18,7 @@ package nu.fgv.register.server.user.state;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.user.authority.Authority_;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
@@ -35,7 +30,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -55,8 +49,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class StateApi {
 
     private final StateService service;
-    private final EventService eventService;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -76,18 +68,6 @@ public class StateApi {
         final StateDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
-    }
-
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.STATE).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<StateDto> entity) {

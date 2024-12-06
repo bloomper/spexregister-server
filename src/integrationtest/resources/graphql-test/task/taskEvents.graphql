@@ -1,0 +1,9 @@
+query taskEvents ($sinceInDays: Int = 90) {
+    taskEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

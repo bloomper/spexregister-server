@@ -50,6 +50,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
+import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -74,7 +76,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spex.title.notEmpty}")
     @Size(max = 255, message = "{spex.title.size}")
     @Column(name = "title", nullable = false)
-    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.NO)
+    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String title;
 
     @Lob

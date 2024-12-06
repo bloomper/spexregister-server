@@ -29,6 +29,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -92,6 +93,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
         parameters
+                .randomize(
+                        named("labels"), new LabelsRandomizer()
+                )
                 .randomize(
                         named("year"), new YearRandomizer()
                 )
@@ -415,14 +419,16 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -451,14 +457,16 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CREATED.value());
             //@formatter:on
@@ -468,8 +476,9 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .extract().body().as(ProblemDetail.class);
@@ -483,14 +492,16 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", 1L)
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -506,14 +517,16 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", "dummy", "2023")
+                .post("/{typeId}", "dummy")
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -529,14 +542,16 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             final ProblemDetail result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -553,13 +568,15 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
+            final var dto = random.nextObject(MembershipCreateDto.class);
 
             //@formatter:off
             given()
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
+                .body(dto)
             .when()
-                .post("/{typeId}/{year}", type.getId(), "2023")
+                .post("/{typeId}", type.getId())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on

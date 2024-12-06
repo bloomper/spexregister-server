@@ -1,0 +1,13 @@
+extend type Query {
+    authorities(sort: [String] = ["id"], direction: SortDirection = ASC): [Authority]
+    authority(id: ID!): Authority
+}
+
+type Authority {
+    id: ID!
+    label: String!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}

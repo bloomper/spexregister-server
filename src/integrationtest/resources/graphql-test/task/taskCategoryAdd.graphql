@@ -1,0 +1,3 @@
+mutation taskCategoryAdd ($taskId: ID!, $id: ID!) {
+    taskCategoryAdd(taskId: $taskId, id: $id)
+}

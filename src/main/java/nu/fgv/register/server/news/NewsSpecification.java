@@ -30,6 +30,11 @@ import java.time.LocalDate;
 @Getter
 public class NewsSpecification extends BaseSpecification<News> {
 
+    public static final NewsSpecification NO_FILTER = new NewsSpecification();
+
+    private NewsSpecification() {
+    }
+
     public NewsSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

@@ -1,0 +1,15 @@
+query toggle ($spexareId: ID!, $id: ID!) {
+    toggle (spexareId: $spexareId, id: $id) {
+        id
+        value
+        type {
+            id
+            label
+            type
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

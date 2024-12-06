@@ -686,7 +686,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task1));
 
             //@formatter:off
-            given()
+            final TaskActivityDto result = given()
                 .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                 .contentType(ContentType.JSON)
                 .pathParam("spexareId", spexare.getId())
@@ -694,26 +694,15 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             .when()
                 .put("/{id}/{taskId}", taskActivity.getId(), task2.getId())
             .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
+                .statusCode(HttpStatus.OK.value())
+                .extract().body().as(TaskActivityDto.class);
             //@formatter:on
 
-            //@formatter:off
-            final List<TaskActivityDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.task-activities", TaskActivityDto.class);
-            //@formatter:on
-
-            assertThat(result).hasSize(1);
             assertThat(repository.count()).isEqualTo(1);
+            assertThat(result).isNotNull();
+            assertThat(result)
+                    .extracting("id")
+                    .isEqualTo(taskActivity.getId());
         }
 
         @Test

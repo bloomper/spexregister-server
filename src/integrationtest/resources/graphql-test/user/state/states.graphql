@@ -1,0 +1,10 @@
+query states {
+    states {
+        id
+        label
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

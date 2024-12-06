@@ -39,6 +39,7 @@ import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -108,12 +109,15 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         super(entityInformation, entityManager);
     }
 
-    public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
+    @Override
+    public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
         return searchSession
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
                             if (hasText(query.freeTextQuery())) {
                                 b.must(f.match().fields(FIELDS).matching(query.freeTextQuery()));
+                            } else {
+                                b.must(f.matchAll());
                             }
                             if (!isAdministrator()) {
                                 b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
@@ -136,8 +140,13 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                 .aggregation(AggregationKey.of(AGGREGATION_CONSENTS_TYPE_ID), f -> f.terms().field(AGGREGATION_CONSENTS_TYPE_ID, String.class))
                 .aggregation(AggregationKey.of(AGGREGATION_TOGGLES_VALUE), f -> f.terms().field(AGGREGATION_TOGGLES_VALUE, Boolean.class))
                 .aggregation(AggregationKey.of(AGGREGATION_TOGGLES_TYPE_ID), f -> f.terms().field(AGGREGATION_TOGGLES_TYPE_ID, String.class))
-                .sort(f -> determineSort(Spexare.class, f, pageable.getSort()))
-                .fetch((int) pageable.getOffset(), pageable.getPageSize());
+                .sort(f -> determineSort(Spexare.class, f, sort))
+                .fetch(offset, limit);
+    }
+
+    @Override
+    public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
+        return search(searchSession, query, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
     }
 
     private static boolean isAdministrator() {

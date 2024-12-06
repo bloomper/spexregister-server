@@ -28,8 +28,11 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.search.Facet;
+import nu.fgv.register.server.util.search.FacetValue;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
+import nu.fgv.register.server.util.search.WindowWithFacets;
+import nu.fgv.register.server.util.search.WindowWithFacetsImpl;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
@@ -37,7 +40,9 @@ import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.util.common.SearchException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
 import org.springframework.security.acls.domain.BasePermission;
@@ -46,10 +51,12 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
+import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
@@ -71,22 +78,18 @@ public class SpexareService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
+    public WindowWithFacets<SpexareDto> search(final String query, final int offset, final int limit, final Sort sort) {
+        final SearchResult<Spexare> searchResult = repository.search(query, offset, limit, sort);
+        final List<Facet> facets = getFacets(searchResult);
+        final boolean hasNext = searchResult.total().hitCount() > offset + limit;
+
+        return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), index -> ScrollPosition.offset(offset), hasNext, facets);
+    }
+
+    @RequiresAdminOrEditorOrUser
     public PageWithFacets<SpexareDto> search(final String query, final Pageable pageable) {
         final SearchResult<Spexare> searchResult = repository.search(query, pageable);
-        final List<Facet> facets = AGGREGATIONS.stream()
-                .filter(a -> {
-                    try {
-                        searchResult.aggregation(AggregationKey.of(a));
-                        return true;
-                    } catch (final SearchException e) {
-                        return false;
-                    }
-                })
-                .map(a -> Facet.builder()
-                        .name(a)
-                        .values(searchResult.aggregation(AggregationKey.of(a)))
-                        .build())
-                .toList();
+        final List<Facet> facets = getFacets(searchResult);
 
         return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
     }
@@ -98,6 +101,23 @@ public class SpexareService {
                 .stream()
                 .map(SPEXARE_MAPPER::toDto)
                 .toList();
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<SpexareDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return hasText(filter) ?
+                repository
+                        .findBy(SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new), BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(SPEXARE_MAPPER::toDto) :
+                repository
+                        .findBy(NO_FILTER, BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(SPEXARE_MAPPER::toDto);
     }
 
     @RequiresAdminOrEditorOrUser
@@ -247,7 +267,7 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public void updatePartner(final Long spexareId, final Long id) {
+    public void addPartner(final Long spexareId, final Long id) {
         if (doSpexareAndPartnerExist(spexareId, id)) {
             repository
                     .findById0(spexareId)
@@ -292,7 +312,7 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public void deletePartner(final Long id) {
+    public void removePartner(final Long id) {
         if (doesSpexareExist(id)) {
             repository
                     .findById0(id)
@@ -332,4 +352,26 @@ public class SpexareService {
         return doesSpexareExist(spexareId) && doesSpexareExist(partnerId);
     }
 
+    private List<Facet> getFacets(final SearchResult<Spexare> searchResult) {
+        return AGGREGATIONS.stream()
+                .filter(a -> {
+                    try {
+                        searchResult.aggregation(AggregationKey.of(a));
+                        return true;
+                    } catch (final SearchException e) {
+                        return false;
+                    }
+                })
+                .map(a -> {
+                    final Map<Object, Long> values = searchResult.aggregation(AggregationKey.of(a));
+
+                    return Facet.builder()
+                            .name(a)
+                            .values(values.entrySet().stream()
+                                    .map(entry -> new FacetValue(String.valueOf(entry.getKey()), entry.getValue()))
+                                    .toList())
+                            .build();
+                })
+                .toList();
+    }
 }

@@ -20,6 +20,7 @@ import nu.fgv.register.server.acl.AclJpaRepository;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
@@ -34,7 +35,11 @@ public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends 
 
     SearchResult<T> search(String query, Pageable pageable);
 
+    SearchResult<T> search(String query, int offset, int limit, Sort sort);
+
     SearchResult<T> search(SearchSession searchSession, SearchQuery query, Pageable pageable);
+
+    SearchResult<T> search(SearchSession searchSession, SearchQuery query, int offset, int limit, Sort sort);
 
     record SearchQuery(String freeTextQuery, List<Aggregation> aggregations) {
     }

@@ -102,6 +102,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the spex category"),
             fieldWithPath("name").description("The name of the spex category"),
             fieldWithPath("firstYear").description("The first year of the spex category"),
+            fieldWithPath("logoUrl").description("The logo URL of the spex category"),
             linksSubsection
     );
 

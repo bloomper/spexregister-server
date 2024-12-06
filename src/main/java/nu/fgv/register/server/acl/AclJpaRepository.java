@@ -22,9 +22,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.acls.model.Permission;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
@@ -44,4 +46,7 @@ public interface AclJpaRepository<T, ID> extends JpaRepository<T, ID> {
     List<T> findAll(Specification<T> spec, Permission permission);
 
     Page<T> findAll(Specification<T> spec, Pageable pageable, Permission permission);
+
+    <S extends T, R> R findBy(Specification<T> spec, Permission permission, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+
 }

@@ -13,7 +13,7 @@ xref:../api-guide.adoc[Back to API guide]
 [[create]]
 == Create
 
-operation::spexare-consent-add[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+operation::spexare-consent-add[snippets='security,request-headers,path-parameters,request-body,http-request,response-headers,response-fields,links,http-response']
 
 [[get_paged]]
 == Get (paged)
@@ -28,7 +28,7 @@ operation::spexare-consent-get[snippets='security,request-headers,path-parameter
 [[update]]
 == Update
 
-operation::spexare-consent-update[snippets='security,request-headers,path-parameters,http-request,http-response']
+operation::spexare-consent-update[snippets='security,request-headers,path-parameters,request-body,http-request,http-response']
 
 [[delete]]
 == Delete

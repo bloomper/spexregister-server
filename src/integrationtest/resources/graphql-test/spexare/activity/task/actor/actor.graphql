@@ -1,0 +1,14 @@
+query actor ($spexareId: ID!, $activityId: ID!, $taskActivityId: ID!, $id: ID!) {
+    actor (spexareId: $spexareId, activityId: $activityId, taskActivityId: $taskActivityId, id: $id) {
+        id
+        role
+        vocal {
+            id
+            label
+        }
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

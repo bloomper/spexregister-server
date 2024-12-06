@@ -1,0 +1,19 @@
+extend type Query {
+    spexActivityByActivity(spexareId: ID!, activityId: ID!): SpexActivity
+    spexActivity(spexareId: ID!, activityId: ID!, id: ID!): SpexActivity
+}
+
+extend type Mutation {
+    spexActivityCreate(spexareId: ID!, activityId: ID!, spexId: ID!): SpexActivity
+    spexActivityUpdate(spexareId: ID!, activityId: ID!, spexId: ID!, id: ID!): SpexActivity
+    spexActivityDelete(spexareId: ID!, activityId: ID!, id: ID!): Void
+}
+
+type SpexActivity {
+    id: ID!
+    spex: Spex!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}

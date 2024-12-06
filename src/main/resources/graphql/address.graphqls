@@ -1,0 +1,57 @@
+extend type Query {
+    addressPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["type"], direction: SortDirection = ASC): AddressConnection
+    address(spexareId: ID!, id: ID!): Address
+}
+
+extend type Mutation {
+    addressCreate(spexareId: ID!, typeId: ID!, input: AddressCreate): Address
+    addressUpdate(spexareId: ID!, typeId: ID!, input: AddressUpdate): Address
+    addressDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
+}
+
+type Address {
+    id: ID!
+    streetAddress: String
+    postalCode: String
+    city: String
+    country: String
+    phone: String
+    phoneMobile: String
+    emailAddress: String
+    type: Type!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type AddressConnection {
+    edges: [AddressEdge]!
+    pageInfo: PageInfo!
+}
+
+type AddressEdge {
+    cursor: String!
+    node: Address!
+}
+
+input AddressCreate {
+    streetAddress: String
+    postalCode: String
+    city: String
+    country: String
+    phone: String
+    phoneMobile: String
+    emailAddress: Email
+}
+
+input AddressUpdate {
+    id: ID!
+    streetAddress: String
+    postalCode: String
+    city: String
+    country: String
+    phone: String
+    phoneMobile: String
+    emailAddress: Email
+}

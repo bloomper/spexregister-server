@@ -1,0 +1,3 @@
+mutation taggingCreate ($spexareId: ID!, $tagId: ID!) {
+    taggingCreate(spexareId: $spexareId, tagId: $tagId)
+}

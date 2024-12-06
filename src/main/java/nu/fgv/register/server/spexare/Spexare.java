@@ -72,6 +72,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -87,7 +89,7 @@ import java.util.Set;
 @ToString
 public class Spexare extends AbstractAuditable implements Serializable {
 
-    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
+    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20|21)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -99,18 +101,18 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")
     @Column(name = "first_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String firstName;
 
     @NotEmpty(message = "{spexare.lastName.notEmpty}")
     @Size(max = 255, message = "{spexare.lastName.size}")
     @Column(name = "last_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES)
+    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
     @Nullable
     private String nickName;
 
@@ -123,12 +125,12 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private String socialSecurityNumber;
 
     @Column(name = "deceased")
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.NO)
-    private Boolean deceased;
+    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
+    private Boolean deceased = Boolean.FALSE;
 
     @Column(name = "published")
     @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
-    private Boolean published;
+    private Boolean published = Boolean.TRUE;
 
     @Size(max = 255, message = "{spexare.graduation.size}")
     @Column(name = "graduation")

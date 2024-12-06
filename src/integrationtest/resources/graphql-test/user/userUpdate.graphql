@@ -1,0 +1,10 @@
+mutation userUpdate ($id: ID!, $email: Email!) {
+    userUpdate(input: { id: $id, email: $email }) {
+        id
+        email
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

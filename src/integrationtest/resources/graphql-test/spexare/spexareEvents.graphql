@@ -1,0 +1,9 @@
+query spexareEvents ($sinceInDays: Int = 90) {
+    spexareEvents (sinceInDays: $sinceInDays) {
+        id
+        event
+        source
+        createdBy
+        createdAt
+    }
+}

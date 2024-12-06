@@ -1,0 +1,44 @@
+extend type Query {
+    spexCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["name"], direction: SortDirection = ASC): SpexCategoryConnection
+    spexCategory(id: ID!): SpexCategory
+    spexCategoryEvents(sinceInDays: Int = 90): [Event]
+}
+
+extend type Mutation {
+    spexCategoryCreate(input: SpexCategoryCreate!): SpexCategory
+    spexCategoryUpdate(input: SpexCategoryUpdate!): SpexCategory
+    spexCategoryDelete(id: ID!): Void
+    spexCategoryLogoDelete(id: ID!): Void
+}
+
+type SpexCategory {
+    id: ID!
+    name: String!
+    firstYear: Year!
+    logoUrl: String
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type SpexCategoryConnection {
+    edges: [SpexCategoryEdge]!
+    pageInfo: PageInfo!
+}
+
+type SpexCategoryEdge {
+    cursor: String!
+    node: SpexCategory!
+}
+
+input SpexCategoryCreate {
+    name: String!
+    firstYear: Year!
+}
+
+input SpexCategoryUpdate {
+    id: ID!
+    name: String!
+    firstYear: Year!
+}

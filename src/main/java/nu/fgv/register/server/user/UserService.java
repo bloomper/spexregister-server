@@ -51,6 +51,9 @@ import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
@@ -66,6 +69,7 @@ import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
+import static nu.fgv.register.server.user.UserSpecification.NO_FILTER;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
@@ -93,6 +97,23 @@ public class UserService {
     private final String keycloakClientId;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
+
+    @RequiresAdmin
+    public Window<UserDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return hasText(filter) ?
+                repository
+                        .findBy(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(this::joinModelWithRepresentation) :
+                repository
+                        .findBy(NO_FILTER, BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(this::joinModelWithRepresentation);
+    }
 
     @RequiresAdmin
     public Page<UserDto> find(final String filter, final Pageable pageable) {

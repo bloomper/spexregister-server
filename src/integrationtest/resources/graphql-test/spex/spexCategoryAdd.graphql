@@ -1,0 +1,3 @@
+mutation spexCategoryAdd ($spexId: ID!, $id: ID!) {
+    spexCategoryAdd(spexId: $spexId, id: $id)
+}

@@ -28,7 +28,9 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
+import static nu.fgv.register.server.news.NewsSpecification.NO_FILTER;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleFromAfterYesterday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToAfterToday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToBeforeToday;
@@ -68,6 +71,23 @@ public class NewsService {
                 .stream()
                 .map(NEWS_MAPPER::toDto)
                 .toList();
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Window<NewsDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+        return hasText(filter) ?
+                repository
+                        .findBy(SpecificationsBuilder.<News>builder().build(FilterParser.parse(filter), NewsSpecification::new), BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(NEWS_MAPPER::toDto) :
+                repository
+                        .findBy(NO_FILTER, BasePermission.READ, query -> query
+                                .limit(limit)
+                                .sortBy(sort)
+                                .scroll(scrollPosition))
+                        .map(NEWS_MAPPER::toDto);
     }
 
     @RequiresAdminOrEditorOrUser

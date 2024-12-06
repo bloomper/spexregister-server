@@ -21,6 +21,8 @@ spring:
             directory:
               type: local-filesystem
               root: ./data/index_data
+            analysis:
+              configurer: class:nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer
           schema_management:
             strategy: create-or-update
           indexing:
@@ -41,6 +43,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  graphql:
+    schema:
+      printer:
+        enabled: true
+    path: /api/graphql
 
 management:
   server:

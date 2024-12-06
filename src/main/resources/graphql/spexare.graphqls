@@ -1,0 +1,111 @@
+extend type Query {
+    spexarePaged(first: Int, after: String, last: Int, before: String, filter: String = "published:true", sort: [String] = ["firstName"], direction: SortDirection = ASC): SpexareConnection
+    spexareSearchPaged(offset: Int = 0, limit: Int = 20, q: String!, sort: [String] = ["score"], direction: SortDirection = ASC): SpexareWithFacetsConnection
+    spexare(id: ID!): Spexare
+    spexareEvents(sinceInDays: Int = 90): [Event]
+}
+
+extend type Mutation {
+    spexareCreate(input: SpexareCreate!): Spexare
+    spexareUpdate(input: SpexareUpdate!): Spexare
+    spexareDelete(id: ID!): Void
+    spexareImageDelete(id: ID!): Void
+    spexarePartnerAdd(spexareId: ID!, id: ID!): Void
+    spexarePartnerRemove(spexareId: ID!): Void
+}
+
+type Spexare {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    nickName: String
+    socialSecurityNumber: SocialSecurityNumber
+    deceased: Boolean!
+    published: Boolean!
+    graduation: String
+    comment: String
+    imageUrl: String
+    activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ActivityConnection
+    activities: [Activity]
+    addressesPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): AddressConnection
+    addresses: [Address]
+    consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ConsentConnection
+    consents: [Consent]
+    membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): MembershipConnection
+    memberships: [Membership]
+    taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TagConnection
+    taggings: [Tag]
+    togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ToggleConnection
+    toggles: [Toggle]
+    partner: SpexarePartner
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+input SpexareCreate {
+    firstName: String!
+    lastName: String!
+    nickName: String
+    deceased: Boolean!
+    published: Boolean!
+}
+
+input SpexareUpdate {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    nickName: String
+    socialSecurityNumber: SocialSecurityNumber
+    deceased: Boolean!
+    published: Boolean!
+    graduation: String
+    comment: String
+    imageUrl: String
+}
+
+type SpexarePartner {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    nickName: String
+    socialSecurityNumber: SocialSecurityNumber
+    deceased: Boolean!
+    published: Boolean!
+    graduation: String
+    comment: String
+    imageUrl: String
+    activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ActivityConnection
+    activities: [Activity]
+    addressesPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): AddressConnection
+    addresses: [Address]
+    consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ConsentConnection
+    consents: [Consent]
+    membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): MembershipConnection
+    memberships: [Membership]
+    taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TagConnection
+    taggings: [Tag]
+    togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ToggleConnection
+    toggles: [Toggle]
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type SpexareConnection {
+    edges: [SpexareEdge]!
+    pageInfo: PageInfo!
+}
+
+type SpexareEdge {
+    cursor: String!
+    node: Spexare!
+}
+
+type SpexareWithFacetsConnection {
+    edges: [SpexareEdge]
+    pageInfo: PageInfo
+    facets: [Facet]
+}

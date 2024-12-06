@@ -27,7 +27,7 @@ import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.address.AddressApi;
 import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
-import nu.fgv.register.server.spexare.tag.TaggingApi;
+import nu.fgv.register.server.spexare.tagging.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
@@ -180,62 +180,62 @@ public class SpexareApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/image")
+    @GetMapping("/{spexareId}/image")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadImage(@PathVariable final Long id) {
-        final Pair<byte[], String> image = service.getImage(id);
+    public ResponseEntity<Resource> downloadImage(@PathVariable final Long spexareId) {
+        final Pair<byte[], String> image = service.getImage(spexareId);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(image.getSecond()))
                 .body(new ByteArrayResource(image.getFirst()));
     }
 
-    @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        service.saveImage(id, file, contentType);
+    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
+        service.saveImage(spexareId, file, contentType);
 
         return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(value = "/{id}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadImage(@PathVariable final Long id, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestParam("file") final MultipartFile file) {
         try {
-            return uploadImage(id, file.getBytes(), file.getContentType());
+            return uploadImage(spexareId, file.getBytes(), file.getContentType());
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }
     }
 
-    @DeleteMapping("/{id}/image")
+    @DeleteMapping("/{spexareId}/image")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> deleteImage(@PathVariable final Long id) {
-        service.deleteImage(id);
+    public ResponseEntity<Object> deleteImage(@PathVariable final Long spexareId) {
+        service.deleteImage(spexareId);
 
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long id) {
-        final SpexareDto dto = service.findPartnerBySpexare(id);
+    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long spexareId) {
+        final SpexareDto dto = service.findPartnerBySpexare(spexareId);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @PutMapping(value = "/{spexareId}/partner/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> updatePartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
-        service.updatePartner(spexareId, id);
+    public ResponseEntity<Object> addPartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
+        service.addPartner(spexareId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping(value = "/{id}/partner", produces = MediaTypes.HAL_JSON_VALUE)
+    @DeleteMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> deletePartner(@PathVariable final Long id) {
-        service.deletePartner(id);
+    public ResponseEntity<Object> removePartner(@PathVariable final Long spexareId) {
+        service.removePartner(spexareId);
 
         return ResponseEntity.noContent().build();
     }
@@ -265,8 +265,8 @@ public class SpexareApi {
     public List<Link> getLinks(final SpexareDto dto) {
         final List<Link> links = new ArrayList<>();
         links.add(linkTo(methodOn(SpexareApi.class).retrieve(dto.getId())).withSelfRel());
-        if (hasText(dto.getImage())) {
-            links.add(Link.of(dto.getImage()).withRel("image"));
+        if (hasText(dto.getImageUrl())) {
+            links.add(Link.of(dto.getImageUrl()).withRel("image"));
         } else {
             links.add(linkTo(methodOn(SpexareApi.class).downloadImage(dto.getId())).withRel("image"));
         }

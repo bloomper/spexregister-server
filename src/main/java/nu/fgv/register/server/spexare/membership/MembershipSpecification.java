@@ -32,6 +32,11 @@ import org.springframework.data.jpa.domain.Specification;
 @Getter
 public class MembershipSpecification extends BaseSpecification<Membership> {
 
+    public static final MembershipSpecification NO_FILTER = new MembershipSpecification();
+
+    private MembershipSpecification() {
+    }
+
     public MembershipSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

@@ -1,0 +1,49 @@
+extend type Query {
+    userPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): UserConnection
+    user(id: ID!): User
+    userEvents(sinceInDays: Int = 90): [Event]
+}
+
+extend type Mutation {
+    userCreate(input: UserCreate!): User
+    userUpdate(input: UserUpdate!): User
+    userDelete(id: ID!): Void
+    userAuthorityAdd(userId: ID!, id: ID!): Void
+    userAuthoritiesAdd(userId: ID!, ids: [ID]!): Void
+    userAuthorityRemove(userId: ID!, id: ID!): Void
+    userAuthoritiesRemove(userId: ID!, ids: [ID]!): Void
+    userStateSet(userId: ID!, id: ID!): Void
+    userSpexareAdd(userId: ID!, id: ID!): Void
+    userSpexareRemove(userId: ID!): Void
+}
+
+type User {
+    id: ID!
+    email: Email!
+    authorities: [Authority]
+    state: State
+    spexare: Spexare
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type UserConnection {
+    edges: [UserEdge]!
+    pageInfo: PageInfo!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
+}
+
+input UserCreate {
+    email: Email!
+}
+
+input UserUpdate {
+    id: ID!
+    email: Email!
+}

@@ -27,6 +27,9 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+
+import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
@@ -34,7 +37,8 @@ import org.mapstruct.factory.Mappers;
  */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        uses = SpexCategoryMapper.class
+        uses = SpexCategoryMapper.class,
+        imports = {Optional.class, WebMvcLinkBuilder.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -45,6 +49,7 @@ public interface SpexMapper {
     SpexMapper SPEX_MAPPER = Mappers.getMapper(SpexMapper.class);
 
     @Mapping(target = "title", source = "details.title")
+    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).orElse(null))")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     SpexDto toDto(Spex model);
 

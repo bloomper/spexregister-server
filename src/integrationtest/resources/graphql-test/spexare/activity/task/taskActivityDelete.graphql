@@ -1,0 +1,3 @@
+mutation taskActivityDelete ($spexareId: ID!, $activityId: ID!, $id: ID!) {
+    taskActivityDelete(spexareId: $spexareId, activityId: $activityId, id: $id)
+}

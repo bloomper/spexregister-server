@@ -73,14 +73,6 @@ public class TaskActivityApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
-        final TaskActivityDto dto = service.findById(spexareId, activityId, id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
-    }
-
     @PostMapping(value = "/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId) {
@@ -90,12 +82,20 @@ public class TaskActivityApi {
                 .body(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<TaskActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+        final TaskActivityDto dto = service.findById(spexareId, activityId, id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
+    }
+
     @PutMapping(value = "/{id}/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId, @PathVariable final Long id) {
-        service.update(spexareId, activityId, taskId, id);
+    public ResponseEntity<EntityModel<TaskActivityDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id, @PathVariable final Long taskId) {
+        final TaskActivityDto dto = service.update(spexareId, activityId, taskId, id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

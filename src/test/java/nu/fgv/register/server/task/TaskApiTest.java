@@ -112,7 +112,7 @@ class TaskApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
-            fieldWithPath("hasActor").description("The flag telling whether the task category can have associated actor information"),
+            fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
             linksSubsection
     );
 

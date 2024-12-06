@@ -1,0 +1,40 @@
+query userPaged ($first: Int = 10, $filter: String = "") {
+    userPaged (first: $first, filter: $filter) {
+        edges {
+            cursor
+            node {
+                id
+                email
+                authorities {
+                    id
+                    label
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                state {
+                    id
+                    label
+                    createdBy
+                    createdAt
+                    lastModifiedBy
+                    lastModifiedAt
+                }
+                spexare {
+                    id
+                }
+                createdBy
+                createdAt
+                lastModifiedBy
+                lastModifiedAt
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+    }
+}
