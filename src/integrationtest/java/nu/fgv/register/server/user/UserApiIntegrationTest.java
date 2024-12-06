@@ -56,7 +56,6 @@ import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -92,12 +91,7 @@ import static org.passay.AllowedCharacterRule.ERROR_CODE;
  */
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
-    private final ObjectMapper objectMapper;
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
@@ -120,8 +114,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                                   final StateRepository stateRepository,
                                   final SpexareRepository spexareRepository,
                                   final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
-        this.objectMapper = objectMapper;
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;

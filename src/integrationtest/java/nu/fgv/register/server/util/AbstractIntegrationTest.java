@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -101,17 +103,24 @@ public abstract class AbstractIntegrationTest {
 
     private static URI authorizationURI;
 
+    protected static String basePath;
+
     protected final JdbcClient jdbcClient;
-    private final AclCache aclCache;
     protected final Keycloak keycloakAdminClient;
     protected final String keycloakClientId;
     protected final PermissionService permissionService;
+    protected final ObjectMapper objectMapper;
+
+    private final AclCache aclCache;
 
     @Value("${spexregister.keycloak.realm}")
     protected String keycloakRealm;
 
     @Value("${spexregister.keycloak.client.client-id}")
     protected String keycloakClientClientId;
+
+    @LocalServerPort
+    protected int localPort;
 
     @Container
     @ServiceConnection
@@ -138,12 +147,14 @@ public abstract class AbstractIntegrationTest {
                                       final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService) {
+                                      final PermissionService permissionService,
+                                      final ObjectMapper objectMapper) {
         this.jdbcClient = jdbcClient;
         this.aclCache = aclCache;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
         this.permissionService = permissionService;
+        this.objectMapper = objectMapper;
 
         accessTokenCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(10, TimeUnit.MINUTES)

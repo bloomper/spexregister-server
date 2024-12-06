@@ -57,6 +57,14 @@ public class EventApi {
 
     private final EventService service;
 
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
+    public ResponseEntity<EntityModel<EventDto>> retrieveById(@PathVariable final Long id) {
+        final EventDto dto = service.findById(id);
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
+    }
+
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieve(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
@@ -67,14 +75,6 @@ public class EventApi {
         return ResponseEntity.ok(
                 CollectionModel.of(events,
                         linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
-    }
-
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<EventDto>> retrieveById(@PathVariable final Long id) {
-        final EventDto dto = service.findById(id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     public List<Link> getLinks(final EventDto dto) {

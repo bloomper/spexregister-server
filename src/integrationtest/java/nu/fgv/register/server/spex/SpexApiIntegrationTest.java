@@ -73,12 +73,7 @@ import static org.jeasy.random.FieldPredicates.named;
  */
 class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
-    private final ObjectMapper objectMapper;
     private final SpexRepository repository;
     private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
@@ -96,8 +91,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                                   final SpexDetailsRepository detailsRepository,
                                   final SpexCategoryRepository categoryRepository,
                                   final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
-        this.objectMapper = objectMapper;
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;

@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -68,12 +67,7 @@ import static org.jeasy.random.FieldPredicates.named;
  */
 class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
-    private final ObjectMapper objectMapper;
     private final SpexCategoryRepository repository;
     private final EventRepository eventRepository;
 
@@ -87,8 +81,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                                           final ObjectMapper objectMapper,
                                           final SpexCategoryRepository repository,
                                           final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
-        this.objectMapper = objectMapper;
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 

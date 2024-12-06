@@ -76,16 +76,12 @@ import static org.jeasy.random.FieldPredicates.ofType;
  */
 class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-    @Value("${spring.jpa.properties.hibernate.search.backend.directory.root")
-    private String indexDataLocation;
-
-    private final ObjectMapper objectMapper;
     private final SpexareRepository repository;
     private final EventRepository eventRepository;
+
+    @Value("${spring.jpa.properties.hibernate.search.backend.directory.root")
+    private String indexDataLocation;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -97,8 +93,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                      final ObjectMapper objectMapper,
                                      final SpexareRepository repository,
                                      final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
-        this.objectMapper = objectMapper;
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 

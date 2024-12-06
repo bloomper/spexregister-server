@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.event;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -55,11 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class EventApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
     private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -69,8 +66,9 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
                                    final PermissionService permissionService,
+                                   final ObjectMapper objectMapper,
                                    final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();

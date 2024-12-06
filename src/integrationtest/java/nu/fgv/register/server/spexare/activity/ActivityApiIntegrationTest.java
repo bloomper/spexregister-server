@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare.activity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -37,7 +38,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -65,11 +65,7 @@ import static org.jeasy.random.FieldPredicates.ofType;
  */
 class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
     private final ActivityRepository repository;
     private final SpexareRepository spexareRepository;
 
@@ -80,9 +76,10 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
                                       final PermissionService permissionService,
+                                      final ObjectMapper objectMapper,
                                       final ActivityRepository repository,
                                       final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.spexareRepository = spexareRepository;
 

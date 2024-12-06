@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.user.authority;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -35,7 +36,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -58,11 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
     private final AuthorityRepository repository;
     private final EventRepository eventRepository;
 
@@ -73,9 +69,10 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
                                        final Keycloak keycloakAdminClient,
                                        final String keycloakClientId,
                                        final PermissionService permissionService,
+                                       final ObjectMapper objectMapper,
                                        final AuthorityRepository repository,
                                        final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 

@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare.address;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -68,11 +69,7 @@ import static org.jeasy.random.FieldPredicates.ofType;
  */
 class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
-    private static String basePath;
     private final EasyRandom random;
-    @LocalServerPort
-    private int localPort;
-
     private final AddressRepository repository;
     private final TypeRepository typeRepository;
     private final SpexareRepository spexareRepository;
@@ -84,10 +81,11 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
+                                     final ObjectMapper objectMapper,
                                      final AddressRepository repository,
                                      final TypeRepository typeRepository,
                                      final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
