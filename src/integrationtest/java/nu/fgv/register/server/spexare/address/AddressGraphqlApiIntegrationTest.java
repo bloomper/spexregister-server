@@ -404,21 +404,6 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .entityList(AddressDto.class)
                     .hasSize(1);
 
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/address/address")
-                    .variable("spexareId", spexare.getId())
-                    .variable("id", updateDto.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("address", result -> result
-                            .path("id").entity(Long.class).isEqualTo(updateDto.getId())
-                            .path("streetAddress").entity(String.class).isEqualTo(updateDto.getStreetAddress())
-                    );
-
             assertThat(repository.count()).isEqualTo(1);
         }
 

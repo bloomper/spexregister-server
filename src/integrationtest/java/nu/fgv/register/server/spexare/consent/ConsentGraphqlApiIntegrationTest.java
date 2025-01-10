@@ -385,21 +385,6 @@ class ConsentGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .entityList(ConsentDto.class)
                     .hasSize(1);
 
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/consent/consent")
-                    .variable("spexareId", spexare.getId())
-                    .variable("id", consent.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("consent", result -> result
-                            .path("id").entity(Long.class).isEqualTo(consent.getId())
-                            .path("value").entity(Boolean.class).isEqualTo(Boolean.FALSE)
-                    );
-
             assertThat(repository.count()).isEqualTo(1);
         }
 

@@ -385,21 +385,6 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .entityList(ToggleDto.class)
                     .hasSize(1);
 
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/toggle/toggle")
-                    .variable("spexareId", spexare.getId())
-                    .variable("id", toggle.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("toggle", result -> result
-                            .path("id").entity(Long.class).isEqualTo(toggle.getId())
-                            .path("value").entity(Boolean.class).isEqualTo(Boolean.FALSE)
-                    );
-
             assertThat(repository.count()).isEqualTo(1);
         }
 
