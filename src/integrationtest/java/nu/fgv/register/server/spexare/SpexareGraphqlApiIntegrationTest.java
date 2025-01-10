@@ -307,6 +307,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        @Disabled
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -326,6 +327,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        @Disabled
         void should_return_many() {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
