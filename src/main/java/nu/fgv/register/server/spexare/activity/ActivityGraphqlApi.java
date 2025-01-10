@@ -16,24 +16,25 @@
 
 package nu.fgv.register.server.spexare.activity;
 
+import graphql.execution.DataFetcherResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
-import nu.fgv.register.server.spexare.consent.ConsentDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
 
 /**
@@ -47,24 +48,15 @@ public class ActivityGraphqlApi {
 
     private final ActivityService service;
 
-    @QueryMapping("activityPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<ActivityDto> retrieve(@Argument final Long spexareId, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(spexareId, holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
-    }
-
     @MutationMapping("activityCreate")
     @RequiresAdminOrEditorOrUser
-    public ActivityDto create(@Argument final Long spexareId) {
-        return service.create(spexareId);
-    }
-
-    @QueryMapping("activity")
-    @RequiresAdminOrEditorOrUser
-    public ActivityDto retrieve(@Argument final Long spexareId, @Argument final Long id) {
-        return service.findById(spexareId, id);
+    public DataFetcherResult<ActivityDto> create(@Argument final Long spexareId) {
+        return buildDataFetcherResult(
+                service.create(spexareId),
+                Map.of(
+                        "spexareId", spexareId
+                )
+        );
     }
 
     @MutationMapping("activityDelete")
@@ -75,28 +67,26 @@ public class ActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "activitiesPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<ActivityDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
+    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return buildDataFetcherResult(
+                service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
+                Map.of(
+                        "spexareId", dto.getId()
+                )
+        );
     }
 
     @SchemaMapping(typeName = "Spexare", field = "activities")
     @RequiresAdminOrEditorOrUser
-    public List<ActivityDto> retrieveBySpexare(final SpexareDto dto) {
-        return service.findBySpexare(dto.getId());
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "activitiesPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<ActivityDto> retrieveBySpexarePartner(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        return retrieveBySpexare(dto, subrange, sort);
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "activities")
-    @RequiresAdminOrEditorOrUser
-    public List<ActivityDto> retrieveBySpexarePartner(final SpexareDto dto) {
-        return retrieveBySpexare(dto);
+    public DataFetcherResult<List<ActivityDto>> retrieveBySpexare(final SpexareDto dto) {
+        return buildDataFetcherResult(
+                service.findBySpexare(dto.getId()),
+                Map.of(
+                        "spexareId", dto.getId()
+                )
+        );
     }
 
 }

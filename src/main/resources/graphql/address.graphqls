@@ -1,8 +1,3 @@
-extend type Query {
-    addressPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["type"], direction: SortDirection = ASC): AddressConnection
-    address(spexareId: ID!, id: ID!): Address
-}
-
 extend type Mutation {
     addressCreate(spexareId: ID!, typeId: ID!, input: AddressCreate): Address
     addressUpdate(spexareId: ID!, typeId: ID!, input: AddressUpdate): Address

@@ -962,6 +962,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
+            assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -995,6 +996,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .extract().body().as(ProblemDetail.class);
             //@formatter:on
 
+            assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }

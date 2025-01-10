@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
@@ -47,24 +46,10 @@ public class ConsentGraphqlApi {
 
     private final ConsentService service;
 
-    @QueryMapping("consentPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<ConsentDto> retrieve(@Argument final Long spexareId, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(spexareId, holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
-    }
-
     @MutationMapping("consentCreate")
     @RequiresAdminOrEditorOrUser
     public ConsentDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentCreateDto input) {
         return service.create(spexareId, typeId, input);
-    }
-
-    @QueryMapping("consent")
-    @RequiresAdminOrEditorOrUser
-    public ConsentDto retrieve(@Argument final Long spexareId, @Argument final Long id) {
-        return service.findById(spexareId, id);
     }
 
     @MutationMapping("consentUpdate")
@@ -93,15 +78,4 @@ public class ConsentGraphqlApi {
         return service.findBySpexare(dto.getId());
     }
 
-    @SchemaMapping(typeName = "SpexarePartner", field = "consentsPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<ConsentDto> retrieveBySpexarePartner(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        return retrieveBySpexare(dto, subrange, sort);
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "consents")
-    @RequiresAdminOrEditorOrUser
-    public List<ConsentDto> retrieveBySpexarePartner(final SpexareDto dto) {
-        return retrieveBySpexare(dto);
-    }
 }

@@ -1,8 +1,3 @@
-extend type Query {
-    togglePaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["type"], direction: SortDirection = ASC): ToggleConnection
-    toggle(spexareId: ID!, id: ID!): Toggle
-}
-
 extend type Mutation {
     toggleCreate(spexareId: ID!, typeId: ID!, input: ToggleCreate): Toggle
     toggleUpdate(spexareId: ID!, typeId: ID!, input: ToggleUpdate): Toggle

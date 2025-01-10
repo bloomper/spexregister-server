@@ -76,18 +76,6 @@ type SpexarePartner {
     graduation: String
     comment: String
     imageUrl: String
-    activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ActivityConnection
-    activities: [Activity]
-    addressesPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): AddressConnection
-    addresses: [Address]
-    consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ConsentConnection
-    consents: [Consent]
-    membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): MembershipConnection
-    memberships: [Membership]
-    taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TagConnection
-    taggings: [Tag]
-    togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ToggleConnection
-    toggles: [Toggle]
     createdBy: String!
     createdAt: Instant!
     lastModifiedBy: String

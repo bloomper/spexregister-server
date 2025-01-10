@@ -1,8 +1,3 @@
-extend type Query {
-    consentPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["type"], direction: SortDirection = ASC): ConsentConnection
-    consent(spexareId: ID!, id: ID!): Consent
-}
-
 extend type Mutation {
     consentCreate(spexareId: ID!, typeId: ID!, input: ConsentCreate): Consent
     consentUpdate(spexareId: ID!, typeId: ID!, input: ConsentUpdate): Consent

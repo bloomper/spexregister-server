@@ -16,12 +16,15 @@
 
 package nu.fgv.register.server.util.graphql;
 
+import graphql.GraphQLContext;
+import graphql.execution.DataFetcherResult;
 import nu.fgv.register.server.spex.SpexDto;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.query.ScrollSubrange;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
@@ -45,6 +48,16 @@ public class GraphqlUtil {
         final int limit = subrange.count().orElse(10);
 
         return new ScrollPositionAndLimitHolder(scrollPosition, limit);
+    }
+
+    public static <T> DataFetcherResult<T> buildDataFetcherResult(final T data, final Map<Object, Object> localContextMap) {
+        return DataFetcherResult.<T>newResult()
+                .data(data)
+                .localContext(GraphQLContext.newContext()
+                        .of(localContextMap)
+                        .build()
+                )
+                .build();
     }
 
     public record ScrollPositionAndLimitHolder(ScrollPosition scrollPosition, int limit) {

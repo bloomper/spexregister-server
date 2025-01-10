@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
@@ -47,24 +46,10 @@ public class AddressGraphqlApi {
 
     private final AddressService service;
 
-    @QueryMapping("addressPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<AddressDto> retrieve(@Argument final Long spexareId, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(spexareId, filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
-    }
-
     @MutationMapping("addressCreate")
     @RequiresAdminOrEditorOrUser
     public AddressDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final AddressCreateDto input) {
         return service.create(spexareId, typeId, input);
-    }
-
-    @QueryMapping("address")
-    @RequiresAdminOrEditorOrUser
-    public AddressDto retrieve(@Argument final Long spexareId, @Argument final Long id) {
-        return service.findById(spexareId, id);
     }
 
     @MutationMapping("addressUpdate")
@@ -93,15 +78,4 @@ public class AddressGraphqlApi {
         return service.findBySpexare(dto.getId());
     }
 
-    @SchemaMapping(typeName = "SpexarePartner", field = "addressesPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<AddressDto> retrieveBySpexarePartner(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        return retrieveBySpexare(dto, subrange, filter, sort);
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "addresses")
-    @RequiresAdminOrEditorOrUser
-    public List<AddressDto> retrieveBySpexarePartner(final SpexareDto dto) {
-        return retrieveBySpexare(dto);
-    }
 }

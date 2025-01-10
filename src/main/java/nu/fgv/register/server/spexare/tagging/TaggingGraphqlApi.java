@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
@@ -46,14 +45,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPosit
 public class TaggingGraphqlApi {
 
     private final TaggingService service;
-
-    @QueryMapping("taggingPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<TagDto> retrieve(@Argument final Long spexareId, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(spexareId, holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
-    }
 
     @MutationMapping("taggingCreate")
     @RequiresAdminOrEditorOrUser
@@ -81,15 +72,4 @@ public class TaggingGraphqlApi {
         return service.findBySpexare(dto.getId());
     }
 
-    @SchemaMapping(typeName = "SpexarePartner", field = "taggingsPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<TagDto> retrieveBySpexarePartner(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        return retrieveBySpexare(dto, subrange, sort);
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "taggings")
-    @RequiresAdminOrEditorOrUser
-    public List<TagDto> retrieveBySpexarePartner(final SpexareDto dto) {
-        return retrieveBySpexare(dto);
-    }
 }

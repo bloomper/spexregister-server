@@ -1,7 +1,3 @@
-extend type Query {
-    taggingPaged(spexareId: ID!, first: Int, after: String, last: Int, before: String, sort: [String] = ["name"], direction: SortDirection = ASC): TagConnection
-}
-
 extend type Mutation {
     taggingCreate(spexareId: ID!, tagId: ID!): Void
     taggingDelete(spexareId: ID!, tagId: ID!): Void

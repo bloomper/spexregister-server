@@ -135,7 +135,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
     }
 
     public Page<R> page(final Pageable pageable) {
-        return (Page<R>) (pageable.isUnpaged() ? new PageImpl(all()) : readPage(pageable));
+        return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
     }
 
     public Stream<R> stream() {

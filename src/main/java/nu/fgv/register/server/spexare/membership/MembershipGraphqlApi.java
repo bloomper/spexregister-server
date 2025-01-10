@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
@@ -47,24 +46,10 @@ public class MembershipGraphqlApi {
 
     private final MembershipService service;
 
-    @QueryMapping("membershipPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<MembershipDto> retrieve(@Argument final Long spexareId, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(spexareId, filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
-    }
-
     @MutationMapping("membershipCreate")
     @RequiresAdminOrEditorOrUser
     public MembershipDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final MembershipCreateDto input) {
         return service.create(spexareId, typeId, input);
-    }
-
-    @QueryMapping("membership")
-    @RequiresAdminOrEditorOrUser
-    public MembershipDto retrieve(@Argument final Long spexareId, @Argument final Long id) {
-        return service.findById(spexareId, id);
     }
 
     @MutationMapping("membershipDelete")
@@ -87,15 +72,4 @@ public class MembershipGraphqlApi {
         return service.findBySpexare(dto.getId());
     }
 
-    @SchemaMapping(typeName = "SpexarePartner", field = "membershipsPaged")
-    @RequiresAdminOrEditorOrUser
-    public Window<MembershipDto> retrieveBySpexarePartner(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        return retrieveBySpexare(dto, subrange, filter, sort);
-    }
-
-    @SchemaMapping(typeName = "SpexarePartner", field = "memberships")
-    @RequiresAdminOrEditorOrUser
-    public List<MembershipDto> retrieveBySpexarePartner(final SpexareDto dto) {
-        return retrieveBySpexare(dto);
-    }
 }

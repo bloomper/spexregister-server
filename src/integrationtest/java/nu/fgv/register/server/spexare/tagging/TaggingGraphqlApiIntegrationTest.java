@@ -44,10 +44,8 @@ import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,98 +111,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @AfterEach
     void tearDown() {
-    }
-
-    @Nested
-    @DisplayName("Retrieve paged")
-    class RetrievePagedTests {
-
-        @Test
-        void should_return_NOT_FOUND() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spexare/tagging/taggingPaged")
-                    .variable("spexareId", 1L)
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
-                    )
-                    .path("taggingPaged")
-                    .valueIsNull();
-        }
-
-        @Test
-        void should_return_zero() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spexare/tagging/taggingPaged")
-                    .variable("spexareId", spexare.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("taggingPaged.edges")
-                    .entityList(TagDto.class)
-                    .hasSize(0);
-        }
-
-        @Test
-        void should_return_one() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
-            final var tag = persistTag(randomizeTag());
-            spexare.setTags(Set.of(tag));
-            spexareRepository.save(spexare);
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spexare/tagging/taggingPaged")
-                    .variable("spexareId", spexare.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("taggingPaged.edges")
-                    .entityList(TagDto.class)
-                    .hasSize(1);
-        }
-
-        @Test
-        void should_return_many() {
-            final int size = 42;
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
-            final var taggings = new ArrayList<Tag>();
-            IntStream.range(0, size).forEach(i -> {
-                final var tag = persistTag(randomizeTag());
-                taggings.add(tag);
-            });
-            spexare.setTags(Set.copyOf(taggings));
-            spexareRepository.save(spexare);
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spexare/tagging/taggingPaged")
-                    .variable("spexareId", spexare.getId())
-                    .variable("first", size)
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("taggingPaged.edges")
-                    .entityList(TagDto.class)
-                    .hasSize(size);
-        }
-
     }
 
     @Nested

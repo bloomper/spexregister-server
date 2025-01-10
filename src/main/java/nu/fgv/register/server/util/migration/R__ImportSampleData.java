@@ -691,7 +691,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                         .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
                         .update();
 
-                IntStream.range(0, rnd.nextInt(NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY)).forEach(j -> {
+                IntStream.range(0, rnd.nextInt(NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY) + 1).forEach(j -> {
                     final KeyHolder taskActivityKeyHolder = new GeneratedKeyHolder();
                     final TaskCategory taskCategory = taskCategories.get(rnd.nextInt(taskCategories.size()));
                     final List<Long> tasks = tasksPerTaskCategory.get(taskCategory.getId());

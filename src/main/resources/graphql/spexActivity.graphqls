@@ -1,8 +1,3 @@
-extend type Query {
-    spexActivityByActivity(spexareId: ID!, activityId: ID!): SpexActivity
-    spexActivity(spexareId: ID!, activityId: ID!, id: ID!): SpexActivity
-}
-
 extend type Mutation {
     spexActivityCreate(spexareId: ID!, activityId: ID!, spexId: ID!): SpexActivity
     spexActivityUpdate(spexareId: ID!, activityId: ID!, spexId: ID!, id: ID!): SpexActivity

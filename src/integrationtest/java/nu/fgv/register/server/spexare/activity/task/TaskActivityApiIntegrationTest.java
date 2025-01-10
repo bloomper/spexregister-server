@@ -766,7 +766,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_404_when_updating_and_spex_not_found() {
+        void should_return_404_when_updating_and_task_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
