@@ -1,4 +1,4 @@
-= Spexregister Server API Guide
+= Spexregister Server REST API Guide
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
@@ -72,7 +72,7 @@ include::{static-snippets}/error/response-fields.adoc[]
 
 More information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here].
 
-For example, a request that attempts to retrieve a non-existent spex will produce a
+For example, a request that attempts to retrieve a non-existent ``Spex`` will produce a
 `400 Not Found` response:
 
 include::{static-snippets}/error/http-response.adoc[]

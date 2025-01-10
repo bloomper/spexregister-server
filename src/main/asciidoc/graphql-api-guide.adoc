@@ -1,0 +1,93 @@
+= Spexregister Server GraphQL API Guide
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+
+xref:index.adoc[Back to start page]
+
+[[schema]]
+== Schema
+
+The schema is available at https://register.fgv.nu/api/graphql. If running locally, the corresponding URL
+is http://localhost:8080/api/graphql.
+
+[[errors]]
+== Errors
+
+The GraphQL API provides error details in the ``extensions`` section of the response. The error details mimic
+RFC 9457 for which more information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here]. The structure is
+as follows:
+
+include::{static-snippets}/graphql-error/response-fields.adoc[]
+
+For example, a request that attempts to create a duplicate ``Actor`` will produce an error:
+
+include::{static-snippets}/graphql-error/graphql-response.adoc[]
+
+Note that invalid input according to the schema will be detected and reported as validation errors by the client
+which means that the structure is different from described above.
+
+[[roles]]
+== Roles
+
+Spexregister Server uses the following roles:
+
+!===
+|Role|Technical name|Description
+
+|USER|ROLE_USER|User with no administrative privileges
+|EDITOR|ROLE_EDITOR|User with selected administrative privileges
+|ADMIN|ROLE_ADMIN|User with full administrative privileges
+
+!===
+
+[[filtering]]
+== Filtering
+
+When retrieving resources, it is possible to apply filtering. Note that it does not
+apply to all resources.
+
+The available operations are:
+
+* Simple operations
+** Equality: represented by colon (:)
+** Negation: represented by exclamation mark (!)
+** Greater than: represented by (>)
+** Less than: represented by (<)
+** Like: represented by tilde (~)
+* Complex operations
+** Starts with: represented by (:prefix*)
+** Ends with: represented by (:*suffix)
+** Contains: represented by (:*substring*)
+
+The syntax is:
+
+``<attribute><operation><value><optional operation>``
+
+Example: ``nickName:colg*``
+
+Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much
+like the WHERE clause in SQL statements. To group clauses, use ``( `` and `` )`` (note the
+trailing and leading whitespaces).
+
+Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
+
+[[pagination]]
+== Pagination
+
+The GraphQL API of Spexregister Server uses the cursor connection specification for pagination.
+For more details, refer to https://relay.dev/graphql/connections.htm.
+
+However, when doing a full text search for the ``Spexare`` resource, it is not possible to use this.
+Instead, a simple offset/limit mechanism is used.
+
+[[file_handling]]
+== File handling
+
+As GraphQL does not have any native support for uploading/downloading files, those operations
+must be done via the REST API.
+
+xref:index.adoc[Back to start page]

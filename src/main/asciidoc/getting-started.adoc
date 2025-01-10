@@ -191,7 +191,7 @@ The following test users have been pre-created:
 [[testing_the_api]]
 == Testing the API
 
-There are many tools out there that can be used for manual testing of the API. Two examples are
+There are many tools out there that can be used for manual testing of the APIs. Two examples are
 Postman (https://www.postman.com/) and Brauzie (https://github.com/maslick/brauzie).
 
 To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`` tab and then select

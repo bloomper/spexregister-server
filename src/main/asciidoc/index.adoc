@@ -18,10 +18,15 @@ how to integrate Spexregister Server into another application, e.g. a web applic
 
 Refer to the xref:getting-started.adoc[getting started guide].
 
-[[api_guide]]
-== API guide
+[[rest_api_guide]]
+== REST API guide
 
 Refer to the xref:api-guide.adoc[API guide].
+
+[[graphql_api_guide]]
+== GraphQL API guide
+
+Refer to the xref:graphql-api-guide.adoc[API guide].
 
 [[javadoc]]
 == Javadoc

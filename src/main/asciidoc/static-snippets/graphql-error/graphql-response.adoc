@@ -1,0 +1,30 @@
+[source,http,options="nowrap"]
+----
+{
+    "errors": [
+        {
+            "message": "Spexare with id 18 has already an activity with id vocal and a task activity with id UNKNOWN with an actor with 40 72",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "actorCreate"
+            ],
+            "extensions": {
+                "type": "https://register.fgv.nu/errors/already-exists",
+                "instance": "/actorCreate",
+                "title": "Subresource already exists",
+                "detail": "Spexare with id 18 has already an activity with id vocal and a task activity with id UNKNOWN with an actor with 40 72",
+                "status": 409,
+                "classification": "CONFLICT"
+            }
+        }
+    ],
+    "data": {
+        "actorCreate": null
+    }
+}
+----

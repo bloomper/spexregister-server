@@ -1,0 +1,28 @@
+|===
+|Path|Type|Description
+
+|`+type+`
+|`+String+`
+|An URI reference that identifies the problem type. When such cannot be determined, this field is set to ``about:blank``.
+
+|`+title+`
+|`+String+`
+|A human-readable summary of the problem.
+
+|`+status+`
+|`+Number+`
+|The HTTP status code.
+
+|`+detail+`
+|`+String+`
+|A human-readable explanation of the problem.
+
+|`+instance+`
+|`+String+`
+|An URI reference that identifies the location that resulted in the problem.
+
+|`+classification+`
+|`+String+`
+|An human-readable explanation of the HTTP status code.
+
+|===
