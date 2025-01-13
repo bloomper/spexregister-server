@@ -57,6 +57,9 @@ public class State extends AbstractAuditable implements Serializable {
     @Column(name = "id")
     private String id;
 
+    @Column(name = "initial")
+    private Boolean initial = Boolean.FALSE;
+
     @org.hibernate.annotations.Type(JsonType.class)
     @Column(name = "labels", columnDefinition = "json")
     private Map<String, String> labels;

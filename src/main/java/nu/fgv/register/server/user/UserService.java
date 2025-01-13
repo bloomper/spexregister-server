@@ -153,7 +153,7 @@ public class UserService {
 
                     return findResourceByExternalId(externalId)
                             .map(resource -> {
-                                final User model = repository.save(USER_MAPPER.toModel(externalId));
+                                final User model = repository.save(USER_MAPPER.toModel(externalId, getUserInitialState()));
                                 final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
                                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -430,7 +430,7 @@ public class UserService {
                                 .filter(r -> !alreadyAdded.contains(r.getId()))
                                 .forEach(representation -> {
                                     if (!repository.existsByExternalId(representation.getId())) {
-                                        final User model = repository.save(USER_MAPPER.toModel(representation.getId()));
+                                        final User model = repository.save(USER_MAPPER.toModel(representation.getId(), getUserInitialState()));
                                         final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
                                         permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -485,6 +485,12 @@ public class UserService {
         final List<UserRepresentation> users = keycloakAdminClient.realm(keycloakRealm).users().searchByEmail(email, true);
 
         return users != null && !users.isEmpty();
+    }
+
+    private State getUserInitialState() {
+        return stateRepository
+                .findByInitial(true)
+                .orElseThrow(() -> new IllegalStateException("Initial state could not be found"));
     }
 
     private String generateTemporaryPassword() {

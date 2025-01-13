@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.user;
 
+import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateMapper;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -53,13 +54,12 @@ public interface UserMapper {
     UserDto toDto(User model, UserRepresentation representation, @Nullable String temporaryPassword);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "state", ignore = true)
     @Mapping(target = "spexare", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
-    User toModel(String externalId);
+    User toModel(String externalId, State state);
 
     @Mapping(target = "externalId", ignore = true)
     @Mapping(target = "state", ignore = true)
