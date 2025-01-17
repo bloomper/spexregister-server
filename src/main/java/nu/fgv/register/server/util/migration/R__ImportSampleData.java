@@ -822,20 +822,20 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     throw new IllegalStateException("Could not create user in Keycloak");
                 }
             }
-
-            jdbcClient
-                    .sql("SELECT u.external_id, s.id FROM user u LEFT JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
-                    .query()
-                    .listOfRows()
-                    .forEach(row -> {
-                        final String externalId = (String) row.get("external_id");
-                        final Long spexareId = (Long) row.get("id");
-
-                        final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
-
-                        permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
-                    });
         });
+
+        jdbcClient
+                .sql("SELECT u.external_id, s.id FROM user u LEFT JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
+                .query()
+                .listOfRows()
+                .forEach(row -> {
+                    final String externalId = (String) row.get("external_id");
+                    final Long spexareId = (Long) row.get("id");
+
+                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
+
+                    permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
+                });
     }
 
     private Pair<Map<Long, List<Long>>, Map<Long, List<Long>>> getSpexPerSpexCategory(final JdbcClient jdbcClient, final List<SpexCategory> spexCategories) {
