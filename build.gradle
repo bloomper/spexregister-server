@@ -6,7 +6,7 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.1'
+    id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'org.sonarqube' version '6.0.1.5171'
@@ -65,9 +65,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.0.7'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.0.7'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.0.7'
+    developmentOnly 'org.keycloak:keycloak-core:26.1.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.1.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.1.0'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -93,13 +93,13 @@ dependencies {
         }
     }
     implementation 'org.apache.commons:commons-lang3:3.17.0'
-    implementation 'org.apache.poi:poi:5.3.0'
-    implementation 'org.apache.poi:poi-ooxml:5.3.0'
+    implementation 'org.apache.poi:poi:5.4.0'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.9.0'
     implementation 'com.google.guava:guava:33.4.0-jre'
-    implementation 'org.keycloak:keycloak-admin-client:26.0.3'
+    implementation 'org.keycloak:keycloak-admin-client:26.0.4'
     implementation 'org.passay:passay:1.6.6'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
@@ -108,7 +108,6 @@ dependencies {
     implementation 'net.datafaker:datafaker:2.4.2'
     implementation 'com.graphql-java:graphql-java-extended-scalars:21.0'
     implementation 'io.micrometer:context-propagation:1.1.2'
-    implementation 'org.hibernate.common:hibernate-commons-annotations:7.0.3.Final' // Remove once Hibernate Search uses 7.0.3+
 
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
@@ -129,16 +128,16 @@ dependencies {
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
     integrationTestImplementation 'org.testcontainers:junit-jupiter'
     integrationTestImplementation 'org.testcontainers:mysql'
-    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:3.5.1'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:3.6.0'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {
-       runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.115.Final:osx-aarch_64'
+       runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.117.Final:osx-aarch_64'
     }
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {
-        testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.115.Final:osx-aarch_64'
+        testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.117.Final:osx-aarch_64'
     }
 }
 

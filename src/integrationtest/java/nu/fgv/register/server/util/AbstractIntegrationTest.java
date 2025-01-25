@@ -124,7 +124,7 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.40");
+    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.41");
 
     /*
     @Container
