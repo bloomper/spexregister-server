@@ -15,3 +15,7 @@ spring:
             plan:
               synchronization:
                 strategy: sync
+
+logging:
+  file:
+    path: ./test-data/log_data

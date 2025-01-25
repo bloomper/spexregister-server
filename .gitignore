@@ -6,6 +6,8 @@ build/
 .index
 .docker
 data
+test-data
+integrationtest-data
 **/*.log
 TODO.txt
 
