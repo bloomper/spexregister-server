@@ -73,11 +73,11 @@ public interface UserMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(UserUpdateDto dto, @MappingTarget User model);
 
-    default UserRepresentation toRepresentation(final UserCreateDto dto, final String temporaryPassword) {
+    default UserRepresentation toRepresentation(final UserCreateDto dto, final String temporaryPassword, final boolean enabled) {
         final UserRepresentation userRepresentation = new UserRepresentation();
 
         userRepresentation.setEmail(dto.getEmail());
-        userRepresentation.setEnabled(true);
+        userRepresentation.setEnabled(enabled);
 
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);

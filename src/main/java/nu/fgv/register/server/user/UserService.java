@@ -141,11 +141,12 @@ public class UserService {
     public UserDto create(final UserCreateDto dto) {
         if (!doesUserWithEmailExist(dto.getEmail())) {
             final String temporaryPassword = generateTemporaryPassword();
+            final State initialState = getUserInitialState();
 
             try (final Response response = keycloakAdminClient
                     .realm(keycloakRealm)
                     .users()
-                    .create(USER_MAPPER.toRepresentation(dto, temporaryPassword))
+                    .create(USER_MAPPER.toRepresentation(dto, temporaryPassword, initialState.getEnabled()))
             ) {
                 if (response.getStatus() == HttpStatus.CREATED.value()) {
                     final String locationPath = response.getLocation().getPath();
@@ -153,7 +154,7 @@ public class UserService {
 
                     return findResourceByExternalId(externalId)
                             .map(resource -> {
-                                final User model = repository.save(USER_MAPPER.toModel(externalId, getUserInitialState()));
+                                final User model = repository.save(USER_MAPPER.toModel(externalId, initialState));
                                 final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
                                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -349,6 +350,15 @@ public class UserService {
                     .ifPresent(user -> stateRepository
                             .findById(id)
                             .ifPresent(state -> {
+                                if (user.getState().getEnabled() != state.getEnabled()) {
+                                    findResourceByExternalId(user.getExternalId())
+                                            .ifPresent(resource -> {
+                                                final UserRepresentation representation = resource.toRepresentation();
+
+                                                representation.setEnabled(state.getEnabled());
+                                                resource.update(representation);
+                                            });
+                                }
                                 user.setState(state);
                                 repository.save(user);
                             })

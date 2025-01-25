@@ -91,6 +91,8 @@ import static org.passay.AllowedCharacterRule.ERROR_CODE;
  */
 class UserApiIntegrationTest extends AbstractIntegrationTest {
 
+    private static final int PRE_CREATED_USERS_IN_KEYCLOAK = 3;
+
     private final EasyRandom random;
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
@@ -363,6 +365,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() throws Exception {
             final UserCreateDto dto = random.nextObject(UserCreateDto.class);
+            final var state = persistState(randomizeState());
+            state.setInitial(true);
+            stateRepository.save(state);
 
             //@formatter:off
             final String json =
@@ -382,7 +387,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .extracting("email")
                     .isEqualTo(dto.getEmail());
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -405,7 +410,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -552,7 +557,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -575,7 +580,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -595,7 +600,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -722,7 +727,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .ignoringFields("createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt")
                     .isEqualTo(updated);
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -742,7 +747,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -831,7 +836,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -848,7 +853,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.count()).isZero();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -910,7 +915,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
             //@formatter:on
 
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
@@ -933,7 +938,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).isEmpty();
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
@@ -958,7 +963,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(1);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
             assertThat(assignedRoles.getFirst().getName()).isEqualTo(authority);
@@ -985,7 +990,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(result).hasSize(2);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(2);
             assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
@@ -1011,7 +1016,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
             assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
@@ -1031,7 +1036,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -1054,7 +1059,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1080,7 +1085,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(2);
             assertThat(assignedRoles.stream().anyMatch(r -> authorities.getFirst().equals(r.getName()))).isTrue();
@@ -1102,7 +1107,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -1126,7 +1131,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1152,7 +1157,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1177,7 +1182,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
@@ -1195,7 +1200,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -1218,7 +1223,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1244,7 +1249,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
         }
 
@@ -1265,7 +1270,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(3);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
@@ -1289,7 +1294,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             assertThat(getRoleRepresentationsForUserInKeycloak(user)).isEmpty();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -1315,7 +1320,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(authorityRepository.count()).isEqualTo(3);
-            assertThat(getUsersCountInKeycloak()).isEqualTo(4);
+            assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
             final List<RoleRepresentation> assignedRoles = getRoleRepresentationsForUserInKeycloak(user);
             assertThat(assignedRoles).hasSize(1);
             assertThat(assignedRoles.stream().anyMatch(r -> authority.equals(r.getName()))).isTrue();
@@ -1555,6 +1560,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var newState = persistState(randomizeState());
+            newState.setEnabled(!state.getEnabled());
+            stateRepository.save(newState);
             grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
@@ -1569,6 +1576,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             //@formatter:on
 
             assertThat(repository.findById(user.getId()).map(User::getState).orElseThrow(() -> new RuntimeException("User not found"))).isEqualTo(newState);
+            assertThat(getUserRepresentationForUserInKeycloak(user).isEnabled()).isEqualTo(newState.getEnabled());
         }
 
         @Test
@@ -1978,7 +1986,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         final UserRepresentation userRepresentation = new UserRepresentation();
 
         userRepresentation.setEmail(emailRandomizer.getRandomValue());
-        userRepresentation.setEnabled(true);
+        userRepresentation.setEnabled(false);
 
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
@@ -2033,6 +2041,14 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .roles()
                 .clientLevel(keycloakClientId)
                 .listAll();
+    }
+
+    private UserRepresentation getUserRepresentationForUserInKeycloak(final User user) {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .get(user.getExternalId())
+                .toRepresentation();
     }
 
     private Integer getUsersCountInKeycloak() {
