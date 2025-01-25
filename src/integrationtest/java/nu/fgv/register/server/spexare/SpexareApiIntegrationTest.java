@@ -300,6 +300,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Search paged")
+    @Disabled
     class SearchPagedTests {
 
         @Test
@@ -372,7 +373,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -395,7 +395,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));

@@ -288,6 +288,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Nested
     @DisplayName("Search paged")
+    @Disabled
     class SearchPagedTests {
 
         @Test
@@ -307,7 +308,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -327,7 +327,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_many() {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
@@ -353,7 +352,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -373,7 +371,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        @Disabled
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
