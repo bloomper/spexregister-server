@@ -44,7 +44,7 @@ services:
       - MYSQL_KEYCLOAK_USER_PASSWORD
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.1
+    image: quay.io/keycloak/keycloak:26.4
     entrypoint:
       - /bin/bash
       - -c

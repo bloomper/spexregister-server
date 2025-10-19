@@ -34,7 +34,7 @@ public class CustomSwedenIdNumber extends SwedenIdNumber {
     @Override
     public PersonIdNumber generateValid(final BaseProviders faker, final IdNumber.IdNumberRequest request) {
         final LocalDate birthday = birthday(faker, request);
-        final String end = generateEndPart(faker);
+        final String end = "%03d".formatted(faker.number().numberBetween(1, 1000));;
         final String formattedBirthday = DATE_TIME_FORMATTER.format(birthday);
         final String basePart = formattedBirthday + "-" + end;
         final String idNumber = basePart + calculateChecksum(basePart);
