@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.news;
 
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
@@ -25,7 +26,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 
@@ -66,12 +66,12 @@ public interface NewsMapper {
 
     @AfterMapping
     default void setPublished(final NewsCreateDto dto, final @MappingTarget News model) {
-        model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
+        model.setPublished(isPublished(dto.visibleFrom(), dto.visibleTo()));
     }
 
     @AfterMapping
     default void setPublished(final NewsUpdateDto dto, final @MappingTarget News model) {
-        model.setPublished(isPublished(dto.getVisibleFrom(), dto.getVisibleTo()));
+        model.setPublished(isPublished(dto.visibleFrom(), dto.visibleTo()));
     }
 
     default boolean isPublished(@Nullable final LocalDate visibleFrom, @Nullable final LocalDate visibleTo) {

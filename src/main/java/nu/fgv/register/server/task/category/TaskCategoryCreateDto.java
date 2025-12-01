@@ -21,31 +21,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TaskCategoryCreateDto {
-    @NotBlank(message = "{taskCategory.name.notEmpty}")
-    @Size(max = 255, message = "{taskCategory.name.maxSize}")
-    @JsonProperty("name")
-    @ExcelImportCell(position = 1)
-    private String name;
+public record TaskCategoryCreateDto(
+        @NotBlank(message = "{taskCategory.name.notEmpty}")
+        @Size(max = 255, message = "{taskCategory.name.maxSize}")
+        @JsonProperty("name")
+        @ExcelImportCell(position = 1)
+        String name,
 
-    @JsonProperty("actorPresent")
-    @ExcelImportCell(position = 2)
-    private boolean actorPresent;
-
+        @JsonProperty("actorPresent")
+        @ExcelImportCell(position = 2)
+        boolean actorPresent
+) {
 }

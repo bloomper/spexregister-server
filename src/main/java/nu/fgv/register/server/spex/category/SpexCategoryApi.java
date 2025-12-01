@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +46,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -157,7 +157,7 @@ public class SpexCategoryApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexCategoryUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -169,7 +169,7 @@ public class SpexCategoryApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable final Long id, @RequestBody final SpexCategoryUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 

@@ -23,11 +23,11 @@ import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 
 import java.util.Map;

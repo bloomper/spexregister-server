@@ -21,10 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -32,27 +28,22 @@ import java.time.LocalDate;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NewsCreateDto {
+public record NewsCreateDto(
+        @NotBlank(message = "{news.subject.notEmpty}")
+        @Size(max = 255, message = "{news.subject.size}")
+        @JsonProperty("subject")
+        String subject,
 
-    @NotBlank(message = "{news.subject.notEmpty}")
-    @Size(max = 255, message = "{news.subject.size}")
-    @JsonProperty("subject")
-    private String subject;
+        @NotBlank(message = "{news.text.notEmpty}")
+        @JsonProperty("text")
+        String text,
 
-    @NotBlank(message = "{news.text.notEmpty}")
-    @JsonProperty("text")
-    private String text;
+        @JsonProperty("visibleFrom")
+        LocalDate visibleFrom,
 
-    @JsonProperty("visibleFrom")
-    private LocalDate visibleFrom;
-
-    @JsonProperty("visibleTo")
-    private LocalDate visibleTo;
-
+        @JsonProperty("visibleTo")
+        LocalDate visibleTo
+) {
 }

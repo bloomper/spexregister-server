@@ -31,7 +31,7 @@ import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -285,7 +285,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(SpexareCreateDto.class);
         final var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").deceased(false).published(true).build();
 
-        when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.getFirstName()).lastName(dto.getLastName()).build());
+        when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.firstName()).lastName(dto.lastName()).build());
 
         mockMvc
                 .perform(

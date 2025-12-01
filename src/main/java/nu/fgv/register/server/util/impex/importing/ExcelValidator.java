@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.impex.importing;
 
+import jakarta.validation.ConstraintViolation;
 import nu.fgv.register.server.util.impex.model.ExcelCell;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 import nu.fgv.register.server.util.impex.model.ExcelSheet;
@@ -24,10 +25,8 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
-
-import jakarta.validation.ConstraintViolation;
-import org.springframework.lang.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -200,7 +199,7 @@ public class ExcelValidator {
                             }
                         }
 
-                        if (primaryKey != null && primaryKey < 0 && Boolean.TRUE.equals(!workbookContainer.getExistenceChecker().apply(primaryKey))) {
+                        if (primaryKey != null && primaryKey < 0 && !workbookContainer.getExistenceChecker().apply(primaryKey)) {
                             workbookContainer.getMessages().add(workbookContainer.getMessageSource().getMessage("import.validation.entryDoesNotExist", new Object[]{row.getRowNum()}, workbookContainer.getLocale()));
                         }
                     }

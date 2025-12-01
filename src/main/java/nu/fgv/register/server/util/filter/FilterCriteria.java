@@ -17,7 +17,7 @@
 package nu.fgv.register.server.util.filter;
 
 import lombok.Getter;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson

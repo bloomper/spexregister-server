@@ -118,7 +118,7 @@ public class NewsService {
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                    if (Boolean.TRUE.equals(news.getPublished())) {
+                    if (news.getPublished()) {
                         permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                     }
 
@@ -135,7 +135,7 @@ public class NewsService {
     @RequiresAdminOrEditor
     public NewsDto partialUpdate(final NewsUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(news -> {
                     NEWS_MAPPER.toPartialModel(dto, news);
@@ -145,7 +145,7 @@ public class NewsService {
                 .map(news -> {
                     final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
 
-                    if (Boolean.TRUE.equals(news.getPublished())) {
+                    if (news.getPublished()) {
                         permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                     } else {
                         permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
@@ -154,7 +154,7 @@ public class NewsService {
                     return news;
                 })
                 .map(NEWS_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(News.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(News.class, dto.id()));
     }
 
     @RequiresAdminOrEditor

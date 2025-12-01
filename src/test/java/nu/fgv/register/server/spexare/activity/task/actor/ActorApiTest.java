@@ -20,7 +20,7 @@ import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -169,7 +169,7 @@ class ActorApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(ActorCreateDto.class);
         final var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
-        final var actor = ActorDto.builder().id(1L).role(dto.getRole()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var actor = ActorDto.builder().id(1L).role(dto.role()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
         when(service.create(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(ActorCreateDto.class))).thenReturn(actor);
 

@@ -137,17 +137,17 @@ public class MembershipService {
                     .flatMap(type -> spexareRepository
                             .findById0(spexareId)
                             .map(permissionService::checkWritePermission)
-                            .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(dto.getYear()))))
+                            .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(dto.year()))))
                             .map(spexare -> {
                                 final Membership membership = new Membership();
                                 membership.setSpexare(spexare);
                                 membership.setType(type);
-                                membership.setYear(dto.getYear());
+                                membership.setYear(dto.year());
                                 return repository.save(membership);
                             })
                     )
                     .map(MEMBERSHIP_MAPPER::toDto)
-                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Membership.class), Membership_.YEAR, dto.getYear(), spexareId, typeId));
+                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Type.class, Membership.class), Membership_.YEAR, dto.year(), spexareId, typeId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class), spexareId, typeId);
         }

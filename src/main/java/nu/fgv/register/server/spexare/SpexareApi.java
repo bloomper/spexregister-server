@@ -35,6 +35,7 @@ import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +51,6 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -151,7 +151,7 @@ public class SpexareApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -163,7 +163,7 @@ public class SpexareApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 

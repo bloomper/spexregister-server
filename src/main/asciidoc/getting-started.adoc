@@ -14,15 +14,15 @@ xref:index.adoc[Back to start page]
 You need to have the following installed to run Spexregister Server:
 
 * Docker
-** Version 27.2 is verified to work
+** Version 29.0.1 is verified to work
 
 You also need the following if you are to do development in Spexregister Server:
 
 * Git
 * Java
-** Version 21 is required, later versions might work as well
+** Version 25 is required, later versions might work as well
 * Gradle
-** Version 8.10.2 is verified to work
+** Version 9.2.1 is verified to work
 * An IDE of your choice
 
 [[cloning_the_repository]]

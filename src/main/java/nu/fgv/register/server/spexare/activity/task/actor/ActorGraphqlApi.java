@@ -68,7 +68,7 @@ public class ActorGraphqlApi {
     @RequiresAdminOrEditorOrUser
     public DataFetcherResult<ActorDto> update(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input) {
         return buildDataFetcherResult(
-                service.update(spexareId, activityId, taskActivityId, vocalId, input.getId(), input),
+                service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input),
                 Map.of(
                         "spexareId", spexareId,
                         "activityId", activityId,

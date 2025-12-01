@@ -97,8 +97,8 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         }
     }
 
-    protected CompositeSortComponentsStep<?> determineSort(final Class<T> clazz, final SearchSortFactory f, final Sort sort) {
-        final CompositeSortComponentsStep<?> composite = f.composite();
+    protected CompositeSortComponentsStep<?, ?> determineSort(final Class<T> clazz, final SearchSortFactory f, final Sort sort) {
+        final CompositeSortComponentsStep<?, ?> composite = f.composite();
         final AtomicBoolean atLeastOneStepAdded = new AtomicBoolean(false);
 
         sort.stream()

@@ -55,7 +55,7 @@ public class ConsentGraphqlApi {
     @MutationMapping("consentUpdate")
     @RequiresAdminOrEditorOrUser
     public ConsentDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentUpdateDto input) {
-        return service.update(spexareId, typeId, input.getId(), input);
+        return service.update(spexareId, typeId, input.id(), input);
     }
 
     @MutationMapping("consentDelete")

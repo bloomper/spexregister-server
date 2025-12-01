@@ -22,27 +22,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MembershipCreateDto {
-
-    @NotBlank(message = "{membership.year.notEmpty}")
-    @Size(max = 4, message = "{membership.year.maxSize}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
-    @JsonProperty("year")
-    private String year;
-
+public record MembershipCreateDto(
+        @NotBlank(message = "{membership.year.notEmpty}")
+        @Size(max = 4, message = "{membership.year.maxSize}")
+        @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{membership.year.regexp}")
+        @JsonProperty("year")
+        String year
+) {
 }

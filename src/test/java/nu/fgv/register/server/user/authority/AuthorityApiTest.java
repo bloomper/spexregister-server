@@ -18,7 +18,7 @@ package nu.fgv.register.server.user.authority;
 
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.hypermedia.LinksSnippet;

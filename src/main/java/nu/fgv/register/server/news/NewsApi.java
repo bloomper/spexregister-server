@@ -105,7 +105,7 @@ public class NewsApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -117,7 +117,7 @@ public class NewsApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 

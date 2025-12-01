@@ -20,7 +20,7 @@ import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeType;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -177,7 +177,7 @@ class AddressApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(AddressCreateDto.class);
         final var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
-        when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(AddressDto.builder().id(1L).streetAddress(dto.getStreetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build());
+        when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(AddressDto.builder().id(1L).streetAddress(dto.streetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build());
 
         mockMvc
                 .perform(
@@ -225,7 +225,7 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
+                        put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -271,7 +271,7 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.getId())
+                        patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)

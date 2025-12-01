@@ -127,7 +127,7 @@ public class ConsentService {
                                 final Consent consent = new Consent();
                                 consent.setSpexare(spexare);
                                 consent.setType(type);
-                                consent.setValue(dto.getValue());
+                                consent.setValue(dto.value());
                                 return repository.save(consent);
                             })
                     )
@@ -150,7 +150,7 @@ public class ConsentService {
                             .flatMap(spexare -> repository.findById(id))
                             .filter(consent -> consent.getSpexare().getId().equals(spexareId))
                             .map(consent -> {
-                                consent.setValue(dto.getValue());
+                                consent.setValue(dto.value());
                                 return repository.save(consent);
                             })
                             .map(CONSENT_MAPPER::toDto)

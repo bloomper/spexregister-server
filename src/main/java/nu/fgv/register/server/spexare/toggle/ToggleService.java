@@ -127,7 +127,7 @@ public class ToggleService {
                                 final Toggle toggle = new Toggle();
                                 toggle.setSpexare(spexare);
                                 toggle.setType(type);
-                                toggle.setValue(dto.getValue());
+                                toggle.setValue(dto.value());
                                 return repository.save(toggle);
                             })
                     )
@@ -150,7 +150,7 @@ public class ToggleService {
                             .flatMap(spexare -> repository.findById(id))
                             .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
                             .map(toggle -> {
-                                toggle.setValue(dto.getValue());
+                                toggle.setValue(dto.value());
                                 return repository.save(toggle);
                             })
                             .map(TOGGLE_MAPPER::toDto)

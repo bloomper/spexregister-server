@@ -93,7 +93,7 @@ public class AddressApi {
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -105,7 +105,7 @@ public class AddressApi {
     @PatchMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<AddressDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 

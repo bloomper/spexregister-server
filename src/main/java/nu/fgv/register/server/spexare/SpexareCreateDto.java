@@ -21,39 +21,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpexareCreateDto {
-    @NotEmpty(message = "{spexare.firstName.notEmpty}")
-    @Size(max = 255, message = "{spexare.firstName.size}")
-    @JsonProperty("firstName")
-    private String firstName;
+public record SpexareCreateDto(
+        @NotEmpty(message = "{spexare.firstName.notEmpty}")
+        @Size(max = 255, message = "{spexare.firstName.size}")
+        @JsonProperty("firstName")
+        String firstName,
 
-    @NotEmpty(message = "{spexare.lastName.notEmpty}")
-    @Size(max = 255, message = "{spexare.lastName.size}")
-    @JsonProperty("lastName")
-    private String lastName;
+        @NotEmpty(message = "{spexare.lastName.notEmpty}")
+        @Size(max = 255, message = "{spexare.lastName.size}")
+        @JsonProperty("lastName")
+        String lastName,
 
-    @Size(max = 255, message = "{spexare.nickName.size}")
-    @JsonProperty("nickName")
-    private String nickName;
+        @Size(max = 255, message = "{spexare.nickName.size}")
+        @JsonProperty("nickName")
+        String nickName,
 
-    @JsonProperty("deceased")
-    private Boolean deceased;
+        @JsonProperty("deceased")
+        Boolean deceased,
 
-    @JsonProperty("published")
-    private Boolean published;
+        @JsonProperty("published")
+        Boolean published
+) {
 }

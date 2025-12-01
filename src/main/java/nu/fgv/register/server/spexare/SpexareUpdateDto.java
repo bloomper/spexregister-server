@@ -22,10 +22,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import nu.fgv.register.server.util.impex.model.ExcelImportCell;
 import nu.fgv.register.server.util.validation.Luhn;
 
@@ -35,47 +31,43 @@ import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATT
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpexareUpdateDto {
-    @JsonProperty("id")
-    @ExcelImportCell(position = 0, primaryKey = true)
-    private Long id;
+public record SpexareUpdateDto(
+        @JsonProperty("id")
+        @ExcelImportCell(position = 0, primaryKey = true)
+        Long id,
 
-    @NotEmpty(message = "{spexare.firstName.notEmpty}")
-    @Size(max = 255, message = "{spexare.firstName.size}")
-    @JsonProperty("firstName")
-    private String firstName;
+        @NotEmpty(message = "{spexare.firstName.notEmpty}")
+        @Size(max = 255, message = "{spexare.firstName.size}")
+        @JsonProperty("firstName")
+        String firstName,
 
-    @NotEmpty(message = "{spexare.lastName.notEmpty}")
-    @Size(max = 255, message = "{spexare.lastName.size}")
-    @JsonProperty("lastName")
-    private String lastName;
+        @NotEmpty(message = "{spexare.lastName.notEmpty}")
+        @Size(max = 255, message = "{spexare.lastName.size}")
+        @JsonProperty("lastName")
+        String lastName,
 
-    @Size(max = 255, message = "{spexare.nickName.size}")
-    @JsonProperty("nickName")
-    private String nickName;
+        @Size(max = 255, message = "{spexare.nickName.size}")
+        @JsonProperty("nickName")
+        String nickName,
 
-    @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
-    @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
-    @JsonProperty("socialSecurityNumber")
-    private String socialSecurityNumber;
+        @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
+        @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
+        @JsonProperty("socialSecurityNumber")
+        String socialSecurityNumber,
 
-    @JsonProperty("deceased")
-    private Boolean deceased;
+        @JsonProperty("deceased")
+        Boolean deceased,
 
-    @JsonProperty("published")
-    private Boolean published;
+        @JsonProperty("published")
+        Boolean published,
 
-    @Size(max = 255, message = "{spexare.graduation.size}")
-    @JsonProperty("graduation")
-    private String graduation;
+        @Size(max = 255, message = "{spexare.graduation.size}")
+        @JsonProperty("graduation")
+        String graduation,
 
-    @JsonProperty("comment")
-    private String comment;
-
+        @JsonProperty("comment")
+        String comment
+) {
 }

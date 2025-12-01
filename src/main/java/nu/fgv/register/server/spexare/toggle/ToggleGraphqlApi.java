@@ -55,7 +55,7 @@ public class ToggleGraphqlApi {
     @MutationMapping("toggleUpdate")
     @RequiresAdminOrEditorOrUser
     public ToggleDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ToggleUpdateDto input) {
-        return service.update(spexareId, typeId, input.getId(), input);
+        return service.update(spexareId, typeId, input.id(), input);
     }
 
     @MutationMapping("toggleDelete")

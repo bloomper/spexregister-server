@@ -22,7 +22,7 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -145,7 +145,7 @@ class NewsApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(NewsCreateDto.class);
         final var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
-        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.getSubject()).text(dto.getText()).build());
+        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.subject()).text(dto.text()).build());
 
         mockMvc
                 .perform(

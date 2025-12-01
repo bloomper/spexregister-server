@@ -28,7 +28,7 @@ import nu.fgv.register.server.user.state.StateApi;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -157,7 +157,7 @@ class UserApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(UserCreateDto.class);
         final var dto = UserCreateDto.builder().email("email@somewhere.com").build();
 
-        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).email(dto.getEmail()).build());
+        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).email(dto.email()).build());
 
         mockMvc
                 .perform(

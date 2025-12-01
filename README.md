@@ -11,7 +11,7 @@ the reference documentation is also available [here][7].
 
 ## Building from source
 
-You will need Java 21 or later to build Spexregister Server.
+You will need Java 25 or later to build Spexregister Server.
 It is built using [Gradle][2]:
 
 ```

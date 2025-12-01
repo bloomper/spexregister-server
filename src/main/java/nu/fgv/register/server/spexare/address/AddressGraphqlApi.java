@@ -55,7 +55,7 @@ public class AddressGraphqlApi {
     @MutationMapping("addressUpdate")
     @RequiresAdminOrEditorOrUser
     public AddressDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final AddressUpdateDto input) {
-        return service.update(spexareId, typeId, input.getId(), input);
+        return service.update(spexareId, typeId, input.id(), input);
     }
 
     @MutationMapping("addressDelete")

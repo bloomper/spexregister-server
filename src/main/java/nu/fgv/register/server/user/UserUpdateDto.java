@@ -22,29 +22,21 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserUpdateDto {
-    @JsonProperty("id")
-    private Long id;
+public record UserUpdateDto(
+        @JsonProperty("id")
+        Long id,
 
-    @NotBlank(message = "{user.email.notEmpty}")
-    @Size(max = 255, message = "{user.email.size}")
-    @Email(message = "{user.email.valid}")
-    @JsonProperty("email")
-    private String email;
-
+        @NotBlank(message = "{user.email.notEmpty}")
+        @Size(max = 255, message = "{user.email.size}")
+        @Email(message = "{user.email.valid}")
+        @JsonProperty("email")
+        String email
+) {
 }

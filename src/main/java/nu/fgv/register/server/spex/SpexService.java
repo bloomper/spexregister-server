@@ -34,13 +34,13 @@ import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.util.Pair;
-import org.springframework.lang.Nullable;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -169,7 +169,7 @@ public class SpexService {
     @RequiresAdminOrEditor
     public SpexDto partialUpdate(final SpexUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     SPEX_MAPPER.toPartialModel(dto, spex);
@@ -180,7 +180,7 @@ public class SpexService {
                     return repository.save(spex);
                 })
                 .map(SPEX_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Spex.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(Spex.class, dto.id()));
     }
 
     @RequiresAdmin

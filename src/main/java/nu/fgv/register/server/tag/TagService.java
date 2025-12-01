@@ -138,7 +138,7 @@ public class TagService {
     @RequiresAdminOrEditor
     public TagDto partialUpdate(final TagUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(tag -> {
                     TAG_MAPPER.toPartialModel(dto, tag);
@@ -146,7 +146,7 @@ public class TagService {
                 })
                 .map(repository::save)
                 .map(TAG_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Tag.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(Tag.class, dto.id()));
     }
 
     @RequiresAdminOrEditor

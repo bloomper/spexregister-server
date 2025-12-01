@@ -28,13 +28,13 @@ import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.util.Pair;
-import org.springframework.lang.Nullable;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
@@ -141,7 +141,7 @@ public class SpexCategoryService {
     @RequiresAdmin
     public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     SPEX_CATEGORY_MAPPER.toPartialModel(dto, category);
@@ -149,7 +149,7 @@ public class SpexCategoryService {
                 })
                 .map(repository::save)
                 .map(SPEX_CATEGORY_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, dto.id()));
     }
 
     @RequiresAdmin

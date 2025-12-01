@@ -139,7 +139,7 @@ public class UserService {
 
     @RequiresAdmin
     public UserDto create(final UserCreateDto dto) {
-        if (!doesUserWithEmailExist(dto.getEmail())) {
+        if (!doesUserWithEmailExist(dto.email())) {
             final String temporaryPassword = generateTemporaryPassword();
             final State initialState = getUserInitialState();
 
@@ -167,7 +167,7 @@ public class UserService {
                 }
             }
         } else {
-            throw new ResourceAlreadyExistsException(User.class, dto.getEmail());
+            throw new ResourceAlreadyExistsException(User.class, dto.email());
         }
     }
 
@@ -178,9 +178,9 @@ public class UserService {
 
     @RequiresAdmin
     public UserDto partialUpdate(final UserUpdateDto dto) {
-        if (!doesUserWithEmailExist(dto.getEmail())) {
+        if (!doesUserWithEmailExist(dto.email())) {
             return repository
-                    .findById0(dto.getId())
+                    .findById0(dto.id())
                     .map(permissionService::checkWritePermission)
                     .map(user -> {
                         USER_MAPPER.toPartialModel(dto, user);
@@ -192,16 +192,16 @@ public class UserService {
                                 .ifPresent(resource -> {
                                     final UserRepresentation representation = resource.toRepresentation();
 
-                                    representation.setEmail(dto.getEmail());
+                                    representation.setEmail(dto.email());
                                     resource.update(representation);
                                 });
                         return findResourceByExternalId(model.getExternalId())
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
                                 .orElseThrow(() -> new InternalErrorException("Could not update user"));
                     })
-                    .orElseThrow(() -> new ResourceNotFoundException(User.class, dto.getId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(User.class, dto.id()));
         } else {
-            throw new ResourceAlreadyExistsException(User.class, dto.getEmail());
+            throw new ResourceAlreadyExistsException(User.class, dto.email());
         }
     }
 

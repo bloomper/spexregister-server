@@ -145,7 +145,7 @@ public class TaskService {
     @RequiresAdminOrEditor
     public TaskDto partialUpdate(final TaskUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(task -> {
                     TASK_MAPPER.toPartialModel(dto, task);
@@ -153,7 +153,7 @@ public class TaskService {
                 })
                 .map(repository::save)
                 .map(TASK_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.id()));
     }
 
     @RequiresAdmin

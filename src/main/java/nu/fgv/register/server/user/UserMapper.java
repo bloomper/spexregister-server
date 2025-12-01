@@ -18,6 +18,7 @@ package nu.fgv.register.server.user;
 
 import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateMapper;
+import org.jspecify.annotations.Nullable;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mapstruct.InheritConfiguration;
@@ -28,7 +29,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.springframework.lang.Nullable;
 
 import java.util.List;
 
@@ -76,7 +76,7 @@ public interface UserMapper {
     default UserRepresentation toRepresentation(final UserCreateDto dto, final String temporaryPassword, final boolean enabled) {
         final UserRepresentation userRepresentation = new UserRepresentation();
 
-        userRepresentation.setEmail(dto.getEmail());
+        userRepresentation.setEmail(dto.email());
         userRepresentation.setEnabled(enabled);
 
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();

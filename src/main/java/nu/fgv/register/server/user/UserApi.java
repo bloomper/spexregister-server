@@ -109,7 +109,7 @@ public class UserApi {
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> update(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -121,7 +121,7 @@ public class UserApi {
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<EntityModel<UserDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
-        if (!Objects.equals(id, dto.getId())) {
+        if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
 

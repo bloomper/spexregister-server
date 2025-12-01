@@ -22,9 +22,7 @@ import nu.fgv.register.server.util.docs.RoleExtractor;
 import nu.fgv.register.server.util.docs.SecuritySnippet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -65,7 +63,6 @@ import static org.springframework.util.StringUtils.collectionToDelimitedString;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@AutoConfigureRestDocs(outputDir = "build/generated-snippets")
 @ExtendWith(RestDocumentationExtension.class)
 @EnableConfigurationProperties(value = SpexregisterConfig.class)
 @ActiveProfiles("test")
@@ -144,11 +141,7 @@ public abstract class AbstractApiTest {
 
     protected MockMvc mockMvc;
 
-    @Autowired
-    protected ObjectMapper objectMapper;
-
-    @Autowired
-    private WebApplicationContext context;
+    protected ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setUp(final WebApplicationContext webApplicationContext, final RestDocumentationContextProvider restDocumentation) {

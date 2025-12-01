@@ -38,13 +38,13 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.util.common.SearchException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.util.Pair;
-import org.springframework.lang.Nullable;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -174,7 +174,7 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public SpexareDto partialUpdate(final SpexareUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     SPEXARE_MAPPER.toPartialModel(dto, spexare);
@@ -184,7 +184,7 @@ public class SpexareService {
                 .map(spexare -> {
                     final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
 
-                    if (Boolean.TRUE.equals(spexare.getPublished())) {
+                    if (spexare.getPublished()) {
                         permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
                         permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
                     } else {
@@ -195,7 +195,7 @@ public class SpexareService {
                     return spexare;
                 })
                 .map(SPEXARE_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, dto.id()));
     }
 
     @RequiresAdmin

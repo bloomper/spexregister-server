@@ -25,7 +25,7 @@ import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -222,7 +222,7 @@ class SpexApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(SpexCreateDto.class);
         final var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
 
-        when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(1L).year(dto.getYear()).title(dto.getTitle()).build());
+        when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(1L).year(dto.year()).title(dto.title()).build());
 
         mockMvc
                 .perform(

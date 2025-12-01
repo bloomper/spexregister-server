@@ -20,27 +20,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConsentUpdateDto {
-    @JsonProperty("id")
-    private Long id;
+public record ConsentUpdateDto(
+        @JsonProperty("id")
+        Long id,
 
-    @NotNull(message = "{consent.value.notEmpty}")
-    @JsonProperty("value")
-    private Boolean value;
-
+        @NotNull(message = "{consent.value.notEmpty}")
+        @JsonProperty("value")
+        Boolean value
+) {
 }

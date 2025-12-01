@@ -25,7 +25,7 @@ import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -205,7 +205,7 @@ class TaskApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(TaskCreateDto.class);
         final var dto = TaskCreateDto.builder().name("Scenmästare").build();
 
-        when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(1L).name(dto.getName()).build());
+        when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(1L).name(dto.name()).build());
 
         mockMvc
                 .perform(

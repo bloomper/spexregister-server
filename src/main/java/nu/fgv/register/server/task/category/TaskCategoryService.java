@@ -138,7 +138,7 @@ public class TaskCategoryService {
     @RequiresAdmin
     public TaskCategoryDto partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
-                .findById0(dto.getId())
+                .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     TASK_CATEGORY_MAPPER.toPartialModel(dto, category);
@@ -146,7 +146,7 @@ public class TaskCategoryService {
                 })
                 .map(repository::save)
                 .map(TASK_CATEGORY_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, dto.id()));
     }
 
     @RequiresAdmin

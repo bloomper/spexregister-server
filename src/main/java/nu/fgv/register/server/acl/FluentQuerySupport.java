@@ -17,11 +17,11 @@
 package nu.fgv.register.server.acl;
 
 import jakarta.persistence.Query;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
