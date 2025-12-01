@@ -24,7 +24,7 @@ import lombok.Builder;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Builder
+@Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ActorUpdateDto(
         @JsonProperty("id")

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.tag;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -72,10 +71,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                                  final Keycloak keycloakAdminClient,
                                  final String keycloakClientId,
                                  final PermissionService permissionService,
-                                 final ObjectMapper objectMapper,
                                  final TagRepository repository,
                                  final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -280,14 +278,16 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final TagDto result = objectMapper.readValue(json, TagDto.class);
             assertThat(result)
                     .extracting("name")
-                    .isEqualTo(dto.getName());
+                    .isEqualTo(dto.name());
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final TagCreateDto dto = random.nextObject(TagCreateDto.class);
-            dto.setName(null);
+            final TagCreateDto randDto = random.nextObject(TagCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -436,8 +436,10 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
-            dto.setName(null);
+            final TagUpdateDto randDto = random.nextObject(TagUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -445,7 +447,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -466,7 +468,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -505,7 +507,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -526,7 +528,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -610,7 +612,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -650,7 +652,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -671,7 +673,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

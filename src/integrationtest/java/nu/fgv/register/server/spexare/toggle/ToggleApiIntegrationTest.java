@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.toggle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -80,11 +79,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                                     final Keycloak keycloakAdminClient,
                                     final String keycloakClientId,
                                     final PermissionService permissionService,
-                                    final ObjectMapper objectMapper,
                                     final ToggleRepository repository,
                                     final TypeRepository typeRepository,
                                     final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -487,9 +485,11 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
-            dto.setValue(Boolean.FALSE);
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(randDto.id())
+                    .value(Boolean.FALSE)
+                    .build();
 
             //@formatter:off
             given()
@@ -530,8 +530,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(1L);
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(1L)
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -558,8 +560,11 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .value(Boolean.FALSE)
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -586,8 +591,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -617,8 +624,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare2));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -644,8 +653,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -672,8 +683,10 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             //@formatter:off
             given()

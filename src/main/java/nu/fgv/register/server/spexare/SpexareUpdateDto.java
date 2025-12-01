@@ -31,7 +31,7 @@ import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATT
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Builder
+@Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexareUpdateDto(
         @JsonProperty("id")

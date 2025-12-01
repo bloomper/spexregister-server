@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.consent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -80,11 +79,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
-                                     final ObjectMapper objectMapper,
                                      final ConsentRepository repository,
                                      final TypeRepository typeRepository,
                                      final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -489,9 +487,11 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var consent = persistConsent(randomizeConsent(type, spexare));
             consent.setValue(Boolean.TRUE);
             repository.save(consent);
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(consent.getId());
-            dto.setValue(Boolean.FALSE);
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(consent.getId())
+                    .value(Boolean.FALSE)
+                    .build();
 
             //@formatter:off
             given()
@@ -532,8 +532,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(1L);
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(1L)
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -560,8 +562,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(consent.getId());
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(consent.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -588,8 +592,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(consent.getId());
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(consent.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -619,8 +625,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare2));
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(consent.getId());
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(consent.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -646,8 +654,10 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var consent = persistConsent(randomizeConsent(type, spexare));
-            final var dto = random.nextObject(ConsentUpdateDto.class);
-            dto.setId(consent.getId());
+            final var randDto = random.nextObject(ConsentUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(consent.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()

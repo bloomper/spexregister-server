@@ -17,7 +17,6 @@
 package nu.fgv.register.server.task;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -68,11 +67,10 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
-                                         final ObjectMapper objectMapper,
                                          final TaskRepository repository,
                                          final TaskCategoryRepository categoryRepository,
                                          final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.categoryRepository = categoryRepository;
         this.eventRepository = eventRepository;
@@ -261,7 +259,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("taskCreate", result -> result
-                            .path("name").entity(String.class).isEqualTo(dto.getName())
+                            .path("name").entity(String.class).isEqualTo(dto.name())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -269,8 +267,10 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final TaskCreateDto dto = random.nextObject(TaskCreateDto.class);
-            dto.setName("");
+            final TaskCreateDto randDto = random.nextObject(TaskCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -399,7 +399,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("taskUpdate", result -> result
-                            .path("name").entity(String.class).isEqualTo(dto.getName())
+                            .path("name").entity(String.class).isEqualTo(dto.name())
                     )
                     .entity(TaskDto.class)
                     .get();
@@ -426,8 +426,10 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final TaskUpdateDto dto = random.nextObject(TaskUpdateDto.class);
-            dto.setName("");
+            final TaskUpdateDto randDto = random.nextObject(TaskUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()

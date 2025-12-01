@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.settings.TypeDto;
@@ -35,6 +36,7 @@ import java.time.Instant;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Relation(collectionRelation = "addresses", itemRelation = "address")

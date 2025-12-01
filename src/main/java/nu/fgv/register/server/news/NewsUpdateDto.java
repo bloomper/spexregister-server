@@ -28,7 +28,7 @@ import java.time.LocalDate;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Builder
+@Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record NewsUpdateDto(
     @JsonProperty("id")

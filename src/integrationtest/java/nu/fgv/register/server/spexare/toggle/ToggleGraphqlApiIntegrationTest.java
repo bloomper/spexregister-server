@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare.toggle;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -73,11 +72,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                            final Keycloak keycloakAdminClient,
                                            final String keycloakClientId,
                                            final PermissionService permissionService,
-                                           final ObjectMapper objectMapper,
                                            final ToggleRepository repository,
                                            final TypeRepository typeRepository,
                                            final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -143,7 +141,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("toggleCreate", result -> result
-                            .path("value").entity(Boolean.class).isEqualTo(dto.getValue())
+                            .path("value").entity(Boolean.class).isEqualTo(dto.value())
                     );
 
             httpGraphQlTester
@@ -196,7 +194,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("toggleCreate", result -> result
-                            .path("value").entity(Boolean.class).isEqualTo(dto.getValue())
+                            .path("value").entity(Boolean.class).isEqualTo(dto.value())
                     );
 
             httpGraphQlTester
@@ -339,9 +337,11 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             toggle.setValue(Boolean.TRUE);
             repository.save(toggle);
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
-            dto.setValue(Boolean.FALSE);
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .value(Boolean.FALSE)
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -423,8 +423,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -453,8 +455,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -486,8 +490,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare2));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -515,8 +521,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = persistToggle(randomizeToggle(type, spexare));
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -545,8 +553,10 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var toggle = randomizeToggle(type, spexare);
-            final var dto = random.nextObject(ToggleUpdateDto.class);
-            dto.setId(toggle.getId());
+            final var randDto = random.nextObject(ToggleUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(toggle.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()

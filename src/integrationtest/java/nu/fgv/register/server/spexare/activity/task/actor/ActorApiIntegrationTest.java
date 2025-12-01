@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.task.actor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -94,7 +93,6 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
                                    final PermissionService permissionService,
-                                   final ObjectMapper objectMapper,
                                    final ActorRepository repository,
                                    final TaskActivityRepository taskActivityRepository,
                                    final ActivityRepository activityRepository,
@@ -102,7 +100,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                                    final TaskRepository taskRepository,
                                    final TaskCategoryRepository taskCategoryRepository,
                                    final TypeRepository typeRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.taskActivityRepository = taskActivityRepository;
         this.activityRepository = activityRepository;
@@ -1239,7 +1237,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
                     .extracting("id", "role")
-                    .contains(before.getId(), updateDto.getRole());
+                    .contains(before.getId(), updateDto.role());
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -1266,7 +1264,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1300,7 +1298,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1334,7 +1332,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1368,7 +1366,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", 1L)
                 .body(dto)
             .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1402,7 +1400,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .put("/{vocalId}/{id}", "dummy", dto.getId())
+                .put("/{vocalId}/{id}", "dummy", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1429,8 +1427,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1466,8 +1466,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1503,8 +1505,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1538,8 +1542,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1574,8 +1580,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             given()
@@ -1663,7 +1671,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
                     .extracting("id", "role")
-                    .contains(before.getId(), updateDto.getRole());
+                    .contains(before.getId(), updateDto.role());
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -1690,7 +1698,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1724,7 +1732,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1758,7 +1766,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1792,7 +1800,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", 1L)
                 .body(dto)
             .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.getId())
+                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1826,7 +1834,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("taskActivityId", taskActivity.getId())
                 .body(dto)
             .when()
-                .patch("/{vocalId}/{id}", "dummy", dto.getId())
+                .patch("/{vocalId}/{id}", "dummy", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -1853,8 +1861,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1890,8 +1900,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1927,8 +1939,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1962,8 +1976,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1998,8 +2014,10 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             //@formatter:off
             given()

@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare.address;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -74,11 +73,10 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
-                                            final ObjectMapper objectMapper,
                                             final AddressRepository repository,
                                             final TypeRepository typeRepository,
                                             final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -147,7 +145,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("addressCreate", result -> result
-                            .path("streetAddress").entity(String.class).isEqualTo(dto.getStreetAddress())
+                            .path("streetAddress").entity(String.class).isEqualTo(dto.streetAddress())
                     );
 
             httpGraphQlTester
@@ -200,7 +198,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("addressCreate", result -> result
-                            .path("streetAddress").entity(String.class).isEqualTo(dto.getStreetAddress())
+                            .path("streetAddress").entity(String.class).isEqualTo(dto.streetAddress())
                     );
 
             httpGraphQlTester
@@ -360,7 +358,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             final var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
                     .postalCode(before.getPostalCode()).city(before.getCity()).country(before.getCountry())
-                    .phone(before.getPhone()).phoneMobile(dto.getPhoneMobile()).emailAddress(before.getEmailAddress()).build();
+                    .phone(before.getPhone()).phoneMobile(dto.phoneMobile()).emailAddress(before.getEmailAddress()).build();
 
             httpGraphQlTester
                     .mutate()
@@ -375,7 +373,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("addressUpdate", result -> result
-                            .path("streetAddress").entity(String.class).isEqualTo(updateDto.getStreetAddress())
+                            .path("streetAddress").entity(String.class).isEqualTo(updateDto.streetAddress())
                     );
 
             httpGraphQlTester
@@ -497,8 +495,10 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -526,8 +526,10 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var address = persistAddress(randomizeAddress(type, spexare));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()

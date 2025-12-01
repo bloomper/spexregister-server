@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.membership;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -81,11 +80,10 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                                         final Keycloak keycloakAdminClient,
                                         final String keycloakClientId,
                                         final PermissionService permissionService,
-                                        final ObjectMapper objectMapper,
                                         final MembershipRepository repository,
                                         final TypeRepository typeRepository,
                                         final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;

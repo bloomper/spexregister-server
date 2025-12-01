@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.user.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
@@ -58,9 +57,8 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final StateRepository repository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();

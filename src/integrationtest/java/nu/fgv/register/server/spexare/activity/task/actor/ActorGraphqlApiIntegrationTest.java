@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare.activity.task.actor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -87,7 +86,6 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final ActorRepository repository,
                                           final TaskActivityRepository taskActivityRepository,
                                           final ActivityRepository activityRepository,
@@ -95,7 +93,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final TaskRepository taskRepository,
                                           final TaskCategoryRepository taskCategoryRepository,
                                           final TypeRepository typeRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.taskActivityRepository = taskActivityRepository;
         this.activityRepository = activityRepository;
@@ -180,7 +178,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("actorCreate", result -> result
-                            .path("role").entity(String.class).isEqualTo(dto.getRole())
+                            .path("role").entity(String.class).isEqualTo(dto.role())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -215,7 +213,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("actorCreate", result -> result
-                            .path("role").entity(String.class).isEqualTo(dto.getRole())
+                            .path("role").entity(String.class).isEqualTo(dto.role())
                     );
 
             httpGraphQlTester
@@ -584,7 +582,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("actorUpdate", result -> result
-                            .path("role").entity(String.class).isEqualTo(updateDto.getRole())
+                            .path("role").entity(String.class).isEqualTo(updateDto.role())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -613,7 +611,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -650,7 +648,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -687,7 +685,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", 1L)
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -724,7 +722,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", 1L)
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -761,7 +759,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", "dummy")
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -791,8 +789,10 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -803,7 +803,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -831,8 +831,10 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -843,7 +845,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity1.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -871,8 +873,10 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -883,7 +887,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity1.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -909,8 +913,10 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -921,7 +927,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()
@@ -948,8 +954,10 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
-            final var dto = random.nextObject(ActorUpdateDto.class);
-            dto.setId(actor.getId());
+            final var randDto = random.nextObject(ActorUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(actor.getId())
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -959,7 +967,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .variable("activityId", activity.getId())
                     .variable("taskActivityId", taskActivity.getId())
                     .variable("vocalId", vocal.getId())
-                    .variable("id", dto.getId())
+                    .variable("id", dto.id())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
                     .execute()

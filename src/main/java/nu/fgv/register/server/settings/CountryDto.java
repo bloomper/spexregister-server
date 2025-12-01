@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.hateoas.server.core.Relation;
@@ -31,6 +32,7 @@ import org.springframework.hateoas.server.core.Relation;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode
 @ToString
 @Relation(collectionRelation = "countries", itemRelation = "country")

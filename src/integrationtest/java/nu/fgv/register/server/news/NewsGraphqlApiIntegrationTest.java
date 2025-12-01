@@ -17,7 +17,6 @@
 package nu.fgv.register.server.news;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -64,10 +63,9 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
-                                         final ObjectMapper objectMapper,
                                          final NewsRepository repository,
                                          final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -240,9 +238,9 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("newsCreate", result -> result
-                            .path("subject").entity(String.class).isEqualTo(dto.getSubject())
-                            .path("text").entity(String.class).isEqualTo(dto.getText())
-                            .path("visibleFrom").entity(LocalDate.class).isEqualTo(dto.getVisibleFrom())
+                            .path("subject").entity(String.class).isEqualTo(dto.subject())
+                            .path("text").entity(String.class).isEqualTo(dto.text())
+                            .path("visibleFrom").entity(LocalDate.class).isEqualTo(dto.visibleFrom())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -250,8 +248,10 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setSubject("");
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .subject("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -379,9 +379,9 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("newsUpdate", result -> result
-                            .path("subject").entity(String.class).isEqualTo(dto.getSubject())
-                            .path("text").entity(String.class).isEqualTo(dto.getText())
-                            .path("visibleFrom").entity(LocalDate.class).isEqualTo(dto.getVisibleFrom())
+                            .path("subject").entity(String.class).isEqualTo(dto.subject())
+                            .path("text").entity(String.class).isEqualTo(dto.text())
+                            .path("visibleFrom").entity(LocalDate.class).isEqualTo(dto.visibleFrom())
                     )
                     .entity(NewsDto.class)
                     .get();
@@ -408,8 +408,10 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
-            dto.setSubject("");
+            final NewsUpdateDto randDto = random.nextObject(NewsUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .subject("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -610,9 +612,11 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_create_non_published() {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setVisibleFrom(LocalDate.now().plusDays(1));
-            dto.setVisibleTo(LocalDate.now().plusDays(2));
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .visibleFrom(LocalDate.now().plusDays(1))
+                    .visibleTo(LocalDate.now().plusDays(2))
+                    .build();
 
             final NewsDto created = httpGraphQlTester
                     .mutate()
@@ -659,9 +663,11 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_create_published() {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setVisibleFrom(LocalDate.now().minusDays(1));
-            dto.setVisibleTo(LocalDate.now().plusDays(2));
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .visibleFrom(LocalDate.now().minusDays(1))
+                    .visibleTo(LocalDate.now().plusDays(2))
+                    .build();
 
             final NewsDto created = httpGraphQlTester
                     .mutate()

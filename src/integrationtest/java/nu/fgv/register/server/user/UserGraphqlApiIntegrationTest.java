@@ -17,7 +17,6 @@
 package nu.fgv.register.server.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
@@ -101,13 +100,12 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
-                                         final ObjectMapper objectMapper,
                                          final UserRepository repository,
                                          final AuthorityRepository authorityRepository,
                                          final StateRepository stateRepository,
                                          final SpexareRepository spexareRepository,
                                          final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;
@@ -344,7 +342,7 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("userCreate", result -> result
-                            .path("email").entity(String.class).isEqualTo(dto.getEmail())
+                            .path("email").entity(String.class).isEqualTo(dto.email())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -472,7 +470,7 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("userUpdate", result -> result
-                            .path("email").entity(String.class).isEqualTo(dto.getEmail())
+                            .path("email").entity(String.class).isEqualTo(dto.email())
                     )
                     .entity(UserDto.class)
                     .get();

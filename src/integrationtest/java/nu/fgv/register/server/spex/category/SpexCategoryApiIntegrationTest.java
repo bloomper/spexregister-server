@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spex.category;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -78,10 +77,9 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final SpexCategoryRepository repository,
                                           final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -290,14 +288,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final SpexCategoryDto result = objectMapper.readValue(json, SpexCategoryDto.class);
             assertThat(result)
                     .extracting("name", "firstYear")
-                    .contains(dto.getName(), dto.getFirstYear());
+                    .contains(dto.name(), dto.firstYear());
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
-            dto.setName(null);
+            final SpexCategoryCreateDto randDto = random.nextObject(SpexCategoryCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -446,8 +446,10 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
-            dto.setName(null);
+            final SpexCategoryUpdateDto randDto = random.nextObject(SpexCategoryUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -455,7 +457,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -476,7 +478,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -516,7 +518,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -537,7 +539,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -621,7 +623,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -661,7 +663,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -682,7 +684,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

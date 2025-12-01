@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare.membership;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -74,11 +73,10 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
                                                final Keycloak keycloakAdminClient,
                                                final String keycloakClientId,
                                                final PermissionService permissionService,
-                                               final ObjectMapper objectMapper,
                                                final MembershipRepository repository,
                                                final TypeRepository typeRepository,
                                                final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -147,7 +145,7 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
                     .errors()
                     .verify()
                     .path("membershipCreate", result -> result
-                            .path("year").entity(String.class).isEqualTo(dto.getYear())
+                            .path("year").entity(String.class).isEqualTo(dto.year())
                     );
 
             httpGraphQlTester
@@ -200,7 +198,7 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
                     .errors()
                     .verify()
                     .path("membershipCreate", result -> result
-                            .path("year").entity(String.class).isEqualTo(dto.getYear())
+                            .path("year").entity(String.class).isEqualTo(dto.year())
                     );
 
             httpGraphQlTester

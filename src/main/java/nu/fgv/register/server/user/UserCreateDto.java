@@ -28,7 +28,7 @@ import lombok.extern.jackson.Jacksonized;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Builder
+@Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Jacksonized // Needed due to this class having only one attribute
 public record UserCreateDto(

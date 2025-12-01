@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -89,10 +88,9 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
-                                     final ObjectMapper objectMapper,
                                      final SpexareRepository repository,
                                      final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -441,14 +439,16 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final SpexareDto result = objectMapper.readValue(json, SpexareDto.class);
             assertThat(result)
                     .extracting("firstName", "lastName", "nickName")
-                    .contains(dto.getFirstName(), dto.getLastName(), dto.getNickName());
+                    .contains(dto.firstName(), dto.lastName(), dto.nickName());
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
-            dto.setLastName(null);
+            final var randDto = random.nextObject(SpexareCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .lastName(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -601,8 +601,10 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
-            dto.setFirstName(null);
+            final var randDto = random.nextObject(SpexareUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .firstName(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -610,7 +612,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -623,8 +625,10 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_social_security_number() {
-            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
-            dto.setSocialSecurityNumber("20120606-4658");
+            final var randDto = random.nextObject(SpexareUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .socialSecurityNumber("20120606-4658")
+                    .build();
 
             //@formatter:off
             given()
@@ -632,7 +636,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -653,7 +657,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -696,7 +700,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -716,7 +720,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
@@ -799,7 +803,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -840,7 +844,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -860,7 +864,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on

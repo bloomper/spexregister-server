@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.settings;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -57,9 +56,8 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                                       final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService,
-                                      final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+                                      final PermissionService permissionService) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
     }
 
     @BeforeAll

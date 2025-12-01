@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.session;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -67,9 +66,8 @@ class SessionApiIntegrationTest extends AbstractIntegrationTest {
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
-                                     final ObjectMapper objectMapper,
                                      final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();

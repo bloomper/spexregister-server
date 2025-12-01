@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.address;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -81,11 +80,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
-                                     final ObjectMapper objectMapper,
                                      final AddressRepository repository,
                                      final TypeRepository typeRepository,
                                      final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -612,7 +610,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
                     .postalCode(before.getPostalCode()).city(before.getCity()).country(before.getCountry())
-                    .phone(before.getPhone()).phoneMobile(dto.getPhoneMobile()).emailAddress(before.getEmailAddress()).build();
+                    .phone(before.getPhone()).phoneMobile(dto.phoneMobile()).emailAddress(before.getEmailAddress()).build();
 
             //@formatter:off
             given()
@@ -643,7 +641,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
                     .extracting("id", "streetAddress")
-                    .contains(before.getId(), updateDto.getStreetAddress());
+                    .contains(before.getId(), updateDto.streetAddress());
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -662,7 +660,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .put("/{typeId}/{id}", type.getId(), dto.getId())
+                .put("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -685,7 +683,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
-                .put("/{typeId}/{id}", type.getId(), dto.getId())
+                .put("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -710,7 +708,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .put("/{typeId}/{id}", "dummy", dto.getId())
+                .put("/{typeId}/{id}", "dummy", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -731,8 +729,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -741,7 +741,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare1.getId())
                 .body(dto)
             .when()
-                .put("/{typeId}/{id}", type.getId(), dto.getId())
+                .put("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -758,8 +758,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var address = persistAddress(randomizeAddress(type, spexare));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -793,7 +795,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .put("/{typeId}/{id}", type.getId(), dto.getId())
+                .put("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on
@@ -859,7 +861,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
                     .extracting("id", "streetAddress", "city")
-                    .contains(result.getId(), updateDto.getStreetAddress(), dto.getCity());
+                    .contains(result.getId(), updateDto.streetAddress(), dto.city());
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -878,7 +880,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .patch("/{typeId}/{id}", type.getId(), dto.getId())
+                .patch("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -901,7 +903,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", 1L)
                 .body(dto)
             .when()
-                .patch("/{typeId}/{id}", type.getId(), dto.getId())
+                .patch("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -926,7 +928,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .patch("/{typeId}/{id}", "dummy", dto.getId())
+                .patch("/{typeId}/{id}", "dummy", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -947,8 +949,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -957,7 +961,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare1.getId())
                 .body(dto)
             .when()
-                .patch("/{typeId}/{id}", type.getId(), dto.getId())
+                .patch("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -974,8 +978,10 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var address = persistAddress(randomizeAddress(type, spexare));
-            final var dto = random.nextObject(AddressUpdateDto.class);
-            dto.setId(address.getId());
+            final var randDto = random.nextObject(AddressUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .id(address.getId())
+                    .build();
 
             //@formatter:off
             final ProblemDetail result = given()
@@ -1009,7 +1015,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 .pathParam("spexareId", spexare.getId())
                 .body(dto)
             .when()
-                .patch("/{typeId}/{id}", type.getId(), dto.getId())
+                .patch("/{typeId}/{id}", type.getId(), dto.id())
             .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
             //@formatter:on

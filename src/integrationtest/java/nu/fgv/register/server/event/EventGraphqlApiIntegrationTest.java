@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.jeasy.random.EasyRandom;
@@ -55,9 +54,8 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final EventRepository repository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();

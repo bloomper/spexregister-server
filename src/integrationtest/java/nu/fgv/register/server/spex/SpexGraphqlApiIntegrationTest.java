@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -86,12 +85,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
-                                         final ObjectMapper objectMapper,
                                          final SpexRepository repository,
                                          final SpexDetailsRepository detailsRepository,
                                          final SpexCategoryRepository categoryRepository,
                                          final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;
@@ -319,8 +317,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("spexCreate", result -> result
-                            .path("title").entity(String.class).isEqualTo(dto.getTitle())
-                            .path("year").entity(String.class).isEqualTo(dto.getYear())
+                            .path("title").entity(String.class).isEqualTo(dto.title())
+                            .path("year").entity(String.class).isEqualTo(dto.year())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -329,8 +327,10 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
-            dto.setTitle("");
+            final SpexCreateDto randDto = random.nextObject(SpexCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .title("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -462,8 +462,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("spexUpdate", result -> result
-                            .path("title").entity(String.class).isEqualTo(dto.getTitle())
-                            .path("year").entity(String.class).isEqualTo(dto.getYear())
+                            .path("title").entity(String.class).isEqualTo(dto.title())
+                            .path("year").entity(String.class).isEqualTo(dto.year())
                     )
                     .entity(SpexDto.class)
                     .get();
@@ -491,8 +491,10 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
-            dto.setTitle("");
+            final SpexUpdateDto randDto = random.nextObject(SpexUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .title("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()

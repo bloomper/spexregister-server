@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -89,14 +88,13 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final SpexActivityRepository repository,
                                           final ActivityRepository activityRepository,
                                           final SpexareRepository spexareRepository,
                                           final SpexRepository spexRepository,
                                           final SpexDetailsRepository spexDetailsRepository,
                                           final SpexCategoryRepository spexCategoryRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.activityRepository = activityRepository;
         this.spexareRepository = spexareRepository;

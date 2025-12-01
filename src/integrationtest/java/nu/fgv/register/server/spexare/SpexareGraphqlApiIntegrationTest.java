@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -90,10 +89,9 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
-                                            final ObjectMapper objectMapper,
                                             final SpexareRepository repository,
                                             final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -409,9 +407,9 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("spexareCreate", result -> result
-                            .path("firstName").entity(String.class).isEqualTo(dto.getFirstName())
-                            .path("lastName").entity(String.class).isEqualTo(dto.getLastName())
-                            .path("nickName").entity(String.class).isEqualTo(dto.getNickName())
+                            .path("firstName").entity(String.class).isEqualTo(dto.firstName())
+                            .path("lastName").entity(String.class).isEqualTo(dto.lastName())
+                            .path("nickName").entity(String.class).isEqualTo(dto.nickName())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -419,8 +417,10 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
-            dto.setLastName("");
+            final SpexareCreateDto randDto = random.nextObject(SpexareCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .lastName("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -551,9 +551,9 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("spexareUpdate", result -> result
-                            .path("firstName").entity(String.class).isEqualTo(dto.getFirstName())
-                            .path("lastName").entity(String.class).isEqualTo(dto.getLastName())
-                            .path("nickName").entity(String.class).isEqualTo(dto.getNickName())
+                            .path("firstName").entity(String.class).isEqualTo(dto.firstName())
+                            .path("lastName").entity(String.class).isEqualTo(dto.lastName())
+                            .path("nickName").entity(String.class).isEqualTo(dto.nickName())
                     )
                     .entity(SpexareDto.class)
                     .get();
@@ -580,8 +580,10 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final SpexareUpdateDto dto = random.nextObject(SpexareUpdateDto.class);
-            dto.setFirstName("");
+            final SpexareUpdateDto randDto = random.nextObject(SpexareUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .firstName("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()

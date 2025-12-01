@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.session;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -58,9 +57,8 @@ class SessionGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
-                                            final ObjectMapper objectMapper,
                                             final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();

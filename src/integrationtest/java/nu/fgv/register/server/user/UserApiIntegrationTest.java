@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -110,13 +109,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                                   final Keycloak keycloakAdminClient,
                                   final String keycloakClientId,
                                   final PermissionService permissionService,
-                                  final ObjectMapper objectMapper,
                                   final UserRepository repository,
                                   final AuthorityRepository authorityRepository,
                                   final StateRepository stateRepository,
                                   final SpexareRepository spexareRepository,
                                   final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;
@@ -385,15 +383,17 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final UserDto result = objectMapper.readValue(json, UserDto.class);
             assertThat(result)
                     .extracting("email")
-                    .isEqualTo(dto.getEmail());
+                    .isEqualTo(dto.email());
             assertThat(repository.count()).isEqualTo(1);
             assertThat(getUsersCountInKeycloak()).isEqualTo(1 + PRE_CREATED_USERS_IN_KEYCLOAK);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final UserCreateDto dto = random.nextObject(UserCreateDto.class);
-            dto.setEmail(null);
+            final UserCreateDto randDto = random.nextObject(UserCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .email(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -562,8 +562,10 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final UserUpdateDto dto = random.nextObject(UserUpdateDto.class);
-            dto.setEmail(null);
+            final UserUpdateDto randDto = random.nextObject(UserUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .email(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -571,7 +573,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -593,7 +595,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -634,7 +636,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -655,7 +657,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -740,7 +742,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -781,7 +783,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -802,7 +804,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);

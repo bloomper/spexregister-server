@@ -17,7 +17,6 @@
 package nu.fgv.register.server.tag;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -63,10 +62,9 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                         final Keycloak keycloakAdminClient,
                                         final String keycloakClientId,
                                         final PermissionService permissionService,
-                                        final ObjectMapper objectMapper,
                                         final TagRepository repository,
                                         final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -239,7 +237,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("tagCreate", result -> result
-                            .path("name").entity(String.class).isEqualTo(dto.getName())
+                            .path("name").entity(String.class).isEqualTo(dto.name())
                     );
 
             assertThat(repository.count()).isEqualTo(1);
@@ -247,8 +245,10 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final TagCreateDto dto = random.nextObject(TagCreateDto.class);
-            dto.setName("");
+            final TagCreateDto randDto = random.nextObject(TagCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()
@@ -372,7 +372,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("tagUpdate", result -> result
-                            .path("name").entity(String.class).isEqualTo(dto.getName())
+                            .path("name").entity(String.class).isEqualTo(dto.name())
                     )
                     .entity(TagDto.class)
                     .get();
@@ -399,8 +399,10 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_BAD_REQUEST_when_invalid_input() {
-            final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
-            dto.setName("");
+            final TagUpdateDto randDto = random.nextObject(TagUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name("")
+                    .build();
 
             httpGraphQlTester
                     .mutate()

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.settings;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.junit.jupiter.api.AfterEach;
@@ -47,9 +46,8 @@ class SettingsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                              final AclCache aclCache,
                                              final Keycloak keycloakAdminClient,
                                              final String keycloakClientId,
-                                             final PermissionService permissionService,
-                                             final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+                                             final PermissionService permissionService) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
     }
 
     @BeforeEach

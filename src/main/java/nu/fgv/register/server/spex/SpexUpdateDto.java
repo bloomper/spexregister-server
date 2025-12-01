@@ -28,7 +28,7 @@ import nu.fgv.register.server.util.impex.model.ExcelImportCell;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Builder
+@Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexUpdateDto(
         @JsonProperty("id")

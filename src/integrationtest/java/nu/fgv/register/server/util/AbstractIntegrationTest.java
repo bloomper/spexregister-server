@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -57,9 +58,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mysql.MySQLContainer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -124,7 +125,7 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.44");
+    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.44");
 
     /*
     @Container
@@ -147,14 +148,14 @@ public abstract class AbstractIntegrationTest {
                                       final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService,
-                                      final ObjectMapper objectMapper) {
+                                      final PermissionService permissionService) {
         this.jdbcClient = jdbcClient;
         this.aclCache = aclCache;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
         this.permissionService = permissionService;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
 
         accessTokenCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(10, TimeUnit.MINUTES)

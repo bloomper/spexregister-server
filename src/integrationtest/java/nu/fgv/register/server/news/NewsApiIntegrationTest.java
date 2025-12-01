@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.news;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -73,10 +72,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                                   final Keycloak keycloakAdminClient,
                                   final String keycloakClientId,
                                   final PermissionService permissionService,
-                                  final ObjectMapper objectMapper,
                                   final NewsRepository repository,
                                   final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -282,14 +280,16 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final NewsDto result = objectMapper.readValue(json, NewsDto.class);
             assertThat(result)
                     .extracting("subject", "text", "visibleFrom")
-                    .contains(dto.getSubject(), dto.getText(), dto.getVisibleFrom());
+                    .contains(dto.subject(), dto.text(), dto.visibleFrom());
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setSubject(null);
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .subject(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -438,8 +438,10 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
-            dto.setSubject(null);
+            final NewsUpdateDto randDto = random.nextObject(NewsUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .subject(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -447,7 +449,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -468,7 +470,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -508,7 +510,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -529,7 +531,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -614,7 +616,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -655,7 +657,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -676,7 +678,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -776,9 +778,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_non_published() throws Exception {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setVisibleFrom(LocalDate.now().plusDays(1));
-            dto.setVisibleTo(LocalDate.now().plusDays(2));
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .visibleFrom(LocalDate.now().plusDays(1))
+                    .visibleTo(LocalDate.now().plusDays(2))
+                    .build();
 
             //@formatter:off
             final String json =
@@ -824,9 +828,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_create_published() throws Exception {
-            final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
-            dto.setVisibleFrom(LocalDate.now().minusDays(1));
-            dto.setVisibleTo(LocalDate.now().plusDays(2));
+            final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .visibleFrom(LocalDate.now().minusDays(1))
+                    .visibleTo(LocalDate.now().plusDays(2))
+                    .build();
 
             //@formatter:off
             final String json =

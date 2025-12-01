@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,8 +37,7 @@ public class AbstractGraphqlIntegrationTest extends AbstractIntegrationTest {
                                              final AclCache aclCache,
                                              final Keycloak keycloakAdminClient,
                                              final String keycloakClientId,
-                                             final PermissionService permissionService,
-                                             final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+                                             final PermissionService permissionService) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
     }
 }

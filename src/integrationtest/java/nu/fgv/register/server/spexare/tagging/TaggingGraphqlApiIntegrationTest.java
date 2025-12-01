@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.tagging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -71,11 +70,10 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
-                                            final ObjectMapper objectMapper,
                                             final TaggingRepository repository,
                                             final TagRepository tagRepository,
                                             final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;

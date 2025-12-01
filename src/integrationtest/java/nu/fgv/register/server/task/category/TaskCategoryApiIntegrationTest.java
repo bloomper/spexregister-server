@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.task.category;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.LogConfig;
@@ -72,10 +71,9 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final ObjectMapper objectMapper,
                                           final TaskCategoryRepository repository,
                                           final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -280,14 +278,16 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final TaskCategoryDto result = objectMapper.readValue(json, TaskCategoryDto.class);
             assertThat(result)
                     .extracting("name", "actorPresent")
-                    .contains(dto.getName(), dto.isActorPresent());
+                    .contains(dto.name(), dto.actorPresent());
             assertThat(repository.count()).isEqualTo(1);
         }
 
         @Test
         void should_return_400_when_invalid_input() {
-            final TaskCategoryCreateDto dto = random.nextObject(TaskCategoryCreateDto.class);
-            dto.setName(null);
+            final TaskCategoryCreateDto randDto = random.nextObject(TaskCategoryCreateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -436,8 +436,10 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_400_when_invalid_input() {
-            final TaskCategoryUpdateDto dto = random.nextObject(TaskCategoryUpdateDto.class);
-            dto.setName(null);
+            final TaskCategoryUpdateDto randDto = random.nextObject(TaskCategoryUpdateDto.class);
+            final var dto = randDto.toBuilder()
+                    .name(null)
+                    .build();
 
             //@formatter:off
             given()
@@ -445,7 +447,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
@@ -466,7 +468,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -506,7 +508,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -527,7 +529,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .put("/{id}", dto.getId())
+                .put("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -611,7 +613,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract().body().as(ProblemDetail.class);
@@ -651,7 +653,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
@@ -672,7 +674,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(dto)
             .when()
-                .patch("/{id}", dto.getId())
+                .patch("/{id}", dto.id())
             .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .extract().body().as(ProblemDetail.class);
