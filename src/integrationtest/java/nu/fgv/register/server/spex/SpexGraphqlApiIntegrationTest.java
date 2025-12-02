@@ -303,7 +303,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create() throws Exception {
+        void should_create() {
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
 
             httpGraphQlTester
@@ -424,7 +424,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update() throws Exception {
+        void should_update() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));

@@ -14,6 +14,5 @@
  * limitations under the License.
  */
 
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package nu.fgv.register.server;

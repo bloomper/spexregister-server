@@ -17,7 +17,6 @@
 package nu.fgv.register.server.util.search;
 
 import org.springframework.data.domain.ScrollPosition;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -92,7 +91,6 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
     }
 
     @Override
-    @NonNull
     public Iterator<T> iterator() {
         return items.iterator();
     }

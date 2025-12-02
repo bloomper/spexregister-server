@@ -141,7 +141,7 @@ public abstract class AbstractApiTest {
 
     protected MockMvc mockMvc;
 
-    protected ObjectMapper objectMapper = new ObjectMapper();
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setUp(final WebApplicationContext webApplicationContext, final RestDocumentationContextProvider restDocumentation) {

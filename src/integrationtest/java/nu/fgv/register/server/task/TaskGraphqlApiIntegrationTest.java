@@ -245,7 +245,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create() throws Exception {
+        void should_create() {
             final TaskCreateDto dto = random.nextObject(TaskCreateDto.class);
 
             httpGraphQlTester
@@ -362,7 +362,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update() throws Exception {
+        void should_update() {
             final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));

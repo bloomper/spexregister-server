@@ -25,7 +25,6 @@ import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
-import org.springframework.lang.NonNull;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -44,7 +43,7 @@ public class CustomScalars {
             .description("A custom scalar that handles Java 8 Instant types")
             .coercing(new Coercing<Instant, String>() {
                 @Override
-                public String serialize(@NonNull final Object dataFetcherResult, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingSerializeException {
+                public String serialize(final Object dataFetcherResult, final GraphQLContext graphQLContext, final Locale locale) throws CoercingSerializeException {
                     try {
                         final Instant publishedTime = (Instant) dataFetcherResult;
 
@@ -55,7 +54,7 @@ public class CustomScalars {
                 }
 
                 @Override
-                public Instant parseValue(@NonNull final Object input, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingParseValueException {
+                public Instant parseValue(final Object input, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseValueException {
                     try {
                         return LocalDate.parse((String) input).atStartOfDay(ZoneId.of("UTC")).toInstant();
                     } catch (final RuntimeException e) {
@@ -64,7 +63,7 @@ public class CustomScalars {
                 }
 
                 @Override
-                public Instant parseLiteral(@NonNull final Value input, @NonNull final CoercedVariables variables, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingParseLiteralException {
+                public Instant parseLiteral(final Value input, final CoercedVariables variables, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseLiteralException {
                     try {
                         final StringValue stringValue = (StringValue) input;
                         final LocalDate date = LocalDate.parse(stringValue.getValue());
@@ -82,17 +81,17 @@ public class CustomScalars {
             .description("A custom scalar that represents the null value")
             .coercing(new Coercing<Void, Void>() {
                 @Override
-                public Void serialize(@NonNull final Object dataFetcherResult, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingSerializeException {
+                public Void serialize(final Object dataFetcherResult, final GraphQLContext graphQLContext, final Locale locale) throws CoercingSerializeException {
                     return null;
                 }
 
                 @Override
-                public Void parseValue(@NonNull final Object input, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingParseValueException {
+                public Void parseValue(final Object input, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseValueException {
                    return null;
                 }
 
                 @Override
-                public Void parseLiteral(@NonNull final Value input, @NonNull final CoercedVariables variables, @NonNull final GraphQLContext graphQLContext, @NonNull final Locale locale) throws CoercingParseLiteralException {
+                public Void parseLiteral(final Value input, final CoercedVariables variables, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseLiteralException {
                     return null;
                 }
             })

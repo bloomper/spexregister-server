@@ -29,7 +29,7 @@ import org.springframework.boot.security.autoconfigure.actuate.web.servlet.Manag
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class, FlywayAutoConfiguration.class})
 public class SpexregisterApplication {
 
-    public static void main(final String[] args) {
+    static void main(final String[] args) {
         SpringApplication.run(SpexregisterApplication.class, args);
     }
 
