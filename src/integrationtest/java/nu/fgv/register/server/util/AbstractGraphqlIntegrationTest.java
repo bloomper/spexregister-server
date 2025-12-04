@@ -30,7 +30,7 @@ import org.springframework.security.acls.model.AclCache;
 public class AbstractGraphqlIntegrationTest extends AbstractIntegrationTest {
 
     protected HttpGraphQlTester httpGraphQlTester;
-    @Value("${spring.graphql.path}")
+    @Value("${spring.graphql.http.path}")
     protected String graphqlPath;
 
     protected AbstractGraphqlIntegrationTest(final JdbcClient jdbcClient,

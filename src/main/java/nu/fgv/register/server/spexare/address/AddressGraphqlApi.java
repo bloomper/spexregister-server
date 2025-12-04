@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -66,10 +67,10 @@ public class AddressGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "addressesPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<AddressDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<AddressDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.findBySpexare(dto.getId(), filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.findBySpexare(dto.getId(), Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @SchemaMapping(typeName = "Spexare", field = "addresses")

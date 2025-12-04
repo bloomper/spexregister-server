@@ -57,16 +57,16 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexarePaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<SpexareDto> retrieve(final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.find(Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @QueryMapping("spexareSearchPaged")
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Argument final Optional<Integer> offset, @Argument final Optional<Integer> limit, @Argument final String q, final Optional<Sort> sort) {
-        final WindowWithFacets<SpexareDto> result = service.search(q, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
+    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Nullable @Argument final Integer offset, @Nullable @Argument final Integer limit, @Argument final String q, @Nullable final Sort sort) {
+        final WindowWithFacets<SpexareDto> result = service.search(q, Optional.ofNullable(offset).orElse(0), Optional.ofNullable(limit).orElse(20), Optional.ofNullable(sort).orElse(Sort.unsorted()));
 
         graphQLContext.put("facets", result.getFacets());
 
@@ -128,8 +128,8 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareEvents")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return eventService.findBySource(sinceInDays, Event.SourceType.SPEXARE);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.SPEXARE);
     }
 
 }

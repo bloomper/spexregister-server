@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -90,17 +91,17 @@ public class ActorGraphqlApi {
                                                    @LocalContextValue("activityId") final Long activityId,
                                                    final TaskActivityDto dto,
                                                    final ScrollSubrange subrange,
-                                                   @Argument final Optional<String> filter,
-                                                   final Optional<Sort> sort) {
+                                                   @Nullable @Argument final String filter,
+                                                   @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return service.findByTaskActivity(
                 spexareId,
                 activityId,
                 dto.getId(),
-                filter.orElse(""),
+                Optional.ofNullable(filter).orElse(""),
                 holder.limit(),
-                sort.orElse(Sort.unsorted()),
+                Optional.ofNullable(sort).orElse(Sort.unsorted()),
                 holder.scrollPosition()
         );
     }

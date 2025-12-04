@@ -1,6 +1,6 @@
 extend type Mutation {
-    addressCreate(spexareId: ID!, typeId: ID!, input: AddressCreate): Address
-    addressUpdate(spexareId: ID!, typeId: ID!, input: AddressUpdate): Address
+    addressCreate(spexareId: ID!, typeId: ID!, input: AddressCreate!): Address
+    addressUpdate(spexareId: ID!, typeId: ID!, input: AddressUpdate!): Address
     addressDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 

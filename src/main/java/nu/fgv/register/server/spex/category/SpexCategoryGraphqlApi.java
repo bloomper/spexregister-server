@@ -26,6 +26,7 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -53,10 +54,10 @@ public class SpexCategoryGraphqlApi {
 
     @QueryMapping("spexCategoryPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexCategoryDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<SpexCategoryDto> retrieve(final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.find(Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @MutationMapping("spexCategoryCreate")
@@ -91,7 +92,7 @@ public class SpexCategoryGraphqlApi {
 
     @QueryMapping("spexCategoryEvents")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return eventService.findBySource(sinceInDays, Event.SourceType.SPEX_CATEGORY);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.SPEX_CATEGORY);
     }
 }

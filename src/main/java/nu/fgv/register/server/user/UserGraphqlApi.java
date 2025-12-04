@@ -58,10 +58,10 @@ public class UserGraphqlApi {
 
     @QueryMapping("userPaged")
     @RequiresAdmin
-    public Window<UserDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<UserDto> retrieve(final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.find(Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @MutationMapping("userCreate")
@@ -155,8 +155,8 @@ public class UserGraphqlApi {
 
     @QueryMapping("userEvents")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return eventService.findBySource(sinceInDays, Event.SourceType.USER);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.USER);
     }
 
 }

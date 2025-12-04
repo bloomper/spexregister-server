@@ -1,6 +1,6 @@
 extend type Mutation {
-    toggleCreate(spexareId: ID!, typeId: ID!, input: ToggleCreate): Toggle
-    toggleUpdate(spexareId: ID!, typeId: ID!, input: ToggleUpdate): Toggle
+    toggleCreate(spexareId: ID!, typeId: ID!, input: ToggleCreate!): Toggle
+    toggleUpdate(spexareId: ID!, typeId: ID!, input: ToggleUpdate!): Toggle
     toggleDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 

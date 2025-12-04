@@ -30,6 +30,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import java.time.Instant;
 import java.util.Map;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
@@ -101,4 +102,28 @@ public class SpexActivityGraphqlApi {
         return service.findSpexBySpexActivity(spexareId, activityId, dto.getId());
     }
 
+    @SchemaMapping(typeName = "SpexActivity", field = "id")
+    public Long getId(final SpexActivityDto dto) {
+        return dto.getId();
+    }
+
+    @SchemaMapping(typeName = "SpexActivity", field = "createdBy")
+    public String getCreatedBy(final SpexActivityDto dto) {
+        return dto.getCreatedBy();
+    }
+
+    @SchemaMapping(typeName = "SpexActivity", field = "createdAt")
+    public Instant getCreatedAt(final SpexActivityDto dto) {
+        return dto.getCreatedAt();
+    }
+
+    @SchemaMapping(typeName = "SpexActivity", field = "lastModifiedBy")
+    public @Nullable String getLastModifiedBy(final SpexActivityDto dto) {
+        return dto.getLastModifiedBy();
+    }
+
+    @SchemaMapping(typeName = "SpexActivity", field = "lastModifiedAt")
+    public Instant getLastModifiedAt(final SpexActivityDto dto) {
+        return dto.getLastModifiedAt();
+    }
 }

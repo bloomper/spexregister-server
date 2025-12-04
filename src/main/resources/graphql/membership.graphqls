@@ -1,5 +1,5 @@
 extend type Mutation {
-    membershipCreate(spexareId: ID!, typeId: ID!, input: MembershipCreate): Membership
+    membershipCreate(spexareId: ID!, typeId: ID!, input: MembershipCreate!): Membership
     membershipDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 

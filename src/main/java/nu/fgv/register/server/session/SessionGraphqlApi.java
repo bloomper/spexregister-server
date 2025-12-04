@@ -22,11 +22,13 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import org.jspecify.annotations.Nullable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
@@ -41,7 +43,7 @@ public class SessionGraphqlApi {
 
     @QueryMapping("sessionEvents")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return eventService.findBySource(sinceInDays, Event.SourceType.SESSION);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.SESSION);
     }
 }

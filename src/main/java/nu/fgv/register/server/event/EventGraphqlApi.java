@@ -19,11 +19,13 @@ package nu.fgv.register.server.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import org.jspecify.annotations.Nullable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
@@ -44,7 +46,7 @@ public class EventGraphqlApi {
 
     @QueryMapping("events")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return service.find(sinceInDays);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return service.find(Optional.ofNullable(sinceInDays).orElse(90));
     }
 }

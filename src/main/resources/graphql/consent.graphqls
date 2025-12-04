@@ -1,6 +1,6 @@
 extend type Mutation {
-    consentCreate(spexareId: ID!, typeId: ID!, input: ConsentCreate): Consent
-    consentUpdate(spexareId: ID!, typeId: ID!, input: ConsentUpdate): Consent
+    consentCreate(spexareId: ID!, typeId: ID!, input: ConsentCreate!): Consent
+    consentUpdate(spexareId: ID!, typeId: ID!, input: ConsentUpdate!): Consent
     consentDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 

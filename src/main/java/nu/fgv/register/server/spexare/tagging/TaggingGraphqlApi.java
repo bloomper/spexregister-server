@@ -22,6 +22,7 @@ import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -60,10 +61,10 @@ public class TaggingGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "taggingsPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<TagDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
+    public Window<TagDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.findBySpexare(dto.getId(), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @SchemaMapping(typeName = "Spexare", field = "taggings")

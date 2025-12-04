@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -30,6 +31,7 @@ import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,11 +69,11 @@ public class ActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "activitiesPaged")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
+    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return buildDataFetcherResult(
-                service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
+                service.findBySpexare(dto.getId(), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition()),
                 Map.of(
                         "spexareId", dto.getId()
                 )
@@ -89,4 +91,28 @@ public class ActivityGraphqlApi {
         );
     }
 
+    @SchemaMapping(typeName = "Activity", field = "id")
+    public Long getId(final ActivityDto dto) {
+        return dto.getId();
+    }
+
+    @SchemaMapping(typeName = "Activity", field = "createdBy")
+    public String getCreatedBy(final ActivityDto dto) {
+        return dto.getCreatedBy();
+    }
+
+    @SchemaMapping(typeName = "Activity", field = "createdAt")
+    public Instant getCreatedAt(final ActivityDto dto) {
+        return dto.getCreatedAt();
+    }
+
+    @SchemaMapping(typeName = "Activity", field = "lastModifiedBy")
+    public @Nullable String getLastModifiedBy(final ActivityDto dto) {
+        return dto.getLastModifiedBy();
+    }
+
+    @SchemaMapping(typeName = "Activity", field = "lastModifiedAt")
+    public Instant getLastModifiedAt(final ActivityDto dto) {
+        return dto.getLastModifiedAt();
+    }
 }

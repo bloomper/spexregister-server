@@ -57,10 +57,10 @@ public class TaskGraphqlApi {
 
     @QueryMapping("taskPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<TaskDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<TaskDto> retrieve(final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.find(Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @MutationMapping("taskCreate")
@@ -112,8 +112,8 @@ public class TaskGraphqlApi {
 
     @QueryMapping("taskEvents")
     @RequiresAdmin
-    public List<EventDto> events(@Argument final Integer sinceInDays) {
-        return eventService.findBySource(sinceInDays, Event.SourceType.TASK);
+    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.TASK);
     }
 
 }

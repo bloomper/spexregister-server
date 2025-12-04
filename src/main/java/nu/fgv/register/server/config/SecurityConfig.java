@@ -59,7 +59,7 @@ public class SecurityConfig {
                           @Value("${spexregister.keycloak.admin.client-id}") final String keycloakAdminClientId,
                           @Value("${spexregister.keycloak.admin.client-secret}") final String keycloakAdminClientSecret,
                           @Value("${spexregister.keycloak.client.client-id}") final String keycloakClientClientId,
-                          @Value("${spring.graphql.path}") final String graphqlBaseUrl) {
+                          @Value("${spring.graphql.http.path}") final String graphqlBaseUrl) {
         this.keycloakUrl = keycloakUrl;
         this.keycloakRealm = keycloakRealm;
         this.keycloakAdminClientId = keycloakAdminClientId;
