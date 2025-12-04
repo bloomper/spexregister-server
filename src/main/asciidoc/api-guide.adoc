@@ -62,6 +62,16 @@ use of HTTP status codes.
 | A fatal error has occurred.
 |===
 
+[[versioning]]
+== Versioning
+
+The API is versioned, and therefore each request must have a header `X-API-Version` stating which version
+that should be used. The supported versions are:
+
+* 1.0
+
+If no version is specified, it defaults to 1.0.
+
 [[errors]]
 == Errors
 

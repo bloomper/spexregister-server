@@ -102,7 +102,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities?page=1&size=2&sort=id,desc", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -146,7 +147,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -180,7 +182,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1L, 1L, 1L)
+                        post("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskId}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -212,7 +215,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
+                        put("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/{taskId}", 1L, 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -240,7 +244,8 @@ class TaskActivityApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                        delete("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{id}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -270,7 +275,8 @@ class TaskActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{id}/task", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

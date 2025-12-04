@@ -57,7 +57,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors")
+@RequestMapping(path = "/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors", version = "1.0")
 public class ActorApi {
 
     private final ActorService service;

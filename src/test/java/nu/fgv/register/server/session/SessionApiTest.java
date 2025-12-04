@@ -71,7 +71,8 @@ class SessionApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/sessions/events?sinceInDays=30")
+                        get("/api/sessions/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

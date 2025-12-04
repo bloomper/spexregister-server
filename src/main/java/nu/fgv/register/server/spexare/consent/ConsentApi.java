@@ -53,7 +53,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/consents")
+@RequestMapping(path = "/api/spexare/{spexareId}/consents", version = "1.0")
 public class ConsentApi {
 
     private final ConsentService service;

@@ -68,7 +68,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping(path = "/api/users", version = "1.0")
 public class UserApi {
 
     private final UserService service;

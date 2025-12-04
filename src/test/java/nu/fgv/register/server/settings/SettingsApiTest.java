@@ -100,6 +100,7 @@ class SettingsApiTest extends AbstractApiTest {
     );
 
     protected final RequestHeadersSnippet requestHeaders = requestHeaders(
+            headerWithName("X-API-Version").description("The API version header"),
             headerWithName(HttpHeaders.ACCEPT_LANGUAGE).description("The accept language header").optional()
     );
 
@@ -115,7 +116,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/languages")
+                            get("/api/settings/languages")
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -149,7 +151,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/languages/{isoCode}", "sv")
+                            get("/api/settings/languages/{isoCode}", "sv")
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -185,7 +188,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/countries")
+                            get("/api/settings/countries")
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -219,7 +223,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/countries/{isoCode}", "SE")
+                            get("/api/settings/countries/{isoCode}", "SE")
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -255,7 +260,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/types")
+                            get("/api/settings/types")
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -291,7 +297,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/types/{type}", TypeType.ADDRESS)
+                            get("/api/settings/types/{type}", TypeType.ADDRESS)
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())
@@ -329,7 +336,8 @@ class SettingsApiTest extends AbstractApiTest {
 
             mockMvc
                     .perform(
-                            get("/api/v1/settings/types/{type}/{id}", TypeType.ADDRESS, 1L)
+                            get("/api/settings/types/{type}/{id}", TypeType.ADDRESS, 1L)
+                                    .apiVersion("1.0")
                                     .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                     )
                     .andExpect(status().isOk())

@@ -88,7 +88,8 @@ class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc&filter=year:whatever", 1L)
+                        get("/api/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc&filter=year:whatever", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -133,7 +134,8 @@ class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/memberships/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/memberships/{id}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -168,7 +170,8 @@ class MembershipApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/memberships/{typeId}", 1L, "FGV")
+                        post("/api/spexare/{spexareId}/memberships/{typeId}", 1L, "FGV")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -200,7 +203,8 @@ class MembershipApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)
+                        delete("/api/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

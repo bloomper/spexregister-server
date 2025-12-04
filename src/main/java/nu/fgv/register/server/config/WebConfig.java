@@ -24,9 +24,11 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.ApiVersionConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
@@ -39,6 +41,15 @@ import java.util.Locale;
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureApiVersioning(final ApiVersionConfigurer configurer) {
+        configurer
+                .useRequestHeader("X-API-Version")
+                .addSupportedVersions("1.0")
+                .setDefaultVersion("1.0")
+                .setVersionParser(new SemanticApiVersionParser());
+    }
 
     @Override
     public void addViewControllers(final ViewControllerRegistry registry) {

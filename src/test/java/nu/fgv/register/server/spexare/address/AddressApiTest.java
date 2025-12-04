@@ -96,7 +96,8 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc&filter=streetAddress:whatever", 1L)
+                        get("/api/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc&filter=streetAddress:whatever", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -147,7 +148,8 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/addresses/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/addresses/{id}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -181,7 +183,8 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
+                        post("/api/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -225,7 +228,8 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                        put("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -271,7 +275,8 @@ class AddressApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                        patch("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -311,7 +316,8 @@ class AddressApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)
+                        delete("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

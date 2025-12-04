@@ -52,7 +52,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/events")
+@RequestMapping(path = "/api/events", version = "1.0")
 public class EventApi {
 
     private final EventService service;

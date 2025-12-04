@@ -130,7 +130,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks?page=1&size=2&sort=name,desc&filter=name:whatever")
+                        get("/api/tasks?page=1&size=2&sort=name,desc&filter=name:whatever")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -171,7 +172,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks?ids=1,2,3")
+                        get("/api/tasks?ids=1,2,3")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
@@ -209,7 +211,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/tasks")
+                        post("/api/tasks")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -241,7 +244,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/{id}", 1L)
+                        get("/api/tasks/{id}", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -275,7 +279,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{id}", 1L)
+                        put("/api/tasks/{id}", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -315,7 +320,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/tasks/{id}", 1L)
+                        patch("/api/tasks/{id}", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -354,7 +360,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{id}", 1L)
+                        delete("/api/tasks/{id}", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -384,7 +391,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/{taskId}/category", 1L)
+                        get("/api/tasks/{taskId}/category", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -410,7 +418,8 @@ class TaskApiTest extends AbstractApiTest {
     void should_add_category() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/{taskId}/category/{id}", 1L, 1L)
+                        put("/api/tasks/{taskId}/category/{id}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -433,7 +442,8 @@ class TaskApiTest extends AbstractApiTest {
     void should_remove_category() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/{taskId}/category", 1L)
+                        delete("/api/tasks/{taskId}/category", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -463,7 +473,8 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/events?sinceInDays=30")
+                        get("/api/tasks/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

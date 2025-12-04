@@ -45,7 +45,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/users/states")
+@RequestMapping(path = "/api/users/states", version = "1.0")
 public class StateApi {
 
     private final StateService service;

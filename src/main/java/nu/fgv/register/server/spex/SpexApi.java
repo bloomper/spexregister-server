@@ -77,7 +77,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spex")
+@RequestMapping(path = "/api/spex", version = "1.0")
 public class SpexApi {
 
     private final SpexService service;
@@ -87,7 +87,7 @@ public class SpexApi {
     private final SpexCategoryApi spexCategoryApi;
     private final EventApi eventApi;
 
-    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieve(@SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = Spex_.PARENT + ":" + FilterOperation.NULL) final String filter) {
@@ -124,7 +124,7 @@ public class SpexApi {
                 .body(EntityModel.of(newDto, getLinks(newDto, true)));
     }
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> retrieve(@PathVariable final Long id) {
         final SpexDto dto = service.findById(id);
@@ -208,7 +208,7 @@ public class SpexApi {
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
-    @GetMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> retrieveRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
         final SpexDto dto = service.findRevivalById(spexId, id);

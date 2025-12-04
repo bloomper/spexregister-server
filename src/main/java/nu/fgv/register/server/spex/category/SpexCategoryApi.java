@@ -76,7 +76,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spex/categories")
+@RequestMapping(path = "/api/spex/categories", version = "1.0")
 public class SpexCategoryApi {
 
     private final SpexCategoryService service;

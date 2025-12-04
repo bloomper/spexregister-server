@@ -119,7 +119,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users?page=1&size=2&sort=username,desc&filter=username:whatever")
+                        get("/api/users?page=1&size=2&sort=username,desc&filter=username:whatever")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -161,7 +162,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/users")
+                        post("/api/users")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -193,7 +195,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/{id}", 1)
+                        get("/api/users/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -227,7 +230,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/users/{id}", 1)
+                        put("/api/users/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -267,7 +271,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/users/{id}", 1)
+                        patch("/api/users/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -306,7 +311,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/users/{id}", 1)
+                        delete("/api/users/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -334,7 +340,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/{userId}/authorities", 1)
+                        get("/api/users/{userId}/authorities", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -371,7 +378,8 @@ class UserApiTest extends AbstractApiTest {
     void should_add_authority() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                        put("/api/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -396,8 +404,9 @@ class UserApiTest extends AbstractApiTest {
     void should_add_authorities() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/v1/users/{userId}/authorities", 1)
+                        put("/api/users/{userId}/authorities", 1)
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -424,7 +433,8 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_authority() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                        delete("/api/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -449,8 +459,9 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_authorities() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/users/{userId}/authorities", 1)
+                        delete("/api/users/{userId}/authorities", 1)
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -479,7 +490,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/{userId}/state", 1)
+                        get("/api/users/{userId}/state", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -513,7 +525,8 @@ class UserApiTest extends AbstractApiTest {
     void should_set_state() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/v1/users/{userId}/state/{id}", 1, "PENDING")
+                        put("/api/users/{userId}/state/{id}", 1, "PENDING")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -540,7 +553,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/{userId}/spexare", 1)
+                        get("/api/users/{userId}/spexare", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -582,7 +596,8 @@ class UserApiTest extends AbstractApiTest {
     void should_add_spexare() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/v1/users/{userId}/spexare/{id}", 1, 1)
+                        put("/api/users/{userId}/spexare/{id}", 1, 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -607,7 +622,8 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_spexare() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/users/{userId}/spexare", 1)
+                        delete("/api/users/{userId}/spexare", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -639,7 +655,8 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/events?sinceInDays=30")
+                        get("/api/users/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

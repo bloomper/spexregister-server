@@ -77,7 +77,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/tags")
+@RequestMapping(path = "/api/tags", version = "1.0")
 public class TagApi {
 
     private final TagService service;

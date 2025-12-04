@@ -99,7 +99,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity", 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -132,7 +133,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -166,7 +168,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{spexId}", 1L, 1L, 1L)
+                        post("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{spexId}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -198,7 +201,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/{spexId}", 1L, 1L, 1L, 1L)
+                        put("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/{spexId}", 1L, 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -226,7 +230,8 @@ class SpexActivityApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                        delete("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -256,7 +261,8 @@ class SpexActivityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/spex", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/spex", 1L, 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

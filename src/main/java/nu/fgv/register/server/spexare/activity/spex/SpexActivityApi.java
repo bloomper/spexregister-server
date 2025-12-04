@@ -49,7 +49,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare/{spexareId}/activities/{activityId}/spex-activity")
+@RequestMapping(path = "/api/spexare/{spexareId}/activities/{activityId}/spex-activity", version = "1.0")
 public class SpexActivityApi {
 
     private final SpexActivityService service;

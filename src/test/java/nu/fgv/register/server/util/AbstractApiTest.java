@@ -39,6 +39,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Collections;
@@ -106,6 +107,7 @@ public abstract class AbstractApiTest {
     );
 
     protected static final RequestHeadersSnippet secureRequestHeaders = requestHeaders(
+            headerWithName("X-API-Version").description("The API version header"),
             headerWithName(HttpHeaders.AUTHORIZATION).description("The authorization header")
     );
 
@@ -151,6 +153,7 @@ public abstract class AbstractApiTest {
                         .withHost("register.fgv.nu")
                         .withPort(443)
                         .withScheme("https"))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
     }
 

@@ -89,7 +89,8 @@ class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1L)
+                        get("/api/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -134,7 +135,8 @@ class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/toggles/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/toggles/{id}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -169,7 +171,8 @@ class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/toggles/{typeId}", 1L, toggle.getId())
+                        post("/api/spexare/{spexareId}/toggles/{typeId}", 1L, toggle.getId())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -207,7 +210,8 @@ class ToggleApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, toggle.getType().getId(), toggle.getId())
+                        put("/api/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, toggle.getType().getId(), toggle.getId())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -241,7 +245,8 @@ class ToggleApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)
+                        delete("/api/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

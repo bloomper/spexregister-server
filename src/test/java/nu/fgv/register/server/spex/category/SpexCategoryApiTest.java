@@ -121,8 +121,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        get("/api/spex/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -163,8 +164,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories?ids=1,2,3")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        get("/api/spex/categories?ids=1,2,3")
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
@@ -201,8 +203,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spex/categories")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        post("/api/spex/categories")
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -234,8 +237,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories/{id}", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        get("/api/spex/categories/{id}", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -268,8 +272,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/categories/{id}", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        put("/api/spex/categories/{id}", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -309,8 +314,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/spex/categories/{id}", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        patch("/api/spex/categories/{id}", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -349,8 +355,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/categories/{id}", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        delete("/api/spex/categories/{id}", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -376,8 +383,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories/{spexId}/logo", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        get("/api/spex/categories/{spexId}/logo", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -411,8 +419,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spex/categories/{spexId}/logo", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        put("/api/spex/categories/{spexId}/logo", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(logo)
@@ -444,9 +453,10 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        multipart("/api/v1/spex/categories/{spexId}/logo", 1)
+                        multipart("/api/spex/categories/{spexId}/logo", 1)
                                 .file(logo)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -475,8 +485,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/spex/categories/{spexId}/logo", 1)
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        delete("/api/spex/categories/{spexId}/logo", 1)
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -507,8 +518,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spex/categories/events?sinceInDays=30")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        get("/api/spex/categories/events?sinceInDays=30")
+                                .apiVersion("1.0")
+.header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())

@@ -76,7 +76,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/tasks/categories")
+@RequestMapping(path = "/api/tasks/categories", version = "1.0")
 public class TaskCategoryApi {
 
     private final TaskCategoryService service;

@@ -5,7 +5,7 @@ Content-Type: application/problem+json
 
 {
     "detail": "Spex with id 1 does not exist",
-    "instance": "/api/v1/spex/1",
+    "instance": "/api/spex/1",
     "status": 404,
     "title": "Resource not found",
     "type": "https://register.fgv.nu/errors/not-found"

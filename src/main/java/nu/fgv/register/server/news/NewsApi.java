@@ -64,7 +64,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/news")
+@RequestMapping(path = "/api/news", version = "1.0")
 public class NewsApi {
 
     private final NewsService service;

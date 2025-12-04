@@ -89,7 +89,8 @@ class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1L)
+                        get("/api/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -134,7 +135,8 @@ class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/consents/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/consents/{id}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -169,7 +171,8 @@ class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/consents/{typeId}", 1L, consent.getId())
+                        post("/api/spexare/{spexareId}/consents/{typeId}", 1L, consent.getId())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -207,7 +210,8 @@ class ConsentApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, consent.getType().getId(), consent.getId())
+                        put("/api/spexare/{spexareId}/consents/{typeId}/{id}", 1L, consent.getType().getId(), consent.getId())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -241,7 +245,8 @@ class ConsentApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)
+                        delete("/api/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

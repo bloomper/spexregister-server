@@ -81,7 +81,8 @@ class TaggingApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/spexare/{spexareId}/taggings?page=1&size=2&sort=name,desc", 1L)
+                        get("/api/spexare/{spexareId}/taggings?page=1&size=2&sort=name,desc", 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -123,7 +124,8 @@ class TaggingApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/spexare/{spexareId}/taggings/{tagId}", 1L, tag.getId())
+                        post("/api/spexare/{spexareId}/taggings/{tagId}", 1L, tag.getId())
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -147,7 +149,8 @@ class TaggingApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/v1/spexare/{spexareId}/taggings/{tagId}", 1L, 1L)
+                        delete("/api/spexare/{spexareId}/taggings/{tagId}", 1L, 1L)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

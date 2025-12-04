@@ -112,7 +112,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tags?page=1&size=2&sort=name,asc&filter=name:whatever")
+                        get("/api/tags?page=1&size=2&sort=name,asc&filter=name:whatever")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -153,7 +154,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tags?ids=1,2,3")
+                        get("/api/tags?ids=1,2,3")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
@@ -191,7 +193,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/tags")
+                        post("/api/tags")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +226,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tags/{id}", 1)
+                        get("/api/tags/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -257,7 +261,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tags/{id}", 1)
+                        put("/api/tags/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -297,7 +302,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/tags/{id}", 1)
+                        patch("/api/tags/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -336,7 +342,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tags/{id}", 1)
+                        delete("/api/tags/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -368,7 +375,8 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tags/events?sinceInDays=30")
+                        get("/api/tags/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

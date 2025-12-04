@@ -89,7 +89,8 @@ class EventApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/events?sinceInDays=30")
+                        get("/api/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -128,7 +129,8 @@ class EventApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/events/{id}", 1)
+                        get("/api/events/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

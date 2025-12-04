@@ -82,7 +82,7 @@ import static org.springframework.util.StringUtils.hasText;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/spexare")
+@RequestMapping(path = "/api/spexare", version = "1.0")
 public class SpexareApi {
 
     private final SpexareService service;

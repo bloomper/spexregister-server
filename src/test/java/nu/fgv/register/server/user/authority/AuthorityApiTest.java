@@ -77,7 +77,8 @@ class AuthorityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities?sort=name,desc")
+                        get("/api/users/authorities?sort=name,desc")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -117,7 +118,8 @@ class AuthorityApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/users/authorities/{id}", 1)
+                        get("/api/users/authorities/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

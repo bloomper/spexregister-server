@@ -79,7 +79,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/graphiql/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "%s/**".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "%s/schema".formatted(graphqlBaseUrl)).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/settings/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/settings/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .securityContext(context -> context.requireExplicitSave(false))

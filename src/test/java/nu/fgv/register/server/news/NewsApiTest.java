@@ -103,7 +103,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/news?page=1&size=2&sort=visibleFrom,desc&filter=subject~test")
+                        get("/api/news?page=1&size=2&sort=visibleFrom,desc&filter=subject~test")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -149,7 +150,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/news")
+                        post("/api/news")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -184,7 +186,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/news/{id}", 1)
+                        get("/api/news/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -218,7 +221,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/news/{id}", 1)
+                        put("/api/news/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -261,7 +265,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/news/{id}", 1)
+                        patch("/api/news/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -303,7 +308,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/news/{id}", 1)
+                        delete("/api/news/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -335,7 +341,8 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/news/events?sinceInDays=30")
+                        get("/api/news/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )

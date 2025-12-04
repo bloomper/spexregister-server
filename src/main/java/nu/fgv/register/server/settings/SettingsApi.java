@@ -39,7 +39,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/settings")
+@RequestMapping(path = "/api/settings", version = "1.0")
 public class SettingsApi {
 
     private final LanguageService languageService;
@@ -119,7 +119,7 @@ public class SettingsApi {
     @GetMapping(value = "/types/{type}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<TypeDto>> retrieveType(@PathVariable final TypeType type, @PathVariable final String id) {
         final TypeDto dto = typeService.findById(id);
-        
+
         return ResponseEntity.ok(EntityModel.of(dto,
                 linkTo(methodOn(SettingsApi.class).retrieveType(type, dto.getId())).withSelfRel(),
                 linkTo(methodOn(SettingsApi.class).retrieveTypes()).withRel("types")));

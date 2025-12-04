@@ -113,7 +113,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
+                        get("/api/tasks/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -155,7 +156,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/categories?ids=1,2,3")
+                        get("/api/tasks/categories?ids=1,2,3")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
@@ -193,7 +195,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/v1/tasks/categories")
+                        post("/api/tasks/categories")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -226,7 +229,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/categories/{id}", 1)
+                        get("/api/tasks/categories/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -260,7 +264,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        put("/api/v1/tasks/categories/{id}", 1)
+                        put("/api/tasks/categories/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -301,7 +306,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        patch("/api/v1/tasks/categories/{id}", 1)
+                        patch("/api/tasks/categories/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -341,7 +347,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        delete("/api/v1/tasks/categories/{id}", 1)
+                        delete("/api/tasks/categories/{id}", 1)
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
@@ -373,7 +380,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/v1/tasks/categories/events?sinceInDays=30")
+                        get("/api/tasks/categories/events?sinceInDays=30")
+                                .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
