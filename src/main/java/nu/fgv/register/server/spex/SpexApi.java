@@ -301,7 +301,7 @@ public class SpexApi {
         links.add(linkTo(methodOn(SpexApi.class).retrieve(Pageable.unpaged(), Spex_.PARENT + "!NULL")).withRel("spex-including-revivals"));
         links.add(linkTo(methodOn(SpexApi.class).downloadPoster(dto.getId())).withRel("poster"));
         links.add(linkTo(methodOn(SpexApi.class).retrieveCategory(dto.getId())).withRel("category"));
-        if (dto.getRevival()) {
+        if (dto.getRevival() != null && Boolean.TRUE.equals(dto.getRevival())) {
             links.add(linkTo(methodOn(SpexApi.class).retrieveParent(dto.getId())).withRel("parent"));
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));

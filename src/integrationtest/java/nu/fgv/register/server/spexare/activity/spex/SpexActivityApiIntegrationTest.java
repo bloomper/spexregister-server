@@ -936,7 +936,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
+                    .uri("/{id}", spexare.getId(), activity.getId(), spexActivity.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
