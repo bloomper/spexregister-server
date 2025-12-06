@@ -35,6 +35,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.stream.IntStream;
 
@@ -57,8 +58,9 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
-                                          final StateRepository repository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                          final StateRepository repository,
+                                          final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
@@ -73,10 +75,11 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
     }
 
     @AfterEach

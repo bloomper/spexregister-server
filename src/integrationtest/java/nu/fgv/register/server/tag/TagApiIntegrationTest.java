@@ -16,43 +16,40 @@
 
 package nu.fgv.register.server.tag;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * @author Anders Jacobsson
@@ -72,8 +69,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                                  final String keycloakClientId,
                                  final PermissionService permissionService,
                                  final TagRepository repository,
-                                 final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                 final EventRepository eventRepository,
+                                 final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -82,28 +80,19 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = TagApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/tags".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event");
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -112,18 +101,19 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            // @formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).isEmpty();
         }
@@ -133,18 +123,19 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).hasSize(1);
         }
@@ -157,19 +148,23 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             });
 
-            //@formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).hasSize(size);
         }
@@ -184,19 +179,23 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
-            // @formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", Tag_.NAME + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Tag_.NAME + ":whatever")
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).isEmpty();
         }
@@ -206,19 +205,23 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", Tag_.NAME + ":" + tag.getName())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Tag_.NAME + ":" + tag.getName())
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).hasSize(1);
         }
@@ -226,7 +229,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_many() {
             final int size = 42;
-            IntStream.range(0, size).forEach(i ->  {
+            IntStream.range(0, size).forEach(i -> {
                 final var tag = randomizeTag();
                 if (i % 2 == 0) {
                     tag.setName("whatever");
@@ -235,20 +238,24 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag0.getId()));
             });
 
-            //@formatter:off
-            final List<TagDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", Tag_.NAME + ":whatever")
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.tags", TagDto.class);
-            //@formatter:on
+            final List<TagDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Tag_.NAME + ":whatever")
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TagDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("tags");
 
             assertThat(result).hasSize(size / 2);
         }
@@ -259,23 +266,21 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() {
             final TagCreateDto dto = random.nextObject(TagCreateDto.class);
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final TagDto result = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final TagDto result = objectMapper.readValue(json, TagDto.class);
             assertThat(result)
                     .extracting("name")
                     .isEqualTo(dto.name());
@@ -289,19 +294,14 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .name(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.name", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest();
 
             assertThat(repository.count()).isZero();
         }
@@ -310,17 +310,17 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted() {
             final TagCreateDto dto = random.nextObject(TagCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -336,17 +336,17 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final TagDto result =
-                given()
+            final TagDto result = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", tag.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(TagDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -356,16 +356,17 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", 1L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -377,55 +378,53 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final TagDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TagDto.class);
-            //@formatter:on
+            final TagDto before = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .put("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final TagDto updated = restTestClient
+                    .put()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final TagDto updated = objectMapper.readValue(json, TagDto.class);
-
-            //@formatter:off
-            final TagDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TagDto.class);
-            //@formatter:on
+            final TagDto after = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -441,19 +440,15 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .name(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.name", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest();
 
             assertThat(repository.count()).isZero();
         }
@@ -462,17 +457,18 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -484,34 +480,35 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final TagDto before =
-                given()
+            final TagDto before = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", tag.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(TagDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -522,17 +519,18 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -545,55 +543,53 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final TagDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TagDto.class);
-            //@formatter:on
+            final TagDto before = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .patch("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final TagDto updated = restTestClient
+                    .patch()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final TagDto updated = objectMapper.readValue(json, TagDto.class);
-
-            //@formatter:off
-            final TagDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", tag.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TagDto.class);
-            //@formatter:on
+            final TagDto after = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -606,17 +602,18 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -629,34 +626,35 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final TagDto before =
-                given()
+            final TagDto before = restTestClient
+                    .get()
+                    .uri("/{id}", tag.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", tag.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(TagDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TagDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -667,17 +665,18 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final TagUpdateDto dto = random.nextObject(TagUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -696,31 +695,29 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", tag.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNoContent();
 
             assertThat(repository.count()).isZero();
         }
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", 123)
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -732,16 +729,16 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag(randomizeTag());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", tag.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", tag.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -750,16 +747,16 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", 123)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -775,18 +772,20 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             final var tag = persistTag(randomizeTag());
 
-            //@formatter:off
-            final List<EventDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/events")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.events", EventDto.class);
-            //@formatter:on
+            final List<EventDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri("/events")
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("events");
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
@@ -797,16 +796,17 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/events")
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/events")
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());

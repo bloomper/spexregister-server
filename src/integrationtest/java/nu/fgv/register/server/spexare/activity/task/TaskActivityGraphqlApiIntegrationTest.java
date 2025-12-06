@@ -48,6 +48,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
@@ -82,8 +83,9 @@ class TaskActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final ActivityRepository activityRepository,
                                                  final SpexareRepository spexareRepository,
                                                  final TaskRepository taskRepository,
-                                                 final TaskCategoryRepository taskCategoryRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                                 final TaskCategoryRepository taskCategoryRepository,
+                                                 final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.activityRepository = activityRepository;
         this.spexareRepository = spexareRepository;
@@ -118,10 +120,11 @@ class TaskActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "task_activity", "activity", "spexare", "task", "task_category", "event");
     }
@@ -460,7 +463,7 @@ class TaskActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .variable("spexareId", spexare.getId())
                     .variable("activityId", activity.getId())
                     .variable("id", taskActivity.getId())
-                    .variable("taskId", 1L)
+                    .variable("taskId", -1L)
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

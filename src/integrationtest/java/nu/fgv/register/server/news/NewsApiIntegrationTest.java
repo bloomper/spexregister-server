@@ -16,44 +16,39 @@
 
 package nu.fgv.register.server.news;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * @author Anders Jacobsson
@@ -73,8 +68,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                                   final String keycloakClientId,
                                   final PermissionService permissionService,
                                   final NewsRepository repository,
-                                  final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                  final EventRepository eventRepository,
+                                  final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -83,28 +79,19 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = NewsApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/news".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event");
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -113,18 +100,19 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).isEmpty();
         }
@@ -134,18 +122,19 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).hasSize(1);
         }
@@ -158,19 +147,23 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             });
 
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).hasSize(size);
         }
@@ -186,19 +179,23 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", News_.SUBJECT + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", News_.SUBJECT + ":whatever")
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).isEmpty();
         }
@@ -208,19 +205,23 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", News_.SUBJECT + ":" + news.getSubject())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", News_.SUBJECT + ":" + news.getSubject())
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).hasSize(1);
         }
@@ -236,20 +237,24 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(News.class, persistNews(news).getId()));
             });
 
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", News_.SUBJECT + ":whatever")
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", News_.SUBJECT + ":whatever")
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).hasSize(size / 2);
         }
@@ -261,23 +266,21 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() {
             final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final NewsDto result = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final NewsDto result = objectMapper.readValue(json, NewsDto.class);
             assertThat(result)
                     .extracting("subject", "text", "visibleFrom")
                     .contains(dto.subject(), dto.text(), dto.visibleFrom());
@@ -291,19 +294,14 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .subject(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.subject", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest();
 
             assertThat(repository.count()).isZero();
         }
@@ -312,21 +310,16 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted() {
             final NewsCreateDto dto = random.nextObject(NewsCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -338,17 +331,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final NewsDto result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(NewsDto.class);
-            //@formatter:on
+            final NewsDto result = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -358,19 +351,14 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
-
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+            restTestClient
+                    .get()
+                    .uri("/{id}", 1L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
         }
     }
 
@@ -384,17 +372,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final NewsDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(NewsDto.class);
-            //@formatter:on
+            final NewsDto before = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -402,32 +390,30 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .text(before.getText())
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .put("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final NewsDto updated = restTestClient
+                    .put()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final NewsDto updated = objectMapper.readValue(json, NewsDto.class);
-
-            //@formatter:off
-            final NewsDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(NewsDto.class);
-            //@formatter:on
+            final NewsDto after = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -443,19 +429,15 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .subject(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.subject", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest();
 
             assertThat(repository.count()).isZero();
         }
@@ -464,21 +446,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -486,17 +464,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final NewsDto before =
-                given()
+            final NewsDto before = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", news.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(NewsDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -504,42 +482,34 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .text(before.getText())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -553,17 +523,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final NewsDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(NewsDto.class);
-            //@formatter:on
+            final NewsDto before = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -572,32 +542,30 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .visibleFrom(LocalDate.now().minusDays(3))
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .patch("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final NewsDto updated = restTestClient
+                    .patch()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final NewsDto updated = objectMapper.readValue(json, NewsDto.class);
-
-            //@formatter:off
-            final NewsDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", news.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(NewsDto.class);
-            //@formatter:on
+            final NewsDto after = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -610,21 +578,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -632,17 +596,17 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final NewsDto before =
-                given()
+            final NewsDto before = restTestClient
+                    .get()
+                    .uri("/{id}", news.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", news.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(NewsDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -651,42 +615,34 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .visibleFrom(LocalDate.now().minusDays(3))
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final NewsUpdateDto dto = random.nextObject(NewsUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
     }
@@ -701,35 +657,30 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", news.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNoContent();
 
             assertThat(repository.count()).isZero();
         }
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", 123)
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
@@ -737,38 +688,30 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", news.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", news.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isEqualTo(1);
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", 123)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden();
 
             assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -784,43 +727,40 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .visibleTo(LocalDate.now().plusDays(2))
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final NewsDto created = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final NewsDto created = objectMapper.readValue(json, NewsDto.class);
+            restTestClient
+                    .get()
+                    .uri("/{id}", created.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", created.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value());
-            //@formatter:on
-
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isEmpty();
@@ -834,43 +774,40 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .visibleTo(LocalDate.now().plusDays(2))
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final NewsDto created = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(NewsDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final NewsDto created = objectMapper.readValue(json, NewsDto.class);
+            restTestClient
+                    .get()
+                    .uri("/{id}", created.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", created.getId())
-            .then()
-                .statusCode(HttpStatus.OK.value());
-            //@formatter:on
-
-            //@formatter:off
-            final List<NewsDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.news", NewsDto.class);
-            //@formatter:on
+            final List<NewsDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<NewsDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("news");
 
             assertThat(result).hasSize(1);
         }
@@ -884,18 +821,20 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             final var news = persistNews(randomizeNews());
 
-            //@formatter:off
-            final List<EventDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/events")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.events", EventDto.class);
-            //@formatter:on
+            final List<EventDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri("/events")
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("events");
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
@@ -906,19 +845,14 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/events")
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
-
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+            restTestClient
+                    .get()
+                    .uri("/events")
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden();
         }
     }
 

@@ -50,6 +50,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
@@ -86,8 +87,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final SpexareRepository spexareRepository,
                                                  final SpexRepository spexRepository,
                                                  final SpexDetailsRepository spexDetailsRepository,
-                                                 final SpexCategoryRepository spexCategoryRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                                 final SpexCategoryRepository spexCategoryRepository,
+                                                 final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.activityRepository = activityRepository;
         this.spexareRepository = spexareRepository;
@@ -123,10 +125,11 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "spex_activity", "activity", "spexare", "spex", "spex_details", "spex_category", "event");
     }
@@ -465,7 +468,7 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .variable("spexareId", spexare.getId())
                     .variable("activityId", activity.getId())
                     .variable("id", spexActivity.getId())
-                    .variable("spexId", 1L)
+                    .variable("spexId", -1L)
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

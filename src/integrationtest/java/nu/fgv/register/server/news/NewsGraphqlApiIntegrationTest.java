@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.news;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -38,6 +37,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -64,8 +65,9 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
                                          final NewsRepository repository,
-                                         final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                         final EventRepository eventRepository,
+                                         final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -76,10 +78,11 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event");
     }

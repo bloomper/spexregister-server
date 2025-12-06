@@ -51,23 +51,6 @@ configurations {
     keycloakImplementation.extendsFrom developmentOnly
     keycloakRuntimeOnly.extendsFrom runtimeOnly
     asciidoctorExtensions
-
-    // Remove when REST Assured supports Groovy 5
-    integrationTestImplementation {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == "org.apache.groovy") {
-                details.useVersion "4.0.29"
-                details.because "RestAssured currently has issues with Groovy 5 (issues #1845/#1847)"
-            }
-        }
-    }
-    integrationTestRuntimeOnly {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == "org.apache.groovy") {
-                details.useVersion "4.0.29"
-            }
-        }
-    }
 }
 
 repositories {
@@ -149,22 +132,13 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
-    integrationTestImplementation 'io.rest-assured:rest-assured:5.5.6'
-    integrationTestImplementation 'io.rest-assured:rest-assured-all:5.5.6'
-    // Remove when REST Assured supports Jackson 3
-    integrationTestImplementation 'org.springframework.boot:spring-boot-jackson2'
-    integrationTestImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1'
-    // Remove when REST Assured supports Groovy 5
-    integrationTestImplementation('org.apache.groovy:groovy:4.0.29')
-    integrationTestImplementation('org.apache.groovy:groovy-json:4.0.29')
-    integrationTestImplementation('org.apache.groovy:groovy-xml:4.0.29')
-    //
-    integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
+    integrationTestImplementation 'org.springframework.boot:spring-boot-starter-test'
     integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
     integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.0.0'
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.0.0'
+    integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {

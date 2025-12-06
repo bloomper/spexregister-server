@@ -16,10 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.task.actor;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -37,34 +33,37 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
@@ -99,8 +98,9 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                                    final SpexareRepository spexareRepository,
                                    final TaskRepository taskRepository,
                                    final TaskCategoryRepository taskCategoryRepository,
-                                   final TypeRepository typeRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                   final TypeRepository typeRepository,
+                                   final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.taskActivityRepository = taskActivityRepository;
         this.activityRepository = activityRepository;
@@ -138,28 +138,19 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = ActorApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "type", "task_activity", "activity", "spexare", "task", "task_category", "event");
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -168,18 +159,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404() {
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId",1L)
-                .pathParam("activityId",1L)
-                .pathParam("taskActivityId",1L)
-            .when()
-                .get()
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
-            //@formatter:on
+            restTestClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.build(1L, 1L, 1L))
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
         }
 
         @Test
@@ -193,21 +180,20 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -225,21 +211,20 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).hasSize(1);
         }
@@ -258,22 +243,23 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             IntStream.range(0, size).forEach(i -> persistActor(randomizeActor(vocal, taskActivity)));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("size", size)
+                                            .build(spexare.getId(), activity.getId(), taskActivity.getId())
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).hasSize(size);
         }
@@ -291,21 +277,20 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare1.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare1.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -324,21 +309,20 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity2 = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare2.getId())
-                        .pathParam("activityId", activity1.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare2.getId(), activity1.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -350,19 +334,16 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404() {
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId",1L)
-                .pathParam("activityId",1L)
-                .pathParam("taskActivityId",1L)
-                .queryParam("filter", Actor_.ROLE + ":whatever")
-            .when()
-                .get()
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
-            //@formatter:on
+            restTestClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .queryParam("filter", Actor_.ROLE + ":whatever")
+                            .build(1L, 1L, 1L))
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
         }
 
         @Test
@@ -378,22 +359,22 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("filter", Actor_.ROLE + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Actor_.ROLE + ":whatever")
+                                            .build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -411,22 +392,22 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("filter", Actor_.ROLE + ":" + actor.getRole())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Actor_.ROLE + ":" + actor.getRole())
+                                            .build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).hasSize(1);
         }
@@ -451,23 +432,23 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 persistActor(actor);
             });
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("filter", Actor_.ROLE + ":whatever")
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Actor_.ROLE + ":whatever")
+                                            .queryParam("size", size)
+                                            .build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).hasSize(size / 2);
         }
@@ -485,22 +466,22 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare1.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("filter", Actor_.ROLE + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Actor_.ROLE + ":whatever")
+                                            .build(spexare1.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -519,22 +500,22 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity2 = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare2.getId())
-                        .pathParam("activityId", activity1.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                        .queryParam("filter", Actor_.ROLE + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", Actor_.ROLE + ":whatever")
+                                            .build(spexare2.getId(), activity1.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
         }
@@ -556,20 +537,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ActorDto result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get("/{id}", actor.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(ActorDto.class);
-            //@formatter:on
+            final ActorDto result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(ActorDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -588,19 +566,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .get("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), 1L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -619,19 +595,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", 1L, activity.getId(), taskActivity.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -650,19 +624,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", 1L)
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), 1L, taskActivity.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -681,19 +653,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", 1L)
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), activity.getId(), 1L, actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -714,19 +684,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare1.getId(), activity.getId(), taskActivity.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -746,19 +714,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity1.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), activity1.getId(), taskActivity.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -778,19 +744,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity1.getId())
-            .when()
-                .get("/{id}", actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity1.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -815,35 +779,30 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CREATED.value());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated();
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).hasSize(1);
             assertThat(repository.count()).isEqualTo(1);
@@ -863,34 +822,28 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CREATED.value());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CONFLICT.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -911,20 +864,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", 1L, activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -945,20 +896,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", 1L)
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), 1L, taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -979,20 +928,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", 1L)
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), 1L, vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1012,20 +959,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", "dummy")
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), "dummy")
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1049,20 +994,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CONFLICT.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare1.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1084,20 +1027,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity1.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.CONFLICT.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity1.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1117,20 +1058,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1151,18 +1090,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isUnauthorized();
 
             assertThat(repository.count()).isZero();
         }
@@ -1186,53 +1121,45 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ActorDto before =
-                given()
+            final ActorDto before = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                    .pathParam("activityId", activity.getId())
-                    .pathParam("taskActivityId", taskActivity.getId())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
                     .body(dto)
-                .when()
-                    .post("/{vocalId}", vocal.getId())
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(ActorDto.class);
-            //@formatter:on
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(ActorDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(updateDto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), before.getId())
-            .then()
-                .statusCode(HttpStatus.OK.value());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), before.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(updateDto)
+                    .exchange()
+                    .expectStatus().isOk();
 
-            //@formatter:off
-            final List<ActorDto> after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> after = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
@@ -1255,20 +1182,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1289,20 +1214,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", 1L, activity.getId(), taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1323,20 +1246,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", 1L)
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), 1L, taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1357,20 +1278,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", 1L)
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), 1L, vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1391,20 +1310,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", "dummy", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), "dummy", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1432,20 +1349,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare1.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1471,20 +1386,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity1.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity1.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1510,20 +1423,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity1.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity1.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1547,20 +1458,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .put("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1585,18 +1494,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}", vocal.getId())
-            .then()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isUnauthorized();
 
             assertThat(repository.count()).isEqualTo(1);
         }
@@ -1620,53 +1525,45 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorCreateDto.class);
 
-            //@formatter:off
-            final ActorDto before =
-                given()
+            final ActorDto before = restTestClient
+                    .post()
+                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                    .pathParam("spexareId", spexare.getId())
-                    .pathParam("activityId", activity.getId())
-                    .pathParam("taskActivityId", taskActivity.getId())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
                     .body(dto)
-                .when()
-                    .post("/{vocalId}", vocal.getId())
-                .then()
-                    .statusCode(HttpStatus.CREATED.value())
-                    .extract().body().as(ActorDto.class);
-            //@formatter:on
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(ActorDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(updateDto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), before.getId())
-            .then()
-                .statusCode(HttpStatus.OK.value());
-            //@formatter:on
+            restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), before.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(updateDto)
+                    .exchange()
+                    .expectStatus().isOk();
 
-            //@formatter:off
-            final List<ActorDto> after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> after = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(after).hasSize(1);
             assertThat(after.getFirst())
@@ -1689,20 +1586,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1723,20 +1618,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", 1L)
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", 1L, activity.getId(), taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1757,20 +1650,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", 1L)
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), 1L, taskActivity.getId(), vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1791,20 +1682,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", 1L)
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), 1L, vocal.getId(), dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1825,20 +1714,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var dto = random.nextObject(ActorUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", "dummy", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), "dummy", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -1866,20 +1753,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare1.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1905,20 +1790,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity1.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity1.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1944,20 +1827,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity1.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity1.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -1981,20 +1862,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .patch("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2019,18 +1898,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .id(actor.getId())
                     .build();
 
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-                .body(dto)
-            .when()
-                .post("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
-            //@formatter:on
+            restTestClient
+                    .patch()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isUnauthorized();
 
             assertThat(repository.count()).isEqualTo(1);
         }
@@ -2054,34 +1929,29 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNoContent();
 
-            //@formatter:off
-            final List<ActorDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .pathParam("spexareId", spexare.getId())
-                        .pathParam("activityId", activity.getId())
-                        .pathParam("taskActivityId", taskActivity.getId())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.actors", ActorDto.class);
-            //@formatter:on
+            final List<ActorDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId(), taskActivity.getId()))
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<ActorDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("actors");
 
             assertThat(result).isEmpty();
             assertThat(repository.count()).isZero();
@@ -2100,19 +1970,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), 1L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -2133,19 +2001,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", -1L)
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", 1L, activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2166,19 +2032,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", 1L)
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), 1L, taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2199,19 +2063,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", 1L)
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), 1L, vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2235,19 +2097,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare1.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare1.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2269,19 +2129,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity1.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity1.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2303,19 +2161,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity2));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity1.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity1.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2335,19 +2191,17 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -2358,7 +2212,6 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
@@ -2368,17 +2221,13 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
             final var vocal = persistVocal(randomizeVocal());
             final var actor = persistActor(randomizeActor(vocal, taskActivity));
 
-            //@formatter:off
-            given()
-                .contentType(ContentType.JSON)
-                .pathParam("spexareId", spexare.getId())
-                .pathParam("activityId", activity.getId())
-                .pathParam("taskActivityId", taskActivity.getId())
-            .when()
-                .delete("/{vocalId}/{id}", vocal.getId(), actor.getId())
-            .then()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{vocalId}/{id}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId(), actor.getId())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isUnauthorized();
 
             assertThat(repository.count()).isEqualTo(1);
         }
@@ -2463,6 +2312,5 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
     private Type persistVocal(final Type type) {
         return typeRepository.save(type);
     }
-
 
 }

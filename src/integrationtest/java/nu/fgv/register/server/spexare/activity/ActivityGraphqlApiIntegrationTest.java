@@ -39,6 +39,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
@@ -67,8 +68,9 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                              final String keycloakClientId,
                                              final PermissionService permissionService,
                                              final ActivityRepository repository,
-                                             final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                             final SpexareRepository spexareRepository,
+                                             final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.spexareRepository = spexareRepository;
 
@@ -94,10 +96,11 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "activity", "spexare", "event");
     }

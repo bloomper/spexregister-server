@@ -69,11 +69,11 @@ public class ActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "activitiesPaged")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Nullable final Sort sort) {
+    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return buildDataFetcherResult(
-                service.findBySpexare(dto.getId(), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition()),
+                service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
                 Map.of(
                         "spexareId", dto.getId()
                 )

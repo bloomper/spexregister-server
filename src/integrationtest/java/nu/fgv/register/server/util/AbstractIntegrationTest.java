@@ -16,8 +16,6 @@
 
 package nu.fgv.register.server.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -54,6 +52,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.aot.DisabledInAotMode;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -61,6 +60,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -104,13 +104,12 @@ public abstract class AbstractIntegrationTest {
 
     private static URI authorizationURI;
 
-    protected static String basePath;
-
     protected final JdbcClient jdbcClient;
     protected final Keycloak keycloakAdminClient;
     protected final String keycloakClientId;
     protected final PermissionService permissionService;
     protected final ObjectMapper objectMapper;
+    protected RestTestClient restTestClient;
 
     private final AclCache aclCache;
 
@@ -148,14 +147,14 @@ public abstract class AbstractIntegrationTest {
                                       final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService) {
+                                      final PermissionService permissionService,
+                                      final ObjectMapper objectMapper) {
         this.jdbcClient = jdbcClient;
         this.aclCache = aclCache;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
         this.permissionService = permissionService;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper = objectMapper;
 
         accessTokenCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(10, TimeUnit.MINUTES)

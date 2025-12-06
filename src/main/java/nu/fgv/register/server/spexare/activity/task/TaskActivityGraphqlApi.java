@@ -87,11 +87,11 @@ public class TaskActivityGraphqlApi {
     public DataFetcherResult<Window<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                                          final ActivityDto dto,
                                                                          final ScrollSubrange subrange,
-                                                                         @Nullable final Sort sort) {
+                                                                         final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return buildDataFetcherResult(
-                service.findByActivity(spexareId, dto.getId(), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition()),
+                service.findByActivity(spexareId, dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
                 Map.of(
                         "spexareId", spexareId,
                         "activityId", dto.getId()

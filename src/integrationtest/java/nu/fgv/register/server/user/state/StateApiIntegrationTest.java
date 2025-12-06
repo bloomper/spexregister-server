@@ -16,37 +16,36 @@
 
 package nu.fgv.register.server.user.state;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.named;
 
@@ -66,8 +65,9 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
                                    final PermissionService permissionService,
-                                   final StateRepository repository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                   final StateRepository repository,
+                                   final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
@@ -80,27 +80,17 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = StateApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/users/states".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
-
         JdbcTestUtils.deleteFromTables(jdbcClient, "state");
     }
 
@@ -110,18 +100,19 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            //@formatter:off
-            final List<StateDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.states", StateDto.class);
-            //@formatter:on
+            final List<StateDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<StateDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("states");
 
             assertThat(result).isEmpty();
         }
@@ -130,18 +121,19 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_one() {
             persistState(randomizeState());
 
-            //@formatter:off
-            final List<StateDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.states", StateDto.class);
-            //@formatter:on
+            final List<StateDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<StateDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("states");
 
             assertThat(result).hasSize(1);
         }
@@ -151,19 +143,23 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> persistState(randomizeState()));
 
-            //@formatter:off
-            final List<StateDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.states", StateDto.class);
-            //@formatter:on
+            final List<StateDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<StateDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("states");
 
             assertThat(result).hasSize(size);
         }
@@ -177,17 +173,19 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             final var state = persistState(randomizeState());
 
-            //@formatter:off
-            final StateDto result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", state.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(StateDto.class);
-            //@formatter:on
+            final StateDto result = Objects.requireNonNull(
+                    restTestClient
+                            .get()
+                            .uri("/{id}", state.getId())
+                            .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(StateDto.class)
+                            .returnResult()
+                            .getResponseBody()
+            );
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -197,16 +195,19 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = Objects.requireNonNull(
+                    restTestClient
+                            .get()
+                            .uri("/{id}", 1L)
+                            .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isNotFound()
+                            .expectBody(ProblemDetail.class)
+                            .returnResult()
+                            .getResponseBody()
+            );
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());

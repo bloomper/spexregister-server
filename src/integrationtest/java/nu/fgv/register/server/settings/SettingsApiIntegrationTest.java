@@ -16,32 +16,31 @@
 
 package nu.fgv.register.server.settings;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -56,30 +55,22 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                                       final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
-    }
-
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = SettingsApi.class.getAnnotation(RequestMapping.class).value()[0];
+                                      final PermissionService permissionService,
+                                      final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
     }
 
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/settings".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -88,33 +79,35 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            //@formatter:off
-            final List<LanguageDto> result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/languages")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.languages", LanguageDto.class);
-            //@formatter:on
+            final List<LanguageDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri("/languages")
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<LanguageDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("languages");
 
             assertThat(result).hasSize(2);
         }
 
         @Test
         void should_return_found() {
-            //@formatter:off
-            final LanguageDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/languages/{isoCode}", "sv")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(LanguageDto.class);
-            //@formatter:on
+            final LanguageDto result = restTestClient
+                    .get()
+                    .uri("/languages/{isoCode}", "sv")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(LanguageDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -124,17 +117,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_sv() {
-            //@formatter:off
-            final LanguageDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
-                    .when()
-                        .get("/languages/{isoCode}", "sv")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(LanguageDto.class);
-            //@formatter:on
+            final LanguageDto result = restTestClient
+                    .get()
+                    .uri("/languages/{isoCode}", "sv")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(LanguageDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -144,17 +137,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_en() {
-            //@formatter:off
-            final LanguageDto result =
-                    given()
-                            .contentType(ContentType.JSON)
-                            .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                            .when()
-                            .get("/languages/{isoCode}", "sv")
-                            .then()
-                            .statusCode(HttpStatus.OK.value())
-                            .extract().body().as(LanguageDto.class);
-            //@formatter:on
+            final LanguageDto result = restTestClient
+                    .get()
+                    .uri("/languages/{isoCode}", "sv")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(LanguageDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -164,15 +157,16 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/languages/{isoCode}", "123")
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/languages/{isoCode}", "123")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -185,33 +179,34 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            //@formatter:off
-            final List<CountryDto> result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/countries")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.countries", CountryDto.class);
-            //@formatter:on
+            final List<CountryDto> result = Objects.requireNonNull(restTestClient
+                            .get()
+                            .uri("/countries")
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<CountryDto>>() {
+                            })
+                            .returnResult()
+                            .getResponseBody())
+                    .getList("countries");
 
             assertThat(result).hasSize(249);
         }
 
         @Test
         void should_return_found() {
-            //@formatter:off
-            final CountryDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/countries/{isoCode}", "SE")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(CountryDto.class);
-            //@formatter:on
+            final CountryDto result = restTestClient
+                    .get()
+                    .uri("/countries/{isoCode}", "SE")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(CountryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -221,17 +216,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_sv() {
-            //@formatter:off
-            final CountryDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
-                    .when()
-                        .get("/countries/{isoCode}", "SE")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(CountryDto.class);
-            //@formatter:on
+            final CountryDto result = restTestClient
+                    .get()
+                    .uri("/countries/{isoCode}", "SE")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(CountryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -241,17 +236,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_en() {
-            //@formatter:off
-            final CountryDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                    .when()
-                        .get("/countries/{isoCode}", "SE")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(CountryDto.class);
-            //@formatter:on
+            final CountryDto result = restTestClient
+                    .get()
+                    .uri("/countries/{isoCode}", "SE")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(CountryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -261,15 +256,16 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/countries/{isoCode}", "123")
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/countries/{isoCode}", "123")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -282,49 +278,53 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_many() {
-            //@formatter:off
-            final List<TypeDto> result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/types")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.types", TypeDto.class);
-            //@formatter:on
+            final List<TypeDto> result = Objects.requireNonNull(restTestClient
+                            .get()
+                            .uri("/types")
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TypeDto>>() {
+                            })
+                            .returnResult()
+                            .getResponseBody())
+                    .getList("types");
 
             assertThat(result).hasSize(17);
         }
 
         @Test
         void should_return_many_of_type() {
-            //@formatter:off
-            final List<TypeDto> result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/types/{type}", TypeType.ADDRESS)
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.types", TypeDto.class);
-            //@formatter:on
+            final List<TypeDto> result = Objects.requireNonNull(restTestClient
+                            .get()
+                            .uri("/types/{type}", TypeType.ADDRESS)
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<TypeDto>>() {
+                            })
+
+                            .returnResult()
+                            .getResponseBody())
+                    .getList("types");
 
             assertThat(result).hasSize(3);
         }
 
         @Test
         void should_return_400_when_unknown_type() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/types/{type}", "whatever")
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/types/{type}", "whatever")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -332,16 +332,16 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found() {
-            //@formatter:off
-            final TypeDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TypeDto.class);
-            //@formatter:on
+            final TypeDto result = restTestClient
+                    .get()
+                    .uri("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TypeDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -351,17 +351,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_sv() {
-            //@formatter:off
-            final TypeDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
-                    .when()
-                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TypeDto.class);
-            //@formatter:on
+            final TypeDto result = restTestClient
+                    .get()
+                    .uri("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "sv")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TypeDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -371,17 +371,17 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_found_in_en() {
-            //@formatter:off
-            final TypeDto result =
-                    given()
-                        .contentType(ContentType.JSON)
-                        .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                    .when()
-                        .get("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(TypeDto.class);
-            //@formatter:on
+            final TypeDto result = restTestClient
+                    .get()
+                    .uri("/types/{type}/{id}", TypeType.ADDRESS, "HOME")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(TypeDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -391,15 +391,16 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/types/{type}/{id}", TypeType.ADDRESS, "whatever")
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/types/{type}/{id}", TypeType.ADDRESS, "whatever")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());

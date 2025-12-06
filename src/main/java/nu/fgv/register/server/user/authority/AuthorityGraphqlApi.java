@@ -19,7 +19,6 @@ package nu.fgv.register.server.user.authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -41,8 +40,8 @@ public class AuthorityGraphqlApi {
 
     @QueryMapping("authorities")
     @RequiresAdminOrEditorOrUser
-    public List<AuthorityDto> retrieve(@Nullable final Sort sort) {
-        return service.findAll(Optional.ofNullable(sort).orElse(Sort.unsorted()));
+    public List<AuthorityDto> retrieve(final Optional<Sort> sort) {
+        return service.findAll(sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("authority")

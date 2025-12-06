@@ -37,6 +37,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -57,8 +58,9 @@ class SessionGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
-                                            final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                            final EventRepository eventRepository,
+                                            final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
@@ -68,10 +70,11 @@ class SessionGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "event");
     }

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.consent;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -44,6 +43,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
@@ -74,8 +75,9 @@ class ConsentGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final PermissionService permissionService,
                                             final ConsentRepository repository,
                                             final TypeRepository typeRepository,
-                                            final SpexareRepository spexareRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                            final SpexareRepository spexareRepository,
+                                            final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -104,10 +106,11 @@ class ConsentGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "consent", "type", "spexare", "event");
     }

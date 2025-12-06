@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Anders Jacobsson
@@ -37,7 +38,8 @@ public class AbstractGraphqlIntegrationTest extends AbstractIntegrationTest {
                                              final AclCache aclCache,
                                              final Keycloak keycloakAdminClient,
                                              final String keycloakClientId,
-                                             final PermissionService permissionService) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                             final PermissionService permissionService,
+                                             final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
     }
 }

@@ -26,7 +26,7 @@ None of these is essential for a pull request, but they will all help.
 
 ### Building from source
 
-To build the source you will need Java 21 or later.
+To build the source you will need Java 25 or later.
 The code is built with Gradle:
 
 ```

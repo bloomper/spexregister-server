@@ -16,26 +16,26 @@
 
 package nu.fgv.register.server.spex.category;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
-import io.restassured.http.ContentType;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,21 +43,21 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.jeasy.random.FieldPredicates.named;
 
 /**
@@ -69,6 +69,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     private final EasyRandom random;
     private final SpexCategoryRepository repository;
     private final EventRepository eventRepository;
+    private final ResourceLoader resourceLoader;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -78,10 +79,13 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                                           final String keycloakClientId,
                                           final PermissionService permissionService,
                                           final SpexCategoryRepository repository,
-                                          final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                          final EventRepository eventRepository,
+                                          final ObjectMapper objectMapper,
+                                          final ResourceLoader resourceLoader) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
+        this.resourceLoader = resourceLoader;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -92,28 +96,19 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = SpexCategoryApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/spex/categories".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event");
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -122,18 +117,19 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_zero() {
-            // @formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).isEmpty();
         }
@@ -143,18 +139,19 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).hasSize(1);
         }
@@ -167,19 +164,23 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             });
 
-            //@formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).hasSize(size);
         }
@@ -194,19 +195,23 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            // @formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", SpexCategory_.NAME + ":whatever")
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", SpexCategory_.NAME + ":whatever")
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).isEmpty();
         }
@@ -216,19 +221,23 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", SpexCategory_.NAME + ":" + category.getName())
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", SpexCategory_.NAME + ":" + category.getName())
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).hasSize(1);
         }
@@ -245,20 +254,24 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category0.getId()));
             });
 
-            //@formatter:off
-            final List<SpexCategoryDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                        .queryParam("filter", SpexCategory_.NAME + ":whatever")
-                        .queryParam("size", size)
-                    .when()
-                        .get()
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.spex-categories", SpexCategoryDto.class);
-            //@formatter:on
+            final List<SpexCategoryDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("filter", SpexCategory_.NAME + ":whatever")
+                                            .queryParam("size", size)
+                                            .build()
+                                    )
+                                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexCategoryDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("spex-categories");
 
             assertThat(result).hasSize(size / 2);
         }
@@ -269,23 +282,21 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() {
             final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .post()
-                    .then()
-                        .statusCode(HttpStatus.CREATED.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final SpexCategoryDto result = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isCreated()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final SpexCategoryDto result = objectMapper.readValue(json, SpexCategoryDto.class);
             assertThat(result)
                     .extracting("name", "firstYear")
                     .contains(dto.name(), dto.firstYear());
@@ -299,19 +310,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .name(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.name", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody()
+                    .jsonPath("status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                    .jsonPath("errors").isNotEmpty()
+                    .jsonPath("errors.name").isNotEmpty();
 
             assertThat(repository.count()).isZero();
         }
@@ -320,17 +330,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted() {
             final SpexCategoryCreateDto dto = random.nextObject(SpexCategoryCreateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .post()
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -346,17 +356,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final SpexCategoryDto result =
-                given()
+            final SpexCategoryDto result = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", category.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -366,16 +376,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{id}", 1L)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/{id}", 1L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -387,22 +398,22 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final SpexCategoryDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+            final SpexCategoryDto before = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -410,32 +421,30 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .firstYear(before.getFirstYear())
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .put("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final SpexCategoryDto updated = restTestClient
+                    .put()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final SpexCategoryDto updated = objectMapper.readValue(json, SpexCategoryDto.class);
-
-            //@formatter:off
-            final SpexCategoryDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+            final SpexCategoryDto after = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -451,19 +460,19 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .name(null)
                     .build();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-                .body("errors", notNullValue())
-                .body("errors.name", notNullValue());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody()
+                    .jsonPath("status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                    .jsonPath("errors").isNotEmpty()
+                    .jsonPath("errors.name").isNotEmpty();
 
             assertThat(repository.count()).isZero();
         }
@@ -472,17 +481,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -494,17 +504,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final SpexCategoryDto before =
-                given()
+            final SpexCategoryDto before = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", category.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -512,17 +522,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .firstYear(before.getFirstYear())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -533,17 +544,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .put("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -556,22 +568,22 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final SpexCategoryDto before =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+            final SpexCategoryDto before = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -579,32 +591,30 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .firstYear(before.getFirstYear())
                     .build();
 
-            //@formatter:off
-            final String json =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                    .when()
-                        .patch("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().asString();
-            //@formatter:on
+            final SpexCategoryDto updated = restTestClient
+                    .patch()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
-            final SpexCategoryDto updated = objectMapper.readValue(json, SpexCategoryDto.class);
-
-            //@formatter:off
-            final SpexCategoryDto after =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{id}", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+            final SpexCategoryDto after = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(after)
                     .usingRecursiveComparison()
@@ -617,17 +627,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -639,17 +650,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final SpexCategoryDto before =
-                given()
+            final SpexCategoryDto before = restTestClient
+                    .get()
+                    .uri("/{id}", category.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .contentType(ContentType.JSON)
-                .when()
-                    .get("/{id}", category.getId())
-                .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .extract().body().as(SpexCategoryDto.class);
-            //@formatter:on
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(SpexCategoryDto.class)
+                    .returnResult()
+                    .getResponseBody();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -657,17 +668,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .firstYear(before.getFirstYear())
                     .build();
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -678,17 +690,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final SpexCategoryUpdateDto dto = random.nextObject(SpexCategoryUpdateDto.class);
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-                .body(dto)
-            .when()
-                .patch("/{id}", dto.id())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .patch()
+                    .uri("/{id}", dto.id())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -706,31 +719,29 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             grantDeletePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", category.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNoContent();
 
             assertThat(repository.count()).isZero();
         }
 
         @Test
         void should_return_404_when_not_found() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", 123L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -742,16 +753,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", category.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -760,16 +771,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{id}", 123)
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{id}", 123L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -788,29 +799,27 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(MediaType.IMAGE_PNG_VALUE)
-                .body(logo)
-            .when()
-                .put("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .apiVersion("1.0")
+                    .body(logo)
+                    .exchange()
+                    .expectStatus().isNoContent();
 
-            //@formatter:off
-            final byte[] result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{spexCategoryId}/logo", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
-                        .extract().asByteArray();
-            //@formatter:on
+            final byte[] result = restTestClient
+                    .get()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody()
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isEqualTo(logo);
         }
@@ -820,32 +829,35 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            final var logo = ResourceUtils.getFile("classpath:test.png");
+            final var logo = resourceLoader.getResource("classpath:test.png");
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .multiPart("file", logo, MediaType.IMAGE_PNG_VALUE)
-            .when()
-                .post("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            final MultiValueMap<@NonNull String, Resource> parts = new LinkedMultiValueMap<>();
 
-            //@formatter:off
-            final byte[] result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/{spexCategoryId}/logo", category.getId())
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
-                        .extract().asByteArray();
-            //@formatter:on
+            parts.add("file", logo);
 
-            assertThat(result).isEqualTo(Files.readAllBytes(Paths.get(logo.getPath())));
+            restTestClient
+                    .post()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+                    .apiVersion("1.0")
+                    .body(parts)
+                    .exchange()
+                    .expectStatus().isNoContent();
+
+            final byte[] result = restTestClient
+                    .get()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody()
+                    .returnResult()
+                    .getResponseBody();
+
+            assertThat(result).isEqualTo(Files.readAllBytes(Paths.get(logo.getFile().getPath())));
         }
 
         @Test
@@ -855,36 +867,32 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(MediaType.IMAGE_PNG_VALUE)
-                .body(logo)
-            .when()
-                .put("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .apiVersion("1.0")
+                    .body(logo)
+                    .exchange()
+                    .expectStatus().isNoContent();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .delete()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNoContent();
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
-            //@formatter:on
+            restTestClient
+                    .get()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
         }
 
         @Test
@@ -893,17 +901,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(MediaType.IMAGE_PNG_VALUE)
-                .body(logo)
-            .when()
-                .post("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .post()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .apiVersion("1.0")
+                    .body(logo)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -914,17 +923,18 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_updating_not_permitted_due_to_insufficient_role() throws Exception {
             final var logo = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(MediaType.IMAGE_PNG_VALUE)
-                .body(logo)
-            .when()
-                .post("/{spexCategoryId}/logo", 123)
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .put()
+                    .uri("/{spexCategoryId}/logo", 123L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .apiVersion("1.0")
+                    .body(logo)
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -936,16 +946,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{spexCategoryId}/logo", category.getId())
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isEqualTo(1);
             assertThat(result).isNotNull();
@@ -954,16 +964,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/{spexCategoryId}/logo", 123)
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .delete()
+                    .uri("/{spexCategoryId}/logo", 123L)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
@@ -979,18 +989,20 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
 
-            //@formatter:off
-            final List<EventDto> result =
-                    given()
-                        .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                        .contentType(ContentType.JSON)
-                    .when()
-                        .get("/events")
-                    .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract().body()
-                        .jsonPath().getList("_embedded.events", EventDto.class);
-            //@formatter:on
+            final List<EventDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri("/events")
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("events");
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
@@ -1001,16 +1013,17 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted() {
-            //@formatter:off
-            final ProblemDetail result = given()
-                .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                .contentType(ContentType.JSON)
-            .when()
-                .get("/events")
-            .then()
-                .statusCode(HttpStatus.FORBIDDEN.value())
-                .extract().body().as(ProblemDetail.class);
-            //@formatter:on
+            final ProblemDetail result = restTestClient
+                    .get()
+                    .uri("/events")
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isForbidden()
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());

@@ -16,10 +16,6 @@
 
 package nu.fgv.register.server.task.category;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -28,7 +24,6 @@ import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,14 +37,13 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.bind.annotation.RequestMapping;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,8 +65,9 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final String keycloakClientId,
                                                  final PermissionService permissionService,
                                                  final TaskCategoryRepository repository,
-                                                 final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                                 final EventRepository eventRepository,
+                                                 final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
 
@@ -81,33 +76,19 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = TaskCategoryApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
-
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "task_category", "event");
     }
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -383,7 +364,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .actorPresent(before.isActorPresent())
+                    .actorPresent(before.getActorPresent())
                     .build();
 
             final TaskCategoryDto updated = httpGraphQlTester
@@ -492,7 +473,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
-                    .actorPresent(before.isActorPresent())
+                    .actorPresent(before.getActorPresent())
                     .build();
 
             httpGraphQlTester

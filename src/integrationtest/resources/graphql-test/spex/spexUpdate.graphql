@@ -3,6 +3,7 @@ mutation spexUpdate ($id: ID!, $year: Year!, $title: String!) {
         id
         year
         title
+        revival
         posterUrl
         createdBy
         createdAt

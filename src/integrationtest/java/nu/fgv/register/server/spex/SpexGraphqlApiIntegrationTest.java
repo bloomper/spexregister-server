@@ -16,10 +16,6 @@
 
 package nu.fgv.register.server.spex;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.LogConfig;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -34,7 +30,6 @@ import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,14 +39,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.ApiVersionInserter;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -59,9 +56,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static io.restassured.RestAssured.config;
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.named;
@@ -88,8 +82,9 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final SpexRepository repository,
                                          final SpexDetailsRepository detailsRepository,
                                          final SpexCategoryRepository categoryRepository,
-                                         final EventRepository eventRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                         final EventRepository eventRepository,
+                                         final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;
@@ -108,26 +103,19 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         random = new EasyRandom(parameters);
     }
 
-    @BeforeAll
-    public static void beforeClass() {
-        basePath = SpexApi.class.getAnnotation(RequestMapping.class).value()[0];
-    }
-
     @BeforeEach
     void setUp() {
-        RestAssured.port = localPort;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        final RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
-        requestSpecBuilder.setBasePath(basePath);
-        RestAssured.requestSpecification = requestSpecBuilder.build();
-        RestAssured.config = config()
-                .encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))
-                .logConfig(LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails());
-
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
+        restTestClient = RestTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:%s/api/spex".formatted(localPort))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
+
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NOT NULL")
                 .query()
@@ -143,7 +131,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        RestAssured.reset();
     }
 
     @Nested
@@ -712,16 +699,15 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
-            //@formatter:off
-            given()
-                .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                .contentType(MediaType.IMAGE_PNG_VALUE)
-                .body(poster)
-            .when()
-                .put("/{spexId}/poster", spex.getId())
-            .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            //@formatter:on
+            restTestClient
+                    .put()
+                    .uri("/{spexId}/poster", spex.getId())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                    .apiVersion("1.0")
+                    .body(poster)
+                    .exchange()
+                    .expectStatus().isNoContent();
 
             httpGraphQlTester
                     .mutate()

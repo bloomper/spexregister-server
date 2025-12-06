@@ -57,10 +57,10 @@ public class SpexGraphqlApi {
 
     @QueryMapping("spexPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> retrieve(final ScrollSubrange subrange, @Nullable @Argument final String filter, @Nullable final Sort sort) {
+    public Window<SpexDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.find(Optional.ofNullable(filter).orElse(""), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @MutationMapping("spexCreate")
@@ -106,10 +106,10 @@ public class SpexGraphqlApi {
 
     @SchemaMapping(typeName = "Spex", field = "revivalsPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, @Nullable final Sort sort) {
+    public Window<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
-        return service.findRevivalsByParent(dto.getId(), holder.limit(), Optional.ofNullable(sort).orElse(Sort.unsorted()), holder.scrollPosition());
+        return service.findRevivalsByParent(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
     }
 
     @SchemaMapping(typeName = "Spex", field = "revivals")

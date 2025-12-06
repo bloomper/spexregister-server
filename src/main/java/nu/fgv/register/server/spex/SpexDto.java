@@ -57,7 +57,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private String title;
 
     @JsonProperty("revival")
-    private boolean revival;
+    private Boolean revival;
 
     @JsonProperty("posterUrl")
     private String posterUrl;
@@ -67,7 +67,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
             final Long id,
             final String year,
             final String title,
-            final boolean revival,
+            final Boolean revival,
             final String posterUrl,
             final String createdBy,
             final Instant createdAt,

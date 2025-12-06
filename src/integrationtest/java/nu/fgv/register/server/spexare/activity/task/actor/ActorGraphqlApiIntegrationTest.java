@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.task.actor;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
@@ -54,6 +53,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
@@ -92,8 +93,9 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final SpexareRepository spexareRepository,
                                           final TaskRepository taskRepository,
                                           final TaskCategoryRepository taskCategoryRepository,
-                                          final TypeRepository typeRepository) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService);
+                                          final TypeRepository typeRepository,
+                                          final ObjectMapper objectMapper) {
+        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.taskActivityRepository = taskActivityRepository;
         this.activityRepository = activityRepository;
@@ -133,10 +135,11 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        httpGraphQlTester = HttpGraphQlTester.builder(
-                        WebTestClient.bindToServer()
-                                .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath)))
-                .build();
+        httpGraphQlTester = HttpGraphQlTester.create(
+                WebTestClient.bindToServer()
+                        .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
+                        .build()
+        );
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "type", "task_activity", "activity", "spexare", "task", "task_category", "event");
     }
