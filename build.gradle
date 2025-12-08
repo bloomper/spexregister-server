@@ -51,6 +51,11 @@ configurations {
     keycloakImplementation.extendsFrom developmentOnly
     keycloakRuntimeOnly.extendsFrom runtimeOnly
     asciidoctorExtensions
+
+    integrationTestRuntimeClasspath {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-devtools'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-docker-compose'
+    }
 }
 
 repositories {
