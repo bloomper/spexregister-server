@@ -230,7 +230,8 @@ check.dependsOn jacocoTestReport
 
 asciidoctor {
     dependsOn createSnippetsDir, test
-    configurations 'asciidoctorExtensions'
+    // TODO: Enable when Spring REST Docs support Asciidoctor 4+
+    //configurations 'asciidoctorExtensions'
     inputs.dir snippetsDir
     sourceDir 'src/main/asciidoc'
     attributes   \
