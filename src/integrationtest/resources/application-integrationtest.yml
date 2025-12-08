@@ -11,7 +11,11 @@ spring:
               synchronization:
                 strategy: sync
         format_sql: true
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8081/realms/fgv
 logging:
   file:
     path: ./integrationtest-data/log_data
@@ -25,6 +29,7 @@ spexregister:
     secret-key: 7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+
     initialization-vector: 8914343887327891
   keycloak:
+    url: http://localhost:8081
     realm: fgv
     admin:
       client-id: fgv-admin
