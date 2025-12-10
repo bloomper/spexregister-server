@@ -47,7 +47,8 @@ spring:
     schema:
       printer:
         enabled: true
-    path: /api/graphql
+    http:
+      path: /api/graphql
 
 management:
   server:
