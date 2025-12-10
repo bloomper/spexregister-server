@@ -85,7 +85,7 @@ public class PermissionService {
                 mutableAclService.deleteAcl(oid, true);
             }
             mutableAclService.updateAcl(acl);
-        } catch (final NotFoundException e) {
+        } catch (final NotFoundException _) {
             // Ignore
         }
     }
@@ -106,7 +106,7 @@ public class PermissionService {
                 mutableAclService.deleteAcl(oid, true);
             }
             mutableAclService.updateAcl(acl);
-        } catch (final NotFoundException e) {
+        } catch (final NotFoundException _) {
             // Ignore
         }
     }
@@ -114,7 +114,7 @@ public class PermissionService {
     public void deleteAcl(final ObjectIdentity oid) {
         try {
             mutableAclService.deleteAcl(oid, true);
-        } catch (final NotFoundException e) {
+        } catch (final NotFoundException _) {
             // Ignore
         }
     }
@@ -124,7 +124,7 @@ public class PermissionService {
             final MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);
             return acl.getEntries().stream()
                     .anyMatch(e -> e.getSid().equals(recipient) && e.getPermission().equals(permission));
-        } catch (final NotFoundException e) {
+        } catch (final NotFoundException _) {
             // Ignore
             return false;
         }

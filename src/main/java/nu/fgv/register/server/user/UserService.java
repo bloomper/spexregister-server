@@ -350,7 +350,7 @@ public class UserService {
                     .ifPresent(user -> stateRepository
                             .findById(id)
                             .ifPresent(state -> {
-                                if (user.getState().getEnabled() != state.getEnabled()) {
+                                if (!user.getState().getEnabled().equals(state.getEnabled())) {
                                     findResourceByExternalId(user.getExternalId())
                                             .ifPresent(resource -> {
                                                 final UserRepresentation representation = resource.toRepresentation();

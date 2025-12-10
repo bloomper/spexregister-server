@@ -43,7 +43,7 @@ class LuhnValidatorTest {
     private ConstraintValidatorContext constraintValidatorContext;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         final SocialSecurityNumberTestClass testClass = new SocialSecurityNumberTestClass();
 
         validator.initialize(testClass);

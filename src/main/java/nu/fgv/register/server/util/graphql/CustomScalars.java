@@ -38,6 +38,9 @@ import java.util.Locale;
  */
 public class CustomScalars {
 
+    private CustomScalars() {
+    }
+
     public static final GraphQLScalarType Instant = GraphQLScalarType.newScalar()
             .name("Instant")
             .description("A custom scalar that handles Java 8 Instant types")

@@ -91,6 +91,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
         return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort.and(sort), limit, properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
     }
 
+    @Override
     public FluentQuery.FetchableFluentQuery<R> limit(final int limit) {
         Assert.isTrue(limit >= 0, "Limit must not be negative");
         return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
@@ -129,6 +130,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
         return convert(createSortedAndProjectedQuery().getResultList());
     }
 
+    @Override
     public Window<R> scroll(final ScrollPosition scrollPosition) {
         Assert.notNull(scrollPosition, "ScrollPosition must not be null");
         return scroll.scroll(sort, limit, scrollPosition).map(getConversionFunction());
@@ -207,7 +209,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
                 query = query.setMaxResults(limit);
             }
 
-            return scroll(query, sort, scrollPosition);
+            return super.scroll(query, sort, scrollPosition);
         }
     }
 }

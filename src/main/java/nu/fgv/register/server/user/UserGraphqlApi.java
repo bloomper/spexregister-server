@@ -135,7 +135,7 @@ public class UserGraphqlApi {
     public @Nullable SpexareDto retrieveSpexare(final UserDto dto) {
         try {
             return service.findSpexareByUser(dto.getId());
-        } catch (final ResourceNoValueException e) {
+        } catch (final ResourceNoValueException _) {
             // Ignore
             return null;
         }

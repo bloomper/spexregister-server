@@ -46,7 +46,7 @@ public class AdminApi {
             final Class<?> clazz = Class.forName(String.format("nu.fgv.register.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
             indexingService.initiateIndexingFor(clazz, true);
             return ResponseEntity.ok().build();
-        } catch (final ClassNotFoundException e) {
+        } catch (final ClassNotFoundException _) {
             return ResponseEntity.badRequest().build();
         }
     }

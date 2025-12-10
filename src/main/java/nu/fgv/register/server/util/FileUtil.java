@@ -38,7 +38,7 @@ public class FileUtil {
             return Optional.ofNullable(Magic.getMagicMatch(file, false))
                     .map(MagicMatch::getMimeType)
                     .orElse("");
-        } catch (final MagicException | MagicParseException | MagicMatchNotFoundException e) {
+        } catch (final MagicException | MagicParseException | MagicMatchNotFoundException _) {
             return "";
         }
 

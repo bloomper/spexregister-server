@@ -98,7 +98,7 @@ public class SpexGraphqlApi {
     public @Nullable SpexDto retrieveParent(final SpexDto dto) {
         try {
             return service.findParentById(dto.getId());
-        } catch (final ResourceNoValueException e) {
+        } catch (final ResourceNoValueException _) {
             // Ignore
             return null;
         }
@@ -141,7 +141,7 @@ public class SpexGraphqlApi {
     public @Nullable SpexCategoryDto retrieveCategory(final SpexDto dto) {
         try {
             return service.findCategoryBySpex(dto.getId());
-        } catch (final ResourceNoValueException e) {
+        } catch (final ResourceNoValueException _) {
             // Ignore
             return null;
         }

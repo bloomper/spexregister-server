@@ -33,7 +33,7 @@ import java.util.function.Function;
  * @author Anders Jacobsson
  * @since 2.0
  */
-abstract class FluentQuerySupport<S, R>  {
+abstract class FluentQuerySupport<S, R> {
     protected final Class<R> resultType;
     protected final Sort sort;
     protected final int limit;
@@ -72,7 +72,7 @@ abstract class FluentQuerySupport<S, R>  {
         if (targetType.isAssignableFrom(inputType)) {
             return (Function<Object, R>) Function.identity();
         } else {
-            return targetType.isInterface() ? (o) -> projectionFactory.createProjection(targetType, o) : (o) -> DefaultConversionService.getSharedInstance().convert(o, targetType);
+            return targetType.isInterface() ? o -> projectionFactory.createProjection(targetType, o) : o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
         }
     }
 

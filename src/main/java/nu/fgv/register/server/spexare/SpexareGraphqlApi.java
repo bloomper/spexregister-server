@@ -108,7 +108,7 @@ public class SpexareGraphqlApi {
     public @Nullable SpexareDto retrievePartner(final SpexareDto dto) {
         try {
             return service.findPartnerBySpexare(dto.getId());
-        } catch (final ResourceNoValueException e) {
+        } catch (final ResourceNoValueException _) {
             // Ignore
             return null;
         }

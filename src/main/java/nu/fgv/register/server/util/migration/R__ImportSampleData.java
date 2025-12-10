@@ -955,7 +955,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
             }
 
             return outputStream.toByteArray();
-        } catch (final IOException e) {
+        } catch (final IOException _) {
             return imageToByteArray(faker.image().base64PNG());
         }
     }

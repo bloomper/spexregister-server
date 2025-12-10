@@ -57,7 +57,7 @@ class CellWriter extends FieldAccessor {
 
         try {
             value = (Date) field.get(obj);
-        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }
@@ -69,7 +69,7 @@ class CellWriter extends FieldAccessor {
 
         try {
             value = new Date(((java.sql.Date) field.get(obj)).getTime());
-        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }
@@ -81,7 +81,7 @@ class CellWriter extends FieldAccessor {
 
         try {
             value = ((Calendar) field.get(obj)).getTime();
-        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | IllegalAccessException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }

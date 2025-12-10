@@ -116,7 +116,7 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
                             return field.getAnnotation(KeywordField.class).sortable().equals(Sortable.YES);
                         }
                         return false;
-                    } catch (final IllegalStateException e) {
+                    } catch (final IllegalStateException _) {
                         return false;
                     }
                 })

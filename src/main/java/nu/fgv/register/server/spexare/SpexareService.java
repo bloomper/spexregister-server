@@ -358,7 +358,7 @@ public class SpexareService {
                     try {
                         searchResult.aggregation(AggregationKey.of(a));
                         return true;
-                    } catch (final SearchException e) {
+                    } catch (final SearchException _) {
                         return false;
                     }
                 })

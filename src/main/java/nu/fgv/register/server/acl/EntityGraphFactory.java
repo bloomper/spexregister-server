@@ -41,16 +41,16 @@ abstract class EntityGraphFactory {
         final EntityGraph<T> entityGraph = entityManager.createEntityGraph(domainType);
         final Map<String, Subgraph<Object>> existingSubgraphs = new HashMap<>();
 
-        for(final String property : properties) {
+        for (final String property : properties) {
             Subgraph<Object> current = null;
             String currentFullPath = "";
 
-            for(final PropertyPath path : PropertyPath.from(property, domainType)) {
+            for (final PropertyPath path : PropertyPath.from(property, domainType)) {
                 currentFullPath = currentFullPath + path.getSegment() + ".";
                 if (path.hasNext()) {
                     final Subgraph<Object> finalCurrent = current;
 
-                    current = current == null ? existingSubgraphs.computeIfAbsent(currentFullPath, (k) -> entityGraph.addSubgraph(path.getSegment())) : existingSubgraphs.computeIfAbsent(currentFullPath, (k) -> finalCurrent.addSubgraph(path.getSegment()));
+                    current = current == null ? existingSubgraphs.computeIfAbsent(currentFullPath, k -> entityGraph.addSubgraph(path.getSegment())) : existingSubgraphs.computeIfAbsent(currentFullPath, k -> finalCurrent.addSubgraph(path.getSegment()));
                 } else if (current == null) {
                     entityGraph.addAttributeNodes(path.getSegment());
                 } else {

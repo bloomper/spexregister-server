@@ -92,7 +92,7 @@ public class TaskGraphqlApi {
     public @Nullable TaskCategoryDto retrieveCategory(final TaskDto dto) {
         try {
             return service.findCategoryByTask(dto.getId());
-        } catch (final ResourceNoValueException e) {
+        } catch (final ResourceNoValueException _) {
             // Ignore
             return null;
         }

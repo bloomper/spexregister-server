@@ -5,22 +5,22 @@
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="APP_IV" />
-        <option name="value" value="2914543837337896" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="APP_SECRET_KEY" />
-        <option name="value" value="fTjWnZr4u7x!A%D*G-KaPdSgVkXp2s5v" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="APP_KEYCLOAK_ADMIN_CLIENT_SECRET" />
-        <option name="value" value="YGXDSS5oiZFf4fnTWfX4LImOToPlVOhF" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="APP_KEYCLOAK_URL" />
-        <option name="value" value="http://keycloak.fgv.local.nu:8081/auth" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
@@ -45,11 +45,6 @@
     </additionalParameters>
     <module name="spexregister-server.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication" />
-    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
-      <option name="credential" />
-      <option name="region" />
-      <option name="useCurrentConnection" value="false" />
-    </extension>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

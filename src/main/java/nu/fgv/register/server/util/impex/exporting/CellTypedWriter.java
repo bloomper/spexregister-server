@@ -51,7 +51,7 @@ class CellTypedWriter {
         Date value = null;
         try {
             value = (Date) obj;
-        } catch (final IllegalArgumentException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }
@@ -62,7 +62,7 @@ class CellTypedWriter {
         Date value = null;
         try {
             value = new Date(((java.sql.Date) obj).getTime());
-        } catch (final IllegalArgumentException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }
@@ -73,7 +73,7 @@ class CellTypedWriter {
         Date value = null;
         try {
             value = ((Calendar) obj).getTime();
-        } catch (final IllegalArgumentException | NullPointerException | ClassCastException e) {
+        } catch (final IllegalArgumentException | NullPointerException | ClassCastException _) {
             log.warn("Could not write to cell, defaulting to ERROR");
             cell.setCellErrorValue(FormulaError.VALUE.getCode());
         }

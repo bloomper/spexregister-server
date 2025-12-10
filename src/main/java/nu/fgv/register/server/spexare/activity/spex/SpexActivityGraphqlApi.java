@@ -89,7 +89,7 @@ public class SpexActivityGraphqlApi {
                             "activityId", dto.getId()
                     )
             );
-        } catch (final ResourceNotFoundException e) {
+        } catch (final ResourceNotFoundException _) {
             return null;
         }
     }
