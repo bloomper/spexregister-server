@@ -51,7 +51,7 @@ services:
       - |
         export KC_DB_PASSWORD=$$(cat /run/secrets/MYSQL_KEYCLOAK_USER_PASSWORD)
         export KEYCLOAK_ADMIN_PASSWORD=$$(cat /run/secrets/KEYCLOAK_ADMIN_PASSWORD)
-        /opt/keycloak/bin/kc.sh start-dev --hostname localhost --http-port 8081 --http-enabled true --import-realm
+        /opt/keycloak/bin/kc.sh start-dev --hostname keycloak.fgv.local.nu --http-port 8081 --http-enabled true --import-realm
     environment:
       KC_HTTP_RELATIVE_PATH: /auth
       KC_HEALTH_ENABLED: true
@@ -67,7 +67,7 @@ services:
       - "8081:8081"
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: keycloak.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,8 +81,10 @@ services:
       - keycloak_log_data:/opt/keycloak/data/log
       - ./src/test/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
     networks:
-      - app_network
-      - keycloak_network
+      app_network:
+          aliases:
+            - keycloak.fgv.local.nu
+      keycloak_network:
     secrets:
       - MYSQL_KEYCLOAK_USER_PASSWORD
       - KEYCLOAK_ADMIN_PASSWORD
@@ -97,7 +99,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_APP_USER}
       SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
       LOGGING_FILE_PATH: /data/log_data
-      APP_KEYCLOAK_URL: http://keycloak:8081/auth
+      APP_KEYCLOAK_URL: http://keycloak.fgv.local.nu:8081/auth
       APP_KEYCLOAK_REALM: ${APP_KEYCLOAK_REALM}
       APP_KEYCLOAK_ADMIN_CLIENT_ID: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
       APP_KEYCLOAK_CLIENT_CLIENT_ID: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
@@ -106,7 +108,7 @@ services:
       - "8080:8080"
     restart: on-failure
     healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /actuator/health HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3" ]
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /actuator/health HTTP/1.1\r\nhost: api.register.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -119,7 +121,9 @@ services:
       - app_log_data:/data/log_data
       - app_index_data:/data/index_data
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - api.register.fgv.local.nu
     secrets:
       - MYSQL_APP_USER_PASSWORD
       - APP_KEYCLOAK_ADMIN_CLIENT_SECRET
