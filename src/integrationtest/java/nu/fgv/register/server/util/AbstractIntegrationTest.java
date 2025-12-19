@@ -131,7 +131,7 @@ public abstract class AbstractIntegrationTest {
     private static final OpensearchContainer opensearch;
 
     static {
-        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.3.2"));
+        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.4.0"));
         opensearch.start();
     }
     */
