@@ -48,10 +48,16 @@ public class NewsSpecification extends BaseSpecification<News> {
     }
 
     public static Specification<News> hasVisibleToToday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(News_.visibleTo), LocalDate.now());
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                criteriaBuilder.equal(root.get(News_.visibleTo), LocalDate.now()),
+                criteriaBuilder.isNull(root.get(News_.visibleTo))
+        );
     }
 
     public static Specification<News> hasVisibleToAfterToday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get(News_.visibleTo), LocalDate.now());
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                criteriaBuilder.greaterThan(root.get(News_.visibleTo), LocalDate.now()),
+                criteriaBuilder.isNull(root.get(News_.visibleTo))
+        );
     }
 }
