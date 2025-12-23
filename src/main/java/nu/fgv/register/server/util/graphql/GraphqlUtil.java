@@ -36,11 +36,11 @@ public class GraphqlUtil {
     }
 
     public static <T> Window<T> emptyWindow() {
-        return Window.from(Collections.emptyList(), index -> ScrollPosition.offset(0), false);
+        return Window.from(Collections.emptyList(), _ -> ScrollPosition.offset(0), false);
     }
 
     public static Window<SpexDto> emptyWindow(final ScrollPosition scrollPosition) {
-        return Window.from(Collections.emptyList(), index -> scrollPosition, false);
+        return Window.from(Collections.emptyList(), _ -> scrollPosition, false);
     }
 
     public static <T extends Enum<?>> ScrollPositionAndLimitHolder extractScrollPositionAndLimitAndOrder(final ScrollSubrange subrange) {

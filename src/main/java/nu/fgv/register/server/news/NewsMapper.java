@@ -78,6 +78,6 @@ public interface NewsMapper {
         final LocalDate today = LocalDate.now();
 
         return (visibleFrom != null && (visibleFrom.isEqual(today) || visibleFrom.isBefore(today))) &&
-                (visibleTo != null && (visibleTo.isEqual(today) || visibleTo.isAfter(today)));
+                (visibleTo == null || visibleTo.isEqual(today) || visibleTo.isAfter(today));
     }
 }
