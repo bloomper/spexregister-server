@@ -74,7 +74,7 @@ public class NewsApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = News_.VISIBLE_FROM, direction = Sort.Direction.ASC) final Pageable pageable,
+    public ResponseEntity<PagedModel<EntityModel<NewsDto>>> retrieve(@SortDefault(sort = News_.VISIBLE_FROM, direction = Sort.Direction.DESC) final Pageable pageable,
                                                                      @RequestParam(required = false, defaultValue = News_.PUBLISHED + ":" + FilterOperation.TRUE) final String filter) {
         final PagedModel<EntityModel<NewsDto>> paged = pagedResourcesAssembler.toModel(service.find(filter, pageable));
 
