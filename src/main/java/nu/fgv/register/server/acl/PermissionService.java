@@ -61,8 +61,13 @@ public class PermissionService {
             acl = mutableAclService.createAcl(oid);
         }
 
-        acl.insertAce(acl.getEntries().size(), permission, recipient, true);
-        mutableAclService.updateAcl(acl);
+        final boolean alreadyExists = acl.getEntries().stream()
+                .anyMatch(entry -> entry.getSid().equals(recipient) && entry.getPermission().equals(permission));
+
+        if (!alreadyExists) {
+            acl.insertAce(acl.getEntries().size(), permission, recipient, true);
+            mutableAclService.updateAcl(acl);
+        }
     }
 
     public void revokePermission(final ObjectIdentity oid, final Permission permission, final Sid... recipients) {

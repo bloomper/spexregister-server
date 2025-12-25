@@ -77,7 +77,9 @@ public interface NewsMapper {
     default boolean isPublished(@Nullable final LocalDate visibleFrom, @Nullable final LocalDate visibleTo) {
         final LocalDate today = LocalDate.now();
 
-        return (visibleFrom != null && (visibleFrom.isEqual(today) || visibleFrom.isBefore(today))) &&
-                (visibleTo == null || visibleTo.isEqual(today) || visibleTo.isAfter(today));
+        final boolean isFromValid = visibleFrom != null && (visibleFrom.isEqual(today) || visibleFrom.isBefore(today));
+        final boolean isToValid = visibleTo == null || visibleTo.isEqual(today) || visibleTo.isAfter(today);
+
+        return isFromValid && isToValid;
     }
 }

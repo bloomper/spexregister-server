@@ -518,7 +518,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
