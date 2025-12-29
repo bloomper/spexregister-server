@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.EntityManager;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -23,11 +24,12 @@ import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,8 @@ import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.ApiVersionInserter;
 import tools.jackson.core.type.TypeReference;
@@ -72,6 +76,8 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final EasyRandom random;
     private final SpexareRepository repository;
     private final EventRepository eventRepository;
+    private final EntityManager entityManager;
+    private final PlatformTransactionManager transactionManager;
 
     @Value("${spring.jpa.properties.hibernate.search.backend.directory.root")
     private String indexDataLocation;
@@ -85,10 +91,14 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final PermissionService permissionService,
                                             final SpexareRepository repository,
                                             final EventRepository eventRepository,
-                                            final ObjectMapper objectMapper) {
+                                            final ObjectMapper objectMapper,
+                                            final EntityManager entityManager,
+                                            final PlatformTransactionManager transactionManager) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
+        this.entityManager = entityManager;
+        this.transactionManager = transactionManager;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -273,7 +283,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Nested
     @DisplayName("Search paged")
-    @Disabled
     class SearchPagedTests {
 
         @Test
@@ -296,6 +305,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             httpGraphQlTester
                     .mutate()
@@ -320,6 +330,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 repository.save(spexare);
                 grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
+            syncIndex();
 
             httpGraphQlTester
                     .mutate()
@@ -340,6 +351,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             httpGraphQlTester
                     .mutate()
@@ -359,6 +371,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             httpGraphQlTester
                     .mutate()
@@ -1172,4 +1185,18 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         return repository.save(spexare);
     }
 
+    private void syncIndex() {
+        final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        transactionTemplate.execute(status -> {
+            final SearchSession searchSession = Search.session(entityManager);
+            try {
+                searchSession.massIndexer(Spexare.class).startAndWait();
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+    }
 }

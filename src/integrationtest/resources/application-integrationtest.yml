@@ -5,7 +5,7 @@ spring:
         search:
           backend:
             directory:
-              root: ./integrationtest-data/index_data
+              type: local-heap
           indexing:
             plan:
               synchronization:

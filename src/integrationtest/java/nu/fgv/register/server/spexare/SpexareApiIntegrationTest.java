@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.EntityManager;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
@@ -24,12 +25,13 @@ import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ResourceUtils;
@@ -77,6 +81,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     private final SpexareRepository repository;
     private final EventRepository eventRepository;
     private final ResourceLoader resourceLoader;
+    private final EntityManager entityManager;
+    private final PlatformTransactionManager transactionManager;
 
     @Value("${spring.jpa.properties.hibernate.search.backend.directory.root")
     private String indexDataLocation;
@@ -91,11 +97,15 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                      final SpexareRepository repository,
                                      final EventRepository eventRepository,
                                      final ObjectMapper objectMapper,
-                                     final ResourceLoader resourceLoader) {
+                                     final ResourceLoader resourceLoader,
+                                     final EntityManager entityManager,
+                                     final PlatformTransactionManager transactionManager) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.eventRepository = eventRepository;
         this.resourceLoader = resourceLoader;
+        this.entityManager = entityManager;
+        this.transactionManager = transactionManager;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -310,7 +320,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Search paged")
-    @Disabled
     class SearchPagedTests {
 
         @Test
@@ -340,6 +349,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -371,6 +381,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 repository.save(spexare);
                 grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
+            syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -398,6 +409,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -424,6 +436,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -1357,4 +1370,18 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         return repository.save(spexare);
     }
 
+    private void syncIndex() {
+        final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        transactionTemplate.execute(status -> {
+            final SearchSession searchSession = Search.session(entityManager);
+            try {
+                searchSession.massIndexer(Spexare.class).startAndWait();
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+    }
 }
