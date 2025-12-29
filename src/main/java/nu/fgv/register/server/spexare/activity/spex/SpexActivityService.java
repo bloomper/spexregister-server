@@ -160,7 +160,10 @@ public class SpexActivityService {
                                     .findById(id)
                                     .filter(spexActivity -> spexActivity.getActivity().equals(activity))
                                     .ifPresentOrElse(
-                                            spexActivity -> repository.deleteById(spexActivity.getId()),
+                                            spexActivity -> {
+                                                activity.setSpexActivity(null);
+                                                repository.deleteById(spexActivity.getId());
+                                            },
                                             () -> {
                                                 throw new ResourceNotFoundException(SpexActivity.class, id);
                                             }

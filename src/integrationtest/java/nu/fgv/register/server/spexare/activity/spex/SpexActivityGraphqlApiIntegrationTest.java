@@ -37,7 +37,6 @@ import org.jeasy.random.EasyRandomParameters;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -619,7 +618,6 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
     class DeleteTests {
 
         @Test
-        @Disabled
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -877,6 +875,7 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         final var activity = random.nextObject(Activity.class);
 
         activity.setSpexare(spexare);
+        activity.setSpexActivity(null);
 
         return activity;
     }

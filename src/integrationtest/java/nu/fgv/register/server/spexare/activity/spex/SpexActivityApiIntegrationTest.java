@@ -29,22 +29,18 @@ import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
-import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -57,7 +53,6 @@ import org.springframework.web.client.ApiVersionInserter;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
@@ -922,7 +917,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     class DeleteTests {
 
         @Test
-        @Disabled
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -943,22 +937,15 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                     .exchange()
                     .expectStatus().isNoContent();
 
-            final List<SpexActivityDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<SpexActivityDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("spex-activities");
+            restTestClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isNotFound();
 
-            assertThat(result).isEmpty();
             assertThat(repository.count()).isZero();
         }
 
@@ -1172,6 +1159,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         final var activity = random.nextObject(Activity.class);
 
         activity.setSpexare(spexare);
+        activity.setSpexActivity(null);
 
         return activity;
     }

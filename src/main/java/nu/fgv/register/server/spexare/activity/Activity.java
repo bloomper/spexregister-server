@@ -43,6 +43,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Associatio
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -74,6 +75,7 @@ public class Activity extends AbstractAuditable implements Serializable {
     @OneToOne(mappedBy = "activity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private SpexActivity spexActivity;
 
     @OneToMany(mappedBy = "activity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)

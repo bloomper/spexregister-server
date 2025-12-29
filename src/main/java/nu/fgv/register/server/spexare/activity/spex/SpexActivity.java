@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -70,7 +71,7 @@ public class SpexActivity extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "activity_id")
     @NotNull
     @AssociationInverseSide(
