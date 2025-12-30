@@ -137,11 +137,15 @@ These are the steps to create a realm in Keycloak:
 * Create realm ``fgv``
 ** Allow email to be used as username
 * Create client ``spexregister``
+** Enable client authentication
+*** The generated secret found under Credentials -> Client Secret is the one to use for any clients
 ** Create role ``USER``
 ** Create role ``EDITOR``
 ** Create role ``ADMIN``
+** Disable full scopes (client scopes -> spexregister-dedicated -> Scope -> Full scope allowed -> Off)
 * Create client ``fgv-admin``
 ** Enable client authentication
+*** The generated secret found under Credentials -> Client Secret is the one to use for Spexregister Server
 ** Enable service account roles
 ** Disable standard flow
 ** Disable direct access grants
@@ -216,6 +220,7 @@ To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`
 |Auth URL|http://keycloak.fgv.local.nu:8081/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Access Token URL|http://keycloak.fgv.local.nu:8081/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Client ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
 |Scope|offline_access|
 |Client Authentication|Send as Basic Auth header|
 
@@ -238,6 +243,7 @@ $ export <environment variable>=<value>
 |``BRAUZIE_KC_URL``|http://keycloak.fgv.local.nu:8081|
 |``BRAUZIE_REALM``|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |``BRAUZIE_CLIENT_ID``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|``BRAUZIE_CLIENT_SECRET``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
 
 !===
 

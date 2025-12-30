@@ -42,6 +42,11 @@
         <option name="name" value="APP_IMPORT_SAMPLE_DATA" />
         <option name="value" value="false" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_KEYCLOAK_CLIENT_CLIENT_SECRET" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
     </additionalParameters>
     <module name="spexregister-server.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication" />

@@ -36,5 +36,6 @@ spexregister:
       client-secret: YGXDSS5oiZFf4fnTWfX4LImOToPlVOhF
     client:
       client-id: spexregister
+      client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
   sample-data:
     import: false

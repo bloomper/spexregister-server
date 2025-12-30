@@ -128,4 +128,5 @@ public class SecurityConfig {
                 .map(ClientRepresentation::getId)
                 .orElseThrow(() -> new RuntimeException("Could not retrieve id of client in Keycloak"));
     }
+
 }

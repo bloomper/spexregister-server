@@ -87,7 +87,6 @@ public abstract class AbstractIntegrationTest {
 
     private static final String TEST_REALM = "fgv";
     private static final String TEST_GRANT_TYPE = "password";
-    private static final String TEST_CLIENT_ID = "spexregister";
     private static final String TEST_DOMAIN = "@spexregister.com";
     private static final String TEST_PASSWORD = "s3cr3t";
     protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
@@ -118,6 +117,9 @@ public abstract class AbstractIntegrationTest {
 
     @Value("${spexregister.keycloak.client.client-id}")
     protected String keycloakClientClientId;
+
+    @Value("${spexregister.keycloak.client.client-secret}")
+    protected String keycloakClientClientSecret;
 
     @LocalServerPort
     protected int localPort;
@@ -218,7 +220,8 @@ public abstract class AbstractIntegrationTest {
                 final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 
                 formData.put("grant_type", Collections.singletonList(TEST_GRANT_TYPE));
-                formData.put("client_id", Collections.singletonList(TEST_CLIENT_ID));
+                formData.put("client_id", Collections.singletonList(keycloakClientClientId));
+                formData.put("client_secret", Collections.singletonList(keycloakClientClientSecret));
                 formData.put("username", Collections.singletonList(username));
                 formData.put("password", Collections.singletonList(password));
 

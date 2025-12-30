@@ -790,6 +790,7 @@
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
+    "secret" : "ip8dFYgp03sVytrrEeXgwHIgHAMtE350",
     "redirectUris" : [ "*" ],
     "webOrigins" : [ "/*" ],
     "notBefore" : 0,
@@ -805,11 +806,12 @@
     "attributes" : {
       "oidc.ciba.grant.enabled" : "false",
       "oauth2.device.authorization.grant.enabled" : "false",
+      "client.secret.creation.time" : "1705741680",
       "backchannel.logout.session.required" : "true",
       "backchannel.logout.revoke.offline.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
+    "fullScopeAllowed" : false,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "profile", "roles", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]

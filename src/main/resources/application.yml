@@ -89,5 +89,6 @@ spexregister:
       client-secret: ${APP_KEYCLOAK_ADMIN_CLIENT_SECRET}
     client:
       client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
+      client-secret: ${APP_KEYCLOAK_CLIENT_CLIENT_SECRET}
   sample-data:
     import: ${APP_IMPORT_SAMPLE_DATA}

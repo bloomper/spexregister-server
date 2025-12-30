@@ -127,6 +127,7 @@ services:
     secrets:
       - MYSQL_APP_USER_PASSWORD
       - APP_KEYCLOAK_ADMIN_CLIENT_SECRET
+      - APP_KEYCLOAK_CLIENT_CLIENT_SECRET
       - APP_SECRET_KEY
       - APP_IV
 
@@ -193,6 +194,8 @@ secrets:
     file: .docker/secrets/KEYCLOAK_ADMIN_PASSWORD
   APP_KEYCLOAK_ADMIN_CLIENT_SECRET:
     file: .docker/secrets/APP_KEYCLOAK_ADMIN_CLIENT_SECRET
+  APP_KEYCLOAK_CLIENT_CLIENT_SECRET:
+    file: .docker/secrets/APP_KEYCLOAK_CLIENT_CLIENT_SECRET
   APP_SECRET_KEY:
     file: .docker/secrets/APP_SECRET_KEY
   APP_IV:
