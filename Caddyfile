@@ -1,0 +1,15 @@
+{
+    local_certs
+    http_port 8080
+    https_port 8443
+}
+
+keycloak.fgv.local.nu:8443 {
+    tls internal
+    reverse_proxy keycloak:8081
+}
+
+api.register.fgv.local.nu:8443 {
+    tls internal
+    reverse_proxy app:8080
+}
