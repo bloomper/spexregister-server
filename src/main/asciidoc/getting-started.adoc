@@ -84,6 +84,7 @@ Add the following to `/etc/hosts` (or the Windows equivalent):
 ###################################
 127.0.0.1 keycloak.fgv.local.nu
 127.0.0.1 api.register.fgv.local.nu
+127.0.0.1 register.fgv.local.nu
 ----
 
 [[run]]
