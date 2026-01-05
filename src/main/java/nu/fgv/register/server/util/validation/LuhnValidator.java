@@ -88,8 +88,9 @@ public class LuhnValidator implements ConstraintValidator<Luhn, String> {
         for (int i = 0; i < value.length(); i++) {
             temp = Character.getNumericValue(value.charAt(i));
             temp *= 2 - (i % 2);
-            if (temp > 9)
+            if (temp > 9) {
                 temp -= 9;
+            }
 
             sum += temp;
         }

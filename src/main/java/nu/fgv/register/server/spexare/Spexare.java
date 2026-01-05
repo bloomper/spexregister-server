@@ -138,6 +138,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Nullable
     private String graduation;
 
+    @Size(max = 10000, message = "{spexare.comment.size}")
     @Lob
     @Column(name = "comment")
     @FullTextField(searchable = Searchable.YES)
