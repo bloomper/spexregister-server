@@ -1,6 +1,6 @@
 {
     local_certs
-    http_port 8080
+    http_port 0
     https_port 8443
 }
 
