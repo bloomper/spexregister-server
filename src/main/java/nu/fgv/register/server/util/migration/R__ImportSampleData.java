@@ -517,7 +517,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .param("streetAddress", faker.address().streetAddress())
                                 .param("postalCode", faker.address().zipCode())
                                 .param("city", faker.address().city())
-                                .param("country", faker.address().country())
+                                .param("country", faker.address().countryCode())
                                 .param("phone", rnd.nextBoolean() ? faker.phoneNumber().phoneNumber() : null)
                                 .param("phoneMobile", rnd.nextBoolean() ? faker.phoneNumber().cellPhone() : null)
                                 .param("emailAddress", rnd.nextBoolean() ? faker.internet().emailAddress() : null)
