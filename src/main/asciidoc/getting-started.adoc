@@ -127,7 +127,7 @@ Docker image.
 [[keycloak_administration]]
 === Administration UI
 
-The administrative UI of Keycloak can be accessed at http://keycloak.fgv.local.nu:8081/auth. The username is set
+The administrative UI of Keycloak can be accessed at https://keycloak.fgv.local.nu:8443/auth. The username is set
 by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
 
 [[keycloak_setup]]
@@ -218,8 +218,8 @@ To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`
 |Field|Value|Comment
 
 |Callback URL|https://oauth.pstmn.io/v1/browser-callback|
-|Auth URL|http://keycloak.fgv.local.nu:8081/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|Access Token URL|http://keycloak.fgv.local.nu:8081/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Auth URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Access Token URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Client ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
 |Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
 |Scope|offline_access|
@@ -241,7 +241,7 @@ $ export <environment variable>=<value>
 
 |Environment variable|Value|Comment
 
-|``BRAUZIE_KC_URL``|http://keycloak.fgv.local.nu:8081|
+|``BRAUZIE_KC_URL``|https://keycloak.fgv.local.nu:8443|
 |``BRAUZIE_REALM``|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |``BRAUZIE_CLIENT_ID``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
 |``BRAUZIE_CLIENT_SECRET``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
