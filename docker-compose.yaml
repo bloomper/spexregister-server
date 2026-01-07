@@ -77,7 +77,7 @@ services:
     volumes:
       - ./build/keycloak-providers:/opt/keycloak/providers
       - keycloak_log_data:/opt/keycloak/data/log
-      - ./src/test/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
+      - ./src/main/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
     networks:
       - app_network
       - keycloak_network
