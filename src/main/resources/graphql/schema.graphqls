@@ -42,3 +42,4 @@ scalar Email
 scalar Year
 scalar SocialSecurityNumber
 scalar Void
+scalar Long

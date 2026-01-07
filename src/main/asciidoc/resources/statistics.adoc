@@ -1,0 +1,18 @@
+= Tag
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[get]]
+== Get
+
+operation::statistics-get[snippets='security,request-headers,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

@@ -66,6 +66,7 @@ import java.sql.Connection;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -246,6 +247,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
                 });
 
+        final String taskSql = "UPDATE task SET created_at = :createdAt WHERE id = :id";
+
         jdbcClient.sql("SELECT id FROM task")
                 .query()
                 .listOfRows()
@@ -256,6 +259,11 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+
+                    jdbcClient.sql(taskSql)
+                            .param("createdAt", randomizeCreatedAt())
+                            .param("id", id)
+                            .update();
                 });
     }
 
@@ -310,6 +318,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .update()
                 );
 
+        final String spexSql = "UPDATE spex SET created_at = :createdAt WHERE id = :id";
+
         jdbcClient.sql("SELECT id FROM spex")
                 .query()
                 .listOfRows()
@@ -320,6 +330,11 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                     permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+
+                    jdbcClient.sql(spexSql)
+                            .param("createdAt", randomizeCreatedAt())
+                            .param("id", id)
+                            .update();
                 });
     }
 
@@ -431,7 +446,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     .param("graduation", rnd.nextBoolean() ? faker.regexify("[ABDEGKMIVT]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                    .param("createdAt", randomizeCreatedAt())
                     .update(keyHolder);
 
             if (keyHolder.getKey() != null) {
@@ -804,7 +819,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .param("stateId", states.get(rnd.nextInt(states.size())))
                                 .param("spexareId", spexareId)
                                 .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                                .param("createdAt", randomizeCreatedAt())
                                 .update(keyHolder);
 
                         if (keyHolder.getKey() != null) {
@@ -974,5 +989,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
         alreadyPickedSpexareIds.add(pickedSpexareId);
 
         return pickedSpexareId;
+    }
+
+    private OffsetDateTime randomizeCreatedAt() {
+        return faker.timeAndDate().past(3 * 365, TimeUnit.DAYS).atZone(ZoneId.of("UTC")).toOffsetDateTime();
     }
 }

@@ -35,4 +35,6 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
         return this
                 .findById(id);
     }
+
+    long countByPublishedTrue();
 }

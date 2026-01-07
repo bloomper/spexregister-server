@@ -162,6 +162,7 @@ Spexregister Server uses the following resources:
 ** xref:resources/spexare-membership.adoc[Membership]
 ** xref:resources/spexare-tagging.adoc[Tag]
 ** xref:resources/spexare-toggle.adoc[Toggle]
+* xref:resources/statistics.adoc[Statistics]
 * xref:resources/tag.adoc[Tag]
 * xref:resources/task.adoc[Task]
 ** xref:resources/task-category.adoc[Task category]

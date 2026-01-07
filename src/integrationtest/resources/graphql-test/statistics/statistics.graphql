@@ -1,0 +1,29 @@
+query statistics {
+    statistics {
+        spexareCount
+        spexareCountHistory {
+            label
+            count
+        }
+        userCount
+        userCountHistory {
+            label
+            count
+        }
+        spexCount
+        spexCountHistory {
+            label
+            count
+        }
+        spexRevivalCount
+        spexRevivalCountHistory {
+            label
+            count
+        }
+        taskCount
+        taskCountHistory {
+            label
+            count
+        }
+    }
+}

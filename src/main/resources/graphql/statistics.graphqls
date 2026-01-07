@@ -1,0 +1,21 @@
+extend type Query {
+    statistics: Statistics
+}
+
+type Statistics {
+    spexareCount: Long
+    spexareCountHistory: [History]
+    userCount: Long
+    userCountHistory: [History]
+    spexCount: Long
+    spexCountHistory: [History]
+    spexRevivalCount: Long
+    spexRevivalCountHistory: [History]
+    taskCount: Long
+    taskCountHistory: [History]
+}
+
+type History {
+    label: String!
+    count: Long!
+}
