@@ -428,7 +428,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             null)
                     .param("deceased", rnd.nextInt(4) == 0)
                     .param("published", published)
-                    .param("graduation", rnd.nextBoolean() ? faker.regexify("[A|B|D|E|G|K|M|I|V|T]\\d{2}") : null)
+                    .param("graduation", rnd.nextBoolean() ? faker.regexify("[ABDEGKMIVT]\\d{2}") : null)
                     .param("comment", rnd.nextBoolean() ? faker.lorem().paragraph() : null)
                     .param("createdBy", SYSTEM_USER)
                     .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
