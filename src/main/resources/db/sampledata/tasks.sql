@@ -19,6 +19,16 @@ VALUES ('Bandet', 0, 'system', CURRENT_TIME);
 SET
 @task_category_bandet = LAST_INSERT_ID();
 
+INSERT INTO task_category (name, actor_present, created_by, created_at)
+VALUES ('Symphonin', 0, 'system', CURRENT_TIME);
+SET
+@task_category_symphonin = LAST_INSERT_ID();
+
+INSERT INTO task_category (name, actor_present, created_by, created_at)
+VALUES ('Annat', 0, 'system', CURRENT_TIME);
+SET
+@task_category_annat = LAST_INSERT_ID();
+
 -- Tasks
 INSERT INTO task (name, category_id, created_by, created_at)
 VALUES ('Affisch', @task_category_annat, 'system', CURRENT_TIME),
