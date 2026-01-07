@@ -174,6 +174,17 @@ do the following:
 * Set password ``s3cr3t`` for all users
 * Export by ``./kc.sh export --users realm_file --file fgv.json --realm fgv``
 
+[[caddy]]
+== Caddy
+
+Caddy is used as a web server in front of Keycloak and Spexregister Server and takes care of creating and
+assigning an SSL certificate. However, since it is listening to local addresses, the certificate is not created
+by a proper CA (Certificate Authority). It is therefore needed to import the root certificate to avoid browsers
+complaining about the certificate.
+
+The root certificate can be found in ``.docker/caddy/data/caddy/pki/authorities/local/root.crt``. Import it into
+your OS's trust manager.
+
 [[tests]]
 == Tests
 
