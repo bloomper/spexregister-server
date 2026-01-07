@@ -24,6 +24,8 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -106,14 +108,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public Keycloak keycloakAdminClient() {
-        return KeycloakBuilder.builder()
+    public Keycloak keycloakAdminClient(final Environment env) {
+        final KeycloakBuilder builder = KeycloakBuilder.builder()
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .serverUrl(keycloakUrl)
                 .realm(keycloakRealm)
                 .clientId(keycloakAdminClientId)
-                .clientSecret(keycloakAdminClientSecret)
-                .build();
+                .clientSecret(keycloakAdminClientSecret);
+
+        if (env.acceptsProfiles(Profiles.of("local"))) {
+            builder.resteasyClient(
+                    new org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl()
+                            .disableTrustManager()
+                            .build()
+            );
+        }
+
+        return builder.build();
     }
 
     @Bean

@@ -23,8 +23,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.accept.SemanticApiVersionParser;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.LocaleResolver;
@@ -33,6 +35,12 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.net.HttpURLConnection;
+import java.security.cert.X509Certificate;
 import java.util.Locale;
 
 /**
@@ -105,4 +113,32 @@ public class WebConfig implements WebMvcConfigurer {
         return resolver;
     }
 
+    @Bean
+    @Profile("local")
+    public RestTemplate restTemplate() throws Exception {
+        final TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() { return null; }
+                    public void checkClientTrusted(final X509Certificate[] certs, final String authType) {}
+                    public void checkServerTrusted(final X509Certificate[] certs, final String authType) {}
+                }
+        };
+
+        final SSLContext sc = SSLContext.getInstance("SSL");
+
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        return new RestTemplate(new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(final HttpURLConnection connection, final String httpMethod)
+                    throws java.io.IOException {
+                if (connection instanceof final HttpsURLConnection httpsConnection) {
+                    httpsConnection.setSSLSocketFactory(sc.getSocketFactory());
+                    httpsConnection.setHostnameVerifier((hostname, session) -> true);
+                }
+                super.prepareConnection(connection, httpMethod);
+            }
+        });
+    }
 }
