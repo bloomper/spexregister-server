@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.user;
 
+import nu.fgv.register.server.spexare.SpexareMapper;
 import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateMapper;
 import org.jspecify.annotations.Nullable;
@@ -38,7 +39,7 @@ import java.util.List;
  */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        uses = {StateMapper.class}
+        uses = {StateMapper.class, SpexareMapper.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,

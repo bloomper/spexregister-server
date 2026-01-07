@@ -36,6 +36,8 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -68,6 +70,12 @@ public class UserGraphqlApi {
     @RequiresAdmin
     public UserDto create(@Valid @Argument final UserCreateDto input) {
         return service.create(input);
+    }
+
+    @QueryMapping
+    @Nullable
+    public UserDto me(@AuthenticationPrincipal final Jwt jwt) {
+        return service.findByExternalId(jwt.getSubject());
     }
 
     @QueryMapping("user")

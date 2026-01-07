@@ -40,6 +40,8 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -135,6 +137,18 @@ public class UserService {
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
                 )
                 .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    @Nullable
+    public UserDto findByExternalId(final String externalId) {
+        return repository
+                .findByExternalId(externalId)
+                .flatMap(model ->
+                        findResourceByExternalId(model.getExternalId())
+                                .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
+                )
+                .orElse(null);
     }
 
     @RequiresAdmin

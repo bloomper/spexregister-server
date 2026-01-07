@@ -36,5 +36,8 @@ public interface UserRepository extends AclJpaRepository<User, Long>, JpaSpecifi
                 .findById(id);
     }
 
+    @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
+    Optional<User> findByExternalId(final String externalId);
+
     boolean existsByExternalId(String externalId);
 }

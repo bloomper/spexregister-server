@@ -40,6 +40,8 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -96,6 +98,17 @@ public class UserApi {
 
         return ResponseEntity.created(linkTo(methodOn(UserApi.class).retrieve(createdDto.getId())).toUri())
                 .body(EntityModel.of(createdDto, getLinks(createdDto)));
+    }
+
+    @GetMapping(value = "/me", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<EntityModel<UserDto>> retrieve(@AuthenticationPrincipal final Jwt jwt) {
+        final UserDto dto = service.findByExternalId(jwt.getSubject());
+
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
