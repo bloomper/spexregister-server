@@ -1,4 +1,4 @@
-mutation addressUpdate ($spexareId: ID!, $typeId: ID!, $id: ID!, $streetAddress: String, $postalCode: String, $city: String, $country: String, $phone: String, $phoneMobile: String, $emailAddress: Email) {
+mutation addressUpdate ($spexareId: ID!, $typeId: ID!, $id: ID!, $streetAddress: String, $postalCode: String, $city: String, $country: CountryCode, $phone: String, $phoneMobile: String, $emailAddress: Email) {
     addressUpdate(spexareId: $spexareId, typeId: $typeId, input: { id: $id, streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, phone: $phone, phoneMobile: $phoneMobile, emailAddress: $emailAddress }) {
         id
         streetAddress

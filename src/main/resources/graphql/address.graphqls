@@ -9,7 +9,7 @@ type Address {
     streetAddress: String
     postalCode: String
     city: String
-    country: String
+    country: CountryCode
     phone: String
     phoneMobile: String
     emailAddress: String
@@ -34,7 +34,7 @@ input AddressCreate {
     streetAddress: String
     postalCode: String
     city: String
-    country: String
+    country: CountryCode
     phone: String
     phoneMobile: String
     emailAddress: Email
@@ -45,7 +45,7 @@ input AddressUpdate {
     streetAddress: String
     postalCode: String
     city: String
-    country: String
+    country: CountryCode
     phone: String
     phoneMobile: String
     emailAddress: Email

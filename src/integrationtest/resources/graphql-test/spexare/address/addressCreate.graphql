@@ -1,4 +1,4 @@
-mutation addressCreate ($spexareId: ID!, $typeId: ID!, $streetAddress: String, $postalCode: String, $city: String, $country: String, $phone: String, $phoneMobile: String, $emailAddress: Email) {
+mutation addressCreate ($spexareId: ID!, $typeId: ID!, $streetAddress: String, $postalCode: String, $city: String, $country: CountryCode, $phone: String, $phoneMobile: String, $emailAddress: Email) {
     addressCreate(spexareId: $spexareId, typeId: $typeId, input: { streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, phone: $phone, phoneMobile: $phoneMobile, emailAddress: $emailAddress }) {
         id
         streetAddress

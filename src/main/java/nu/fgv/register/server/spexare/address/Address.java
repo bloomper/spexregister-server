@@ -88,7 +88,7 @@ public class Address extends AbstractAuditable implements Serializable {
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String city;
 
-    @Size(max = 255, message = "{address.country.size}")
+    @Size(max = 2, message = "{address.country.size}")
     @Column(name = "country")
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String country;

@@ -25,6 +25,7 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
+import nu.fgv.register.server.util.randomizer.CountryCodeRandomizer;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -96,6 +97,9 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                 )
                 .randomize(
                         named("emailAddress"), new EmailRandomizer()
+                )
+                .randomize(
+                        named("country"), new CountryCodeRandomizer()
                 )
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()

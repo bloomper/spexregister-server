@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS address
     street_address         VARCHAR(255)          NULL,
     postal_code            VARCHAR(255)          NULL,
     city                   VARCHAR(255)          NULL,
-    country                VARCHAR(255)          NULL,
+    country                VARCHAR(2)            NULL,
     phone                  VARCHAR(255)          NULL,
     phone_mobile           VARCHAR(255)          NULL,
     email_address          VARCHAR(255)          NULL,

@@ -25,6 +25,7 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.graphql.CustomErrorType;
+import nu.fgv.register.server.util.randomizer.CountryCodeRandomizer;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -91,6 +92,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 )
                 .randomize(
                         named("emailAddress"), new EmailRandomizer()
+                )
+                .randomize(
+                        named("country"), new CountryCodeRandomizer()
                 )
                 .randomize(
                         named("socialSecurityNumber"), new SocialSecurityNumberRandomizer()
