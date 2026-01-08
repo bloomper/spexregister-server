@@ -44,6 +44,9 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
     @JsonProperty("id")
     private Long id;
 
+    @JsonProperty("externalId")
+    private String externalId;
+
     @JsonProperty("email")
     private String email;
 
@@ -53,6 +56,7 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
     @Builder
     public UserDto(
             final Long id,
+            final String externalId,
             final String email,
             final String temporaryPassword,
             final String createdBy,
@@ -62,6 +66,7 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
     ) {
         super(createdBy, createdAt, lastModifiedBy, lastModifiedAt);
         this.id = id;
+        this.externalId = externalId;
         this.email = email;
         this.temporaryPassword = temporaryPassword;
     }

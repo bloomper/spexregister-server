@@ -20,7 +20,9 @@ extend type Mutation {
 
 type User {
     id: ID!
+    externalId: ID!
     email: Email!
+    temporaryPassword: String
     authorities: [Authority]
     state: State
     spexare: Spexare

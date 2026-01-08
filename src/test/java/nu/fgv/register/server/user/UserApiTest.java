@@ -97,6 +97,7 @@ class UserApiTest extends AbstractApiTest {
 
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the user"),
+            fieldWithPath("externalId").description("The external id of the user"),
             fieldWithPath("email").description("The email of the user"),
             fieldWithPath("temporaryPassword").description("The temporary password of the user").optional(),
             linksSubsection
