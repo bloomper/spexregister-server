@@ -153,7 +153,7 @@ public class UserService {
 
     @RequiresAdmin
     public UserDto create(final UserCreateDto dto) {
-        if (!doesUserWithEmailExist(dto.email())) {
+        if (!doesUserWithEmailExist(dto.email(), null)) {
             final String temporaryPassword = generateTemporaryPassword();
             final State initialState = getUserInitialState();
 
@@ -193,31 +193,32 @@ public class UserService {
 
     @RequiresAdmin
     public UserDto partialUpdate(final UserUpdateDto dto) {
-        if (!doesUserWithEmailExist(dto.email())) {
-            return repository
-                    .findById0(dto.id())
-                    .map(permissionService::checkWritePermission)
-                    .map(user -> {
+        return repository
+                .findById0(dto.id())
+                .map(permissionService::checkWritePermission)
+                .map(user -> {
+                    if (!doesUserWithEmailExist(dto.email(), user.getExternalId())) {
                         USER_MAPPER.toPartialModel(dto, user);
                         return user;
-                    })
-                    .map(repository::save)
-                    .map(model -> {
-                        findResourceByExternalId(model.getExternalId())
-                                .ifPresent(resource -> {
-                                    final UserRepresentation representation = resource.toRepresentation();
+                    } else {
+                        throw new ResourceAlreadyExistsException(User.class, dto.email());
+                    }
+                })
+                .map(repository::save)
+                .map(model -> {
+                    findResourceByExternalId(model.getExternalId())
+                            .ifPresent(resource -> {
+                                final UserRepresentation representation = resource.toRepresentation();
 
-                                    representation.setEmail(dto.email());
-                                    resource.update(representation);
-                                });
-                        return findResourceByExternalId(model.getExternalId())
-                                .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
-                                .orElseThrow(() -> new InternalErrorException("Could not update user"));
-                    })
-                    .orElseThrow(() -> new ResourceNotFoundException(User.class, dto.id()));
-        } else {
-            throw new ResourceAlreadyExistsException(User.class, dto.email());
-        }
+                                representation.setEmail(dto.email());
+                                resource.update(representation);
+                            });
+                    return findResourceByExternalId(model.getExternalId())
+                            .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
+                            .orElseThrow(() -> new InternalErrorException("Could not update user"));
+                })
+                .orElseThrow(() -> new ResourceNotFoundException(User.class, dto.id()));
+
     }
 
     @RequiresAdmin
@@ -507,10 +508,12 @@ public class UserService {
         return doesUserExist(userId) && spexareRepository.findById0(spexareId).isPresent();
     }
 
-    private boolean doesUserWithEmailExist(final String email) {
+    private boolean doesUserWithEmailExist(final String email, @Nullable final String excludedExternalId) {
         final List<UserRepresentation> users = keycloakAdminClient.realm(keycloakRealm).users().searchByEmail(email, true);
 
-        return users != null && !users.isEmpty();
+        return users != null && users.stream()
+                .anyMatch(user -> !user.getId().equals(excludedExternalId));
+
     }
 
     private State getUserInitialState() {
