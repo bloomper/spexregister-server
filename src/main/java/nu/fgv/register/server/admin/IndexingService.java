@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -70,6 +72,10 @@ public class IndexingService {
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
     @Transactional
     public void scheduledRun() {
-        initiateIndexingFor(Spexare.class, true);
+        log.info("Starting full re-indexing job");
+        runAsSystem(() -> {
+            initiateIndexingFor(Spexare.class, true);
+            log.info("Finished full re-indexing job");
+        });
     }
 }

@@ -67,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
@@ -75,6 +76,7 @@ import static nu.fgv.register.server.user.UserSpecification.NO_FILTER;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
 import static org.springframework.util.StringUtils.hasText;
@@ -437,31 +439,39 @@ public class UserService {
 
     @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
     public void scheduledSync() {
-        final Set<String> alreadyAdded = new HashSet<>();
+        log.info("Starting user sync job");
+        runAsSystem(() -> {
+            final Set<String> alreadyAdded = new HashSet<>();
+            final AtomicInteger totalProcessed = new AtomicInteger();
+            final AtomicInteger synced = new AtomicInteger();
 
-        authorityRepository.findAll()
-                .forEach(a ->
-                        keycloakAdminClient
-                                .realm(keycloakRealm)
-                                .clients()
-                                .get(keycloakClientId)
-                                .roles()
-                                .get(a.getId())
-                                .getUserMembers()
-                                .stream()
-                                .filter(r -> !alreadyAdded.contains(r.getId()))
-                                .forEach(representation -> {
-                                    if (!repository.existsByExternalId(representation.getId())) {
-                                        final User model = repository.save(USER_MAPPER.toModel(representation.getId(), getUserInitialState()));
-                                        final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
+            authorityRepository.findAll()
+                    .forEach(a ->
+                            keycloakAdminClient
+                                    .realm(keycloakRealm)
+                                    .clients()
+                                    .get(keycloakClientId)
+                                    .roles()
+                                    .get(a.getId())
+                                    .getUserMembers()
+                                    .stream()
+                                    .filter(r -> !alreadyAdded.contains(r.getId()))
+                                    .forEach(representation -> {
+                                        totalProcessed.incrementAndGet();
+                                        if (!repository.existsByExternalId(representation.getId())) {
+                                            final User model = repository.save(USER_MAPPER.toModel(representation.getId(), getUserInitialState()));
+                                            final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
-                                        permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
-                                        alreadyAdded.add(representation.getId());
-                                        log.info("Synced user {} from Keycloak", representation.getId());
-                                    }
-                                })
-                );
+                                            permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
+                                            alreadyAdded.add(representation.getId());
+                                            synced.incrementAndGet();
+                                            log.debug("Synced user {} from Keycloak", representation.getId());
+                                        }
+                                    })
+                    );
+            log.info("Finished user sync job (processed: {}, synced: {})", totalProcessed.get(), synced.get());
+        });
     }
 
     private Optional<UserResource> findResourceByExternalId(final String externalId) {

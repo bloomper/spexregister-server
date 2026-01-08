@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 import static nu.fgv.register.server.news.NewsSpecification.NO_FILTER;
@@ -48,6 +49,7 @@ import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToToday;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -174,27 +176,36 @@ public class NewsService {
 
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
     public void publishAndUnpublishNews() {
-        repository
-                .findAll(hasVisibleToBeforeToday())
-                .stream()
-                .peek(news -> news.setPublished(false)) // NOSONAR
-                .map(repository::save)
-                .forEach(news -> {
-                    final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
+        log.info("Starting scheduled news publish/unpublish job");
+        runAsSystem(() -> {
+            final AtomicInteger unpublishedCount = new AtomicInteger();
+            final AtomicInteger publishedCount = new AtomicInteger();
 
-                    permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
-                });
+            repository
+                    .findAll(hasVisibleToBeforeToday())
+                    .stream()
+                    .peek(news -> news.setPublished(false)) // NOSONAR
+                    .map(repository::save)
+                    .forEach(news -> {
+                        final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
 
-        repository
-                .findAll(hasVisibleFromAfterYesterday().and(hasVisibleToToday().or(hasVisibleToAfterToday())))
-                .stream()
-                .peek(news -> news.setPublished(true)) // NOSONAR
-                .map(repository::save)
-                .forEach(news -> {
-                    final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
+                        permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
+                        unpublishedCount.incrementAndGet();
+                    });
 
-                    permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
-                });
+            repository
+                    .findAll(hasVisibleFromAfterYesterday().and(hasVisibleToToday().or(hasVisibleToAfterToday())))
+                    .stream()
+                    .peek(news -> news.setPublished(true)) // NOSONAR
+                    .map(repository::save)
+                    .forEach(news -> {
+                        final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
+
+                        permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
+                        publishedCount.incrementAndGet();
+                    });
+            log.info("Finished news publish/unpublish job (published: {}, unpublished: {})", publishedCount.get(), unpublishedCount.get());
+        });
     }
 
     private boolean doesNewsExist(final Long id) {

@@ -19,7 +19,9 @@ package nu.fgv.register.server.util.security;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -62,6 +64,22 @@ public class SecurityUtil {
 
     public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Serializable id) {
         return new ObjectIdentityImpl(clazz, id);
+    }
+
+    public static void runAsSystem(final Runnable runnable) {
+        final Authentication originalAuth = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            final UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    "system",
+                    null,
+                    List.of(new SimpleGrantedAuthority(ROLE_ADMIN))
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            runnable.run();
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(originalAuth);
+        }
     }
 
     private static Optional<Object> getCurrentUserClaim(final String claim) {
