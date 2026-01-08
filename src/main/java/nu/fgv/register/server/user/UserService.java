@@ -270,26 +270,25 @@ public class UserService {
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .ifPresentOrElse(
                             resource -> {
-                                final List<RoleRepresentation> roleRepresentations = resource
+                                final List<RoleRepresentation> currentRoles = resource
                                         .roles()
                                         .clientLevel(keycloakClientId)
                                         .listAll();
 
-                                if (roleRepresentations.isEmpty() || ids.stream().noneMatch(i -> roleRepresentations.stream().noneMatch(r -> i.equals(r.getName())))) {
-                                    final List<RoleRepresentation> rolesToAdd = ids.stream()
-                                            .map(authorityService::getRoleRepresentationById)
-                                            .toList();
+                                final List<String> currentRoleNames = currentRoles.stream()
+                                        .map(RoleRepresentation::getName)
+                                        .toList();
 
-                                    if (!rolesToAdd.isEmpty()) {
-                                        resource
-                                                .roles()
-                                                .clientLevel(keycloakClientId)
-                                                .add(rolesToAdd);
-                                    } else {
-                                        throw new InternalErrorException("Could not determine roles to be added in Keycloak");
-                                    }
-                                } else {
-                                    throw new InternalErrorException("Could not determine a resource's roles in Keycloak");
+                                final List<RoleRepresentation> rolesToAdd = ids.stream()
+                                        .filter(id -> !currentRoleNames.contains(id))
+                                        .map(authorityService::getRoleRepresentationById)
+                                        .toList();
+
+                                if (!rolesToAdd.isEmpty()) {
+                                    resource
+                                            .roles()
+                                            .clientLevel(keycloakClientId)
+                                            .add(rolesToAdd);
                                 }
                             },
                             () -> {
@@ -313,26 +312,20 @@ public class UserService {
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .ifPresentOrElse(
                             resource -> {
-                                final List<RoleRepresentation> roleRepresentations = resource
+                                final List<RoleRepresentation> currentRoles = resource
                                         .roles()
                                         .clientLevel(keycloakClientId)
                                         .listAll();
 
-                                if (ids.stream().allMatch(i -> roleRepresentations.stream().anyMatch(r -> i.equals(r.getName())))) {
-                                    final List<RoleRepresentation> rolesToRemove = roleRepresentations.stream()
-                                            .filter(r -> ids.contains(r.getName()))
-                                            .toList();
+                                final List<RoleRepresentation> rolesToRemove = currentRoles.stream()
+                                        .filter(r -> ids.contains(r.getName()))
+                                        .toList();
 
-                                    if (!rolesToRemove.isEmpty()) {
-                                        resource
-                                                .roles()
-                                                .clientLevel(keycloakClientId)
-                                                .remove(rolesToRemove);
-                                    } else {
-                                        throw new InternalErrorException("Could not determine roles to be removed in Keycloak");
-                                    }
-                                } else {
-                                    throw new InternalErrorException("Could not determine a resource's roles in Keycloak");
+                                if (!rolesToRemove.isEmpty()) {
+                                    resource
+                                            .roles()
+                                            .clientLevel(keycloakClientId)
+                                            .remove(rolesToRemove);
                                 }
                             },
                             () -> {
