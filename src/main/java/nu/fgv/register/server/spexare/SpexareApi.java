@@ -31,6 +31,7 @@ import nu.fgv.register.server.spexare.tagging.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -219,7 +220,8 @@ public class SpexareApi {
     @GetMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long spexareId) {
-        final SpexareDto dto = service.findPartnerBySpexare(spexareId);
+        final SpexareDto dto = service.findPartnerBySpexare(spexareId)
+                .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.PARTNER, spexareId));
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }

@@ -254,14 +254,13 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public SpexareDto findPartnerBySpexare(final Long id) {
+    public Optional<SpexareDto> findPartnerBySpexare(final Long id) {
         if (doesSpexareExist(id)) {
             return repository
                     .findById0(id)
                     .filter(spexare -> spexare.getPartner() != null)
                     .map(Spexare::getPartner)
-                    .map(SPEXARE_MAPPER::toDto)
-                    .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.PARTNER, id));
+                    .map(SPEXARE_MAPPER::toDto);
         } else {
             throw new ResourceNotFoundException(Spexare.class, id);
         }

@@ -1,3 +1,5 @@
+name: spexregister-server
+
 services:
   mysql-app:
     image: 'mysql:8.0'

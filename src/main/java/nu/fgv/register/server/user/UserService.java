@@ -380,13 +380,12 @@ public class UserService {
     }
 
     @RequiresAdmin
-    public SpexareDto findSpexareByUser(final Long id) {
+    public Optional<SpexareDto> findSpexareByUser(final Long id) {
         if (doesUserExist(id)) {
             return repository
                     .findById0(id)
                     .map(User::getSpexare)
-                    .map(SPEXARE_MAPPER::toDto)
-                    .orElseThrow(() -> new ResourceNoValueException(User.class, User_.SPEXARE, id));
+                    .map(SPEXARE_MAPPER::toDto);
         } else {
             throw new ResourceNotFoundException(User.class, id);
         }

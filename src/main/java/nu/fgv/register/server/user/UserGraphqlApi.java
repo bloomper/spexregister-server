@@ -25,7 +25,6 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateDto;
-import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.jspecify.annotations.Nullable;
@@ -141,12 +140,8 @@ public class UserGraphqlApi {
     @SchemaMapping(typeName = "User", field = "spexare")
     @RequiresAdmin
     public @Nullable SpexareDto retrieveSpexare(final UserDto dto) {
-        try {
-            return service.findSpexareByUser(dto.getId());
-        } catch (final ResourceNoValueException _) {
-            // Ignore
-            return null;
-        }
+        return service.findSpexareByUser(dto.getId())
+                .orElse(null);
     }
 
     @MutationMapping("userSpexareAdd")

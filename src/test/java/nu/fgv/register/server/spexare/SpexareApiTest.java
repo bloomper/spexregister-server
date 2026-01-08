@@ -50,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -618,7 +619,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_get_partner() throws Exception {
         final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(partner);
+        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
 
         mockMvc
                 .perform(

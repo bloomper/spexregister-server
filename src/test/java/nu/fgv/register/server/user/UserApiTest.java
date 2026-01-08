@@ -40,6 +40,7 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -550,7 +551,7 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_spexare() throws Exception {
-        when(service.findSpexareByUser(any(Long.class))).thenReturn(SpexareDto.builder().id(1L).build());
+        when(service.findSpexareByUser(any(Long.class))).thenReturn(Optional.of(SpexareDto.builder().id(1L).build()));
 
         mockMvc
                 .perform(

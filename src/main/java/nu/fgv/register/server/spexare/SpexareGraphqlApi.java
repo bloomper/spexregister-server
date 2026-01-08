@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
-import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -106,12 +105,8 @@ public class SpexareGraphqlApi {
     @SchemaMapping(typeName = "Spexare", field = "partner")
     @RequiresAdminOrEditorOrUser
     public @Nullable SpexareDto retrievePartner(final SpexareDto dto) {
-        try {
-            return service.findPartnerBySpexare(dto.getId());
-        } catch (final ResourceNoValueException _) {
-            // Ignore
-            return null;
-        }
+        return service.findPartnerBySpexare(dto.getId())
+                .orElse(null);
     }
 
     @MutationMapping("spexarePartnerAdd")

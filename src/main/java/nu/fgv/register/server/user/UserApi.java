@@ -29,6 +29,7 @@ import nu.fgv.register.server.user.authority.AuthorityApi;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateApi;
 import nu.fgv.register.server.user.state.StateDto;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -214,7 +215,8 @@ public class UserApi {
     @GetMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
     public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long userId) {
-        final SpexareDto dto = service.findSpexareByUser(userId);
+        final SpexareDto dto = service.findSpexareByUser(userId)
+                .orElseThrow(() -> new ResourceNoValueException(User.class, User_.SPEXARE, userId));
 
         return ResponseEntity.ok(EntityModel.of(dto, spexareApi.getLinks(dto)));
     }
