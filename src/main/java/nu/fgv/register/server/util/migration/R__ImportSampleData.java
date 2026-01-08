@@ -243,7 +243,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
                 });
 
@@ -257,7 +257,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     final ObjectIdentity oid = toObjectIdentity(Task.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     jdbcClient.sql(taskSql)
@@ -287,7 +287,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
 
                     jdbcClient
                             .sql(categorySql)
@@ -328,7 +328,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     final ObjectIdentity oid = toObjectIdentity(Spex.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     jdbcClient.sql(spexSql)
@@ -367,8 +367,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 final ObjectIdentity oid = toObjectIdentity(News.class, id);
 
                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
                 permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
                 if (NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault()))) {
                     permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                 }
@@ -399,8 +400,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 final ObjectIdentity oid = toObjectIdentity(Tag.class, id);
 
                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_USER_SID);
+                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                 permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
             }
         });
     }
@@ -455,7 +457,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                 if (published) {
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
                     permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
                 }
 
@@ -828,6 +830,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             final ObjectIdentity spexareOid = toObjectIdentity(Spexare.class, spexareId);
 
                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
                             permissionService.grantPermission(spexareOid, BasePermission.WRITE, new PrincipalSid(externalId));
                         }
                     } catch (final Exception e) {

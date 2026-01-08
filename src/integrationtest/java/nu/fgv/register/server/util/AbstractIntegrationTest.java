@@ -289,6 +289,7 @@ public abstract class AbstractIntegrationTest {
 
     protected void grantAdministrationPermissionToRoleAdmin(final ObjectIdentity oid) {
         grantPermission(oid, ROLE_ADMIN_SID, BasePermission.ADMINISTRATION);
+        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.READ);
     }
 
     protected void revokeWritePermissionFromRoleAdmin(final ObjectIdentity oid) {

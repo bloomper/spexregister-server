@@ -126,7 +126,7 @@ public class SpexCategoryService {
                     final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, category.getId());
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
 
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })

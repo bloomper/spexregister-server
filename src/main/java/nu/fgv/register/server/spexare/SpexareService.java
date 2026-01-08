@@ -156,6 +156,7 @@ public class SpexareService {
                     final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
                     if (spexare.getPublished()) {
                         permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
                         permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);

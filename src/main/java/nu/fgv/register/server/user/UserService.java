@@ -172,6 +172,7 @@ public class UserService {
                                 final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
                                 permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
 
                                 return USER_MAPPER.toDto(model, resource.toRepresentation(), temporaryPassword);
                             })
@@ -458,6 +459,7 @@ public class UserService {
                                         final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
 
                                         permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+                                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
                                         alreadyAdded.add(representation.getId());
                                         log.info("Synced user {} from Keycloak", representation.getId());
                                     }
