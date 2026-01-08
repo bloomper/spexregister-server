@@ -406,6 +406,9 @@ public class UserService {
                     .ifPresent(user -> spexareRepository
                             .findById(id)
                             .ifPresent(spexare -> {
+                                if (spexare.getUser() != null && !spexare.getUser().equals(user)) {
+                                    throw new ResourceAlreadyExistsException(Spexare.class, id);
+                                }
                                 user.setSpexare(spexare);
                                 repository.save(user);
 
