@@ -64,8 +64,8 @@ public class CustomSwedenIdNumber extends SwedenIdNumber {
     }
 
     private static int calculateChecksum(final String number) {
-        final String dateString = number.substring(0, 6);
-        final String birthNumber = number.substring(7, 10);
+        final String dateString = number.substring(2, 8);
+        final String birthNumber = number.substring(9, 12);
         final String calculatedNumber = calculateDigits(dateString + birthNumber);
         final int sum = calculateDigitSum(calculatedNumber);
         final int lastDigit = sum % 10;
