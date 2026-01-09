@@ -269,43 +269,36 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public void addPartner(final Long spexareId, final Long id) {
         if (doSpexareAndPartnerExist(spexareId, id)) {
-            repository
-                    .findById0(spexareId)
+            final Spexare spexare = repository.findById(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .ifPresent(spexare -> repository
-                            .findById0(id)
-                            .ifPresent(partner -> {
-                                final Spexare previousPartner = spexare.getPartner();
+                    .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, spexareId));
 
-                                spexare.setPartner(partner);
-                                partner.setPartner(spexare);
-                                repository.save(spexare);
-                                repository.save(partner);
+            final Spexare partner = repository.findById(id)
+                    .map(permissionService::checkWritePermission)
+                    .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
 
-                                if (spexare.getUser() != null) {
-                                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, partner.getId());
+            if (spexare.getPartner() != null) {
+                removePartner(spexare.getId());
+            }
+            if (partner.getPartner() != null) {
+                removePartner(partner.getId());
+            }
 
-                                    permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(spexare.getUser().getExternalId()));
+            spexare.setPartner(partner);
+            partner.setPartner(spexare);
 
-                                    if (previousPartner != null) {
-                                        final ObjectIdentity previousOid = toObjectIdentity(Spexare.class, previousPartner.getId());
+            repository.saveAndFlush(spexare);
+            repository.saveAndFlush(partner);
 
-                                        permissionService.revokePermission(previousOid, BasePermission.WRITE, new PrincipalSid(spexare.getUser().getExternalId()));
-                                    }
-                                }
+            if (spexare.getUser() != null) {
+                final ObjectIdentity oid = toObjectIdentity(Spexare.class, partner.getId());
+                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(spexare.getUser().getExternalId()));
+            }
 
-                                if (partner.getUser() != null) {
-                                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-
-                                    permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(partner.getUser().getExternalId()));
-                                }
-
-                                if (previousPartner != null && previousPartner.getUser() != null) {
-                                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-
-                                    permissionService.revokePermission(oid, BasePermission.WRITE, new PrincipalSid(previousPartner.getUser().getExternalId()));
-                                }
-                            }));
+            if (partner.getUser() != null) {
+                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
+                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(partner.getUser().getExternalId()));
+            }
         } else {
             throw new ResourcesNotFoundException(new String[]{Spexare.class.getSimpleName(), "Partner"}, spexareId, id);
         }
@@ -321,6 +314,8 @@ public class SpexareService {
                     .ifPresent(spexare -> {
                         final Spexare partner = spexare.getPartner();
 
+                        permissionService.checkWritePermission(partner);
+
                         if (spexare.getUser() != null) {
                             final ObjectIdentity oid = toObjectIdentity(Spexare.class, partner.getId());
 
@@ -334,10 +329,10 @@ public class SpexareService {
                         }
 
                         partner.setPartner(null);
-                        repository.save(partner);
-
                         spexare.setPartner(null);
-                        repository.save(spexare);
+
+                        repository.saveAndFlush(partner);
+                        repository.saveAndFlush(spexare);
                     });
         } else {
             throw new ResourceNotFoundException(Spexare.class, id);
