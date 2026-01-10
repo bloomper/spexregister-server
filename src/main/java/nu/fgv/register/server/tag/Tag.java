@@ -35,6 +35,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.io.Serial;
@@ -65,6 +66,7 @@ public class Tag extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{tag.name.notEmpty}")
     @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
+    @FullTextField(name = "name_", searchable = Searchable.YES)
     @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private String name;
 

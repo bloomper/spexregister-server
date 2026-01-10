@@ -107,7 +107,7 @@ public class SpexareApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"q"})
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q,
-                                                                                @SortDefault(sort = "score", direction = Sort.Direction.ASC) final Pageable pageable) {
+                                                                                @SortDefault(sort = "score", direction = Sort.Direction.DESC) final Pageable pageable) {
         final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
 
         paged.getContent().forEach(this::addLinks);

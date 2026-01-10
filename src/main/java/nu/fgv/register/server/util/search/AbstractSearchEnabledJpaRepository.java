@@ -24,6 +24,7 @@ import org.hibernate.search.engine.search.sort.dsl.CompositeSortComponentsStep;
 import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.engine.search.sort.dsl.SortOrder;
 import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.springframework.data.domain.Pageable;
@@ -115,6 +116,9 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
                         if (field.isAnnotationPresent(KeywordField.class)) {
                             return field.getAnnotation(KeywordField.class).sortable().equals(Sortable.YES);
                         }
+                        if (field.isAnnotationPresent(FullTextField.class)) {
+                            return field.isAnnotationPresent(KeywordField.class) && field.getAnnotation(KeywordField.class).sortable().equals(Sortable.YES);
+                        }
                         return false;
                     } catch (final IllegalStateException _) {
                         return false;
@@ -125,7 +129,16 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
                     if ("score".equals(s.getProperty())) {
                         composite.add(f.score().order(s.isAscending() ? SortOrder.ASC : SortOrder.DESC));
                     } else {
-                        composite.add(f.field(s.getProperty()).order(s.isAscending() ? SortOrder.ASC : SortOrder.DESC).missing().last());
+                        String fieldPath = s.getProperty();
+                        try {
+                            final Field field = FieldUtils.getField(clazz, s.getProperty());
+
+                            if (field.isAnnotationPresent(KeywordField.class) && !field.getAnnotation(KeywordField.class).name().isEmpty()) {
+                                fieldPath = field.getAnnotation(KeywordField.class).name();
+                            }
+                        } catch (Exception _) {
+                        }
+                        composite.add(f.field(fieldPath).order(s.isAscending() ? SortOrder.ASC : SortOrder.DESC).missing().last());
                     }
                 });
 

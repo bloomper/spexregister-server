@@ -1,6 +1,6 @@
 extend type Query {
     spexarePaged(first: Int, after: String, last: Int, before: String, filter: String = "published:true", sort: [String] = ["firstName"], direction: SortDirection = ASC): SpexareConnection
-    spexareSearchPaged(offset: Int = 0, limit: Int = 20, q: String!, sort: [String] = ["score"], direction: SortDirection = ASC): SpexareWithFacetsConnection
+    spexareSearchPaged(offset: Int = 0, limit: Int = 20, q: String!, sort: [String] = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
     spexare(id: ID!): Spexare
     spexareEvents(sinceInDays: Int = 90): [Event]
 }

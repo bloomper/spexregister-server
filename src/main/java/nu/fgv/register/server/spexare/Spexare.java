@@ -101,18 +101,21 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")
     @Column(name = "first_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(name = "firstName_sort", searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @FullTextField(searchable = Searchable.YES)
     private String firstName;
 
     @NotEmpty(message = "{spexare.lastName.notEmpty}")
     @Size(max = 255, message = "{spexare.lastName.size}")
     @Column(name = "last_name", nullable = false)
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(name = "lastName_sort", searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @FullTextField(searchable = Searchable.YES)
     private String lastName;
 
     @Size(max = 255, message = "{spexare.nickName.size}")
     @Column(name = "nick_name")
-    @KeywordField(searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(name = "nickName_sort", searchable = Searchable.YES, sortable = Sortable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @FullTextField(searchable = Searchable.YES)
     @Nullable
     private String nickName;
 
@@ -120,7 +123,8 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @Column(name = "social_security_number")
     @Convert(converter = CryptoConverter.class)
-    @GenericField(searchable = Searchable.YES)
+    @FullTextField(name = "socialSecurityNumber_",searchable = Searchable.YES)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     @Nullable
     private String socialSecurityNumber;
 

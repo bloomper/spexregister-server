@@ -30,9 +30,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.config.SpexregisterConfig;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.ApplicationContextHolder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -49,7 +51,9 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyVa
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
@@ -121,6 +125,21 @@ public class Address extends AbstractAuditable implements Serializable {
             inversePath = @ObjectPath(@PropertyValue(propertyName = "addresses"))
     )
     private Spexare spexare;
+
+    @FullTextField(name = "countryName", searchable = Searchable.YES)
+    @IndexingDependency(derivedFrom = { @ObjectPath(@PropertyValue(propertyName = "country")) })
+    public String getCountryName() {
+        if (country == null || country.isBlank()) {
+            return null;
+        }
+
+        final SpexregisterConfig config = ApplicationContextHolder.getBean(SpexregisterConfig.class);
+        final Locale countryLocale = new Locale.Builder().setRegion(country).build();
+
+        return config.getLanguages().stream()
+                .map(lang -> countryLocale.getDisplayCountry(Locale.forLanguageTag(lang)))
+                .collect(Collectors.joining(" "));
+    }
 
     @Override
     public boolean equals(final Object o) {

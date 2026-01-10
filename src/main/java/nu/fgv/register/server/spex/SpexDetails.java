@@ -41,6 +41,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
@@ -76,6 +77,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spex.title.notEmpty}")
     @Size(max = 255, message = "{spex.title.size}")
     @Column(name = "title", nullable = false)
+    @FullTextField(name = "title_", searchable = Searchable.YES)
     @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String title;
 

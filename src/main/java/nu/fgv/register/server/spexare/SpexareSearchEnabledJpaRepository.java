@@ -55,12 +55,28 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaRepository<Spexare, Long> {
 
     private static final String ATTRIBUTE_DELIMITER = ".";
-    private static final String[] FIELDS = new String[]{
-            Spexare_.FIRST_NAME, Spexare_.LAST_NAME, Spexare_.NICK_NAME, Spexare_.SOCIAL_SECURITY_NUMBER, Spexare_.GRADUATION, Spexare_.COMMENT,
+
+    private static final String[] PRIMARY_FUZZY_FIELDS = new String[]{
+            Spexare_.FIRST_NAME, Spexare_.LAST_NAME, Spexare_.NICK_NAME
+    };
+
+    private static final String[] SECONDARY_FUZZY_FIELDS = new String[]{
+            Spexare_.SOCIAL_SECURITY_NUMBER,
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, Tag_.NAME),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.TITLE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, Actor_.ROLE),
+    };
+
+    private static final String[] FUZZY_FIELDS = new String[]{
+            Spexare_.COMMENT,
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.STREET_ADDRESS),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.POSTAL_CODE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.CITY),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, "countryName")
+    };
+
+    private static final String[] EXACT_FIELDS = new String[]{
+            Spexare_.SOCIAL_SECURITY_NUMBER, Spexare_.GRADUATION,
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.POSTAL_CODE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.COUNTRY),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE),
@@ -111,11 +127,17 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
 
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
+
         return searchSession
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
                             if (hasText(query.freeTextQuery())) {
-                                b.must(f.match().fields(FIELDS).matching(query.freeTextQuery()));
+                                b.must(f.bool()
+                                        .should(f.match().fields(PRIMARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(10.0f))
+                                        .should(f.match().fields(SECONDARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(5.0f))
+                                        .should(f.match().fields(EXACT_FIELDS).matching(query.freeTextQuery()).boost(5.0f))
+                                        .should(f.match().fields(FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(1.0f))
+                                );
                             } else {
                                 b.must(f.matchAll());
                             }
