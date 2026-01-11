@@ -33,10 +33,11 @@ import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.PropertyBinderRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyBinding;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -67,7 +68,8 @@ public class Tag extends AbstractAuditable implements Serializable {
     @Size(max = 255, message = "{tag.name.size}")
     @Column(name = "name", nullable = false)
     @FullTextField(name = "name_", searchable = Searchable.YES)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @GenericField(searchable = Searchable.YES)
+    @PropertyBinding(binder = @PropertyBinderRef(type = TagNameBinder.class))
     private String name;
 
     @Override

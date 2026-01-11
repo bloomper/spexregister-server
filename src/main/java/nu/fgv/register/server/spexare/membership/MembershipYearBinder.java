@@ -1,20 +1,4 @@
-/*
- * Copyright 2026 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package nu.fgv.register.server.spexare.toggle;
+package nu.fgv.register.server.spexare.membership;
 
 import nu.fgv.register.server.config.SpexregisterConfig;
 import nu.fgv.register.server.util.ApplicationContextHolder;
@@ -36,15 +20,11 @@ import java.util.Map;
 
 import static nu.fgv.register.server.util.Constants.FACET_COMPOSITE_DELIMITER;
 
-/**
- * @author Anders Jacobsson
- * @since 2.0
- */
-public class ToggleValueBinder implements TypeBinder {
+public class MembershipYearBinder implements TypeBinder {
     @Override
     public void bind(final TypeBindingContext context) {
         context.dependencies()
-                .use("value")
+                .use("year")
                 .use("type");
 
         try (final BeanHolder<SpexregisterConfig> config = context.beanResolver().resolve(SpexregisterConfig.class, BeanRetrieval.ANY)) {
@@ -52,33 +32,23 @@ public class ToggleValueBinder implements TypeBinder {
             final Map<String, IndexFieldReference<String>> fieldReferences = new HashMap<>();
 
             for (final String lang : config.get().getLanguages()) {
-                fieldReferences.put(lang, root.field("hierarchical_" + lang,
-                                f -> f.asString()
-                                        .aggregable(Aggregable.YES))
-                        .toReference()
-                );
+                fieldReferences.put(lang, root.field("hierarchical_" + lang, f -> f.asString().aggregable(Aggregable.YES)).toReference());
             }
-            context.bridge(Toggle.class, new Bridge(fieldReferences));
+            context.bridge(Membership.class, new Bridge(fieldReferences));
         }
     }
 
-    private record Bridge(Map<String, IndexFieldReference<String>> fieldReferences) implements TypeBridge<Toggle> {
-
+    private record Bridge(Map<String, IndexFieldReference<String>> fieldReferences) implements TypeBridge<Membership> {
         @Override
-        public void write(final DocumentElement target, final Toggle bridgedElement, final TypeBridgeWriteContext context) {
+        public void write(final DocumentElement target, final Membership bridgedElement, final TypeBridgeWriteContext context) {
             final String typeId = bridgedElement.getType().getId();
-            final boolean value = bridgedElement.getValue();
-            final String id = "%s:%s".formatted(typeId, value);
-            final MessageSource messageSource = ApplicationContextHolder.getBean(MessageSource.class);
+            final String year = bridgedElement.getYear();
+            final String id = "%s:%s".formatted(typeId, year);
 
             bridgedElement.getType().getLabels().forEach((lang, typeLabel) -> {
                 final IndexFieldReference<String> fieldReference = fieldReferences.get(lang);
-
                 if (fieldReference != null) {
-                    final Locale locale = Locale.forLanguageTag(lang);
-                    final String booleanLabel = messageSource.getMessage("boolean.%s".formatted(value), null, String.valueOf(value), locale);
-                    final String displayValue = "%s: %s".formatted(typeLabel, booleanLabel);
-
+                    final String displayValue = "%s: %s".formatted(typeLabel, year);
                     target.addValue(fieldReference, id + FACET_COMPOSITE_DELIMITER + displayValue);
                 }
             });

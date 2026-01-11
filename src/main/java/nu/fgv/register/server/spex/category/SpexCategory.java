@@ -37,9 +37,10 @@ import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.PropertyBinderRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyBinding;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
@@ -72,7 +73,8 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @NotBlank(message = "{spexCategory.name.notEmpty}")
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @Column(name = "name", nullable = false)
-    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @PropertyBinding(binder = @PropertyBinderRef(type = SpexCategoryNameBinder.class))
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notEmpty}")

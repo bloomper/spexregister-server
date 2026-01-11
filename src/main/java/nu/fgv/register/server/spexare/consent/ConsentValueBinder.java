@@ -53,7 +53,7 @@ public class ConsentValueBinder implements TypeBinder {
             final Map<String, IndexFieldReference<String>> fieldReferences = new HashMap<>();
 
             for (final String lang : config.get().getLanguages()) {
-                fieldReferences.put(lang, root.field("value_labels_" + lang,
+                fieldReferences.put(lang, root.field("hierarchical_" + lang,
                                 f -> f.asString()
                                         .aggregable(Aggregable.YES))
                         .toReference()

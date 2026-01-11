@@ -35,12 +35,13 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.PropertyBinderRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyBinding;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
@@ -73,7 +74,8 @@ public class Task extends AbstractAuditable implements Serializable {
     @NotNull
     @Size(max = 255)
     @Column(name = "name", nullable = false)
-    @KeywordField(aggregable = Aggregable.YES, searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @PropertyBinding(binder = @PropertyBinderRef(type = TaskNameBinder.class))
     private String name;
 
     @ManyToOne

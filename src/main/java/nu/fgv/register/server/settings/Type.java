@@ -52,7 +52,6 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-//@TypeBinding(binder = @TypeBinderRef(type = TypeLocalizedLabelsBinder.class))
 public class Type extends AbstractAuditable implements Serializable {
 
     @Serial

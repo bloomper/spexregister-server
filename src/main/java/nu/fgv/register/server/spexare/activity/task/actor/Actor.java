@@ -36,14 +36,15 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef;
 import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
 import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -61,6 +62,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@TypeBinding(binder = @TypeBinderRef(type = ActorVocalBinder.class))
 public class Actor extends AbstractAuditable implements Serializable {
 
     @Serial
@@ -75,7 +77,6 @@ public class Actor extends AbstractAuditable implements Serializable {
     private String role;
 
     @ManyToOne
-    @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type vocal;
 

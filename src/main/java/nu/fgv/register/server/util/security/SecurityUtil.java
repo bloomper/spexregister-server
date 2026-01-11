@@ -66,6 +66,11 @@ public class SecurityUtil {
         return new ObjectIdentityImpl(clazz, id);
     }
 
+    public static boolean isAdministrator() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(SecurityUtil.ROLE_ADMIN));
+    }
+
     public static void runAsSystem(final Runnable runnable) {
         final Authentication originalAuth = SecurityContextHolder.getContext().getAuthentication();
         try {
