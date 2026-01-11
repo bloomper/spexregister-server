@@ -33,17 +33,15 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
-import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef;
 import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
 import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -60,6 +58,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@TypeBinding(binder = @TypeBinderRef(type = ConsentValueBinder.class))
 public class Consent extends AbstractAuditable implements Serializable {
 
     @Serial
@@ -71,12 +70,10 @@ public class Consent extends AbstractAuditable implements Serializable {
 
     @NotNull(message = "{consent.value.notEmpty}")
     @Column(name = "value", nullable = false)
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
     private Boolean value;
 
     @NotNull(message = "{consent.type.notEmpty}")
     @ManyToOne(optional = false)
-    @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type type;
 

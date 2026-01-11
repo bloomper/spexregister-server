@@ -29,7 +29,7 @@ import java.util.List;
 @Getter
 public class Facet {
 
-    private String name;
-
-    private List<FacetValue> values;
+    private String id;
+    private String label;
+    private List<FacetGroup> groups;
 }

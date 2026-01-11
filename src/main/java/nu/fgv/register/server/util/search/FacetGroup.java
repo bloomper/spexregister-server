@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -27,10 +29,10 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 @Getter
-public class FacetValue {
+public class FacetGroup {
 
     private String id;
     private String label;
-    private long count;
+    private List<FacetValue> values;
 
 }

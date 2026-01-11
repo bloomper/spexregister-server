@@ -41,4 +41,7 @@ public class Constants {
         public static final MediaType APPLICATION_XLS = MediaType.parseMediaType(APPLICATION_XLS_VALUE);
 
     }
+
+    public static final String FACET_COMPOSITE_DELIMITER = "|||";
+
 }

@@ -32,9 +32,10 @@ import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -51,6 +52,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
+//@TypeBinding(binder = @TypeBinderRef(type = TypeLocalizedLabelsBinder.class))
 public class Type extends AbstractAuditable implements Serializable {
 
     @Serial
@@ -59,12 +61,11 @@ public class Type extends AbstractAuditable implements Serializable {
     @Id
     @Size(max = 255, message = "{type.value.size}")
     @Column(name = "id")
-    @GenericField(aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @GenericField(searchable = Searchable.YES)
     private String id;
 
     @org.hibernate.annotations.Type(JsonType.class)
     @Column(name = "labels", columnDefinition = "json")
-    @GenericField(searchable = Searchable.NO)
     private Map<String, String> labels;
 
     @NotNull(message = "{type.type.notEmpty}")

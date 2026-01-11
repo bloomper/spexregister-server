@@ -12,12 +12,20 @@ type Mutation {
 }
 
 type Facet {
-    name: String!
+    id: String!
+    label: String!
+    groups: [FacetGroup]!
+}
+
+type FacetGroup {
+    id: String!
+    label: String!
     values: [FacetValue]!
 }
 
 type FacetValue {
-    value: String!
+    id: String!
+    label: String!
     count: Int!
 }
 
