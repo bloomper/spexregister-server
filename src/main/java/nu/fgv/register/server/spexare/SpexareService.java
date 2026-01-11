@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
@@ -64,7 +65,8 @@ import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
 import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
-import static nu.fgv.register.server.util.Constants.FACET_COMPOSITE_DELIMITER;
+import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
+import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -87,17 +89,17 @@ public class SpexareService {
     private final MessageSource messageSource;
 
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> search(final String query, final int offset, final int limit, final Sort sort) {
-        final SearchResult<Spexare> searchResult = repository.search(query, offset, limit, sort);
+    public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
+        final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, offset, limit, sort);
         final List<Facet> facets = getFacets(searchResult);
         final boolean hasNext = searchResult.total().hitCount() > offset + limit;
 
-        return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), index -> ScrollPosition.offset(offset), hasNext, facets);
+        return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), _ -> ScrollPosition.offset(offset), hasNext, facets);
     }
 
     @RequiresAdminOrEditorOrUser
-    public PageWithFacets<SpexareDto> search(final String query, final Pageable pageable) {
-        final SearchResult<Spexare> searchResult = repository.search(query, pageable);
+    public PageWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
+        final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, pageable);
         final List<Facet> facets = getFacets(searchResult);
 
         return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
@@ -375,8 +377,8 @@ public class SpexareService {
                     String baseFieldName = a;
                     String logicalKey = a;
 
-                    if (a.contains(FACET_COMPOSITE_DELIMITER)) {
-                        final String[] parts = a.split(Pattern.quote(FACET_COMPOSITE_DELIMITER));
+                    if (a.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
+                        final String[] parts = a.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
                         baseFieldName = parts[0];
                         logicalKey = parts[1];
                     }
@@ -384,11 +386,11 @@ public class SpexareService {
                     final Map<Object, Long> values = searchResult.aggregation(AggregationKey.of(a));
                     final String facetLabel = messageSource.getMessage("facet." + logicalKey, null, logicalKey, LocaleContextHolder.getLocale());
 
-                    if (baseFieldName.contains("hierarchical_")) {
+                    if (baseFieldName.contains(AGGREGATION_HIERARCHICAL_MARKER)) {
                         return Facet.builder()
                                 .id(logicalKey)
                                 .label(facetLabel)
-                                .groups(createNestedGroups(values))
+                                .groups(createNestedGroups(logicalKey, values))
                                 .build();
                     }
 
@@ -397,7 +399,7 @@ public class SpexareService {
                             .label(facetLabel)
                             .groups(List.of(FacetGroup.builder()
                                     .id(logicalKey)
-                                    .label(facetLabel)
+                                    .label("")
                                     .values(createStandardValues(values))
                                     .build()))
                             .build();
@@ -414,8 +416,8 @@ public class SpexareService {
 
                     if (entry.getKey() instanceof final Boolean b) {
                         displayValue = messageSource.getMessage("boolean.%s".formatted(b), null, LocaleContextHolder.getLocale());
-                    } else if (rawValue.contains(FACET_COMPOSITE_DELIMITER)) {
-                        final String[] parts = rawValue.split(Pattern.quote(FACET_COMPOSITE_DELIMITER));
+                    } else if (rawValue.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
+                        final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
                         id = parts[0];
                         displayValue = parts[1];
                     }
@@ -424,37 +426,38 @@ public class SpexareService {
                 .toList();
     }
 
-    private List<FacetGroup> createNestedGroups(final Map<Object, Long> values) {
+    private List<FacetGroup> createNestedGroups(final String logicalKey, final Map<Object, Long> values) {
         final Map<String, List<FacetValue>> groups = new HashMap<>();
-        final Map<String, String> labelLookup = new HashMap<>();
+        final Map<String, String> groupLabelLookup = new HashMap<>();
 
         values.forEach((key, count) -> {
             final String rawValue = String.valueOf(key);
-            if (rawValue.contains(FACET_COMPOSITE_DELIMITER)) {
-                final String[] parts = rawValue.split(Pattern.quote(FACET_COMPOSITE_DELIMITER));
-                final String idPart = parts[0];
+            if (rawValue.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
+                final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
+                final String technicalValueId = parts[0];
                 final String displayPart = parts[1];
 
-                if (idPart.contains(":")) {
-                    final String[] idSubParts = idPart.split(":");
-                    final String[] displaySubParts = displayPart.split(":");
+                if (displayPart.contains(":")) {
+                    final String groupId = technicalValueId.contains(":") ? technicalValueId.split(":")[0] : technicalValueId;
+                    final String groupLabel = displayPart.split(":")[0].trim();
+                    final String valueLabel = displayPart.split(":")[1].trim();
 
-                    labelLookup.put(idSubParts[0], displaySubParts[0].trim());
-                    groups.computeIfAbsent(idSubParts[0], _ -> new ArrayList<>())
-                            .add(new FacetValue(idSubParts[1], displaySubParts[1].trim(), count));
+                    groupLabelLookup.put(groupId, groupLabel);
+                    groups.computeIfAbsent(groupId, _ -> new ArrayList<>())
+                            .add(new FacetValue(technicalValueId, valueLabel, count));
                 } else {
-                    labelLookup.put(idPart, displayPart);
-                    groups.computeIfAbsent(idPart, _ -> new ArrayList<>())
-                            .add(new FacetValue(idPart, displayPart, count));
+                    groupLabelLookup.put(technicalValueId, "");
+                    groups.computeIfAbsent(technicalValueId, _ -> new ArrayList<>())
+                            .add(new FacetValue(technicalValueId, displayPart, count));
                 }
             }
         });
 
-        return groups.entrySet().stream()
+        return groupLabelLookup.entrySet().stream()
                 .map(entry -> FacetGroup.builder()
                         .id(entry.getKey())
-                        .label(labelLookup.get(entry.getKey()))
-                        .values(entry.getValue())
+                        .label(entry.getValue())
+                        .values(groups.get(entry.getKey()))
                         .build())
                 .toList();
     }

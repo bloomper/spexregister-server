@@ -33,6 +33,7 @@ import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -75,7 +76,7 @@ public class Task extends AbstractAuditable implements Serializable {
     @Size(max = 255)
     @Column(name = "name", nullable = false)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
-    @PropertyBinding(binder = @PropertyBinderRef(type = TaskNameBinder.class))
+    @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String name;
 
     @ManyToOne

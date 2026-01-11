@@ -630,10 +630,16 @@ query spexareSearchPaged ($q: String! $limit: Int = 20, $first: Int = 10) {
             endCursor
         }
         facets {
-            name
-            values {
-                value
-                count
+            id
+            label
+            groups {
+                id
+                label
+                values {
+                    id
+                    label
+                    count
+                }
             }
         }
     }

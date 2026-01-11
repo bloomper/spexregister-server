@@ -23,7 +23,9 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
+import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
@@ -189,7 +191,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_search_paged() throws Exception {
         final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
         final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
-        final var facets = List.of(Facet.builder().name("facet").values(List.of(FacetValue.builder().value("whatever").count(2L).build())).build());
+        final var facets = List.of(Facet.builder().id("facet").groups(List.of(FacetGroup.builder().id("group").values(List.of(FacetValue.builder().id("whatever").count(2L).build())).build())).build());
         final var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
         final var pageWithFacetsModel = PagedWithFacetsModel.of(
                 pageWithFacets.stream().map(EntityModel::of).toList(),
@@ -201,7 +203,7 @@ class SpexareApiTest extends AbstractApiTest {
         pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.NEXT));
         pageWithFacetsModel.add(Link.of("https://whatever", IanaLinkRelations.LAST));
 
-        when(service.search(any(String.class), any(Pageable.class))).thenReturn(pageWithFacets);
+        when(service.search(any(String.class), anyList(), any(Pageable.class))).thenReturn(pageWithFacets);
         when(pagedWithFacetsResourcesAssembler.toModel(any(PageWithFacets.class))).thenReturn(pageWithFacetsModel);
 
         mockMvc
@@ -241,7 +243,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "search", String.class, Pageable.class))
+                                security(getRolesFromMethod(SpexareApi.class, "search", String.class, List.class, Pageable.class))
                         )
                 );
     }

@@ -34,10 +34,6 @@ import org.springframework.security.util.FieldUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -62,40 +58,19 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
     }
 
     @Override
-    public SearchResult<T> search(final String query, final Pageable pageable) {
-        return search(Search.session(entityManager), parseQuery(query), pageable);
+    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
+        return search(Search.session(entityManager), parseQuery(query, aggregationFilters), pageable);
     }
 
     @Override
-    public SearchResult<T> search(final String query, final int offset, final int limit, final Sort sort) {
-        return search(Search.session(entityManager), parseQuery(query), offset, limit, sort);
+    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
+        return search(Search.session(entityManager), parseQuery(query, aggregationFilters), offset, limit, sort);
     }
 
-    SearchQuery parseQuery(final String query) {
-        // Query syntax: <free text query>:aggregation1:aggregation1Value:aggregation2:aggregation2Value
-        // Query example: colgate:tags.name:detaljen
+    SearchQuery parseQuery(final String query, final List<AggregationFilter> aggregationFilters) {
+        final String freeTextQuery = hasText(query) ? query.strip() : "";
 
-        if (!hasText(query)) {
-            return new SearchQuery("", Collections.emptyList());
-        }
-
-        final String[] parts = query.split(":");
-
-        if (parts.length > 0) {
-            final String freeTextQuery = parts[0].strip();
-            final List<Aggregation> aggregations = new ArrayList<>();
-
-            for (int i = 1; (i + 1) < parts.length; i = i + 2) {
-                final String name = parts[i];
-                final String value = parts[i + 1];
-
-                aggregations.add(new Aggregation(URLDecoder.decode(name, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8)));
-            }
-
-            return new SearchQuery(freeTextQuery, aggregations);
-        } else {
-            return new SearchQuery(query, Collections.emptyList());
-        }
+        return new SearchQuery(freeTextQuery, aggregationFilters);
     }
 
     protected CompositeSortComponentsStep<?, ?> determineSort(final Class<T> clazz, final SearchSortFactory f, final Sort sort) {

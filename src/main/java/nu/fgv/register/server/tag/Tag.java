@@ -31,6 +31,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -69,7 +70,7 @@ public class Tag extends AbstractAuditable implements Serializable {
     @Column(name = "name", nullable = false)
     @FullTextField(name = "name_", searchable = Searchable.YES)
     @GenericField(searchable = Searchable.YES)
-    @PropertyBinding(binder = @PropertyBinderRef(type = TagNameBinder.class))
+    @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String name;
 
     @Override

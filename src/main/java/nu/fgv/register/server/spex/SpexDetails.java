@@ -36,6 +36,7 @@ import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -80,7 +81,7 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @Column(name = "title", nullable = false)
     @FullTextField(name = "title_", searchable = Searchable.YES)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
-    @PropertyBinding(binder = @PropertyBinderRef(type = SpexDetailsTitleBinder.class))
+    @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String title;
 
     @Lob

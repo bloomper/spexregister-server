@@ -29,6 +29,11 @@ type FacetValue {
     count: Int!
 }
 
+input AggregationFilterInput {
+    name: String!
+    value: String!
+}
+
 type PageInfo {
     hasPreviousPage: Boolean!
     hasNextPage: Boolean!

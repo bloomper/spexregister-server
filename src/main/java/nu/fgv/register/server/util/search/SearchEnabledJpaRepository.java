@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.search;
 import nu.fgv.register.server.acl.AclJpaRepository;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -33,17 +34,15 @@ import java.util.List;
 @NoRepositoryBean
 public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends AclJpaRepository<T, ID> {
 
-    SearchResult<T> search(String query, Pageable pageable);
+    SearchResult<T> search(String query, @Nullable List<AggregationFilter> aggregationFilters, Pageable pageable);
 
-    SearchResult<T> search(String query, int offset, int limit, Sort sort);
+    SearchResult<T> search(String query, @Nullable List<AggregationFilter> aggregationFilters, int offset, int limit, Sort sort);
 
     SearchResult<T> search(SearchSession searchSession, SearchQuery query, Pageable pageable);
 
     SearchResult<T> search(SearchSession searchSession, SearchQuery query, int offset, int limit, Sort sort);
 
-    record SearchQuery(String freeTextQuery, List<Aggregation> aggregations) {
+    record SearchQuery(String freeTextQuery, @Nullable List<AggregationFilter> aggregationFilters) {
     }
 
-    record Aggregation(String name, String value) {
-    }
 }

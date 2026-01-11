@@ -32,6 +32,7 @@ import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -68,9 +69,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -107,8 +110,15 @@ public class SpexareApi {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"q"})
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> search(@RequestParam final String q,
+                                                                                @Nullable @RequestParam(required = false) final List<String> aggregations,
                                                                                 @SortDefault(sort = "score", direction = Sort.Direction.DESC) final Pageable pageable) {
-        final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, pageable));
+        final List<AggregationFilter> aggregationFilterList = Optional.ofNullable(aggregations)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::parseAggregation)
+                .toList();
+
+        final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, aggregationFilterList, pageable));
 
         paged.getContent().forEach(this::addLinks);
 
@@ -282,6 +292,12 @@ public class SpexareApi {
         links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("events"));
 
         return links;
+    }
+
+    private AggregationFilter parseAggregation(final String aggregation) {
+        final String[] parts = aggregation.split(":", 2);
+
+        return new AggregationFilter(parts[0], parts[1]);
     }
 
 }

@@ -35,6 +35,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -74,7 +75,7 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @Column(name = "name", nullable = false)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
-    @PropertyBinding(binder = @PropertyBinderRef(type = SpexCategoryNameBinder.class))
+    @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notEmpty}")

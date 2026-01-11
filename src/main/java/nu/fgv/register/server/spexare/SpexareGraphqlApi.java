@@ -24,6 +24,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
@@ -64,8 +65,8 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareSearchPaged")
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Argument final Optional<Integer> offset, @Argument final Optional<Integer> limit, @Argument final String q, final Optional<Sort> sort) {
-        final WindowWithFacets<SpexareDto> result = service.search(q, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
+    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Argument final Optional<Integer> offset, @Argument final Optional<Integer> limit, @Argument final String q, @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
+        final WindowWithFacets<SpexareDto> result = service.search(q, aggregationFilters, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
 
         graphQLContext.put("facets", result.getFacets());
 

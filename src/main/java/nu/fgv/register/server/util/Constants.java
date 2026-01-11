@@ -42,6 +42,7 @@ public class Constants {
 
     }
 
-    public static final String FACET_COMPOSITE_DELIMITER = "|||";
+    public static final String AGGREGATION_COMPOSITE_DELIMITER = "|||";
+    public static final String AGGREGATION_HIERARCHICAL_MARKER = "hierarchical_";
 
 }
