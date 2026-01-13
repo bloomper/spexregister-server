@@ -70,9 +70,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.4.7'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.4.7'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.4.7'
+    developmentOnly 'org.keycloak:keycloak-core:26.5.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.5.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.5.0'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -90,7 +90,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.statemachine:spring-statemachine-starter'
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation 'org.springframework.security:spring-security-acl'
     implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -106,7 +105,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-71:3.14.1'
     implementation 'com.google.guava:guava:33.5.0-jre'
-    implementation 'org.keycloak:keycloak-admin-client:26.0.7'
+    implementation 'org.keycloak:keycloak-admin-client:26.0.8'
     implementation 'org.passay:passay:1.6.6'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
@@ -141,8 +140,8 @@ dependencies {
     integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
-    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.0.1'
-    //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.0.1'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.1.0'
+    //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
     integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
@@ -159,8 +158,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom 'org.testcontainers:testcontainers-bom:2.0.3'
-        mavenBom 'org.hibernate.search:hibernate-search-bom:8.2.0.Final'
-        mavenBom 'org.springframework.statemachine:spring-statemachine-bom:4.0.1'
+        mavenBom 'org.hibernate.search:hibernate-search-bom:8.2.1.Final'
     }
 }
 
