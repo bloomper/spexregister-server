@@ -94,7 +94,7 @@ public class EventService {
     @Async
     public void onEvent(final SpringEvent springEvent) {
         if (springEvent.getSource() instanceof final AbstractAuditable auditable) {
-            create(auditable.getCreatedBy(), springEvent.getEvent(), springEvent.getSourceType());
+            create(auditable.getLastModifiedBy(), springEvent.getEvent(), springEvent.getSourceType());
         }
     }
 
