@@ -19,7 +19,6 @@ package nu.fgv.register.server.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.news.NewsApi;
-import nu.fgv.register.server.session.SessionApi;
 import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spexare.SpexareApi;
@@ -82,7 +81,6 @@ public class EventApi {
 
         links.add(linkTo(methodOn(EventApi.class).retrieveById(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(-1)).withRel("news-events"));
-        links.add(linkTo(methodOn(SessionApi.class).retrieveEvents(-1)).withRel("session-events"));
         links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(-1)).withRel("spex-events"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(-1)).withRel("spex-category-events"));
         links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("spexare-events"));

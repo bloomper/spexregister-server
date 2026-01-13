@@ -70,7 +70,6 @@ class EventApiTest extends AbstractApiTest {
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("events").description("Link to events").optional(),
             linkWithRel("news-events").description("Link to news events").optional(),
-            linkWithRel("session-events").description("Link to session events").optional(),
             linkWithRel("spex-events").description("Link to spex events").optional(),
             linkWithRel("spex-category-events").description("Link to spex category events").optional(),
             linkWithRel("spexare-events").description("Link to spexare events").optional(),

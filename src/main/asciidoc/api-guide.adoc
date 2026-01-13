@@ -148,7 +148,6 @@ Spexregister Server uses the following resources:
 
 * xref:resources/event.adoc[Event]
 * xref:resources/news.adoc[News]
-* xref:resources/session.adoc[Session]
 * xref:resources/settings.adoc[Settings]
 * xref:resources/spex.adoc[Spex]
 ** xref:resources/spex-category.adoc[Spex category]

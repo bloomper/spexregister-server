@@ -1,3 +1,0 @@
-extend type Query {
-    sessionEvents(sinceInDays: Int = 90): [Event]
-}
