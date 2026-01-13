@@ -755,12 +755,12 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .listOfRows()
                 .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) row.get("id"))));
 
-        final List<String> states = new ArrayList<>();
+        final List<Pair<String, Boolean>> states = new ArrayList<>();
 
         jdbcClient.sql("SELECT id FROM state")
                 .query()
                 .listOfRows()
-                .forEach(row -> states.add((String) row.get("id")));
+                .forEach(row -> states.add(Pair.of((String) row.get("id"), (Boolean) row.get("enabled"))));
 
         final List<Long> spexare = new ArrayList<>();
 
@@ -785,9 +785,10 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
         IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
             final UserRepresentation userRepresentation = new UserRepresentation();
+            final Pair<String, Boolean> state = states.get(rnd.nextInt(states.size()));
 
             userRepresentation.setEmail(faker.internet().emailAddress());
-            userRepresentation.setEnabled(true);
+            userRepresentation.setEnabled(state.getRight());
             userRepresentation.setCredentials(List.of(credentialRepresentation));
 
             try (final Response response = keycloakAdminClient
@@ -818,7 +819,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                         jdbcClient
                                 .sql(sql)
                                 .param("externalId", externalId)
-                                .param("stateId", states.get(rnd.nextInt(states.size())))
+                                .param("stateId", state.getLeft())
                                 .param("spexareId", spexareId)
                                 .param("createdBy", SYSTEM_USER)
                                 .param("createdAt", randomizeCreatedAt())
