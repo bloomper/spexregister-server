@@ -160,9 +160,9 @@ public class SpexGraphqlApi {
     }
 
     @QueryMapping("spexEvents")
-    @RequiresAdmin
-    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.SPEX);
+    @RequiresAdminOrEditorOrUser
+    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySourceTypeAndId(Event.SourceType.SPEX, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

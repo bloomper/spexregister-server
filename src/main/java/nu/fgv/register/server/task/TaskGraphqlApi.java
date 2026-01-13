@@ -111,9 +111,9 @@ public class TaskGraphqlApi {
     }
 
     @QueryMapping("taskEvents")
-    @RequiresAdmin
-    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.TASK);
+    @RequiresAdminOrEditorOrUser
+    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySourceTypeAndId(Event.SourceType.TASK, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

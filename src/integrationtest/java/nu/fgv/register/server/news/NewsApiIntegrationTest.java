@@ -820,11 +820,12 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var news = persistNews(randomizeNews());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final List<EventDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/events")
+                                    .uri("/events/{sourceId}", news.getId())
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -838,21 +839,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.NEWS.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.NEWS.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(news.getCreatedBy());
-        }
-
-        @Test
-        void should_return_403_when_not_permitted() {
-            restTestClient
-                    .get()
-                    .uri("/events")
-                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isForbidden();
         }
     }
 

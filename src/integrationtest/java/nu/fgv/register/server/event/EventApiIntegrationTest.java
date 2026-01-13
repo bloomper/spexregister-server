@@ -95,6 +95,10 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             final List<EventDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("sourceType", Event.SourceType.NEWS.name())
+                                            .build()
+                                    )
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -117,6 +121,10 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             final List<EventDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("sourceType", Event.SourceType.NEWS.name())
+                                            .build()
+                                    )
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -140,6 +148,10 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
             final List<EventDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .queryParam("sourceType", Event.SourceType.NEWS.name())
+                                            .build()
+                                    )
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -159,58 +171,10 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted() {
             restTestClient
                     .get()
-                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isForbidden();
-        }
-    }
-
-    @Nested
-    @DisplayName("Retrieve")
-    class RetrieveTests {
-        @Test
-        void should_return_found() {
-            final var event = persistEvent(randomizeEvent());
-
-            final EventDto result = Objects.requireNonNull(
-                    restTestClient
-                            .get()
-                            .uri("/{id}", event.getId())
-                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .apiVersion("1.0")
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectBody(EventDto.class)
-                            .returnResult()
-                            .getResponseBody()
-            );
-
-            assertThat(result).isNotNull();
-            assertThat(result)
-                    .extracting("id", "event", "source")
-                    .contains(event.getId(), event.getEvent().name(), event.getSource().name());
-        }
-
-        @Test
-        void should_return_404_when_not_found() {
-            restTestClient
-                    .get()
-                    .uri("/{id}", 1L)
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isNotFound();
-        }
-
-        @Test
-        void should_return_403_when_not_permitted() {
-            restTestClient
-                    .get()
-                    .uri("/{id}", 1L)
+                    .uri(uriBuilder -> uriBuilder
+                            .queryParam("sourceType", Event.SourceType.NEWS.name())
+                            .build()
+                    )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -220,7 +184,11 @@ class EventApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Event randomizeEvent() {
-        return random.nextObject(Event.class);
+        final var event = random.nextObject(Event.class);
+
+        event.setSourceType(Event.SourceType.NEWS);
+
+        return event;
     }
 
     private Event persistEvent(final Event event) {

@@ -26,7 +26,6 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -188,16 +187,16 @@ public class TagApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TAG).stream()
+    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.TAG, sourceId, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.TAG, -1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<TagDto> entity) {
@@ -215,7 +214,7 @@ public class TagApi {
 
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged(), "")).withRel("tags"));
-        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(-1)).withRel("events"));
+        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
 
         return links;
     }

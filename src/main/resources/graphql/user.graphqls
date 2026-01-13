@@ -2,7 +2,7 @@ extend type Query {
     userPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): UserConnection
     user(id: ID!): User
     me: User
-    userEvents(sinceInDays: Int = 90): [Event]
+    userEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
 }
 
 extend type Mutation {

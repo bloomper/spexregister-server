@@ -27,6 +27,7 @@ import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
@@ -157,9 +158,9 @@ public class UserGraphqlApi {
     }
 
     @QueryMapping("userEvents")
-    @RequiresAdmin
-    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.USER);
+    @RequiresAdminOrEditorOrUser
+    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySourceTypeAndId(Event.SourceType.USER, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

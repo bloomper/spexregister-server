@@ -30,11 +30,13 @@ public class SpringEvent extends ApplicationEvent {
 
     private final Event.EventType event;
     private final Event.SourceType sourceType;
+    private final Long sourceId;
 
-    public SpringEvent(final Object sourceObject, final Event.EventType event, final Event.SourceType source) {
+    public SpringEvent(final Object sourceObject, final Event.EventType event, final Event.SourceType source, final Long sourceId) {
         super(sourceObject);
         this.event = event;
         this.sourceType = source;
+        this.sourceId = sourceId;
     }
 
 }

@@ -1,8 +1,8 @@
-query spexEvents ($sinceInDays: Int = 90) {
-    spexEvents (sinceInDays: $sinceInDays) {
+query spexEvents ($sourceId: ID!, $sinceInDays: Int = 90) {
+    spexEvents (sourceId: $sourceId, sinceInDays: $sinceInDays) {
         id
-        event
-        source
+        eventType
+        sourceType
         createdBy
         createdAt
     }

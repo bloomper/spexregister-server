@@ -1,12 +1,29 @@
 extend type Query {
-    event(id: ID!): Event
-    events(sinceInDays: Int = 90): [Event]
+    events(sourceType: SourceType!, sinceInDays: Int = 90): [Event]
 }
 
 type Event {
     id: ID!
-    event: String!
-    source: String!
+    eventType: EventType!
+    sourceType: SourceType!
+    sourceId: Long!
     createdBy: String!
     createdAt: Instant!
+}
+
+enum EventType {
+    CREATE
+    UPDATE
+    REMOVE
+}
+
+enum SourceType {
+    NEWS
+    SPEX
+    SPEX_CATEGORY
+    SPEXARE
+    TAG
+    TASK
+    TASK_CATEGORY
+    USER
 }

@@ -37,6 +37,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -102,6 +103,7 @@ public class TaggingService {
                                             spexare.setTags(new java.util.HashSet<>());
                                         }
                                         spexare.getTags().add(tag);
+                                        spexare.setLastModifiedAt(Instant.now());
                                         spexareRepository.save(spexare);
                                     },
                                     () -> {
@@ -131,6 +133,7 @@ public class TaggingService {
                                         if (spexare.getTags().isEmpty()) {
                                             spexare.setTags(null);
                                         }
+                                        spexare.setLastModifiedAt(Instant.now());
                                         spexareRepository.save(spexare);
                                     },
                                     () -> {

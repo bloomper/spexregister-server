@@ -1,8 +1,8 @@
-query events ($sinceInDays: Int = 90) {
-    events (sinceInDays: $sinceInDays) {
+query events ($sourceType: SourceType!, $sinceInDays: Int = 90) {
+    events (sourceType: $sourceType, sinceInDays: $sinceInDays) {
         id
-        event
-        source
+        eventType
+        sourceType
         createdBy
         createdAt
     }

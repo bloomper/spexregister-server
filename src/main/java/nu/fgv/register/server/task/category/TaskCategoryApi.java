@@ -186,16 +186,16 @@ public class TaskCategoryApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.TASK_CATEGORY).stream()
+    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.TASK_CATEGORY, sourceId, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.TASK_CATEGORY, -1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<TaskCategoryDto> entity) {
@@ -213,7 +213,7 @@ public class TaskCategoryApi {
 
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("task-categories"));
-        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(-1)).withRel("events"));
+        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
 
         return links;
     }

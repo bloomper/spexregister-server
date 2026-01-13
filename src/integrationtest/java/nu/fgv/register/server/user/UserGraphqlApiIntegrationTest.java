@@ -1857,12 +1857,14 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("user/userEvents")
+                    .variable("sourceId", user.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -1871,27 +1873,11 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .hasSize(1)
                     .get();
 
-            assertThat(eventRepository.count()).isEqualTo(2L);
+            assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.USER.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(user.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("user/userEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("userEvents")
-                    .valueIsNull();
         }
     }
 

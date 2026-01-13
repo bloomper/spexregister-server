@@ -605,12 +605,14 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var tag = persistTag(randomizeTag());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("tag/tagEvents")
+                    .variable("sourceId", tag.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -620,25 +622,10 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .get();
 
             assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.TAG.name());
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TAG.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(tag.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("tag/tagEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("tagEvents")
-                    .valueIsNull();
         }
     }
 

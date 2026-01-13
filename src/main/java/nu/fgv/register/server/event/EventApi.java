@@ -33,7 +33,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,38 +55,29 @@ public class EventApi {
 
     private final EventService service;
 
-    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<EventDto>> retrieveById(@PathVariable final Long id) {
-        final EventDto dto = service.findById(id);
-
-        return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
-    }
-
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieve(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = service.find(sinceInDays).stream()
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieve(@RequestParam final Event.SourceType sourceType, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = service.findBySourceType(sourceType, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(sourceType, -1)).withSelfRel()));
     }
 
     public List<Link> getLinks(final EventDto dto) {
         final List<Link> links = new ArrayList<>();
 
-        links.add(linkTo(methodOn(EventApi.class).retrieveById(dto.getId())).withSelfRel());
-        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(-1)).withRel("news-events"));
-        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(-1)).withRel("spex-events"));
-        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(-1)).withRel("spex-category-events"));
-        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("spexare-events"));
-        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(-1)).withRel("tag-events"));
-        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(-1)).withRel("task-events"));
-        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(-1)).withRel("task-category-events"));
-        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(-1)).withRel("user-events"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(null, -1)).withRel("news-events"));
+        links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(null, -1)).withRel("spex-events"));
+        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(null, -1)).withRel("spex-category-events"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(null, -1)).withRel("spexare-events"));
+        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(null, -1)).withRel("tag-events"));
+        links.add(linkTo(methodOn(TaskApi.class).retrieveEvents(null, -1)).withRel("task-events"));
+        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(null, -1)).withRel("task-category-events"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(null, -1)).withRel("user-events"));
 
         return links;
     }

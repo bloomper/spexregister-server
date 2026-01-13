@@ -123,7 +123,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/spex/categories?page=1&size=2&sort=name,asc&filter=name:whatever")
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -166,7 +166,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/spex/categories?ids=1,2,3")
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
@@ -205,7 +205,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         post("/api/spex/categories")
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -239,7 +239,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/spex/categories/{id}", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -274,7 +274,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/spex/categories/{id}", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -316,7 +316,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         patch("/api/spex/categories/{id}", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -357,7 +357,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/spex/categories/{id}", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -385,7 +385,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         get("/api/spex/categories/{spexId}/logo", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -421,7 +421,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         put("/api/spex/categories/{spexId}/logo", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                                 .contentType(MediaType.IMAGE_PNG)
                                 .content(logo)
@@ -456,7 +456,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                         multipart("/api/spex/categories/{spexId}/logo", 1)
                                 .file(logo)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -487,7 +487,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .perform(
                         delete("/api/spex/categories/{spexId}/logo", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isNoContent())
@@ -508,19 +508,19 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX_CATEGORY.name()).build();
-        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEX_CATEGORY.name()).build();
+        final var event1 = EventDto.builder().id(1L).eventType(Event.EventType.CREATE.name()).sourceType(Event.SourceType.SPEX_CATEGORY.name()).build();
+        final var event2 = EventDto.builder().id(2L).eventType(Event.EventType.UPDATE.name()).sourceType(Event.SourceType.SPEX_CATEGORY.name()).build();
         final var realEventApi = new EventApi(null);
 
-        when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
+        when(eventService.findBySourceTypeAndId(any(Event.SourceType.class), any(Long.class), any(Integer.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
         when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
 
         mockMvc
                 .perform(
-                        get("/api/spex/categories/events?sinceInDays=30")
+                        get("/api/spex/categories/events/{sourceId}?sinceInDays=30", 1)
                                 .apiVersion("1.0")
-.header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 )
                 .andExpect(status().isOk())
@@ -534,18 +534,23 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 responseFields(
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.events[]").description("The elements"),
-                                        fieldWithPath("_embedded.events[].id").description("The id of the event"),
-                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
-                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
+                                        fieldWithPath("_embedded.events[].eventType").description("The type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceType").description("The source type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceId").description("The source id of the event"),
                                         fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
                                         fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
                                         subsectionWithPath("_embedded.events[]._links").description("The event links"),
                                         linksSubsection
                                 ),
-                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                pathParameters(
+                                        parameterWithName("sourceId").description("The source id of the event")
+                                ),
+                                queryParameters(
+                                        parameterWithName("sinceInDays").description("How many days back to check for events")
+                                ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieveEvents", Integer.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieveEvents", Long.class, Integer.class))
                         )
                 );
     }

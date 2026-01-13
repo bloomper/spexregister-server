@@ -252,16 +252,16 @@ public class SpexareApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.SPEXARE).stream()
+    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.SPEXARE, sourceId, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.SPEXARE, -1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<SpexareDto> entity) {
@@ -289,7 +289,7 @@ public class SpexareApi {
         links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged(), "")).withRel("addresses"));
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrievePartner(dto.getId())).withRel("partner"));
-        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(-1)).withRel("events"));
+        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
 
         return links;
     }

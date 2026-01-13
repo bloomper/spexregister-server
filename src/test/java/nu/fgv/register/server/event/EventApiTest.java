@@ -27,8 +27,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -42,7 +40,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -68,7 +65,6 @@ class EventApiTest extends AbstractApiTest {
     );
 
     private final LinksSnippet links = baseLinks.and(
-            linkWithRel("events").description("Link to events").optional(),
             linkWithRel("news-events").description("Link to news events").optional(),
             linkWithRel("spex-events").description("Link to spex events").optional(),
             linkWithRel("spex-category-events").description("Link to spex category events").optional(),
@@ -81,14 +77,14 @@ class EventApiTest extends AbstractApiTest {
 
     @Test
     void should_get_all() throws Exception {
-        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
-        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.TASK.name()).build();
+        final var event1 = EventDto.builder().id(1L).eventType(Event.EventType.CREATE.name()).sourceType(Event.SourceType.SPEX.name()).build();
+        final var event2 = EventDto.builder().id(2L).eventType(Event.EventType.UPDATE.name()).sourceType(Event.SourceType.TASK.name()).build();
 
-        when(service.find(any(Integer.class))).thenReturn(List.of(event1, event2));
+        when(service.findBySourceType(any(Event.SourceType.class), any(Integer.class))).thenReturn(List.of(event1, event2));
 
         mockMvc
                 .perform(
-                        get("/api/events?sinceInDays=30")
+                        get("/api/events?sourceType=NEWS&sinceInDays=30")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -105,50 +101,21 @@ class EventApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.events[]").description("The elements"),
                                         fieldWithPath("_embedded.events[].id").description("The id of the event"),
-                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
-                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
+                                        fieldWithPath("_embedded.events[].eventType").description("The type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceType").description("The source type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceId").description("The source id of the event"),
                                         fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
                                         fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
                                         subsectionWithPath("_embedded.events[]._links").description("The event links"),
                                         linksSubsection
                                 ),
-                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(EventApi.class, "retrieve", Integer.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_get() throws Exception {
-        final var event = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEX.name()).build();
-
-        when(service.findById(any(Long.class))).thenReturn(event);
-
-        mockMvc
-                .perform(
-                        get("/api/events/{id}", 1)
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "event-get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the event")
+                                queryParameters(
+                                        parameterWithName("sourceType").description("The source type of the event"),
+                                        parameterWithName("sinceInDays").description("How many days back to check for events")
                                 ),
-                                responseFields,
-                                links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(EventApi.class, "retrieveById", Long.class))
+                                security(getRolesFromMethod(EventApi.class, "retrieve", Event.SourceType.class, Integer.class))
                         )
                 );
     }

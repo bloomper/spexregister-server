@@ -23,7 +23,6 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
@@ -699,17 +698,17 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_events() throws Exception {
-        final var event1 = EventDto.builder().id(1L).event(Event.EventType.CREATE.name()).source(Event.SourceType.SPEXARE.name()).build();
-        final var event2 = EventDto.builder().id(2L).event(Event.EventType.UPDATE.name()).source(Event.SourceType.SPEXARE.name()).build();
+        final var event1 = EventDto.builder().id(1L).eventType(Event.EventType.CREATE.name()).sourceType(Event.SourceType.SPEXARE.name()).build();
+        final var event2 = EventDto.builder().id(2L).eventType(Event.EventType.UPDATE.name()).sourceType(Event.SourceType.SPEXARE.name()).build();
         final var realEventApi = new EventApi(null);
 
-        when(eventService.findBySource(any(Integer.class), any(Event.SourceType.class))).thenReturn(List.of(event1, event2));
+        when(eventService.findBySourceTypeAndId(any(Event.SourceType.class), any(Long.class), any(Integer.class))).thenReturn(List.of(event1, event2));
         when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
         when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/events?sinceInDays=30")
+                        get("/api/spexare/events/{sourceId}?sinceInDays=30", 1)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -726,17 +725,23 @@ class SpexareApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded").description("The embedded section"),
                                         subsectionWithPath("_embedded.events[]").description("The elements"),
                                         fieldWithPath("_embedded.events[].id").description("The id of the event"),
-                                        fieldWithPath("_embedded.events[].event").description("The type of the event"),
-                                        fieldWithPath("_embedded.events[].source").description("The source of the event"),
+                                        fieldWithPath("_embedded.events[].eventType").description("The type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceType").description("The source type of the event"),
+                                        fieldWithPath("_embedded.events[].sourceId").description("The source id of the event"),
                                         fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
                                         fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
                                         subsectionWithPath("_embedded.events[]._links").description("The event links"),
                                         linksSubsection
                                 ),
-                                queryParameters(parameterWithName("sinceInDays").description("How many days back to check for events")),
+                                pathParameters(
+                                        parameterWithName("sourceId").description("The source id of the event")
+                                ),
+                                queryParameters(
+                                        parameterWithName("sinceInDays").description("How many days back to check for events")
+                                ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "retrieveEvents", Integer.class))
+                                security(getRolesFromMethod(SpexareApi.class, "retrieveEvents", Long.class, Integer.class))
                         )
                 );
     }

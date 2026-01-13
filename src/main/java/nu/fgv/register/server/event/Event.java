@@ -57,10 +57,15 @@ public class Event implements Serializable {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private EventType event;
+    @Column(name = "event_type", nullable = false)
+    private EventType eventType;
 
     @Enumerated(EnumType.STRING)
-    private SourceType source;
+    @Column(name = "source_type", nullable = false)
+    private SourceType sourceType;
+
+    @Column(name = "source_id", nullable = false)
+    private Long sourceId;
 
     @Column(name = "created_by", nullable = false, length = 50, updatable = false)
     private String createdBy;
@@ -103,8 +108,6 @@ public class Event implements Serializable {
         TAG,
         TASK,
         TASK_CATEGORY,
-        USER,
-        AUTHORITY,
-        STATE
+        USER
     }
 }

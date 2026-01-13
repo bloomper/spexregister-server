@@ -1999,11 +1999,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             final List<EventDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/events")
+                                    .uri("/events/{sourceId}", user.getId())
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -2015,29 +2016,11 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                                     .getResponseBody())
                     .getList("events");
 
-            assertThat(eventRepository.count()).isEqualTo(2L);
+            assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.USER.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.USER.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(user.getCreatedBy());
-        }
-
-        @Test
-        void should_return_403_when_not_permitted() {
-            final ProblemDetail result = restTestClient
-                    .get()
-                    .uri("/events")
-                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isForbidden()
-                    .expectBody(ProblemDetail.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
     }
 

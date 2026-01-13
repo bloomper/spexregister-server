@@ -24,7 +24,6 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.filter.FilterOperation;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
@@ -134,16 +133,16 @@ public class NewsApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.NEWS).stream()
+    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.NEWS, sourceId, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.NEWS, -1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<NewsDto> entity) {
@@ -157,7 +156,7 @@ public class NewsApi {
 
         links.add(linkTo(methodOn(NewsApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(NewsApi.class).retrieve(Pageable.unpaged(), "")).withRel("news"));
-        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(-1)).withRel("events"));
+        links.add(linkTo(methodOn(NewsApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
 
         return links;
     }

@@ -42,5 +42,5 @@ public interface EventMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    Event toModel(String createdBy, Event.EventType event, Event.SourceType source);
+    Event toModel(String createdBy, Event.EventType eventType, Event.SourceType sourceType, Long sourceId);
 }

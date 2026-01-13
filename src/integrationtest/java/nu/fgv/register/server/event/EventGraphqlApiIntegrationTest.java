@@ -91,6 +91,7 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("event/events")
+                    .variable("sourceType", Event.SourceType.NEWS)
                     .execute()
                     .errors()
                     .verify()
@@ -110,6 +111,7 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("event/events")
+                    .variable("sourceType", Event.SourceType.NEWS)
                     .execute()
                     .errors()
                     .verify()
@@ -130,6 +132,7 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("event/events")
+                    .variable("sourceType", Event.SourceType.NEWS)
                     .execute()
                     .errors()
                     .verify()
@@ -147,6 +150,7 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("event/events")
+                    .variable("sourceType", Event.SourceType.NEWS)
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -157,66 +161,12 @@ class EventGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
     }
 
-    @Nested
-    @DisplayName("Retrieve")
-    class RetrieveTests {
-        @Test
-        void should_return_found() {
-            final var event = persistEvent(randomizeEvent());
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("event/event")
-                    .variable("id", event.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("event", result -> result
-                            .path("id").entity(Long.class).isEqualTo(event.getId())
-                            .path("event").entity(Event.EventType.class).isEqualTo(event.getEvent())
-                            .path("source").entity(Event.SourceType.class).isEqualTo(event.getSource())
-                    );
-        }
-
-        @Test
-        void should_return_NOT_FOUND_when_not_found() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("event/event")
-                    .variable("id", 1L)
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
-                    )
-                    .path("event")
-                    .valueIsNull();
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("event/event")
-                    .variable("id", 1L)
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("event")
-                    .valueIsNull();
-        }
-    }
-
     private Event randomizeEvent() {
-        return random.nextObject(Event.class);
+        final var event = random.nextObject(Event.class);
+
+        event.setSourceType(Event.SourceType.NEWS);
+
+        return event;
     }
 
     private Event persistEvent(final Event event) {

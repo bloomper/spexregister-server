@@ -730,12 +730,14 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryEvents")
+                    .variable("sourceId", category.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -746,25 +748,9 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(category.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/category/spexCategoryEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexCategoryEvents")
-                    .valueIsNull();
         }
     }
 

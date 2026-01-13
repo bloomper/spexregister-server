@@ -45,6 +45,7 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -177,6 +178,7 @@ public class SpexService {
                 })
                 .map(spex -> {
                     detailsRepository.save(spex.getDetails());
+                    touchSpexByDetails(spex.getDetails());
                     return repository.save(spex);
                 })
                 .map(SPEX_MAPPER::toDto)
@@ -212,6 +214,7 @@ public class SpexService {
                     spex.getDetails().setPoster(poster);
                     spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
                     detailsRepository.save(spex.getDetails());
+                    touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
@@ -226,6 +229,7 @@ public class SpexService {
                     spex.getDetails().setPoster(null);
                     spex.getDetails().setPosterContentType(null);
                     detailsRepository.save(spex.getDetails());
+                    touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
@@ -329,6 +333,8 @@ public class SpexService {
                         spex.setYear(year);
 
                         final Spex revival = repository.save(spex);
+                        touchSpexByDetails(parent.getDetails());
+
                         final ObjectIdentity oid = toObjectIdentity(Spex.class, revival.getId());
 
                         permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -354,8 +360,10 @@ public class SpexService {
                     .flatMap(parent -> repository.findOne(hasParent(parent).and(hasId(id))))
                     .ifPresentOrElse(
                             revival -> {
+                                final SpexDetails details = revival.getDetails();
                                 permissionService.deleteAcl(toObjectIdentity(Spex.class, revival.getId()));
                                 repository.deleteById(revival.getId());
+                                touchSpexByDetails(details);
                             },
                             () -> {
                                 throw new ResourceNotFoundException(Spex.class, id);
@@ -391,6 +399,7 @@ public class SpexService {
                             .ifPresent(category -> {
                                 spex.getDetails().setCategory(category);
                                 detailsRepository.save(spex.getDetails());
+                                touchSpexByDetails(spex.getDetails());
                             })
                     );
         } else {
@@ -407,10 +416,18 @@ public class SpexService {
                     .ifPresent(spex -> {
                         spex.getDetails().setCategory(null);
                         detailsRepository.save(spex.getDetails());
+                        touchSpexByDetails(spex.getDetails());
                     });
         } else {
             throw new ResourceNotFoundException(Spex.class, id);
         }
+    }
+
+    private void touchSpexByDetails(final SpexDetails details) {
+        repository.findByDetailsAndParentIsNull(details).ifPresent(spex -> {
+            spex.setLastModifiedAt(Instant.now());
+            repository.save(spex);
+        });
     }
 
     private <T> T findRevivalsByParent(final Long id, final Function<Spex, T> retrievalFunction, final Supplier<T> emptyResultSupplier) {

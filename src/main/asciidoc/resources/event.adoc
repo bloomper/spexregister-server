@@ -10,11 +10,6 @@
 
 xref:../api-guide.adoc[Back to API guide]
 
-[[get]]
-== Get
-
-operation::event-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
-
 [[get_all]]
 == Get (all)
 

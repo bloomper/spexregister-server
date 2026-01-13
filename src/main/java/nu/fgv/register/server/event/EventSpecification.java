@@ -29,8 +29,12 @@ public class EventSpecification {
     private EventSpecification() {
     }
 
-    public static Specification<Event> hasSource(final Event.SourceType source) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Event_.source), source);
+    public static Specification<Event> hasSourceType(final Event.SourceType sourceType) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Event_.sourceType), sourceType);
+    }
+
+    public static Specification<Event> hasSourceId(final Long sourceId) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Event_.sourceId), sourceId);
     }
 
     public static Specification<Event> hasCreatedAtGreaterThanEqual(final Instant createdAt) {

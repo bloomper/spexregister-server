@@ -23,7 +23,6 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -85,8 +84,8 @@ public class TaskCategoryGraphqlApi {
     }
 
     @QueryMapping("taskCategoryEvents")
-    @RequiresAdmin
-    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySource(Optional.ofNullable(sinceInDays).orElse(90), Event.SourceType.TASK_CATEGORY);
+    @RequiresAdminOrEditorOrUser
+    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
+        return eventService.findBySourceTypeAndId(Event.SourceType.TASK_CATEGORY, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 }

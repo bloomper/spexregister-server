@@ -610,12 +610,14 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_found() {
             final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryEvents")
+                    .variable("sourceId", category.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -626,25 +628,9 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.TASK_CATEGORY.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TASK_CATEGORY.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(category.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("task/category/taskCategoryEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("taskCategoryEvents")
-                    .valueIsNull();
         }
     }
 

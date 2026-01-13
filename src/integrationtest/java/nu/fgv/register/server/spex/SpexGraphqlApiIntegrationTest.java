@@ -1651,12 +1651,14 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             final var spex = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexEvents")
+                    .variable("sourceId", spex.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -1665,27 +1667,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .hasSize(2)
                     .get();
 
-            assertThat(eventRepository.count()).isEqualTo(3);
-            assertThat(result).hasSize(2);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEX.name());
+            assertThat(eventRepository.count()).isEqualTo(2);
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEX.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(spex.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexEvents")
-                    .valueIsNull();
         }
     }
 

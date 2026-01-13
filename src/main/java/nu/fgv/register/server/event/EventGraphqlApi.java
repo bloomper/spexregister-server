@@ -38,15 +38,9 @@ public class EventGraphqlApi {
 
     private final EventService service;
 
-    @QueryMapping("event")
-    @RequiresAdmin
-    public EventDto retrieve(@Argument final Long id) {
-        return service.findById(id);
-    }
-
     @QueryMapping("events")
     @RequiresAdmin
-    public List<EventDto> events(@Nullable @Argument final Integer sinceInDays) {
-        return service.find(Optional.ofNullable(sinceInDays).orElse(90));
+    public List<EventDto> events(@Argument final Event.SourceType sourceType, @Nullable @Argument final Integer sinceInDays) {
+        return service.findBySourceType(sourceType, Optional.ofNullable(sinceInDays).orElse(90));
     }
 }

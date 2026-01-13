@@ -1129,12 +1129,14 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<EventDto> result = httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexareEvents")
+                    .variable("sourceId", spexare.getId())
                     .execute()
                     .errors()
                     .verify()
@@ -1145,25 +1147,9 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(eventRepository.count()).isEqualTo(1);
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEvent()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSource()).isEqualTo(Event.SourceType.SPEXARE.name());
+            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
+            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEXARE.name());
             assertThat(result.getFirst().getCreatedBy()).isEqualTo(spexare.getCreatedBy());
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spexare/spexareEvents")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexareEvents")
-                    .valueIsNull();
         }
     }
 

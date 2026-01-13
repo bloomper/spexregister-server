@@ -16,12 +16,11 @@
 
 package nu.fgv.register.server.event;
 
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.PreRemove;
 import jakarta.persistence.PreUpdate;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.activity.Activity;
@@ -36,8 +35,7 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.user.User;
-import nu.fgv.register.server.user.authority.Authority;
-import nu.fgv.register.server.user.state.State;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -58,9 +56,9 @@ public class JpaEntityListener {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    @PrePersist
+    @PostPersist
     private void atCreate(final Object sourceObject) {
-        if (isSpexareRelatedChange(sourceObject) || isSpexRelatedChange(sourceObject)) {
+        if (isSpexareRelatedChange(sourceObject)) {
             constructEvent(sourceObject, Event.EventType.UPDATE).ifPresent(applicationEventPublisher::publishEvent);
         } else {
             constructEvent(sourceObject, Event.EventType.CREATE).ifPresent(applicationEventPublisher::publishEvent);
@@ -74,7 +72,7 @@ public class JpaEntityListener {
 
     @PreRemove
     private void atRemove(final Object sourceObject) {
-        if (isSpexareRelatedChange(sourceObject) || isSpexRelatedChange(sourceObject)) {
+        if (isSpexareRelatedChange(sourceObject)) {
             constructEvent(sourceObject, Event.EventType.UPDATE).ifPresent(applicationEventPublisher::publishEvent);
         } else {
             constructEvent(sourceObject, Event.EventType.REMOVE).ifPresent(applicationEventPublisher::publishEvent);
@@ -83,31 +81,45 @@ public class JpaEntityListener {
 
     private Optional<SpringEvent> constructEvent(final Object sourceObject, final Event.EventType event) {
         final Event.SourceType source;
+        final Long sourceId;
 
-        if (sourceObject instanceof News) {
+        if (sourceObject instanceof final News news) {
             source = Event.SourceType.NEWS;
-        } else if (sourceObject instanceof SpexDetails || isSpexRelatedChange(sourceObject)) {
+            sourceId = news.getId();
+        } else if (sourceObject instanceof final Spex spex) {
             source = Event.SourceType.SPEX;
-        } else if (sourceObject instanceof SpexCategory) {
+            sourceId = spex.getId();
+        } else if (sourceObject instanceof final SpexCategory category) {
             source = Event.SourceType.SPEX_CATEGORY;
-        } else if (sourceObject instanceof Spexare || isSpexareRelatedChange(sourceObject)) {
+            sourceId = category.getId();
+        } else if (sourceObject instanceof final Spexare spexare) {
             source = Event.SourceType.SPEXARE;
-        } else if (sourceObject instanceof Tag) {
+            sourceId = spexare.getId();
+        } else if (sourceObject instanceof final Tag tag) {
             source = Event.SourceType.TAG;
-        } else if (sourceObject instanceof Task) {
+            sourceId = tag.getId();
+        } else if (sourceObject instanceof final Task task) {
             source = Event.SourceType.TASK;
-        } else if (sourceObject instanceof TaskCategory) {
+            sourceId = task.getId();
+        } else if (sourceObject instanceof final TaskCategory category) {
             source = Event.SourceType.TASK_CATEGORY;
-        } else if (sourceObject instanceof User) {
+            sourceId = category.getId();
+        } else if (sourceObject instanceof final User user) {
             source = Event.SourceType.USER;
-        } else if (sourceObject instanceof Authority) {
-            source = Event.SourceType.AUTHORITY;
-        } else if (sourceObject instanceof State) {
-            source = Event.SourceType.STATE;
+            sourceId = user.getId();
+        } else if (isSpexareRelatedChange(sourceObject)) {
+            source = Event.SourceType.SPEXARE;
+            sourceId = extractSpexareId(sourceObject);
         } else {
             source = null;
+            sourceId = null;
         }
-        return Optional.ofNullable(source).map(s -> new SpringEvent(sourceObject, event, s));
+
+        if (source != null && sourceId != null) {
+            return Optional.of(new SpringEvent(sourceObject, event, source, sourceId));
+        }
+
+        return Optional.empty();
     }
 
     private boolean isSpexareRelatedChange(final Object sourceObject) {
@@ -121,7 +133,18 @@ public class JpaEntityListener {
                 sourceObject instanceof Toggle;
     }
 
-    private boolean isSpexRelatedChange(final Object sourceObject) {
-        return sourceObject instanceof Spex;
+    private @Nullable Long extractSpexareId(final Object sourceObject) {
+        return switch (sourceObject) {
+            case final Activity a -> a.getSpexare().getId();
+            case final SpexActivity sa -> sa.getActivity().getSpexare().getId();
+            case final TaskActivity ta -> ta.getActivity().getSpexare().getId();
+            case final Actor ac -> ac.getTaskActivity().getActivity().getSpexare().getId();
+            case final Address ad -> ad.getSpexare().getId();
+            case final Consent c -> c.getSpexare().getId();
+            case final Membership m -> m.getSpexare().getId();
+            case final Toggle t -> t.getSpexare().getId();
+            default -> null;
+        };
     }
+
 }

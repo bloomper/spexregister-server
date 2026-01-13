@@ -31,6 +31,7 @@ import nu.fgv.register.server.user.state.StateApi;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -237,16 +238,16 @@ public class UserApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySource(sinceInDays, Event.SourceType.USER).stream()
+    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
+        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.USER, sourceId, sinceInDays).stream()
                 .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
                 .toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(-1)).withSelfRel()));
+                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.USER, -1)).withSelfRel()));
     }
 
     private void addLinks(final EntityModel<UserDto> entity) {
@@ -267,7 +268,7 @@ public class UserApi {
         links.add(linkTo(methodOn(UserApi.class).retrieveSpexare(dto.getId())).withRel("spexare"));
         links.add(linkTo(methodOn(UserApi.class).retrieveState(dto.getId())).withRel("state"));
         links.add(linkTo(methodOn(UserApi.class).retrieveAuthorities(dto.getId())).withRel("authorities"));
-        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(-1)).withRel("events"));
+        links.add(linkTo(methodOn(UserApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
 
         return links;
     }

@@ -36,6 +36,8 @@ public interface SpexRepository extends AclJpaRepository<Spex, Long>, JpaSpecifi
                 .findById(id);
     }
 
+    Optional<Spex> findByDetailsAndParentIsNull(SpexDetails details);
+
     long countByParentIsNull();
 
     long countByParentIsNotNull();

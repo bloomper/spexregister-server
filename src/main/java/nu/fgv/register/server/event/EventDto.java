@@ -41,11 +41,14 @@ public class EventDto {
     @JsonProperty("id")
     private Long id;
 
-    @JsonProperty("event")
-    private String event;
+    @JsonProperty("eventType")
+    private String eventType;
 
-    @JsonProperty("source")
-    private String source;
+    @JsonProperty("sourceType")
+    private String sourceType;
+
+    @JsonProperty("sourceId")
+    private Long sourceId;
 
     @JsonProperty("createdBy")
     private String createdBy;
@@ -56,14 +59,16 @@ public class EventDto {
     @Builder
     public EventDto(
             final Long id,
-            final String event,
-            final String source,
+            final String eventType,
+            final String sourceType,
+            final Long sourceId,
             final String createdBy,
             final Instant createdAt
     ) {
         this.id = id;
-        this.event = event;
-        this.source = source;
+        this.eventType = eventType;
+        this.sourceType = sourceType;
+        this.sourceId = sourceId;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
