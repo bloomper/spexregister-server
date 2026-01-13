@@ -76,11 +76,11 @@ spexregister:
     algorithm: "AES/CFB/PKCS5Padding"
   jobs:
     full-index:
-      cron-expression: 0 0 2 * * ? # Every night at 02:00
+      cron-expression: 0 0 */4 * * ? # Every night at 02:00
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
     sync-users:
-      cron-expression: 0 0 1 * * ? # Every night at 01:00
+      cron-expression: 0 30 * * * ? # Every hour
   keycloak:
     url: ${APP_KEYCLOAK_URL}
     realm: ${APP_KEYCLOAK_REALM}
