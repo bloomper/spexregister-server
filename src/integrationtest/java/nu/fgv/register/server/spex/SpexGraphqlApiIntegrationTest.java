@@ -1664,7 +1664,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .verify()
                     .path("spexEvents")
                     .entityList(EventDto.class)
-                    .hasSize(2)
+                    .hasSize(1)
                     .get();
 
             assertThat(eventRepository.count()).isEqualTo(2);

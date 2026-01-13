@@ -135,14 +135,14 @@ public class JpaEntityListener {
 
     private @Nullable Long extractSpexareId(final Object sourceObject) {
         return switch (sourceObject) {
-            case final Activity a -> a.getSpexare().getId();
-            case final SpexActivity sa -> sa.getActivity().getSpexare().getId();
-            case final TaskActivity ta -> ta.getActivity().getSpexare().getId();
-            case final Actor ac -> ac.getTaskActivity().getActivity().getSpexare().getId();
-            case final Address ad -> ad.getSpexare().getId();
-            case final Consent c -> c.getSpexare().getId();
-            case final Membership m -> m.getSpexare().getId();
-            case final Toggle t -> t.getSpexare().getId();
+            case final Activity activity -> activity.getSpexare() != null ? activity.getSpexare().getId() : null;
+            case final SpexActivity spexActivity -> spexActivity.getActivity() != null && spexActivity.getActivity().getSpexare() != null ? spexActivity.getActivity().getSpexare().getId() : null;
+            case final TaskActivity taskActivity -> taskActivity.getActivity() != null && taskActivity.getActivity().getSpexare() != null ? taskActivity.getActivity().getSpexare().getId() : null;
+            case final Actor actor -> actor.getTaskActivity() != null && actor.getTaskActivity().getActivity() != null && actor.getTaskActivity().getActivity().getSpexare() != null ? actor.getTaskActivity().getActivity().getSpexare().getId() : null;
+            case final Address address -> address.getSpexare() != null ? address.getSpexare().getId() : null;
+            case final Consent consent -> consent.getSpexare() != null ? consent.getSpexare().getId() : null;
+            case final Membership membership -> membership.getSpexare() != null ? membership.getSpexare().getId() : null;
+            case final Toggle toggle -> toggle.getSpexare() != null ? toggle.getSpexare().getId() : null;
             default -> null;
         };
     }
