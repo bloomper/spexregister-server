@@ -44,6 +44,9 @@ public interface TypeMapper {
     @Mapping(target = "label", ignore = true)
     TypeDto toDto(Type model);
 
+    @Mapping(target = "label", ignore = true)
+    TypeImpexDto toImpexDto(Type model);
+
     @AfterMapping
     default void setLabel(final Type model, final @MappingTarget TypeDto.TypeDtoBuilder dto) {
         dto.label(model.getLabels().get(LocaleContextHolder.getLocale().getLanguage()));

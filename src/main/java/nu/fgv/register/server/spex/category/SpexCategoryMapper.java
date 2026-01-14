@@ -49,6 +49,10 @@ public interface SpexCategoryMapper {
     @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
     SpexCategoryDto toDto(SpexCategory model);
 
+    @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
+    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
+    SpexCategoryImpexDto toImpexDto(SpexCategory model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "logo", ignore = true)
     @Mapping(target = "logoContentType", ignore = true)

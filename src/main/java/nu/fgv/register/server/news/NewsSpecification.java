@@ -22,6 +22,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author Anders Jacobsson
@@ -59,5 +60,9 @@ public class NewsSpecification extends BaseSpecification<News> {
                 criteriaBuilder.greaterThan(root.get(News_.visibleTo), LocalDate.now()),
                 criteriaBuilder.isNull(root.get(News_.visibleTo))
         );
+    }
+
+    public static Specification<News> hasIds(final List<Long> ids) {
+        return (root, query, criteriaBuilder) -> root.get(News_.id).in(ids);
     }
 }

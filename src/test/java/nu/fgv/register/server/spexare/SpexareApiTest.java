@@ -266,7 +266,7 @@ class SpexareApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spexare-get-all-export",
+                                "spexare-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(

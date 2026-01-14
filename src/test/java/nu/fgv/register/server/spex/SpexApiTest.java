@@ -200,7 +200,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-get-all-export",
+                                "spex-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(

@@ -48,6 +48,13 @@ public interface SpexareMapper {
     @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
     SpexareDto toDto(Spexare model);
 
+    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "partnerId", source = "partner.id")
+    @Mapping(target = "partnerFirstName", source = "partner.firstName")
+    @Mapping(target = "partnerLastName", source = "partner.lastName")
+    @Mapping(target = "partnerNickName", source = "partner.nickName")
+    SpexareImpexDto toImpexDto(Spexare model);
+
     List<SpexareDto> toDtos(List<Spexare> models);
 
     @Mapping(target = "id", ignore = true)

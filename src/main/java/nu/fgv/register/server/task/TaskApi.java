@@ -29,6 +29,7 @@ import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -57,9 +58,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -99,12 +102,12 @@ public class TaskApi {
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
     @RequiresAdmin
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
+        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), contentType, locale);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"task" + export.getFirst() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tasks" + export.getFirst() + "\"")
                 .body(new ByteArrayResource(export.getSecond()));
     }
 

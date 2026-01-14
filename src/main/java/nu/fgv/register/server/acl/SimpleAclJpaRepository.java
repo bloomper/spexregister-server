@@ -52,6 +52,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 
@@ -153,6 +154,30 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
         final List<GrantedAuthoritySid> authoritySids = getRelevantAuthorities(authentication);
 
         return doFindBy(spec, getDomainClass(), sid, authoritySids, permission, queryFunction);
+    }
+
+    @Override
+    public Stream<T> streamAll(final Permission permission) {
+        return streamAll(null, Sort.unsorted(), permission);
+    }
+
+    @Override
+    public Stream<T> streamAll(final Sort sort, final Permission permission) {
+        return streamAll(null, sort, permission);
+    }
+
+    @Override
+    public Stream<T> streamAll(@Nullable final Specification<T> spec, final Sort sort, final Permission permission) {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (null == authentication || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Permission filtering not possible for anonymous user");
+        }
+
+        final PrincipalSid sid = new PrincipalSid(getCurrentUserSubClaim());
+        final List<GrantedAuthoritySid> authoritySids = getRelevantAuthorities(authentication);
+
+        return getQuery(spec, sort, sid, authoritySids, permission).getResultStream();
     }
 
     protected <S extends T> Page<S> readPage(final TypedQuery<S> query,

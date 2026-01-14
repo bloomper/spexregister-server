@@ -106,15 +106,6 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexareDto> findAll(final Sort sort) {
-        return repository
-                .findAll(sort, BasePermission.READ)
-                .stream()
-                .map(SPEXARE_MAPPER::toDto)
-                .toList();
-    }
-
-    @RequiresAdminOrEditorOrUser
     public Window<SpexareDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
         return hasText(filter) ?
                 repository
@@ -151,12 +142,9 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexareDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository
-                .findAll(hasIds(ids), sort, BasePermission.READ)
-                .stream()
-                .map(SPEXARE_MAPPER::toDto)
-                .toList();
+    public Iterable<Spexare> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdmin

@@ -16,44 +16,39 @@
 
 package nu.fgv.register.server.spex.category;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
-import nu.fgv.register.server.util.impex.exporting.ExcelWriter;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.context.MessageSource;
+import nu.fgv.register.server.util.impex.exporting.ExportEngine;
+import nu.fgv.register.server.util.impex.exporting.ReportModel;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
+
+import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class SpexCategoryExportService extends AbstractExportService {
 
     private final SpexCategoryService service;
-    private final MessageSource messageSource;
-    private final ExcelWriter writer = new ExcelWriter();
 
-    protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) {
-        final var dtos = retrieveDtos(ids);
-
-        writer.createSheet(messageSource, locale, workbook, dtos);
-        return convertWorkbookToByteArray(workbook);
+    public SpexCategoryExportService(final SpexCategoryService service, final List<ExportEngine> engines) {
+        super(engines);
+        this.service = service;
     }
 
-    private List<SpexCategoryDto> retrieveDtos(final List<Long> ids) {
-        if (ids.isEmpty()) {
-            return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
-        } else {
-            return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));
-        }
+    @Override
+    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+        return List.of(
+                ReportModel.of(
+                        toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "name")), SPEX_CATEGORY_MAPPER::toImpexDto),
+                        SpexCategoryImpexDto.class
+                )
+        );
     }
-
 }

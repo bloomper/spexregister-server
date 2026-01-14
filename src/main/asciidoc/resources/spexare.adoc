@@ -48,6 +48,11 @@ a|
 
 operation::spexare-get-all-search[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,links,http-response']
 
+[[get_export]]
+== Get (export)
+
+operation::spexare-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+
 [[get]]
 == Get
 

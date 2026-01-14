@@ -25,8 +25,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.impex.model.ExcelCell;
-import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -42,10 +40,8 @@ import java.time.Instant;
 @ToString
 @Relation(collectionRelation = "spexare", itemRelation = "spexare")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ExcelSheet(name = "Spexare")
 public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     @JsonProperty("id")
-    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
     @JsonProperty("firstName")

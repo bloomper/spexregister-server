@@ -73,6 +73,7 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static nu.fgv.register.server.user.UserSpecification.NO_FILTER;
+import static nu.fgv.register.server.user.UserSpecification.hasIds;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
@@ -151,6 +152,28 @@ public class UserService {
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
                 )
                 .orElse(null);
+    }
+
+    @RequiresAdmin
+    @Nullable
+    public UserKeycloakData getKeycloakDataByUser(final User user) {
+        return findResourceByExternalId(user.getExternalId())
+                .map(resource -> {
+                    final UserRepresentation representation = resource.toRepresentation();
+                    final List<RoleRepresentation> roleRepresentations = resource
+                            .roles()
+                            .clientLevel(keycloakClientId)
+                            .listAll();
+
+                    return new UserKeycloakData(representation, extractRelevantAuthorities(roleRepresentations));
+                })
+                .orElse(null);
+    }
+
+    @RequiresAdmin
+    public Iterable<User> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdmin
@@ -253,11 +276,8 @@ public class UserService {
                                 .clientLevel(keycloakClientId)
                                 .listAll();
 
-                        return authorityRepository.findAll().stream()
-                                .filter(authority -> roleRepresentations.stream().anyMatch(r -> r.getName().equals(authority.getId())))
-                                .collect(Collectors.toSet());
+                        return extractRelevantAuthorities(roleRepresentations);
                     })
-                    .map(AUTHORITY_MAPPER::toDtos)
                     .orElseThrow(() -> new ExternalResourceNotFoundException(User.class, id));
         } else {
             throw new ResourceNotFoundException(User.class, id);
@@ -501,6 +521,12 @@ public class UserService {
                         .orElseGet(UserRepresentation::new),
                 null
         );
+    }
+
+    private Set<AuthorityDto> extractRelevantAuthorities(final List<RoleRepresentation> roleRepresentations) {
+        return authorityRepository.findAll().stream()
+                .filter(authority -> roleRepresentations.stream().anyMatch(r -> r.getName().equals(authority.getId())))
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), AUTHORITY_MAPPER::toDtos));
     }
 
     private boolean doesUserExist(final Long id) {

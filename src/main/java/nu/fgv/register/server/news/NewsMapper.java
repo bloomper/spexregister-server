@@ -46,6 +46,8 @@ public interface NewsMapper {
 
     NewsDto toDto(News model);
 
+    NewsImpexDto toImpexDto(News model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "published", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

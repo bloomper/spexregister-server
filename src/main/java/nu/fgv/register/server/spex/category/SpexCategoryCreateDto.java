@@ -22,7 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import nu.fgv.register.server.util.impex.model.ExcelImportCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 
 /**
  * @author Anders Jacobsson

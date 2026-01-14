@@ -82,6 +82,7 @@ public class Activity extends AbstractAuditable implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
+    @Nullable
     private Set<TaskActivity> taskActivities = new HashSet<>();
 
     @ManyToOne

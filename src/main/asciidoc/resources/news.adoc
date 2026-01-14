@@ -25,6 +25,11 @@ For details on filtering, refer to this xref:../api-guide.adoc#filtering[section
 Default filtering is ``published:TRUE``, i.e. exclude any non published news. Note that for USER such ones
 are always excluded regardless of filtering.
 
+[[get_export]]
+== Get (export)
+
+operation::news-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+
 [[get]]
 == Get
 

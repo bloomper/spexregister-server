@@ -16,9 +16,14 @@
 
 package nu.fgv.register.server.settings;
 
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+
+import java.util.stream.Stream;
 
 /**
  * @author Anders Jacobsson
@@ -26,4 +31,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TypeRepository extends JpaRepository<Type, String>, JpaSpecificationExecutor<Type> {
+    Stream<Type> findAllBy(@Nullable Specification<Type> spec, Sort sort);
 }

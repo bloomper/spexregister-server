@@ -22,6 +22,11 @@ operation::tag-get-all-paged[snippets='security,request-headers,query-parameters
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
+[[get_export]]
+== Get (export)
+
+operation::tag-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+
 [[get]]
 == Get
 

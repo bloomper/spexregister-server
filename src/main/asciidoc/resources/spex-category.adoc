@@ -22,6 +22,11 @@ operation::spex-category-get-all-paged[snippets='security,request-headers,query-
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
+[[get_export]]
+== Get (export)
+
+operation::spex-category-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+
 [[get]]
 == Get
 

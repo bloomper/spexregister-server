@@ -17,54 +17,52 @@
 package nu.fgv.register.server.util.impex.exporting;
 
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.error.ExportException;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.util.Pair;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
-/**
- * @author Anders Jacobsson
- * @since 2.0
- */
 @Slf4j
 public abstract class AbstractExportService {
 
-    public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) {
-        final Workbook workbook;
-        final String extension;
-        switch (type) {
-            case Constants.MediaTypes.APPLICATION_XLSX_VALUE -> {
-                workbook = new XSSFWorkbook();
-                extension = ".xlsx";
-            }
-            case Constants.MediaTypes.APPLICATION_XLS_VALUE -> {
-                workbook = new HSSFWorkbook();
-                extension = ".xls";
-            }
-            default -> throw new IllegalArgumentException("Unrecognized type");
-        }
-        return Pair.of(extension, doExport(workbook, ids, locale));
+    protected final List<ExportEngine> engines;
+
+    protected AbstractExportService(final List<ExportEngine> engines) {
+        this.engines = engines;
     }
 
-    protected abstract byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale);
+    @Transactional(readOnly = true)
+    public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) {
+        final ExportEngine engine = engines.stream()
+                .filter(e -> e.supports(type))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported export type " + type));
 
-    protected byte[] convertWorkbookToByteArray(final Workbook workbook) {
-        try {
-            final var outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            outputStream.close();
-            workbook.close();
-            return outputStream.toByteArray();
-        } catch (final IOException e) {
-            log.error("Unexpected error while exporting", e);
-            throw new ExportException(e.getMessage());
-        }
+        final List<ReportModel<?>> reports = getReports(ids);
+
+        return Pair.of(engine.getExtension(type), engine.export(reports, locale, type));
+    }
+
+    protected abstract List<ReportModel<?>> getReports(List<Long> ids);
+
+    protected <T, R> Iterable<R> toImpexDto(final Iterable<T> entities, final Function<T, R> mapper) {
+        return () -> {
+            final var iterator = entities.iterator();
+
+            return new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+
+                @Override
+                public R next() {
+                    return mapper.apply(iterator.next());
+                }
+            };
+        };
     }
 }

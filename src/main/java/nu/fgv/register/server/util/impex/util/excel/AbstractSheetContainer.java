@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.exporting;
+package nu.fgv.register.server.util.impex.util.excel;
 
 import lombok.Getter;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.util.AbstractSheetContainer;
-
-import java.lang.reflect.Field;
-import java.util.List;
+import org.apache.poi.ss.usermodel.Sheet;
 
 /**
  * @author Anders Jacobsson
@@ -29,8 +26,9 @@ import java.util.List;
  */
 @Getter
 @Setter
-class SheetContainer extends AbstractSheetContainer {
+public abstract class AbstractSheetContainer {
 
-    private List<?> data;
-    private List<Field> annotatedFields;
+    private String overrideSheetName;
+    private Sheet sheet;
+    private String heading;
 }

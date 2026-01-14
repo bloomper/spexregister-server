@@ -19,11 +19,13 @@ package nu.fgv.register.server.settings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
+import static nu.fgv.register.server.settings.TypeSpecification.hasIds;
 import static nu.fgv.register.server.settings.TypeSpecification.hasType;
 
 /**
@@ -58,6 +60,11 @@ public class TypeService {
                 .findById(id)
                 .map(TYPE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Type.class, id));
+    }
+
+    public Iterable<Type> streamByIds(final List<String> ids, final Sort sort) {
+        return () -> repository.findAllBy(ids.isEmpty() ? null : hasIds(ids), sort)
+                .iterator();
     }
 
     public boolean existsByIdAndType(final String id, final TypeType type) {

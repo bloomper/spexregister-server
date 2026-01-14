@@ -61,15 +61,6 @@ public class TaskCategoryService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public List<TaskCategoryDto> findAll(final Sort sort) {
-        return repository
-                .findAll(sort, BasePermission.READ)
-                .stream()
-                .map(TASK_CATEGORY_MAPPER::toDto)
-                .toList();
-    }
-
-    @RequiresAdminOrEditorOrUser
     public Window<TaskCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
         return hasText(filter) ?
                 repository
@@ -106,12 +97,9 @@ public class TaskCategoryService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<TaskCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository
-                .findAll(hasIds(ids), sort, BasePermission.READ)
-                .stream()
-                .map(TASK_CATEGORY_MAPPER::toDto)
-                .toList();
+    public Iterable<TaskCategory> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdmin

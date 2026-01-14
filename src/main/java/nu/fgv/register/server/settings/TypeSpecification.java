@@ -18,6 +18,8 @@ package nu.fgv.register.server.settings;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -29,6 +31,10 @@ public class TypeSpecification {
 
     public static Specification<Type> hasId(final String id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Type_.id), id);
+    }
+
+    public static Specification<Type> hasIds(final List<String> ids) {
+        return (root, query, criteriaBuilder) -> root.get(Type_.id).in(ids);
     }
 
     public static Specification<Type> hasType(final TypeType type) {

@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.impex.model.ExcelCell;
-import nu.fgv.register.server.util.impex.model.ExcelSheet;
+import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;

@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 import static nu.fgv.register.server.news.NewsSpecification.NO_FILTER;
+import static nu.fgv.register.server.news.NewsSpecification.hasIds;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleFromAfterYesterday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToAfterToday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToBeforeToday;
@@ -65,15 +66,6 @@ public class NewsService {
 
     private final NewsRepository repository;
     private final PermissionService permissionService;
-
-    @RequiresAdminOrEditorOrUser
-    public List<NewsDto> findAll(final Sort sort) {
-        return repository
-                .findAll(sort, BasePermission.READ)
-                .stream()
-                .map(NEWS_MAPPER::toDto)
-                .toList();
-    }
 
     @RequiresAdminOrEditorOrUser
     public Window<NewsDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
@@ -108,6 +100,12 @@ public class NewsService {
         return repository.findById0(id)
                 .map(NEWS_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(News.class, id));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Iterable<News> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdminOrEditor

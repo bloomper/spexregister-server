@@ -59,7 +59,7 @@ public class SpexImportService extends AbstractImportService {
         final ImportResultDto revivalValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> {
             service.findById(id);
             return true;
-        }, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
+        }, messageSource.getMessage("spex.impex.revivals.sheetName", null, locale));
         final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> {
             categoryService.findById(id);
             return true;

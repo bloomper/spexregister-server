@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.acl;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,6 +28,7 @@ import org.springframework.security.acls.model.Permission;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * @author Anders Jacobsson
@@ -48,5 +50,11 @@ public interface AclJpaRepository<T, ID> extends JpaRepository<T, ID> {
     Page<T> findAll(Specification<T> spec, Pageable pageable, Permission permission);
 
     <S extends T, R> R findBy(Specification<T> spec, Permission permission, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+
+    Stream<T> streamAll(Permission permission);
+
+    Stream<T> streamAll(Sort sort, Permission permission);
+
+    Stream<T> streamAll(@Nullable Specification<T> spec, Sort sort, Permission permission);
 
 }

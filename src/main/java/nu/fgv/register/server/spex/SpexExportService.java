@@ -16,71 +16,55 @@
 
 package nu.fgv.register.server.spex;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spex.category.SpexCategoryDto;
+import nu.fgv.register.server.spex.category.SpexCategoryImpexDto;
 import nu.fgv.register.server.spex.category.SpexCategoryService;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
-import nu.fgv.register.server.util.impex.exporting.ExcelWriter;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.springframework.context.MessageSource;
+import nu.fgv.register.server.util.impex.exporting.ExportEngine;
+import nu.fgv.register.server.util.impex.exporting.ReportModel;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
+
+import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
+import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class SpexExportService extends AbstractExportService {
 
     private final SpexService service;
     private final SpexCategoryService categoryService;
-    private final MessageSource messageSource;
-    private final ExcelWriter writer = new ExcelWriter();
+
+    public SpexExportService(final SpexService service, final SpexCategoryService categoryService, final List<ExportEngine> engines) {
+        super(engines);
+        this.service = service;
+        this.categoryService = categoryService;
+    }
 
     @Override
-    protected byte[] doExport(final Workbook workbook, final List<Long> ids, final Locale locale) {
-        final var dtos = retrieveDtos(ids);
-        final var revivalDtos = retrieveRevivalDtos(dtos.stream().map(SpexDto::getId).toList());
-        final var categoryDtos = retrieveCategoryDtos();
-
-        writer.createSheet(messageSource, locale, workbook, dtos);
-        writer.createSheet(messageSource, locale, workbook, revivalDtos, messageSource.getMessage("spex.export.revivalsSheetName", null, locale));
-        writer.createSheet(messageSource, locale, workbook, categoryDtos)
-                .ifPresent(sheet -> {
-                    if (sheet instanceof final XSSFSheet sheet0) {
-                        final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
-                        sheet0.setTabColor(new XSSFColor(red));
-                    }
-                    sheet.protectSheet("");
-                });
-
-        return convertWorkbookToByteArray(workbook);
+    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+        return List.of(
+                ReportModel.of(
+                        toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
+                        SpexImpexDto.class
+                ),
+                ReportModel.of(
+                        toImpexDto(service.streamRevivalsByParentIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
+                        SpexRevivalImpexDto.class
+                ),
+                ReportModel.of(
+                        toImpexDto(categoryService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), SPEX_CATEGORY_MAPPER::toImpexDto),
+                        SpexCategoryImpexDto.class,
+                        true
+                )
+        );
     }
 
-    private List<SpexDto> retrieveDtos(final List<Long> ids) {
-        if (ids.isEmpty()) {
-            return service.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
-        } else {
-            return service.findByIds(ids, Sort.by(Sort.Direction.ASC, "createdAt"));
-        }
-    }
-
-    private List<SpexDto> retrieveRevivalDtos(final List<Long> parentIds) {
-        return service.findRevivalsByParentIds(parentIds, Sort.by(Sort.Direction.ASC, "createdAt"));
-    }
-
-    private List<SpexCategoryDto> retrieveCategoryDtos() {
-        return categoryService.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
-    }
 }

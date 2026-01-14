@@ -61,15 +61,6 @@ public class TagService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public List<TagDto> findAll(final Sort sort) {
-        return repository
-                .findAll(sort, BasePermission.READ)
-                .stream()
-                .map(TAG_MAPPER::toDto)
-                .toList();
-    }
-
-    @RequiresAdminOrEditorOrUser
     public Window<TagDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
         return hasText(filter) ?
                 repository
@@ -106,12 +97,9 @@ public class TagService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<TagDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository
-                .findAll(hasIds(ids), sort, BasePermission.READ)
-                .stream()
-                .map(TAG_MAPPER::toDto)
-                .toList();
+    public Iterable<Tag> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null: hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdminOrEditor

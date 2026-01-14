@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.util;
+package nu.fgv.register.server.util.impex.exporting.excel;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.poi.ss.usermodel.Sheet;
+import nu.fgv.register.server.util.impex.util.excel.AbstractWorkbookContainer;
 
 /**
  * @author Anders Jacobsson
@@ -26,9 +26,11 @@ import org.apache.poi.ss.usermodel.Sheet;
  */
 @Getter
 @Setter
-public abstract class AbstractSheetContainer {
+class WorkbookContainer extends AbstractWorkbookContainer {
 
-    private String overrideSheetName;
-    private Sheet sheet;
-    private String heading;
+    private CellWriterFactory writerFactory;
+
+    WorkbookContainer() {
+        this.writerFactory = new CellWriterFactory(this);
+    }
 }

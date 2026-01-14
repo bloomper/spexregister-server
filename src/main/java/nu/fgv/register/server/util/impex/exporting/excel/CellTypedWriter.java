@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.exporting;
+package nu.fgv.register.server.util.impex.exporting.excel;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;

@@ -44,6 +44,10 @@ public interface TaskMapper {
 
     TaskDto toDto(Task model);
 
+    @Mapping(target = "categoryId", source = "category.id")
+    @Mapping(target = "categoryName", source = "category.name")
+    TaskImpexDto toImpexDto(Task model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

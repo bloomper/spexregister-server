@@ -16,9 +16,12 @@
 
 package nu.fgv.register.server.spexare.membership;
 
+import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeMapper;
+import nu.fgv.register.server.spexare.Spexare;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -41,4 +44,13 @@ public interface MembershipMapper {
 
     MembershipDto toDto(Membership model);
 
+    @Mapping(target = "id", source = "membership.id")
+    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "typeId", source = "type.id")
+    @Mapping(target = "typeLabel", source = "type.label")
+    @Mapping(target = "createdBy", source = "membership.createdBy")
+    @Mapping(target = "createdAt", source = "membership.createdAt")
+    @Mapping(target = "lastModifiedBy", source = "membership.lastModifiedBy")
+    @Mapping(target = "lastModifiedAt", source = "membership.lastModifiedAt")
+    MembershipImpexDto toImpexDto(Spexare spexare, Membership membership, TypeDto type);
 }

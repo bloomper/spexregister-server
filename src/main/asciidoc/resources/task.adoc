@@ -28,6 +28,11 @@ For details on filtering, refer to this xref:../api-guide.adoc#filtering[section
 It is also possible to filter tasks by category. Use ``category.<category field>``.
 --
 
+[[get_export]]
+== Get (export)
+
+operation::task-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+
 [[get]]
 == Get
 

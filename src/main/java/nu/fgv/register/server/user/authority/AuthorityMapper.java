@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.user.authority;
 
+import nu.fgv.register.server.user.User;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -45,6 +46,11 @@ public interface AuthorityMapper {
 
     @Mapping(target = "label", ignore = true)
     AuthorityDto toDto(Authority model);
+
+    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "id", source = "authority.id")
+    @Mapping(target = "label", source = "authority.label")
+    AuthorityImpexDto toImpexDto(User user, AuthorityDto authority);
 
     Set<AuthorityDto> toDtos(Set<Authority> models);
 

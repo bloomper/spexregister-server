@@ -21,7 +21,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import lombok.Getter;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.util.AbstractWorkbookContainer;
+import nu.fgv.register.server.util.impex.util.excel.AbstractWorkbookContainer;
 
 import java.util.ArrayList;
 import java.util.List;

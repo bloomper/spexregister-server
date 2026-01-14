@@ -25,7 +25,7 @@ import java.lang.reflect.Field;
  * @since 2.0
  */
 @Slf4j
-class FieldAccessor {
+public class FieldAccessor {
 
     protected final Field field;
 

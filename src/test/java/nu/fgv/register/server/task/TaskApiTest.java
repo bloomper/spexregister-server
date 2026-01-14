@@ -183,7 +183,7 @@ class TaskApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "task-get-all-export",
+                                "task-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(

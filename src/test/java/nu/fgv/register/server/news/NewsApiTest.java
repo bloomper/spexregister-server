@@ -21,12 +21,14 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
+import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
@@ -34,13 +36,16 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -54,12 +59,14 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,6 +79,9 @@ class NewsApiTest extends AbstractApiTest {
 
     @MockitoBean
     private NewsService service;
+
+    @MockitoBean
+    private NewsExportService exportService;
 
     @MockitoBean
     private EventService eventService;
@@ -137,6 +147,44 @@ class NewsApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(NewsApi.class, "retrieve", Pageable.class, String.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_get_export() throws Exception {
+        final var export = Pair.of(".xlsx", new byte[]{10, 12});
+
+        when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
+
+        mockMvc
+                .perform(
+                        get("/api/news?ids=1,2,3")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
+                )
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "news-get-export",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                pathParameters(
+                                        parameterWithName("ids").description("The ids of the news to export").optional()
+                                ),
+                                secureRequestHeaders.and(
+                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                responseHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
+                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
+                                ),
+                                responseBody(),
+                                security(getRolesFromMethod(NewsApi.class, "retrieve", List.class, String.class, Locale.class))
                         )
                 );
     }

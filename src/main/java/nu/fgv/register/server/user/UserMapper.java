@@ -18,6 +18,7 @@ package nu.fgv.register.server.user;
 
 import nu.fgv.register.server.spexare.SpexareMapper;
 import nu.fgv.register.server.user.state.State;
+import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateMapper;
 import org.jspecify.annotations.Nullable;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -32,6 +33,8 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
@@ -53,6 +56,17 @@ public interface UserMapper {
     @Mapping(target = "email", source = "representation.email")
     @Mapping(target = "temporaryPassword", source = "temporaryPassword")
     UserDto toDto(User model, UserRepresentation representation, @Nullable String temporaryPassword);
+
+    @Mapping(target = "id", source = "model.id")
+    @Mapping(target = "stateId", source = "state.id")
+    @Mapping(target = "stateLabel", source = "state.label")
+    @Mapping(target = "spexareId", source = "model.spexare.id")
+    @Mapping(target = "email", source = "representation.email", defaultValue = "")
+    @Mapping(target = "createdBy", source = "model.createdBy")
+    @Mapping(target = "createdAt", source = "model.createdAt")
+    @Mapping(target = "lastModifiedBy", source = "model.lastModifiedBy")
+    @Mapping(target = "lastModifiedAt", source = "model.lastModifiedAt")
+    UserImpexDto toImpexDto(User model, @Nullable UserRepresentation representation, StateDto state);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "spexare", ignore = true)
@@ -90,4 +104,7 @@ public interface UserMapper {
         return userRepresentation;
     }
 
+    default String extractLabel(final Map<String, String> labels, final Locale locale) {
+        return labels.getOrDefault(locale.getLanguage(), labels.getOrDefault("sv", ""));
+    }
 }

@@ -16,9 +16,12 @@
 
 package nu.fgv.register.server.spexare.consent;
 
+import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeMapper;
+import nu.fgv.register.server.spexare.Spexare;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -41,4 +44,13 @@ public interface ConsentMapper {
 
     ConsentDto toDto(Consent model);
 
+    @Mapping(target = "id", source = "consent.id")
+    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "typeId", source = "type.id")
+    @Mapping(target = "typeLabel", source = "type.label")
+    @Mapping(target = "createdBy", source = "consent.createdBy")
+    @Mapping(target = "createdAt", source = "consent.createdAt")
+    @Mapping(target = "lastModifiedBy", source = "consent.lastModifiedBy")
+    @Mapping(target = "lastModifiedAt", source = "consent.lastModifiedAt")
+    ConsentImpexDto toImpexDto(Spexare spexare, Consent consent, TypeDto type);
 }

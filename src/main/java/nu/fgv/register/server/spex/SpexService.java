@@ -60,6 +60,7 @@ import static nu.fgv.register.server.spex.SpexSpecification.hasParent;
 import static nu.fgv.register.server.spex.SpexSpecification.hasParentIds;
 import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
+import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.emptyWindow;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
@@ -128,21 +129,15 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository
-                .findAll(hasIds(ids), sort, BasePermission.READ)
-                .stream()
-                .map(SPEX_MAPPER::toDto)
-                .toList();
+    public Iterable<Spex> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? isNotRevival() : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexDto> findRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
-        return repository
-                .findAll(hasParentIds(parentIds), sort, BasePermission.READ)
-                .stream()
-                .map(SPEX_MAPPER::toDto)
-                .toList();
+    public Iterable<Spex> streamRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
+        return () -> repository.streamAll(parentIds.isEmpty() ? isRevival() : hasParentIds(parentIds), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdmin

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.util;
+package nu.fgv.register.server.util.impex.util.excel;
 
 import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.impex.model.ExcelCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;

@@ -175,7 +175,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "spex-category-get-all-export",
+                                "spex-category-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(

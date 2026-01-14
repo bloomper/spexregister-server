@@ -42,6 +42,8 @@ public interface TaskCategoryMapper {
 
     TaskCategoryDto toDto(TaskCategory model);
 
+    TaskCategoryImpexDto toImpexDto(TaskCategory model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

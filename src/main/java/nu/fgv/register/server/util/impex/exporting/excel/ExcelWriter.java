@@ -1,0 +1,232 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package nu.fgv.register.server.util.impex.exporting.excel;
+
+import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.jspecify.annotations.Nullable;
+import org.springframework.context.MessageSource;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePosition;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
+import static org.springframework.util.StringUtils.hasText;
+
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
+@Slf4j
+public class ExcelWriter {
+
+    private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+    public <T> void createSheet(final MessageSource messageSource,
+                                final Locale locale,
+                                final Workbook workbook,
+                                final Iterable<T> data,
+                                @Nullable final String overrideSheetName,
+                                final Class<T> clazz,
+                                final boolean readOnly) {
+        final Iterator<T> iterator = data.iterator();
+        final List<Field> annotatedFields = getAnnotatedFields(clazz);
+        final Sheet sheet = workbook.createSheet();
+        final Map<String, CellStyle> styleCache = new HashMap<>();
+
+        sheet.protectSheet("");
+        if (sheet instanceof final SXSSFSheet sxSheet) {
+            sxSheet.trackAllColumnsForAutoSizing();
+        }
+
+        setSheetName(messageSource, locale, workbook, sheet, clazz, overrideSheetName);
+        addHeaderRow(messageSource, locale, sheet, annotatedFields);
+        writeRows(sheet, iterator, annotatedFields, styleCache);
+        finalizeSheet(sheet, annotatedFields, styleCache, readOnly);
+    }
+
+    private void setSheetName(final MessageSource messageSource, final Locale locale, final Workbook workbook, final Sheet sheet, final Class<?> clazz, @Nullable final String overrideSheetName) {
+        final String sheetName;
+        if (hasText(overrideSheetName)) {
+            sheetName = messageSource.getMessage(overrideSheetName, null, overrideSheetName, locale);
+        } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
+            final String name = clazz.getAnnotation(ExcelSheet.class).name();
+            sheetName = messageSource.getMessage(name, null, name, locale);
+        } else {
+            sheetName = parseCamelCase(clazz.getSimpleName());
+        }
+        workbook.setSheetName(workbook.getSheetIndex(sheet), sheetName);
+    }
+
+    private void addHeaderRow(final MessageSource messageSource, final Locale locale, final Sheet sheet, final List<Field> annotatedFields) {
+        final Row row = sheet.createRow(0);
+        final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
+
+        annotatedFields.forEach(field -> {
+            final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+            final int position = determinePosition(field, maxPosition);
+            String header = excelCell.header();
+            header = hasText(header) ? messageSource.getMessage(header, null, header, locale) : parseCamelCase(field.getName());
+
+            final Cell cell = row.createCell(position);
+            cell.setCellValue(header);
+            // Rough estimate for width: header length + padding
+            sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
+        });
+    }
+
+    private void writeRows(final Sheet sheet, final Iterator<?> iterator, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache) {
+        final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
+        int rowNum = 1;
+
+        while (iterator.hasNext()) {
+            final Row row = sheet.createRow(rowNum++);
+            final Object item = iterator.next();
+
+            annotatedFields.forEach(field -> {
+                final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+                final int position = determinePosition(field, maxPosition);
+                try {
+                    final Cell cell = row.createCell(position);
+                    final Object value = field.get(item);
+
+                    if (hasText(excelCell.transform()) && value != null) {
+                        final Object transformed = PARSER.parseRaw(excelCell.transform()).getValue(value);
+                        if (transformed != null) {
+                            CellTypedWriterFactory.getTypedWriter(transformed.getClass()).accept(cell, transformed);
+                        }
+                    } else if (value != null) {
+                        CellTypedWriterFactory.getTypedWriter(value.getClass()).accept(cell, value);
+                    }
+
+                    applyCellStyling(cell, excelCell, styleCache);
+                } catch (final Exception e) {
+                    log.warn("Could not write row {} cell {}: {}", row.getRowNum() + 1, position, e.getMessage());
+                }
+            });
+        }
+    }
+
+    private void applyCellStyling(final Cell cell, final ExcelCell excelCell, final Map<String, CellStyle> styleCache) {
+        applyCellStyling(cell, excelCell, styleCache, false);
+    }
+
+    private void applyCellStyling(final Cell cell, final ExcelCell excelCell, final Map<String, CellStyle> styleCache, final boolean isNewRow) {
+        final String cacheKey = String.format("upd-%b-man-%b-new-%b", excelCell.updatable(), excelCell.mandatory(), isNewRow);
+
+        final CellStyle style = styleCache.computeIfAbsent(cacheKey, key -> {
+            final Workbook workbook = cell.getSheet().getWorkbook();
+            final CellStyle newStyle = workbook.createCellStyle();
+
+            newStyle.setLocked(!isNewRow && !excelCell.updatable());
+
+            if (!isNewRow) {
+                final IndexedColors color;
+                if (excelCell.updatable() && excelCell.mandatory()) {
+                    color = IndexedColors.GREEN;
+                } else if (excelCell.updatable()) {
+                    color = IndexedColors.LIGHT_GREEN;
+                } else if (excelCell.mandatory()) {
+                    color = IndexedColors.BRIGHT_GREEN;
+                } else {
+                    color = IndexedColors.DARK_RED;
+                }
+
+                newStyle.setBorderTop(BorderStyle.THIN);
+                newStyle.setBorderBottom(BorderStyle.THIN);
+                newStyle.setBorderLeft(BorderStyle.THIN);
+                newStyle.setBorderRight(BorderStyle.THIN);
+                newStyle.setTopBorderColor(color.getIndex());
+                newStyle.setBottomBorderColor(color.getIndex());
+                newStyle.setLeftBorderColor(color.getIndex());
+                newStyle.setRightBorderColor(color.getIndex());
+            }
+
+            return newStyle;
+        });
+
+        cell.setCellStyle(style);
+    }
+
+    private void finalizeSheet(final Sheet sheet, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache, final boolean readOnly) {
+        final Row headerRow = sheet.getRow(0);
+        final int lastColumn = headerRow != null ? headerRow.getLastCellNum() : 0;
+
+        if (headerRow != null) {
+            for (int i = 0; i < lastColumn; i++) {
+                sheet.autoSizeColumn(i, false);
+            }
+        }
+
+        if (!readOnly) {
+            final int lastRowNum = sheet.getLastRowNum();
+            final int bufferSize = 50;
+            final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
+
+            for (int i = 1; i <= bufferSize; i++) {
+                final Row row = sheet.createRow(lastRowNum + i);
+                annotatedFields.forEach(field -> {
+                    final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+                    final int position = determinePosition(field, maxPosition);
+                    final Cell cell = row.createCell(position);
+                    applyCellStyling(cell, excelCell, styleCache, true);
+                });
+            }
+        } else if (sheet instanceof final SXSSFSheet sxssfSheet) {
+            final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
+            sxssfSheet.setTabColor(new XSSFColor(red));
+        } else if (sheet instanceof final XSSFSheet xssfSheet) {
+            final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
+            xssfSheet.setTabColor(new XSSFColor(red));
+        }
+
+        sheet.createFreezePane(0, 1);
+        if (headerRow != null) {
+            sheet.setAutoFilter(new CellRangeAddress(0, 0, 0, Math.max(0, lastColumn - 1)));
+        }
+    }
+
+    private List<Field> getAnnotatedFields(final Class<?> clazz) {
+        return Arrays.stream(FieldUtils.getAllFields(clazz))
+                .filter(field -> {
+                    field.setAccessible(true); // NOSONAR
+                    return field.isAnnotationPresent(ExcelCell.class);
+                }).toList();
+    }
+}

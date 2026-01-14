@@ -42,6 +42,8 @@ public interface TagMapper {
 
     TagDto toDto(Tag model);
 
+    TagImpexDto toImpexDto(Tag model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

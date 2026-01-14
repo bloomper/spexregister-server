@@ -62,9 +62,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -104,8 +106,8 @@ public class SpexCategoryApi {
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
     @RequiresAdmin
-    public ResponseEntity<Resource> retrieve(@RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(ids, contentType, locale);
+    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
+        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), contentType, locale);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(contentType))

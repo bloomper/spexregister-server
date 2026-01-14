@@ -18,7 +18,7 @@ package nu.fgv.register.server.util.impex.importing;
 
 import lombok.Getter;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.util.AbstractSheetContainer;
+import nu.fgv.register.server.util.impex.util.excel.AbstractSheetContainer;
 
 /**
  * @author Anders Jacobsson

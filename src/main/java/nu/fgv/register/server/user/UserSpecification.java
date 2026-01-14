@@ -19,6 +19,9 @@ package nu.fgv.register.server.user;
 import lombok.Getter;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.List;
 
 /**
  * @author Anders Jacobsson
@@ -36,4 +39,7 @@ public class UserSpecification extends BaseSpecification<User> {
         super(criteria);
     }
 
+    public static Specification<User> hasIds(final List<Long> ids) {
+        return (root, query, criteriaBuilder) -> root.get(User_.id).in(ids);
+    }
 }

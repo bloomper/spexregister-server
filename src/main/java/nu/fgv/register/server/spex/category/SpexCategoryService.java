@@ -65,15 +65,6 @@ public class SpexCategoryService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexCategoryDto> findAll(final Sort sort) {
-        return repository
-                .findAll(sort, BasePermission.READ)
-                .stream()
-                .map(SPEX_CATEGORY_MAPPER::toDto)
-                .toList();
-    }
-
-    @RequiresAdminOrEditorOrUser
     public Window<SpexCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
         return hasText(filter) ?
                 repository
@@ -110,12 +101,9 @@ public class SpexCategoryService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public List<SpexCategoryDto> findByIds(final List<Long> ids, final Sort sort) {
-        return repository
-                .findAll(hasIds(ids), sort, BasePermission.READ)
-                .stream()
-                .map(SPEX_CATEGORY_MAPPER::toDto)
-                .toList();
+    public Iterable<SpexCategory> streamByIds(final List<Long> ids, final Sort sort) {
+        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
+                .iterator();
     }
 
     @RequiresAdmin

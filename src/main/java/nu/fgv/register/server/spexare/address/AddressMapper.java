@@ -16,7 +16,10 @@
 
 package nu.fgv.register.server.spexare.address;
 
+import nu.fgv.register.server.settings.CountryDto;
+import nu.fgv.register.server.settings.TypeDto;
 import nu.fgv.register.server.settings.TypeMapper;
+import nu.fgv.register.server.spexare.Spexare;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -43,6 +46,17 @@ public interface AddressMapper {
     AddressMapper ADDRESS_MAPPER = Mappers.getMapper(AddressMapper.class);
 
     AddressDto toDto(Address model);
+
+    @Mapping(target = "id", source = "address.id")
+    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "countryName", source = "country.label")
+    @Mapping(target = "typeId", source = "type.id")
+    @Mapping(target = "typeLabel", source = "type.label")
+    @Mapping(target = "createdBy", source = "address.createdBy")
+    @Mapping(target = "createdAt", source = "address.createdAt")
+    @Mapping(target = "lastModifiedBy", source = "address.lastModifiedBy")
+    @Mapping(target = "lastModifiedAt", source = "address.lastModifiedAt")
+    AddressImpexDto toImpexDto(Spexare spexare, Address address, CountryDto country, TypeDto type);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "type", ignore = true)

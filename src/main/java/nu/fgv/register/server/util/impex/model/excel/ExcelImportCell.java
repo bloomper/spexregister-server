@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.model;
+package nu.fgv.register.server.util.impex.model.excel;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -29,19 +29,10 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelCell {
+public @interface ExcelImportCell {
 
     int position();
 
-    boolean mandatory() default false;
+    boolean primaryKey() default false;
 
-    boolean updatable() default false;
-
-    String header() default "";
-
-    String transform() default "";
-
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface Exclude {}
 }

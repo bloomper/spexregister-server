@@ -16,8 +16,15 @@
 
 package nu.fgv.register.server.spexare.activity;
 
+import nu.fgv.register.server.settings.TypeDto;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
+import nu.fgv.register.server.spexare.activity.task.TaskActivity;
+import nu.fgv.register.server.spexare.activity.task.actor.Actor;
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -38,5 +45,27 @@ public interface ActivityMapper {
     ActivityMapper ACTIVITY_MAPPER = Mappers.getMapper(ActivityMapper.class);
 
     ActivityDto toDto(Activity model);
+
+    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "id", source = "activity.id")
+    @Mapping(target = "spexActivityId", source = "spexActivity.id")
+    @Mapping(target = "spexId", source = "activity.spexActivity.spex.id")
+    @Mapping(target = "spexYear", source = "activity.spexActivity.spex.year")
+    @Mapping(target = "spexTitle", source = "activity.spexActivity.spex.details.title")
+    @Mapping(target = "spexRevival", source = "activity.spexActivity.spex.revival")
+    @Mapping(target = "spexCategoryName", source = "activity.spexActivity.spex.details.category.name")
+    @Mapping(target = "taskActivityId", source = "taskActivity.id")
+    @Mapping(target = "taskId", source = "taskActivity.task.id")
+    @Mapping(target = "taskName", source = "taskActivity.task.name")
+    @Mapping(target = "taskCategoryName", source = "taskActivity.task.category.name")
+    @Mapping(target = "actorId", source = "actor.id")
+    @Mapping(target = "actorRole", source = "actor.role")
+    @Mapping(target = "typeId", source = "vocalType.id")
+    @Mapping(target = "typeLabel", source = "vocalType.label")
+    @Mapping(target = "createdBy", source = "activity.createdBy")
+    @Mapping(target = "createdAt", source = "activity.createdAt")
+    @Mapping(target = "lastModifiedBy", source = "activity.lastModifiedBy")
+    @Mapping(target = "lastModifiedAt", source = "activity.lastModifiedAt")
+    ActivityImpexDto toImpexDto(Spexare spexare, Activity activity, SpexActivity spexActivity, TaskActivity taskActivity, @Nullable Actor actor, @Nullable TypeDto vocalType);
 
 }

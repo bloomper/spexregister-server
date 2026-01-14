@@ -165,7 +165,7 @@ class TagApiTest extends AbstractApiTest {
                 .andDo(print())
                 .andDo(
                         document(
-                                "tag-get-all-export",
+                                "tag-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(

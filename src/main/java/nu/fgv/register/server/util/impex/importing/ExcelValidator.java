@@ -17,10 +17,10 @@
 package nu.fgv.register.server.util.impex.importing;
 
 import jakarta.validation.ConstraintViolation;
-import nu.fgv.register.server.util.impex.model.ExcelCell;
-import nu.fgv.register.server.util.impex.model.ExcelImportCell;
-import nu.fgv.register.server.util.impex.model.ExcelSheet;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
+import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -39,10 +39,10 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
-import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePosition;
-import static nu.fgv.register.server.util.impex.util.ImpexUtil.determinePositionBeforeAuditableFields;
-import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForCreation;
-import static nu.fgv.register.server.util.impex.util.ImpexUtil.isMarkedForUpdate;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePosition;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.isMarkedForCreation;
+import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.isMarkedForUpdate;
 import static org.springframework.util.StringUtils.hasText;
 
 /**

@@ -53,6 +53,19 @@ public interface SpexMapper {
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     SpexDto toDto(Spex model);
 
+    @Mapping(target = "title", source = "details.title")
+    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "categoryId", source = "details.category.id")
+    @Mapping(target = "categoryName", source = "details.category.name")
+    @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
+    SpexImpexDto toImpexDto(Spex model);
+
+    @Mapping(target = "parentId", source = "parent.id")
+    @Mapping(target = "parentYear", source = "parent.year")
+    @Mapping(target = "parentTitle", source = "details.title")
+    @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
+    SpexRevivalImpexDto toRevivalImpexDto(Spex model);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "details.title", source = "title")
     @Mapping(target = "parent", ignore = true)
