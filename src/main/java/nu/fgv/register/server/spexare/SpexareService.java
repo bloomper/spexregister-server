@@ -155,10 +155,10 @@ public class SpexareService {
                     final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
+                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
+                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
                     if (spexare.getPublished()) {
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
-                        permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
                     }
 
                     return SPEXARE_MAPPER.toDto(model);
@@ -185,11 +185,9 @@ public class SpexareService {
                     final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
 
                     if (spexare.getPublished()) {
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
-                        permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
                     } else {
-                        permissionService.revokePermission(oid, BasePermission.READ, ROLE_EDITOR_SID, ROLE_USER_SID);
-                        permissionService.revokePermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
+                        permissionService.revokePermission(oid, BasePermission.READ, ROLE_USER_SID);
                     }
 
                     return spexare;
