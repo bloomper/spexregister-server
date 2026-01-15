@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.ExportException;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.exporting.ReportModel;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -46,9 +46,9 @@ public class ExcelExportEngine implements ExportEngine {
     private final ExcelWriter writer = new ExcelWriter();
 
     @Override
-    public byte[] export(final List<ReportModel<?>> reports, final Locale locale, final String contentType) {
+    public byte[] export(final List<ReportHolder<?>> reports, final Locale locale, final String contentType) {
         try (final Workbook workbook = createWorkbook(contentType)) {
-            for (final ReportModel<?> report : reports) {
+            for (final ReportHolder<?> report : reports) {
                 createSheetHelper(workbook, report, locale);
             }
 
@@ -69,7 +69,7 @@ public class ExcelExportEngine implements ExportEngine {
         return Constants.MediaTypes.APPLICATION_XLSX_VALUE.equals(contentType) ? ".xlsx" : ".xls";
     }
 
-    private <T> void createSheetHelper(final Workbook workbook, final ReportModel<T> report, final Locale locale) {
+    private <T> void createSheetHelper(final Workbook workbook, final ReportHolder<T> report, final Locale locale) {
         writer.createSheet(messageSource, locale, workbook, report.data(), report.name(), report.clazz(), report.readOnly());
     }
 

@@ -21,7 +21,7 @@ import nu.fgv.register.server.spex.category.SpexCategoryImpexDto;
 import nu.fgv.register.server.spex.category.SpexCategoryService;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.exporting.ReportModel;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -49,17 +49,17 @@ public class SpexExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
         return List.of(
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
                         SpexImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(service.streamRevivalsByParentIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
                         SpexRevivalImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(categoryService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), SPEX_CATEGORY_MAPPER::toImpexDto),
                         SpexCategoryImpexDto.class,
                         true

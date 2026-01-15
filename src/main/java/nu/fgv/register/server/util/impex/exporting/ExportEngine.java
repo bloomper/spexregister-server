@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.util.impex.exporting;
 
+import nu.fgv.register.server.util.impex.model.ReportHolder;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -24,7 +26,7 @@ import java.util.Locale;
  * @since 2.0
  */
 public interface ExportEngine {
-    byte[] export(List<ReportModel<?>> reports, Locale locale, String contentType);
+    byte[] export(List<ReportHolder<?>> reports, Locale locale, String contentType);
 
     boolean supports(String contentType);
 

@@ -19,7 +19,7 @@ package nu.fgv.register.server.tag;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.exporting.ReportModel;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +43,9 @@ public class TagExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
         return List.of(
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "name")), TAG_MAPPER::toImpexDto),
                         TagImpexDto.class
                 )

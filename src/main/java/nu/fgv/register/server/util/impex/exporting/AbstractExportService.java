@@ -17,6 +17,7 @@
 package nu.fgv.register.server.util.impex.exporting;
 
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.springframework.data.util.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +42,12 @@ public abstract class AbstractExportService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported export type " + type));
 
-        final List<ReportModel<?>> reports = getReports(ids);
+        final List<ReportHolder<?>> reports = getReports(ids);
 
         return Pair.of(engine.getExtension(type), engine.export(reports, locale, type));
     }
 
-    protected abstract List<ReportModel<?>> getReports(List<Long> ids);
+    protected abstract List<ReportHolder<?>> getReports(List<Long> ids);
 
     protected <T, R> Iterable<R> toImpexDto(final Iterable<T> entities, final Function<T, R> mapper) {
         return () -> {

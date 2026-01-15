@@ -39,7 +39,7 @@ import nu.fgv.register.server.task.TaskImpexDto;
 import nu.fgv.register.server.task.TaskService;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.exporting.ReportModel;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -96,17 +96,17 @@ public class SpexareExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
         final Iterable<Spexare> spexareList = service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "firstName"));
         final Map<String, CountryDto> countries = countryService.findAll().stream()
                 .collect(Collectors.toMap(CountryDto::getIsoCode, c -> c));
 
         return List.of(
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(spexareList, SPEXARE_MAPPER::toImpexDto),
                         SpexareImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getAddresses())
                                         .orElse(Collections.emptyList())
@@ -115,7 +115,7 @@ public class SpexareExportService extends AbstractExportService {
                                 .iterator(),
                         AddressImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getConsents())
                                         .orElse(Collections.emptyList())
@@ -124,7 +124,7 @@ public class SpexareExportService extends AbstractExportService {
                                 .iterator(),
                         ConsentImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getMemberships())
                                         .orElse(Collections.emptyList())
@@ -133,7 +133,7 @@ public class SpexareExportService extends AbstractExportService {
                                 .iterator(),
                         MembershipImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getTags())
                                         .orElse(Collections.emptySet())
@@ -142,7 +142,7 @@ public class SpexareExportService extends AbstractExportService {
                                 .iterator(),
                         TaggingImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getToggles())
                                         .orElse(Collections.emptyList())
@@ -151,7 +151,7 @@ public class SpexareExportService extends AbstractExportService {
                                 .iterator(),
                         ToggleImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getActivities()).orElse(Collections.emptySet()).stream())
                                 .flatMap(activity -> {
@@ -174,27 +174,27 @@ public class SpexareExportService extends AbstractExportService {
                                 }).iterator(),
                         ActivityImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(spexService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
                         SpexImpexDto.class,
                         true
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(spexService.streamRevivalsByParentIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
                         SpexRevivalImpexDto.class,
                         true
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(taskService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), TASK_MAPPER::toImpexDto),
                         TaskImpexDto.class,
                         true
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(tagService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), TAG_MAPPER::toImpexDto),
                         TagImpexDto.class,
                         true
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(typeService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "type")), TYPE_MAPPER::toImpexDto),
                         TypeImpexDto.class,
                         true

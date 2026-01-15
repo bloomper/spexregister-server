@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.user.authority.AuthorityImpexDto;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.exporting.ReportModel;
+import nu.fgv.register.server.util.impex.model.ReportHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -48,18 +48,18 @@ public class UserExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportModel<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
         final Iterable<User> users = service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "externalId"));
 
         return List.of(
-                ReportModel.of(
+                ReportHolder.of(
                         toImpexDto(users, user -> {
                             final UserKeycloakData data = service.getKeycloakDataByUser(user);
                             return USER_MAPPER.toImpexDto(user, data != null ? data.representation() : null, STATE_MAPPER.toDto(user.getState()));
                         }),
                         UserImpexDto.class
                 ),
-                ReportModel.of(
+                ReportHolder.of(
                         () -> StreamSupport.stream(users.spliterator(), false)
                                 .flatMap(user -> {
                                     final UserKeycloakData data = service.getKeycloakDataByUser(user);
