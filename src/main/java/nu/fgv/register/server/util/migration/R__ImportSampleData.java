@@ -180,8 +180,18 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                 .param("id", row.get("id"))
                                 .update()
                 );
+        jdbcClient.sql("SELECT id FROM user WHERE spexare_id IS NOT NULL")
+                .query()
+                .listOfRows()
+                .forEach(row ->
+                        jdbcClient
+                                .sql("UPDATE user SET spexare_id = NULL WHERE id = :id")
+                                .param("id", row.get("id"))
+                                .update()
+                );
 
         final List<String> tables = List.of(
+                "event",
                 "actor",
                 "task_activity",
                 "spex_activity",
@@ -873,7 +883,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                     .sql("SELECT id FROM spex WHERE details_id = :spexDetailsId AND parent_id IS NULL")
                                     .param("spexDetailsId", spexDetailsId)
                                     .query(spexResultSet -> {
-                                        final long spexId = resultSet.getLong("id");
+                                        final long spexId = spexResultSet.getLong("id");
 
                                         spexPerSpexCategory.merge(spexCategory.getId(), new ArrayList<>(List.of(spexId)), (v1, v2) -> {
                                             v1.addAll(v2);
@@ -884,7 +894,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                     .sql("SELECT id FROM spex WHERE details_id = :spexDetailsId AND parent_id IS NOT NULL")
                                     .param("spexDetailsId", spexDetailsId)
                                     .query(spexResultSet -> {
-                                        final long spexId = resultSet.getLong("id");
+                                        final long spexId = spexResultSet.getLong("id");
 
                                         revivalsPerSpexCategory.merge(spexCategory.getId(), new ArrayList<>(List.of(spexId)), (v1, v2) -> {
                                             v1.addAll(v2);
