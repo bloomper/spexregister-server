@@ -18,10 +18,12 @@ package nu.fgv.register.server.news;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -36,29 +38,34 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "news.impex.sheetName")
-public class NewsImpexDto extends AbstractAuditableDto<NewsImpexDto> {
+public class NewsImpexDto extends AbstractAuditableImpexDto<NewsImpexDto> {
+
     @JsonProperty("id")
-    @ExcelCell(header = "news.impex.id.columnName", position = 0)
+    @ExcelCell(header = "news.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotBlank(message = "{news.subject.notEmpty}")
+    @Size(max = 255, message = "{news.subject.size}")
     @JsonProperty("subject")
-    @ExcelCell(header = "news.impex.subject.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "news.impex.subject.columnName", position = 2, updatable = true, mandatory = true)
     private String subject;
 
+    @NotBlank(message = "{news.text.notEmpty}")
+    @Size(max = 10000, message = "{news.text.size}")
     @JsonProperty("text")
-    @ExcelCell(header = "news.impex.text.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "news.impex.text.columnName", position = 3, updatable = true, mandatory = true)
     private String text;
 
     @JsonProperty("visibleFrom")
-    @ExcelCell(header = "news.impex.visibleFrom.columnName", position = 3, updatable = true)
+    @ExcelCell(header = "news.impex.visibleFrom.columnName", position = 4, updatable = true)
     private LocalDate visibleFrom;
 
     @JsonProperty("visibleTo")
-    @ExcelCell(header = "news.impex.visibleTo.columnName", position = 4, updatable = true)
+    @ExcelCell(header = "news.impex.visibleTo.columnName", position = 5, updatable = true)
     private LocalDate visibleTo;
 
     @JsonProperty("published")
-    @ExcelCell(header = "news.impex.published.columnName", position = 5)
+    @ExcelCell(header = "news.impex.published.columnName", position = 6)
     private Boolean published;
 
 }

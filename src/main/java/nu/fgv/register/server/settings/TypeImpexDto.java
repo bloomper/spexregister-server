@@ -37,7 +37,7 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 public class TypeImpexDto extends AbstractAuditableDto<TypeImpexDto> {
 
     @JsonProperty("id")
-    @ExcelCell(header = "type.impex.id.columnName", position = 0)
+    @ExcelCell(header = "type.impex.id.columnName", position = 0, primaryKey = true)
     private String id;
 
     @JsonProperty("label")

@@ -18,10 +18,11 @@ package nu.fgv.register.server.spexare.activity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,68 +35,75 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "activity.impex.sheetName")
-public class ActivityImpexDto extends AbstractAuditableDto<ActivityImpexDto> {
+public class ActivityImpexDto extends AbstractAuditableImpexDto<ActivityImpexDto> {
+
+    @NotEmpty(message = "{activity.spexare.notEmpty}")
     @JsonProperty("spexareId")
-    @ExcelCell(header = "activity.impex.spexareId.columnName", position = 0)
+    @ExcelCell(header = "activity.impex.spexareId.columnName", position = 1)
     private Long spexareId;
 
     @JsonProperty("id")
-    @ExcelCell(header = "activity.impex.id.columnName", position = 1)
+    @ExcelCell(header = "activity.impex.id.columnName", position = 2, primaryKey = true)
     private Long id;
 
+    @NotEmpty(message = "{activity.spexActivity.notEmpty}")
     @JsonProperty("spexActivityId")
-    @ExcelCell(header = "activity.impex.spexActivityId.columnName", position = 2)
+    @ExcelCell(header = "activity.impex.spexActivityId.columnName", position = 3)
     private Long spexActivityId;
 
+    @NotEmpty(message = "{activity.spex.notEmpty}")
     @JsonProperty("spexId")
-    @ExcelCell(header = "activity.impex.spexId.columnName", position = 3, updatable = true)
+    @ExcelCell(header = "activity.impex.spexId.columnName", position = 4, updatable = true)
     private Long spexId;
 
     @JsonProperty("spexYear")
-    @ExcelCell(header = "activity.impex.spexYear.columnName", position = 4)
+    @ExcelCell(header = "activity.impex.spexYear.columnName", position = 5)
     private String spexYear;
 
     @JsonProperty("spexTitle")
-    @ExcelCell(header = "activity.impex.spexTitle.columnName", position = 5)
+    @ExcelCell(header = "activity.impex.spexTitle.columnName", position = 6)
     private String spexTitle;
 
     @JsonProperty("spexRevival")
-    @ExcelCell(header = "activity.impex.spexRevival.columnName", position = 6)
+    @ExcelCell(header = "activity.impex.spexRevival.columnName", position = 7)
     private Boolean spexRevival;
 
     @JsonProperty("spexCategoryName")
-    @ExcelCell(header = "activity.impex.spexCategoryName.columnName", position = 7)
+    @ExcelCell(header = "activity.impex.spexCategoryName.columnName", position = 8)
     private String spexCategoryName;
 
+    @NotEmpty(message = "{activity.taskActivity.notEmpty}")
     @JsonProperty("taskActivityId")
-    @ExcelCell(header = "activity.impex.taskActivityId.columnName", position = 8)
+    @ExcelCell(header = "activity.impex.taskActivityId.columnName", position = 9)
     private Long taskActivityId;
 
+    @NotEmpty(message = "{activity.task.notEmpty}")
     @JsonProperty("taskId")
-    @ExcelCell(header = "activity.impex.taskId.columnName", position = 9, updatable = true)
+    @ExcelCell(header = "activity.impex.taskId.columnName", position = 10, updatable = true)
     private Long taskId;
 
     @JsonProperty("taskName")
-    @ExcelCell(header = "activity.impex.taskName.columnName", position = 10)
+    @ExcelCell(header = "activity.impex.taskName.columnName", position = 11)
     private String taskName;
 
     @JsonProperty("taskCategoryName")
-    @ExcelCell(header = "activity.impex.taskCategoryName.columnName", position = 11)
+    @ExcelCell(header = "activity.impex.taskCategoryName.columnName", position = 12)
     private String taskCategoryName;
 
     @JsonProperty("actorId")
-    @ExcelCell(header = "activity.impex.actorId.columnName", position = 12)
+    @ExcelCell(header = "activity.impex.actorId.columnName", position = 13)
     private Long actorId;
 
     @JsonProperty("actorRole")
-    @ExcelCell(header = "activity.impex.actorRole.columnName", position = 13, updatable = true)
+    @ExcelCell(header = "activity.impex.actorRole.columnName", position = 14, updatable = true)
     private String actorRole;
 
+    @NotEmpty(message = "{activity.type.notEmpty}")
     @JsonProperty("typeId")
-    @ExcelCell(header = "common.impex.type.id.columnName", position = 14, updatable = true)
+    @ExcelCell(header = "common.impex.type.id.columnName", position = 15, updatable = true)
     private String typeId;
 
     @JsonProperty("typeLabel")
-    @ExcelCell(header = "common.impex.type.label.columnName", position = 15)
+    @ExcelCell(header = "common.impex.type.label.columnName", position = 16)
     private String typeLabel;
 }

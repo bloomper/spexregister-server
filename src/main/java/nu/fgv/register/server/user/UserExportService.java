@@ -18,9 +18,12 @@ package nu.fgv.register.server.user;
 
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.user.authority.AuthorityImpexDto;
+import nu.fgv.register.server.user.authority.AuthorityService;
+import nu.fgv.register.server.user.state.StateImpexDto;
+import nu.fgv.register.server.user.state.StateService;
 import nu.fgv.register.server.util.impex.exporting.AbstractExportService;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
-import nu.fgv.register.server.util.impex.model.ReportHolder;
+import nu.fgv.register.server.util.impex.exporting.ExportHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -41,25 +44,33 @@ import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 public class UserExportService extends AbstractExportService {
 
     private final UserService service;
+    private final AuthorityService authorityService;
+    private final StateService stateService;
 
-    public UserExportService(final UserService service, final List<ExportEngine> engines) {
+    public UserExportService(final UserService service,
+                             final AuthorityService authorityService,
+                             final List<ExportEngine> engines,
+                             final StateService stateService) {
         super(engines);
         this.service = service;
+        this.authorityService = authorityService;
+        this.stateService = stateService;
     }
 
     @Override
-    protected List<ReportHolder<?>> getReports(final List<Long> ids, final String filter) {
+    protected List<ExportHolder<?>> getReports(final List<Long> ids, final String filter) {
         final Iterable<User> users = service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "externalId"));
 
         return List.of(
-                ReportHolder.of(
+                ExportHolder.of(
                         toImpexDto(users, user -> {
                             final UserKeycloakData data = service.getKeycloakDataByUser(user);
                             return USER_MAPPER.toImpexDto(user, data != null ? data.representation() : null, STATE_MAPPER.toDto(user.getState()));
                         }),
                         UserImpexDto.class
                 ),
-                ReportHolder.of(
+                ExportHolder.of(
+                        "user.impex.authority.sheetName",
                         () -> StreamSupport.stream(users.spliterator(), false)
                                 .flatMap(user -> {
                                     final UserKeycloakData data = service.getKeycloakDataByUser(user);
@@ -70,6 +81,16 @@ public class UserExportService extends AbstractExportService {
                                             .map(auth -> AUTHORITY_MAPPER.toImpexDto(user, auth));
                                 }).iterator(),
                         AuthorityImpexDto.class
+                ),
+                ExportHolder.of(
+                        toImpexDto(stateService.findAll(Sort.by(Sort.Direction.ASC, "id")), STATE_MAPPER::toImpexDto),
+                        StateImpexDto.class,
+                        true
+                ),
+                ExportHolder.of(
+                        toImpexDto(authorityService.findAll(Sort.by(Sort.Direction.ASC, "id")), AUTHORITY_MAPPER::toImpexDto),
+                        AuthorityImpexDto.class,
+                        true
                 )
         );
     }

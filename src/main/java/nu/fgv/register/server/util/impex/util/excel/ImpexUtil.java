@@ -17,12 +17,11 @@
 package nu.fgv.register.server.util.impex.util.excel;
 
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
+import nu.fgv.register.server.util.impex.model.HasImpexAction;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
-import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.IndexedColors;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -37,18 +36,35 @@ public class ImpexUtil {
     }
 
     public static int determinePositionBeforeAuditableFields(final List<Field> annotatedFields) {
-        final int maxPosition = annotatedFields.stream()
+        return annotatedFields.stream()
                 .filter(f -> !f.getDeclaringClass().equals(AbstractAuditableDto.class))
                 .map(f -> f.getAnnotation(ExcelCell.class).position())
                 .mapToInt(v -> v)
                 .max()
-                .orElseThrow(() -> new IllegalArgumentException("Could not determine position before auditable fields"));
-        return maxPosition + 1;
+                .orElse(-1) + 1;
     }
 
-    public static int determinePosition(final Field field, final int maxPosition) {
+    public static int determinePosition(final Field field, final int maxPosition, final boolean readOnly) {
         final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-        return excelCell.position() + (field.getDeclaringClass().equals(AbstractAuditableDto.class) ? maxPosition : 0);
+
+        if (readOnly) {
+            if (field.getName().equals("action")) {
+                return -1;
+            }
+
+            int pos = excelCell.position();
+            if (field.getDeclaringClass().equals(AbstractAuditableDto.class) || field.getDeclaringClass().equals(AbstractAuditableImpexDto.class)) {
+                pos += maxPosition;
+            }
+
+            return pos > 0 ? pos - 1 : 0;
+        }
+
+        if (field.getDeclaringClass().equals(AbstractAuditableDto.class) || field.getDeclaringClass().equals(AbstractAuditableImpexDto.class)) {
+            return excelCell.position() + maxPosition;
+        }
+
+        return excelCell.position();
     }
 
     public static boolean isMarkedForDeletion(final Cell cell) {
@@ -63,20 +79,4 @@ public class ImpexUtil {
         return !isMarkedForDeletion(cell) && !isMarkedForCreation(cell);
     }
 
-    public static void setCellBorders(final Cell cell, final BorderStyle borderStyle, final IndexedColors color) {
-        CellStyle cellStyle = cell.getCellStyle();
-        if (cellStyle == null) {
-            cellStyle = cell.getSheet().getWorkbook().createCellStyle();
-        }
-        cellStyle.setBorderTop(borderStyle);
-        cellStyle.setTopBorderColor(color.getIndex());
-        cellStyle.setBorderLeft(borderStyle);
-        cellStyle.setLeftBorderColor(color.getIndex());
-        cellStyle.setBorderRight(borderStyle);
-        cellStyle.setRightBorderColor(color.getIndex());
-        cellStyle.setBorderBottom(borderStyle);
-        cellStyle.setBottomBorderColor(color.getIndex());
-
-        cell.setCellStyle(cellStyle);
-    }
 }

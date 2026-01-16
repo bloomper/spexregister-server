@@ -91,6 +91,13 @@ public class SpexActivityService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public SpexActivityDto create(final Long spexareId, final Long activityId, final Long spexId) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId)) {
             return spexareRepository

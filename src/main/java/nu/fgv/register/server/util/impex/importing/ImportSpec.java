@@ -16,15 +16,25 @@
 
 package nu.fgv.register.server.util.impex.importing;
 
-import java.util.List;
-import java.util.Locale;
+import lombok.Builder;
+import lombok.Getter;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface ImportEngine {
-    ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale);
-
-    boolean supports(final String contentType);
+@Builder
+@Getter
+public class ImportSpec {
+    private final Class<?> clazz;
+    @Builder.Default
+    private final Map<String, Function<@Nullable Object, Boolean>> existenceCheckers = Collections.emptyMap();
+    @Nullable
+    private final String name;
 }
+

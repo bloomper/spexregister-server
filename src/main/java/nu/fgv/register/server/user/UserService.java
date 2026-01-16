@@ -172,6 +172,13 @@ public class UserService {
     }
 
     @RequiresAdmin
+    public boolean exists(final Long id) {
+        return repository
+                .findById0(id)
+                .isPresent();
+    }
+
+    @RequiresAdmin
     public Iterable<User> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<User> spec;

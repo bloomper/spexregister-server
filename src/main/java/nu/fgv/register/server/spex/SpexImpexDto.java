@@ -18,10 +18,14 @@ package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,28 +38,35 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "spex.impex.sheetName")
-public class SpexImpexDto extends AbstractAuditableDto<SpexImpexDto> {
+public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
 
     @JsonProperty("id")
-    @ExcelCell(header = "spex.impex.id.columnName", position = 0)
+    @ExcelCell(header = "spex.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotBlank(message = "{spex.year.notEmpty}")
+    @Size(max = 4, message = "{spex.year.size}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @JsonProperty("year")
-    @ExcelCell(header = "spex.impex.year.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "spex.impex.year.columnName", position = 2, updatable = true, mandatory = true)
     private String year;
 
+    @NotBlank(message = "{spex.title.notEmpty}")
+    @Size(max = 255, message = "{spex.title.size}")
+    @Column(name = "title", nullable = false)
     @JsonProperty("title")
-    @ExcelCell(header = "spex.impex.title.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "spex.impex.title.columnName", position = 3, updatable = true, mandatory = true)
     private String title;
 
     @JsonProperty("posterUrl")
-    @ExcelCell(header = "spex.impex.posterUrl.columnName", position = 3, updatable = true)
+    @ExcelCell(header = "spex.impex.posterUrl.columnName", position = 4, updatable = true)
     private String posterUrl;
 
-    @ExcelCell(header = "spex.impex.category.id.columnName", position = 4, updatable = true)
+    @NotBlank(message = "{spex.category.notEmpty}")
+    @ExcelCell(header = "spex.impex.category.id.columnName", position = 5, updatable = true)
     private Long categoryId;
 
-    @ExcelCell(header = "spex.impex.category.name.columnName", position = 5)
+    @ExcelCell(header = "spex.impex.category.name.columnName", position = 6)
     private String categoryName;
 
 }

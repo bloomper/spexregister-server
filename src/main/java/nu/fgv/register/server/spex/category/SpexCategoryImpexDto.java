@@ -18,10 +18,13 @@ package nu.fgv.register.server.spex.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,21 +37,27 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "spexCategory.impex.sheetName")
-public class SpexCategoryImpexDto extends AbstractAuditableDto<SpexCategoryImpexDto> {
+public class SpexCategoryImpexDto extends AbstractAuditableImpexDto<SpexCategoryImpexDto> {
+
     @JsonProperty("id")
-    @ExcelCell(header = "spexCategory.impex.id.columnName", position = 0)
+    @ExcelCell(header = "spexCategory.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotBlank(message = "{spexCategory.name.notEmpty}")
+    @Size(max = 255, message = "{spexCategory.name.maxSize}")
     @JsonProperty("name")
-    @ExcelCell(header = "spexCategory.impex.name.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "spexCategory.impex.name.columnName", position = 2, updatable = true, mandatory = true)
     private String name;
 
+    @NotBlank(message = "{spexCategory.firstYear.notEmpty}")
+    @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
+    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.regexp}")
     @JsonProperty("firstYear")
-    @ExcelCell(header = "spexCategory.impex.firstYear.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "spexCategory.impex.firstYear.columnName", position = 3, updatable = true, mandatory = true)
     private String firstYear;
 
     @JsonProperty("logoUrl")
-    @ExcelCell(header = "spexCategory.impex.logoUrl.columnName", position = 3)
+    @ExcelCell(header = "spexCategory.impex.logoUrl.columnName", position = 4)
     private String logoUrl;
 
 }

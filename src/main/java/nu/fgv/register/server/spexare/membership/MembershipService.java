@@ -130,6 +130,13 @@ public class MembershipService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public MembershipDto create(final Long spexareId, final String typeId, final MembershipCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository

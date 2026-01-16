@@ -18,10 +18,13 @@ package nu.fgv.register.server.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,29 +37,46 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "user.impex.sheetName")
-public class UserImpexDto extends AbstractAuditableDto<UserImpexDto> {
+public class UserImpexDto extends AbstractAuditableImpexDto<UserImpexDto> {
+
     @JsonProperty("id")
-    @ExcelCell(header = "user.impex.id.columnName", position = 0)
+    @ExcelCell(header = "user.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
     @JsonProperty("externalId")
-    @ExcelCell(header = "user.impex.externalId.columnName", position = 1)
+    @ExcelCell(header = "user.impex.externalId.columnName", position = 2)
     private String externalId;
 
+    @NotBlank(message = "{user.email.notEmpty}")
+    @Size(max = 255, message = "{user.email.size}")
+    @Email(message = "{user.email.valid}")
     @JsonProperty("email")
-    @ExcelCell(header = "user.impex.email.columnName", position = 2)
+    @ExcelCell(header = "user.impex.email.columnName", position = 3)
     private String email;
 
+    @NotBlank(message = "{user.state.notEmpty}")
     @JsonProperty("stateId")
-    @ExcelCell(header = "user.impex.state.id.columnName", position = 3, updatable = true, mandatory = true)
+    @ExcelCell(header = "user.impex.state.id.columnName", position = 4, updatable = true, mandatory = true)
     private String stateId;
 
     @JsonProperty("stateLabel")
-    @ExcelCell(header = "user.impex.state.label.columnName", position = 4)
+    @ExcelCell(header = "user.impex.state.label.columnName", position = 5)
     private String stateLabel;
 
     @JsonProperty("spexareId")
-    @ExcelCell(header = "user.impex.spexare.id.columnName", position = 5, updatable = true)
+    @ExcelCell(header = "user.impex.spexare.id.columnName", position = 6, updatable = true)
     private Long spexareId;
+
+    @JsonProperty("spexareFirstName")
+    @ExcelCell(header = "user.impex.spexare.firstName.columnName", position = 7)
+    private String spexareFirstName;
+
+    @JsonProperty("spexareLastName")
+    @ExcelCell(header = "user.impex.spexare.lastName.columnName", position = 8)
+    private String spexareLastName;
+
+    @JsonProperty("spexareNickName")
+    @ExcelCell(header = "user.impex.spexare.nickName.columnName", position = 9)
+    private String spexareNickName;
 
 }

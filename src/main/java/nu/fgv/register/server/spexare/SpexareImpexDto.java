@@ -18,12 +18,18 @@ package nu.fgv.register.server.spexare;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import nu.fgv.register.server.util.validation.Luhn;
+
+import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
 /**
  * @author Anders Jacobsson
@@ -34,61 +40,71 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "spexare.impex.sheetName")
-public class SpexareImpexDto extends AbstractAuditableDto<SpexareImpexDto> {
+public class SpexareImpexDto extends AbstractAuditableImpexDto<SpexareImpexDto> {
+
     @JsonProperty("id")
-    @ExcelCell(header = "spexare.impex.id.columnName", position = 0)
+    @ExcelCell(header = "spexare.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotEmpty(message = "{spexare.firstName.notEmpty}")
+    @Size(max = 255, message = "{spexare.firstName.size}")
     @JsonProperty("firstName")
-    @ExcelCell(header = "spexare.impex.firstName.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "spexare.impex.firstName.columnName", position = 2, updatable = true, mandatory = true)
     private String firstName;
 
+    @NotEmpty(message = "{spexare.lastName.notEmpty}")
+    @Size(max = 255, message = "{spexare.lastName.size}")
     @JsonProperty("lastName")
-    @ExcelCell(header = "spexare.impex.lastName.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "spexare.impex.lastName.columnName", position = 3, updatable = true, mandatory = true)
     private String lastName;
 
+    @Size(max = 255, message = "{spexare.nickName.size}")
     @JsonProperty("nickName")
-    @ExcelCell(header = "spexare.impex.nickName.columnName", position = 3, updatable = true)
+    @ExcelCell(header = "spexare.impex.nickName.columnName", position = 4, updatable = true)
     private String nickName;
 
+    @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
+    @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @JsonProperty("socialSecurityNumber")
-    @ExcelCell(header = "spexare.impex.socialSecurityNumber.columnName", position = 4, updatable = true)
+    @ExcelCell(header = "spexare.impex.socialSecurityNumber.columnName", position = 5, updatable = true)
     private String socialSecurityNumber;
 
     @JsonProperty("deceased")
-    @ExcelCell(header = "spexare.impex.deceased.columnName", position = 5, updatable = true)
+    @ExcelCell(header = "spexare.impex.deceased.columnName", position = 6, updatable = true)
     private Boolean deceased;
 
     @JsonProperty("published")
-    @ExcelCell(header = "spexare.impex.published.columnName", position = 6, updatable = true)
+    @ExcelCell(header = "spexare.impex.published.columnName", position = 7, updatable = true)
     private Boolean published;
 
+    @Size(max = 255, message = "{spexare.graduation.size}")
     @JsonProperty("graduation")
-    @ExcelCell(header = "spexare.impex.graduation.columnName", position = 7, updatable = true)
+    @ExcelCell(header = "spexare.impex.graduation.columnName", position = 8, updatable = true)
     private String graduation;
 
+    @Size(max = 10000, message = "{spexare.comment.size}")
     @JsonProperty("comment")
-    @ExcelCell(header = "spexare.impex.comment.columnName", position = 8, updatable = true)
+    @ExcelCell(header = "spexare.impex.comment.columnName", position = 9, updatable = true)
     private String comment;
 
     @JsonProperty("image")
-    @ExcelCell(header = "spexare.impex.imageUrl.columnName", position = 9, updatable = true)
+    @ExcelCell(header = "spexare.impex.imageUrl.columnName", position = 10, updatable = true)
     private String imageUrl;
 
     @JsonProperty("partnerId")
-    @ExcelCell(header = "spexare.impex.partner.id.columnName", position = 10, updatable = true)
+    @ExcelCell(header = "spexare.impex.partner.id.columnName", position = 11, updatable = true)
     private Long partnerId;
 
     @JsonProperty("partnerFirstName")
-    @ExcelCell(header = "spexare.impex.partner.firstName.columnName", position = 11)
+    @ExcelCell(header = "spexare.impex.partner.firstName.columnName", position = 12)
     private String partnerFirstName;
 
     @JsonProperty("partnerLastName")
-    @ExcelCell(header = "spexare.impex.partner.lastName.columnName", position = 12)
+    @ExcelCell(header = "spexare.impex.partner.lastName.columnName", position = 13)
     private String partnerLastName;
 
     @JsonProperty("partnerNickName")
-    @ExcelCell(header = "spexare.impex.partner.nickName.columnName", position = 13)
+    @ExcelCell(header = "spexare.impex.partner.nickName.columnName", position = 14)
     private String partnerNickName;
 
 }

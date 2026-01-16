@@ -24,7 +24,9 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
@@ -54,9 +56,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -79,6 +84,7 @@ public class NewsApi {
 
     private final NewsService service;
     private final NewsExportService exportService;
+    private final NewsImportService importService;
     private final EventService eventService;
     private final PagedResourcesAssembler<NewsDto> pagedResourcesAssembler;
     private final EventApi eventApi;
@@ -131,6 +137,30 @@ public class NewsApi {
         final NewsDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
+    }
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
+            consumes = {
+                    Constants.MediaTypes.APPLICATION_XLSX_VALUE,
+                    Constants.MediaTypes.APPLICATION_XLS_VALUE
+            })
+    @RequiresAdmin
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
+        final ImportResultDto result = importService.doImport(file, contentType, locale);
+
+        return ResponseEntity
+                .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                .body(result);
+    }
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequiresAdmin
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
+        try {
+            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
+        } catch (final IOException e) {
+            throw new InternalErrorException(e.getMessage());
+        }
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)

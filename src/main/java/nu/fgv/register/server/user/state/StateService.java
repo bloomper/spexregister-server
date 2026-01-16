@@ -56,4 +56,11 @@ public class StateService {
                 .orElseThrow(() -> new ResourceNotFoundException(State.class, id));
     }
 
+    @RequiresAdminOrEditorOrUser
+    public boolean exists(final String id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
 }

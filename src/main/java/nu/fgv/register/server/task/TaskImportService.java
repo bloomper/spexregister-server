@@ -19,12 +19,12 @@ package nu.fgv.register.server.task;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
+import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.function.Function;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
@@ -32,7 +32,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Service
-public class TaskImportService extends AbstractImportService<TaskImpexDto> {
+public class TaskImportService extends AbstractImportService {
 
     private final TaskService service;
 
@@ -42,28 +42,26 @@ public class TaskImportService extends AbstractImportService<TaskImpexDto> {
     }
 
     @Override
-    protected ImportResultDto processImport(final List<TaskImpexDto> dtos, final Locale locale) {
-        dtos.forEach(dto -> {
-            // TODO
-        });
+    protected List<ImportSpec> getImportSpecs() {
+        return List.of(
+                ImportSpec.builder()
+                        .clazz(TaskImpexDto.class)
+                        .existenceCheckers(Map.of(
+                                "id", v -> service.exists((Long) v)
+                        ))
+                        .build()
+        );
+    }
+
+    @Override
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
+        final List<TaskImpexDto> dtos = (List<TaskImpexDto>) data.get(TaskImpexDto.class);
+
+        if (dtos != null) {
+            dtos.forEach(dto -> {
+                // TODO
+            });
+        }
         return ImportResultDto.builder().success(true).build();
     }
-
-    @Override
-    protected Class<TaskImpexDto> getImpexDtoClass() {
-        return TaskImpexDto.class;
-    }
-
-    @Override
-    protected Function<Long, Boolean> getExistenceChecker() {
-        return id -> {
-            try {
-                service.findById(id);
-                return true;
-            } catch (final Exception e) {
-                return false;
-            }
-        };
-    }
-
 }

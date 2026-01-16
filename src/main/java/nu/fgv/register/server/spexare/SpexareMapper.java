@@ -53,6 +53,7 @@ public interface SpexareMapper {
     @Mapping(target = "partnerFirstName", source = "partner.firstName")
     @Mapping(target = "partnerLastName", source = "partner.lastName")
     @Mapping(target = "partnerNickName", source = "partner.nickName")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     SpexareImpexDto toImpexDto(Spexare model);
 
     List<SpexareDto> toDtos(List<Spexare> models);

@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.impex.util.excel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -28,7 +29,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 @Setter
 public abstract class AbstractSheetContainer {
 
-    private String overrideSheetName;
+    private @Nullable String overrideSheetName;
     private Sheet sheet;
     private String heading;
 }

@@ -17,6 +17,7 @@
 package nu.fgv.register.server.user;
 
 import nu.fgv.register.server.spexare.SpexareMapper;
+import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateMapper;
@@ -61,11 +62,15 @@ public interface UserMapper {
     @Mapping(target = "stateId", source = "state.id")
     @Mapping(target = "stateLabel", source = "state.label")
     @Mapping(target = "spexareId", source = "model.spexare.id")
+    @Mapping(target = "spexareFirstName", source = "model.spexare.firstName")
+    @Mapping(target = "spexareLastName", source = "model.spexare.lastName")
+    @Mapping(target = "spexareNickName", source = "model.spexare.nickName")
     @Mapping(target = "email", source = "representation.email", defaultValue = "")
     @Mapping(target = "createdBy", source = "model.createdBy")
     @Mapping(target = "createdAt", source = "model.createdAt")
     @Mapping(target = "lastModifiedBy", source = "model.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "model.lastModifiedAt")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     UserImpexDto toImpexDto(User model, @Nullable UserRepresentation representation, StateDto state);
 
     @Mapping(target = "id", ignore = true)

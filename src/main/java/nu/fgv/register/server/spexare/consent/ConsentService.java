@@ -115,6 +115,13 @@ public class ConsentService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public ConsentDto create(final Long spexareId, final String typeId, final ConsentCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository

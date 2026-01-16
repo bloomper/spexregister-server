@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.model;
+package nu.fgv.register.server.util.impex.exporting;
 
 import org.jspecify.annotations.Nullable;
 
@@ -22,25 +22,25 @@ import org.jspecify.annotations.Nullable;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public record ReportHolder<T>(
+public record ExportHolder<T>(
         @Nullable String name,
         Iterable<T> data,
         Class<T> clazz,
         boolean readOnly
 ) {
-    public static <T> ReportHolder<T> of(final Iterable<T> data, final Class<T> clazz) {
-        return new ReportHolder<>(null, data, clazz, false);
+    public static <T> ExportHolder<T> of(final Iterable<T> data, final Class<T> clazz) {
+        return new ExportHolder<>(null, data, clazz, false);
     }
 
-    public static <T> ReportHolder<T> of(final Iterable<T> data, final Class<T> clazz, final boolean readOnly) {
-        return new ReportHolder<>(null, data, clazz, readOnly);
+    public static <T> ExportHolder<T> of(final Iterable<T> data, final Class<T> clazz, final boolean readOnly) {
+        return new ExportHolder<>(null, data, clazz, readOnly);
     }
 
-    public static <T> ReportHolder<T> of(final String name, final Iterable<T> data, final Class<T> clazz) {
-        return new ReportHolder<>(name, data, clazz, false);
+    public static <T> ExportHolder<T> of(final String name, final Iterable<T> data, final Class<T> clazz) {
+        return new ExportHolder<>(name, data, clazz, false);
     }
 
-    public static <T> ReportHolder<T> of(@Nullable final String name, final Iterable<T> data, final Class<T> clazz, final boolean readOnly) {
-        return new ReportHolder<>(name, data, clazz, readOnly);
+    public static <T> ExportHolder<T> of(@Nullable final String name, final Iterable<T> data, final Class<T> clazz, final boolean readOnly) {
+        return new ExportHolder<>(name, data, clazz, readOnly);
     }
 }

@@ -268,7 +268,7 @@ class TaskActivityApiTest extends AbstractApiTest {
     @Test
     void should_get_task() throws Exception {
         final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        final var realTaskApi = new TaskApi(null, null, null, null, null, null);
+        final var realTaskApi = new TaskApi(null, null, null, null, null, null, null);
 
         when(service.findTaskByTaskActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(task);
         when(taskApi.getLinks(any(TaskDto.class), eq(false))).thenReturn(realTaskApi.getLinks(task, false));

@@ -143,6 +143,13 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById0(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Iterable<Spexare> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Spexare> spec;

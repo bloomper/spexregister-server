@@ -62,6 +62,12 @@ public class TypeService {
                 .orElseThrow(() -> new ResourceNotFoundException(Type.class, id));
     }
 
+    public boolean exists(final String id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
     public Iterable<Type> streamByIds(final List<String> ids, final Sort sort) {
         return () -> repository.findAllBy(ids.isEmpty() ? null : hasIds(ids), sort)
                 .iterator();

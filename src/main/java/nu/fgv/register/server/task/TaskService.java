@@ -106,6 +106,13 @@ public class TaskService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById0(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public Iterable<Task> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Task> spec;

@@ -18,9 +18,11 @@ package nu.fgv.register.server.user.authority;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import nu.fgv.register.server.util.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -32,18 +34,20 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @Setter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ExcelSheet(name = "user.impex.authority.sheetName")
-public class AuthorityImpexDto {
+@ExcelSheet(name = "authority.impex.sheetName")
+public class AuthorityImpexDto extends AbstractImpexDto {
+
+    @NotEmpty(message = "{authority.user.notEmpty}")
     @JsonProperty("userId")
-    @ExcelCell(header = "user.impex.authority.userId.columnName", position = 0)
+    @ExcelCell(header = "authority.impex.user.id.columnName", position = 1, ignoreIfNull = true)
     private Long userId;
 
     @JsonProperty("id")
-    @ExcelCell(header = "user.impex.authority.id.columnName", position = 1, updatable = true)
+    @ExcelCell(header = "authority.impex.id.columnName", position = 2, primaryKey = true, updatable = true)
     private String id;
 
     @JsonProperty("label")
-    @ExcelCell(header = "user.impex.authority.label.columnName", position = 2)
+    @ExcelCell(header = "authority.impex.label.columnName", position = 3)
     private String label;
 
 }

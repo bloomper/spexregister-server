@@ -58,7 +58,6 @@ import static nu.fgv.register.server.spex.SpexSpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.SpexSpecification.hasId;
 import static nu.fgv.register.server.spex.SpexSpecification.hasIds;
 import static nu.fgv.register.server.spex.SpexSpecification.hasParent;
-import static nu.fgv.register.server.spex.SpexSpecification.hasParentIds;
 import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
@@ -127,6 +126,13 @@ public class SpexService {
                 .findById0(id)
                 .map(SPEX_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById0(id)
+                .isPresent();
     }
 
     @RequiresAdminOrEditorOrUser

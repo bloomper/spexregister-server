@@ -18,10 +18,12 @@ package nu.fgv.register.server.tag;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,13 +36,15 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "tag.impex.sheetName")
-public class TagImpexDto extends AbstractAuditableDto<TagImpexDto> {
+public class TagImpexDto extends AbstractAuditableImpexDto<TagImpexDto> {
     @JsonProperty("id")
-    @ExcelCell(header = "tag.impex.id.columnName", position = 0)
+    @ExcelCell(header = "tag.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotEmpty(message = "{tag.name.notEmpty}")
+    @Size(max = 255, message = "{tag.name.size}")
     @JsonProperty("name")
-    @ExcelCell(header = "tag.impex.name.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "tag.impex.name.columnName", position = 2, updatable = true, mandatory = true)
     private String name;
 
 }

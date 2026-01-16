@@ -17,14 +17,15 @@
 package nu.fgv.register.server.spex;
 
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spex.category.SpexCategoryService;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
+import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.function.Function;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
@@ -32,38 +33,46 @@ import java.util.function.Function;
  */
 @Slf4j
 @Service
-public class SpexImportService extends AbstractImportService<SpexImpexDto> {
+public class SpexImportService extends AbstractImportService {
 
     private final SpexService service;
+    private final SpexCategoryService categoryService;
 
-    public SpexImportService(final List<ImportEngine> engines, final SpexService service) {
+    public SpexImportService(final List<ImportEngine> engines,
+                             final SpexService service,
+                             final SpexCategoryService categoryService) {
         super(engines);
         this.service = service;
+        this.categoryService = categoryService;
     }
 
     @Override
-    protected ImportResultDto processImport(final List<SpexImpexDto> dtos, final Locale locale) {
-        dtos.forEach(dto -> {
-            // TODO
-        });
+    protected List<ImportSpec> getImportSpecs() {
+        return List.of(
+                ImportSpec.builder()
+                        .clazz(SpexImpexDto.class)
+                        .existenceCheckers(Map.of(
+                                "id", v -> service.exists((Long) v),
+                                "categoryId", v -> service.exists((Long) v)
+                        ))
+                        .build(),
+                ImportSpec.builder()
+                        .clazz(SpexRevivalImpexDto.class)
+                        .existenceCheckers(Map.of(
+                                "id", v -> categoryService.exists((Long) v)
+                        ))
+                        .build()
+        );
+    }
+
+    @Override
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
+        List<SpexImpexDto> mainSpex = (List<SpexImpexDto>) data.get(SpexImpexDto.class);
+        List<SpexRevivalImpexDto> revivals = (List<SpexRevivalImpexDto>) data.get(SpexRevivalImpexDto.class);
+
+        // TODO
+
         return ImportResultDto.builder().success(true).build();
-    }
-
-    @Override
-    protected Class<SpexImpexDto> getImpexDtoClass() {
-        return SpexImpexDto.class;
-    }
-
-    @Override
-    protected Function<Long, Boolean> getExistenceChecker() {
-        return id -> {
-            try {
-                service.findById(id);
-                return true;
-            } catch (final Exception e) {
-                return false;
-            }
-        };
     }
 
 }

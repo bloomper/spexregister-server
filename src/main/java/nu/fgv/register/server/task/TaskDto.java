@@ -25,8 +25,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
-import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -42,14 +40,11 @@ import java.time.Instant;
 @ToString
 @Relation(collectionRelation = "tasks", itemRelation = "task")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ExcelSheet(name = "Tasks")
 public class TaskDto extends AbstractAuditableDto<TaskDto> {
     @JsonProperty("id")
-    @ExcelCell(header = "Id", position = 0)
     private Long id;
 
     @JsonProperty("name")
-    @ExcelCell(header = "Title", position = 2, updatable = true, mandatory = true)
     private String name;
 
     @Builder

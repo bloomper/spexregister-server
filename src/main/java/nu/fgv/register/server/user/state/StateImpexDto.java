@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.task;
+package nu.fgv.register.server.user.state;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
+import nu.fgv.register.server.util.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -35,24 +33,15 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @Setter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ExcelSheet(name = "task.impex.sheetName")
-public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
+@ExcelSheet(name = "state.impex.sheetName")
+public class StateImpexDto {
 
     @JsonProperty("id")
-    @ExcelCell(header = "task.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    @ExcelCell(header = "state.impex.id.columnName", position = 0, primaryKey = true)
+    private String id;
 
-    @NotBlank(message = "{task.name.notEmpty}")
-    @Size(max = 255, message = "{task.name.size}")
-    @JsonProperty("name")
-    @ExcelCell(header = "task.impex.name.columnName", position = 2, updatable = true, mandatory = true)
-    private String name;
-
-    @NotBlank(message = "{task.category.notEmpty}")
-    @ExcelCell(header = "task.impex.category.id.columnName", position = 3, updatable = true)
-    private Long categoryId;
-
-    @ExcelCell(header = "task.impex.category.name.columnName", position = 4)
-    private String categoryName;
+    @JsonProperty("label")
+    @ExcelCell(header = "state.impex.label.columnName", position = 1)
+    private String label;
 
 }

@@ -19,13 +19,14 @@ package nu.fgv.register.server.settings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
+
+import static nu.fgv.register.server.settings.CountryMapper.COUNTRY_MAPPER;
 
 /**
  * @author Anders Jacobsson
@@ -38,7 +39,7 @@ public class CountryService {
 
     public List<CountryDto> findAll() {
         return Stream.of(Locale.getISOCountries())
-                .map(this::mapDto)
+                .map(COUNTRY_MAPPER::toDto)
                 .sorted(Comparator.comparing(CountryDto::getLabel))
                 .toList();
     }
@@ -46,17 +47,14 @@ public class CountryService {
     public CountryDto findByIsoCode(final String isoCode) {
         return Stream.of(Locale.getISOCountries())
                 .filter(c -> c.equalsIgnoreCase(isoCode))
-                .map(this::mapDto)
+                .map(COUNTRY_MAPPER::toDto)
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Country", isoCode));
     }
 
-    private CountryDto mapDto(final String isoCode) {
-        final Locale l = new Locale.Builder().setRegion(isoCode).build();
-
-        return CountryDto.builder()
-                .isoCode(isoCode)
-                .label(l.getDisplayCountry(LocaleContextHolder.getLocale())).build();
+    public boolean exists(final String isoCode) {
+        return Stream.of(Locale.getISOCountries())
+                .anyMatch(c -> c.equalsIgnoreCase(isoCode));
     }
 
 }

@@ -17,26 +17,20 @@
 package nu.fgv.register.server.util.impex.importing;
 
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.ImportException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jspecify.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-public abstract class AbstractImportService<T> {
+public abstract class AbstractImportService {
 
     protected final List<ImportEngine> engines;
 
@@ -48,26 +42,26 @@ public abstract class AbstractImportService<T> {
         final ImportEngine engine = engines.stream()
                 .filter(e -> e.supports(type))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported import type " + type));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported import type: " + type));
+
+        final List<ImportSpec> specs = getImportSpecs();
 
         try {
-            final var validationResult = engine.validate(file, getImpexDtoClass(), locale, getExistenceChecker());
+            final ImportEngineResponse response = engine.process(file, specs, locale);
 
-            if (validationResult.isSuccess()) {
-                final List<T> dtos = engine.parse(file, getImpexDtoClass(), locale);
-                return processImport(dtos, locale);
+            if (response.validationResult().isSuccess() && response.data() != null) {
+                return processImport(response.data());
             }
-            return validationResult;
+
+            return response.validationResult();
         } catch (final Exception e) {
             log.error("Unexpected error while importing", e);
             throw new ImportException(e.getMessage());
         }
     }
 
-    protected abstract ImportResultDto processImport(final List<T> dtos, final Locale locale);
+    protected abstract List<ImportSpec> getImportSpecs();
 
-    protected abstract Class<T> getImpexDtoClass();
-
-    protected abstract Function<Long, Boolean> getExistenceChecker();
+    protected abstract ImportResultDto processImport(final Map<Class<?>, List<?>> data);
 
 }

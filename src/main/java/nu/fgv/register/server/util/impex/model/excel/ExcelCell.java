@@ -33,9 +33,13 @@ public @interface ExcelCell {
 
     int position();
 
+    boolean primaryKey() default false;
+
     boolean mandatory() default false;
 
     boolean updatable() default false;
+
+    boolean ignoreIfNull() default false;
 
     String header() default "";
 

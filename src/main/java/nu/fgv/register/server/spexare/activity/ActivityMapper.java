@@ -66,6 +66,7 @@ public interface ActivityMapper {
     @Mapping(target = "createdAt", source = "activity.createdAt")
     @Mapping(target = "lastModifiedBy", source = "activity.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "activity.lastModifiedAt")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     ActivityImpexDto toImpexDto(Spexare spexare, Activity activity, SpexActivity spexActivity, TaskActivity taskActivity, @Nullable Actor actor, @Nullable TypeDto vocalType);
 
 }

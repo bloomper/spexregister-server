@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -32,26 +33,26 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @Setter
 @NoArgsConstructor
 @ExcelSheet(name = "spex.impex.revival.sheetName")
-public class SpexRevivalImpexDto extends AbstractAuditableDto<SpexRevivalImpexDto> {
+public class SpexRevivalImpexDto extends AbstractAuditableImpexDto<SpexRevivalImpexDto> {
 
     @JsonProperty("id")
-    @ExcelCell(header = "spex.impex.revival.id.columnName", position = 0)
+    @ExcelCell(header = "spex.impex.revival.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
     @JsonProperty("year")
-    @ExcelCell(header = "spex.impex.revival.year.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "spex.impex.revival.year.columnName", position = 2, updatable = true, mandatory = true)
     private String year;
 
     @JsonProperty("parentId")
-    @ExcelCell(header = "spex.impex.revival.parent.id.columnName", position = 2, updatable = true)
+    @ExcelCell(header = "spex.impex.revival.parent.id.columnName", position = 3, updatable = true)
     private Long parentId;
 
     @JsonProperty("parentYear")
-    @ExcelCell(header = "spex.impex.revival.parent.year.columnName", position = 3)
+    @ExcelCell(header = "spex.impex.revival.parent.year.columnName", position = 4)
     private String parentYear;
 
     @JsonProperty("parentTitle")
-    @ExcelCell(header = "spex.impex.revival.parent.title.columnName", position = 4)
+    @ExcelCell(header = "spex.impex.revival.parent.title.columnName", position = 5)
     private String parentTitle;
 
 }

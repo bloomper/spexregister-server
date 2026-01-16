@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.tag;
+package nu.fgv.register.server.news;
 
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
@@ -32,11 +32,11 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class TagImportService extends AbstractImportService {
+public class NewsImportService extends AbstractImportService {
 
-    private final TagService service;
+    private final NewsService service;
 
-    public TagImportService(final List<ImportEngine> engines, final TagService service) {
+    public NewsImportService(final List<ImportEngine> engines, final NewsService service) {
         super(engines);
         this.service = service;
     }
@@ -45,7 +45,7 @@ public class TagImportService extends AbstractImportService {
     protected List<ImportSpec> getImportSpecs() {
         return List.of(
                 ImportSpec.builder()
-                        .clazz(TagImpexDto.class)
+                        .clazz(NewsImpexDto.class)
                         .existenceCheckers(Map.of(
                                 "id", v -> service.exists((Long) v)
                         ))
@@ -55,13 +55,8 @@ public class TagImportService extends AbstractImportService {
 
     @Override
     protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        final List<TagImpexDto> dtos = (List<TagImpexDto>) data.get(TagImpexDto.class);
-
-        if (dtos != null) {
-            dtos.forEach(dto -> {
-                // TODO
-            });
-        }
+        final List<NewsImpexDto> dtos = (List<NewsImpexDto>) data.get(NewsImpexDto.class);
+        // TODO
         return ImportResultDto.builder().success(true).build();
     }
 }

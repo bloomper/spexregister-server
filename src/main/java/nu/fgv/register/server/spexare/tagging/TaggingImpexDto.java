@@ -18,9 +18,11 @@ package nu.fgv.register.server.spexare.tagging;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import nu.fgv.register.server.util.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -33,17 +35,19 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "tagging.impex.sheetName")
-public class TaggingImpexDto {
+public class TaggingImpexDto extends AbstractImpexDto {
+
+    @NotEmpty(message = "{tagging.spexare.notEmpty}")
     @JsonProperty("spexareId")
-    @ExcelCell(header = "tagging.impex.spexareId.columnName", position = 0)
+    @ExcelCell(header = "tagging.impex.spexareId.columnName", position = 1)
     private Long spexareId;
 
     @JsonProperty("tagId")
-    @ExcelCell(header = "tagging.impex.tagId.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "tagging.impex.tagId.columnName", position = 2, updatable = true, mandatory = true)
     private Long tagId;
 
     @JsonProperty("tagName")
-    @ExcelCell(header = "tagging.impex.tagName.columnName", position = 2)
+    @ExcelCell(header = "tagging.impex.tagName.columnName", position = 3)
     private String tagName;
 
 }

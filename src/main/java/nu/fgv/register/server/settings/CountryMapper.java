@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.user.state;
+package nu.fgv.register.server.settings;
 
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
@@ -26,7 +26,8 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Anders Jacobsson
@@ -39,21 +40,23 @@ import java.util.Set;
         unmappedTargetPolicy = ReportingPolicy.ERROR,
         unmappedSourcePolicy = ReportingPolicy.ERROR
 )
-public interface StateMapper {
+public interface CountryMapper {
 
-    StateMapper STATE_MAPPER = Mappers.getMapper(StateMapper.class);
+    CountryMapper COUNTRY_MAPPER = Mappers.getMapper(CountryMapper.class);
 
+    @Mapping(target = "isoCode", source = "isoCode")
     @Mapping(target = "label", ignore = true)
-    StateDto toDto(State model);
+    CountryDto toDto(String isoCode);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "label", source = "label")
-    StateImpexDto toImpexDto(StateDto state);
+    CountryImpexDto toImpexDto(CountryDto country);
 
-    Set<StateDto> toDtos(Set<State> models);
+    List<CountryImpexDto> toImpexDtos(List<CountryDto> countries);
 
     @AfterMapping
-    default void setLabel(final State model, final @MappingTarget StateDto.StateDtoBuilder dto) {
-        dto.label(model.getLabels().get(LocaleContextHolder.getLocale().getLanguage()));
+    default void setLabel(final String isoCode, final @MappingTarget CountryDto.CountryDtoBuilder dto) {
+        final Locale l = new Locale.Builder().setRegion(isoCode).build();
+
+        dto.label(l.getDisplayCountry(LocaleContextHolder.getLocale()));
     }
+
 }

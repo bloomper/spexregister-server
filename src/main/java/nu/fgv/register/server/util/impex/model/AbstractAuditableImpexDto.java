@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.importing;
+package nu.fgv.register.server.util.impex.model;
 
-import java.util.List;
-import java.util.Locale;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface ImportEngine {
-    ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale);
+@Getter
+@Setter
+@NoArgsConstructor
+public abstract class AbstractAuditableImpexDto<T extends AbstractAuditableImpexDto<T>> extends AbstractAuditableDto<T> implements HasImpexAction {
 
-    boolean supports(final String contentType);
+    @JsonProperty("action")
+    @ExcelCell(header = "common.impex.action.columnName", position = 0)
+    private ImpexAction action;
+
 }

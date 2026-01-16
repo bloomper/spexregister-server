@@ -19,18 +19,26 @@ package nu.fgv.register.server.user.authority;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareSpecification;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.filter.FilterParser;
+import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
@@ -62,6 +70,13 @@ public class AuthorityService {
                 .findById(id)
                 .map(AUTHORITY_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Authority.class, id));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public boolean exists(final String id) {
+        return repository
+                .findById(id)
+                .isPresent();
     }
 
     @Cacheable("roleRepresentations")

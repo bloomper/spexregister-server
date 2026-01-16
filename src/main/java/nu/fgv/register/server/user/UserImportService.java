@@ -1,0 +1,97 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package nu.fgv.register.server.user;
+
+import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.SpexareService;
+import nu.fgv.register.server.user.authority.AuthorityImpexDto;
+import nu.fgv.register.server.user.authority.AuthorityService;
+import nu.fgv.register.server.user.state.StateService;
+import nu.fgv.register.server.util.impex.importing.AbstractImportService;
+import nu.fgv.register.server.util.impex.importing.ImportEngine;
+import nu.fgv.register.server.util.impex.importing.ImportSpec;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.springframework.util.StringUtils.hasText;
+
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
+@Slf4j
+@Service
+public class UserImportService extends AbstractImportService {
+
+    private final UserService service;
+    private final StateService stateService;
+    private final AuthorityService authorityService;
+    private final SpexareService spexareService;
+
+    public UserImportService(final List<ImportEngine> engines,
+                             final UserService service,
+                             final StateService stateService,
+                             final AuthorityService authorityService,
+                             final SpexareService spexareService) {
+        super(engines);
+        this.service = service;
+        this.stateService = stateService;
+        this.authorityService = authorityService;
+        this.spexareService = spexareService;
+    }
+
+    @Override
+    protected List<ImportSpec> getImportSpecs() {
+        return List.of(
+                ImportSpec.builder()
+                        .clazz(UserImpexDto.class)
+                        .existenceCheckers(Map.of(
+                                "id", v -> service.exists((Long) v),
+                                "stateId", v -> stateService.exists((String) v),
+                                "spexareId", v -> {
+                                    if (v != null && hasText(v.toString())) {
+                                        return spexareService.exists((Long) v);
+                                    } else {
+                                        return true;
+                                    }
+                                }
+                        ))
+                        .build(),
+                ImportSpec.builder()
+                        .clazz(AuthorityImpexDto.class)
+                        .existenceCheckers(Map.of(
+                                "id", v -> authorityService.exists((String) v)
+                        ))
+                        .name("user.impex.authority.sheetName")
+                        .build()
+        );
+    }
+
+    @Override
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
+        List<UserImpexDto> users = (List<UserImpexDto>) data.get(UserImpexDto.class);
+        List<AuthorityImpexDto> authorities = (List<AuthorityImpexDto>) data.get(AuthorityImpexDto.class);
+
+        // TODO
+
+        return ImportResultDto.builder().success(true).build();
+    }
+
+}

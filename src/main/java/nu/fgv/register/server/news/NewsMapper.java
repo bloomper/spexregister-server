@@ -46,6 +46,7 @@ public interface NewsMapper {
 
     NewsDto toDto(News model);
 
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     NewsImpexDto toImpexDto(News model);
 
     @Mapping(target = "id", ignore = true)

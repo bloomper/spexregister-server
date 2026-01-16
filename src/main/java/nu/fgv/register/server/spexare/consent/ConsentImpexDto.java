@@ -18,10 +18,11 @@ package nu.fgv.register.server.spexare.consent;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,25 +35,27 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "consent.impex.sheetName")
-public class ConsentImpexDto extends AbstractAuditableDto<ConsentImpexDto> {
+public class ConsentImpexDto extends AbstractAuditableImpexDto<ConsentImpexDto> {
+
+    @NotEmpty(message = "{consent.spexare.notEmpty}")
     @JsonProperty("spexareId")
-    @ExcelCell(header = "consent.impex.spexareId.columnName", position = 0)
+    @ExcelCell(header = "consent.impex.spexareId.columnName", position = 1)
     private Long spexareId;
 
     @JsonProperty("id")
-    @ExcelCell(header = "consent.impex.id.columnName", position = 1)
+    @ExcelCell(header = "consent.impex.id.columnName", position = 2, primaryKey = true)
     private Long id;
 
     @JsonProperty("value")
-    @ExcelCell(header = "consent.impex.value.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "consent.impex.value.columnName", position = 3, updatable = true, mandatory = true)
     private Boolean value;
 
     @JsonProperty("typeId")
-    @ExcelCell(header = "common.impex.type.id.columnName", position = 3, updatable = true, mandatory = true)
+    @ExcelCell(header = "common.impex.type.id.columnName", position = 4, updatable = true, mandatory = true)
     private String typeId;
 
     @JsonProperty("typeLabel")
-    @ExcelCell(header = "common.impex.type.label.columnName", position = 4)
+    @ExcelCell(header = "common.impex.type.label.columnName", position = 5)
     private String typeLabel;
 
 }

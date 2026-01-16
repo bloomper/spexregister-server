@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.importing;
+package nu.fgv.register.server.util.impex.model;
 
-import java.util.List;
-import java.util.Locale;
+import lombok.Getter;
+
+import java.util.Arrays;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface ImportEngine {
-    ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale);
+@Getter
+public enum ImpexAction {
+    CREATE("C"),
+    UPDATE("U"),
+    DELETE("D");
 
-    boolean supports(final String contentType);
+    private final String marker;
+
+    ImpexAction(final String marker) {
+        this.marker = marker;
+    }
+
+    public static ImpexAction fromMarker(final String marker) {
+        return Arrays.stream(values())
+                .filter(a -> a.getMarker().equalsIgnoreCase(marker))
+                .findFirst()
+                .orElse(UPDATE);
+    }
 }

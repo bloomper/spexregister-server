@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.impex.exporting.excel;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import nu.fgv.register.server.util.impex.util.excel.ImpexUtil;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -38,15 +39,15 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
-import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePosition;
-import static nu.fgv.register.server.util.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -65,8 +66,8 @@ public class ExcelWriter {
                                 @Nullable final String overrideSheetName,
                                 final Class<T> clazz,
                                 final boolean readOnly) {
-        final Iterator<T> iterator = data.iterator();
-        final List<Field> annotatedFields = getAnnotatedFields(clazz);
+        final List<T> dataList = StreamSupport.stream(data.spliterator(), false).toList();
+        final List<Field> annotatedFields = getAnnotatedFields(clazz, dataList, readOnly);
         final Sheet sheet = workbook.createSheet();
         final Map<String, CellStyle> styleCache = new HashMap<>();
 
@@ -77,7 +78,7 @@ public class ExcelWriter {
 
         setSheetName(messageSource, locale, workbook, sheet, clazz, overrideSheetName);
         addHeaderRow(messageSource, locale, sheet, annotatedFields);
-        writeRows(sheet, iterator, annotatedFields, styleCache);
+        writeRows(sheet, dataList.iterator(), annotatedFields, styleCache);
         finalizeSheet(sheet, annotatedFields, styleCache, readOnly);
     }
 
@@ -96,11 +97,11 @@ public class ExcelWriter {
 
     private void addHeaderRow(final MessageSource messageSource, final Locale locale, final Sheet sheet, final List<Field> annotatedFields) {
         final Row row = sheet.createRow(0);
-        final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
 
-        annotatedFields.forEach(field -> {
+        for (int position = 0; position < annotatedFields.size(); position++) {
+            final Field field = annotatedFields.get(position);
             final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-            final int position = determinePosition(field, maxPosition);
+
             String header = excelCell.header();
             header = hasText(header) ? messageSource.getMessage(header, null, header, locale) : parseCamelCase(field.getName());
 
@@ -108,20 +109,20 @@ public class ExcelWriter {
             cell.setCellValue(header);
             // Rough estimate for width: header length + padding
             sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
-        });
+        }
     }
 
     private void writeRows(final Sheet sheet, final Iterator<?> iterator, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache) {
-        final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
         int rowNum = 1;
 
         while (iterator.hasNext()) {
             final Row row = sheet.createRow(rowNum++);
             final Object item = iterator.next();
 
-            annotatedFields.forEach(field -> {
+            for (int position = 0; position < annotatedFields.size(); position++) {
+                final Field field = annotatedFields.get(position);
                 final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-                final int position = determinePosition(field, maxPosition);
+
                 try {
                     final Cell cell = row.createCell(position);
                     final Object value = field.get(item);
@@ -139,7 +140,7 @@ public class ExcelWriter {
                 } catch (final Exception e) {
                     log.warn("Could not write row {} cell {}: {}", row.getRowNum() + 1, position, e.getMessage());
                 }
-            });
+            }
         }
     }
 
@@ -186,7 +187,7 @@ public class ExcelWriter {
 
     private void finalizeSheet(final Sheet sheet, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache, final boolean readOnly) {
         final Row headerRow = sheet.getRow(0);
-        final int lastColumn = headerRow != null ? headerRow.getLastCellNum() : 0;
+        final int lastColumn = annotatedFields.size();
 
         if (headerRow != null) {
             for (int i = 0; i < lastColumn; i++) {
@@ -197,16 +198,15 @@ public class ExcelWriter {
         if (!readOnly) {
             final int lastRowNum = sheet.getLastRowNum();
             final int bufferSize = 50;
-            final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
 
             for (int i = 1; i <= bufferSize; i++) {
                 final Row row = sheet.createRow(lastRowNum + i);
-                annotatedFields.forEach(field -> {
+                for (int position = 0; position < annotatedFields.size(); position++) {
+                    final Field field = annotatedFields.get(position);
                     final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-                    final int position = determinePosition(field, maxPosition);
                     final Cell cell = row.createCell(position);
                     applyCellStyling(cell, excelCell, styleCache, true);
-                });
+                }
             }
         } else if (sheet instanceof final SXSSFSheet sxssfSheet) {
             final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
@@ -222,11 +222,31 @@ public class ExcelWriter {
         }
     }
 
-    private List<Field> getAnnotatedFields(final Class<?> clazz) {
-        return Arrays.stream(FieldUtils.getAllFields(clazz))
+    private <T> List<Field> getAnnotatedFields(final Class<T> clazz, final List<T> data, final boolean readOnly) {
+        final List<Field> fields = Arrays.stream(FieldUtils.getAllFields(clazz))
+                .filter(field -> field.isAnnotationPresent(ExcelCell.class))
+                .filter(field -> !(readOnly && field.getName().equals("action")))
+                .peek(field -> field.setAccessible(true))
                 .filter(field -> {
-                    field.setAccessible(true); // NOSONAR
-                    return field.isAnnotationPresent(ExcelCell.class);
-                }).toList();
+                    final ExcelCell annotation = field.getAnnotation(ExcelCell.class);
+
+                    if (annotation.ignoreIfNull()) {
+                        return data.stream().anyMatch(item -> {
+                            try {
+                                return field.get(item) != null;
+                            } catch (final IllegalAccessException e) {
+                                return false;
+                            }
+                        });
+                    }
+                    return true;
+                })
+                .toList();
+
+        final int maxPosition = ImpexUtil.determinePositionBeforeAuditableFields(fields);
+
+        return fields.stream()
+                .sorted(Comparator.comparingInt(field -> ImpexUtil.determinePosition(field, maxPosition, readOnly)))
+                .toList();
     }
 }

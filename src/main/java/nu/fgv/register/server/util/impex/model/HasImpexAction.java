@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.importing;
-
-import java.util.List;
-import java.util.Locale;
+package nu.fgv.register.server.util.impex.model;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface ImportEngine {
-    ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale);
-
-    boolean supports(final String contentType);
+public interface HasImpexAction {
+    ImpexAction getAction();
+    void setAction(ImpexAction action);
 }

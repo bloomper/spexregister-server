@@ -129,6 +129,13 @@ public class AddressService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public AddressDto create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository

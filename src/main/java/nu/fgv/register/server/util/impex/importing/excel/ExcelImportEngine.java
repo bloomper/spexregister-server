@@ -16,23 +16,29 @@
 
 package nu.fgv.register.server.util.impex.importing.excel;
 
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.error.ImportException;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
+import nu.fgv.register.server.util.impex.importing.ImportEngineResponse;
+import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
+import java.util.Map;
+
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
@@ -44,30 +50,54 @@ public class ExcelImportEngine implements ImportEngine {
 
     private final MessageSource messageSource;
     private final ExcelReader excelReader;
-    private final ExcelValidator validator = new ExcelValidator();
+    private final Validator beanValidator;
 
     @Override
-    public <T> ImportResultDto validate(final byte[] file, final Class<T> clazz, final Locale locale, final Function<Long, Boolean> existenceChecker) {
-        try (final Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(file))) {
-            return validator.validateSheet(messageSource, locale, workbook, clazz, existenceChecker);
-        } catch (final Exception e) {
-            return ImportResultDto.builder().success(false).messages(List.of(e.getMessage())).build();
-        }
-    }
+    public ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale) {
+        final ExcelValidator validator = new ExcelValidator(excelReader);
 
-    @Override
-    public <T> List<T> parse(final byte[] file, final Class<T> clazz, final Locale locale) {
         try (final Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(file))) {
-            final String sheetName = getSheetName(clazz, locale);
-            final Sheet sheet = workbook.getSheet(sheetName);
+            final List<String> allMessages = new ArrayList<>();
+            final Map<String, String> sheetNameMap = new HashMap<>();
 
-            if (sheet == null) {
-                return Collections.emptyList();
+            for (final ImportSpec spec : specs) {
+                final String sheetName = getSheetName(spec.getClazz(), locale, spec.getName());
+                sheetNameMap.put(spec.getClazz().getName(), sheetName);
+
+                final ImportResultDto result = validator.validateSheet(messageSource, locale, workbook, sheetName, spec, beanValidator);
+
+                if (!result.isSuccess()) {
+                    allMessages.addAll(result.getMessages());
+                }
             }
 
-            return excelReader.read(sheet, clazz);
+            final ImportResultDto validationResult = ImportResultDto.builder()
+                    .success(allMessages.isEmpty())
+                    .messages(allMessages)
+                    .build();
+
+            Map<Class<?>, List<?>> data = null;
+
+            if (validationResult.isSuccess()) {
+                data = new HashMap<>();
+                for (final ImportSpec spec : specs) {
+                    final Sheet sheet = workbook.getSheet(sheetNameMap.get(spec.getClazz().getName()));
+
+                    if (sheet != null) {
+                        data.put(spec.getClazz(), excelReader.read(sheet, spec.getClazz()));
+                    }
+                }
+            }
+
+            return new ImportEngineResponse(validationResult, data);
         } catch (final Exception e) {
-            throw new ImportException("Error parsing Excel file: " + e.getMessage());
+            return new ImportEngineResponse(
+                    ImportResultDto.builder()
+                            .success(false)
+                            .messages(List.of(e.getMessage()))
+                            .build(),
+                    null
+            );
         }
     }
 
@@ -77,7 +107,10 @@ public class ExcelImportEngine implements ImportEngine {
                 Constants.MediaTypes.APPLICATION_XLS_VALUE.equals(contentType);
     }
 
-    private String getSheetName(final Class<?> clazz, final Locale locale) {
+    private String getSheetName(final Class<?> clazz, final Locale locale, @Nullable final String override) {
+        if (hasText(override)) {
+            return messageSource.getMessage(override, null, override, locale);
+        }
         if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             final String key = clazz.getAnnotation(ExcelSheet.class).name();
             return messageSource.getMessage(key, null, key, locale);

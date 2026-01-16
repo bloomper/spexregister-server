@@ -107,6 +107,13 @@ public class ActivityService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public boolean exists(final Long id) {
+        return repository
+                .findById(id)
+                .isPresent();
+    }
+
+    @RequiresAdminOrEditorOrUser
     public ActivityDto create(final Long spexareId) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository

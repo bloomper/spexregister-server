@@ -18,10 +18,13 @@ package nu.fgv.register.server.task.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
+import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 
@@ -34,17 +37,21 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ExcelSheet(name = "taskCategory.impex.sheetName")
-public class TaskCategoryImpexDto extends AbstractAuditableDto<TaskCategoryImpexDto> {
+public class TaskCategoryImpexDto extends AbstractAuditableImpexDto<TaskCategoryImpexDto> {
+
     @JsonProperty("id")
-    @ExcelCell(header = "taskCategory.impex.id.columnName", position = 0)
+    @ExcelCell(header = "taskCategory.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @NotBlank(message = "{taskCategory.name.notEmpty}")
+    @Size(max = 255, message = "{taskCategory.name.maxSize}")
+    @Column(name = "name", nullable = false)
     @JsonProperty("name")
-    @ExcelCell(header = "taskCategory.impex.name.columnName", position = 1, updatable = true, mandatory = true)
+    @ExcelCell(header = "taskCategory.impex.name.columnName", position = 2, updatable = true, mandatory = true)
     private String name;
 
     @JsonProperty("actorPresent")
-    @ExcelCell(header = "taskCategory.impex.actorPresent.columnName", position = 2, updatable = true, mandatory = true)
+    @ExcelCell(header = "taskCategory.impex.actorPresent.columnName", position = 3, updatable = true, mandatory = true)
     private Boolean actorPresent;
 
 }

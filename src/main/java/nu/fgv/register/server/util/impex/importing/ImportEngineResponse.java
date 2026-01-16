@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.model.excel;
+package nu.fgv.register.server.util.impex.importing;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Documented
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelImportCell {
-
-    int position();
-
-    boolean primaryKey() default false;
-
+public record ImportEngineResponse(
+        ImportResultDto validationResult,
+        @Nullable Map<Class<?>, List<?>> data
+) {
 }
