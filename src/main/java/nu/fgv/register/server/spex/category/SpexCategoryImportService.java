@@ -16,41 +16,53 @@
 
 package nu.fgv.register.server.spex.category;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
-import nu.fgv.register.server.util.impex.importing.ExcelValidator;
+import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
-public class SpexCategoryImportService extends AbstractImportService {
+public class SpexCategoryImportService extends AbstractImportService<SpexCategoryImpexDto> {
 
     private final SpexCategoryService service;
-    private final MessageSource messageSource;
-    private final ExcelValidator validator = new ExcelValidator();
 
-    @Override
-    protected ImportResultDto doImport(final Workbook workbook, final Locale locale) {
-        return null;
+    public SpexCategoryImportService(final List<ImportEngine> engines, final SpexCategoryService service) {
+        super(engines);
+        this.service = service;
     }
 
     @Override
-    protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        return validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, SpexCategoryCreateDto.class, SpexCategoryUpdateDto.class, id -> {
-            service.findById(id);
-            return true;
+    protected ImportResultDto processImport(final List<SpexCategoryImpexDto> dtos, final Locale locale) {
+        dtos.forEach(dto -> {
+            // TODO
         });
+        return ImportResultDto.builder().success(true).build();
     }
 
+    @Override
+    protected Class<SpexCategoryImpexDto> getImpexDtoClass() {
+        return SpexCategoryImpexDto.class;
+    }
+
+    @Override
+    protected Function<Long, Boolean> getExistenceChecker() {
+        return id -> {
+            try {
+                service.findById(id);
+                return true;
+            } catch (final Exception e) {
+                return false;
+            }
+        };
+    }
 }

@@ -16,57 +16,54 @@
 
 package nu.fgv.register.server.task;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spex.SpexCreateDto;
-import nu.fgv.register.server.spex.category.SpexCategoryDto;
-import nu.fgv.register.server.task.category.TaskCategoryService;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
-import nu.fgv.register.server.util.impex.importing.ExcelValidator;
+import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
-public class TaskImportService extends AbstractImportService {
+public class TaskImportService extends AbstractImportService<TaskImpexDto> {
 
     private final TaskService service;
-    private final TaskCategoryService categoryService;
-    private final MessageSource messageSource;
-    private final ExcelValidator validator = new ExcelValidator();
 
-    @Override
-    protected ImportResultDto doImport(final Workbook workbook, final Locale locale) {
-        return null;
+    public TaskImportService(final List<ImportEngine> engines, final TaskService service) {
+        super(engines);
+        this.service = service;
     }
 
     @Override
-    protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, TaskDto.class, SpexCreateDto.class, TaskUpdateDto.class, id -> {
-            service.findById(id);
-            return true;
+    protected ImportResultDto processImport(final List<TaskImpexDto> dtos, final Locale locale) {
+        dtos.forEach(dto -> {
+            // TODO
         });
-        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> {
-            categoryService.findById(id);
-            return true;
-        });
-        final List<String> messages = Stream.concat(
-                        validationResult.getMessages().stream(),
-                        categoryValidationResult.getMessages().stream())
-                .toList();
+        return ImportResultDto.builder().success(true).build();
+    }
 
-        return ImportResultDto.builder().success(messages.isEmpty()).messages(messages).build();
+    @Override
+    protected Class<TaskImpexDto> getImpexDtoClass() {
+        return TaskImpexDto.class;
+    }
+
+    @Override
+    protected Function<Long, Boolean> getExistenceChecker() {
+        return id -> {
+            try {
+                service.findById(id);
+                return true;
+            } catch (final Exception e) {
+                return false;
+            }
+        };
     }
 
 }

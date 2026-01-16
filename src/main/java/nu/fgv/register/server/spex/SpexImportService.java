@@ -16,62 +16,54 @@
 
 package nu.fgv.register.server.spex;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spex.category.SpexCategoryDto;
-import nu.fgv.register.server.spex.category.SpexCategoryService;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
-import nu.fgv.register.server.util.impex.importing.ExcelValidator;
+import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
-public class SpexImportService extends AbstractImportService {
+public class SpexImportService extends AbstractImportService<SpexImpexDto> {
 
     private final SpexService service;
-    private final SpexCategoryService categoryService;
-    private final MessageSource messageSource;
-    private final ExcelValidator validator = new ExcelValidator();
 
-    @Override
-    protected ImportResultDto doImport(final Workbook workbook, final Locale locale) {
-        return null;
+    public SpexImportService(final List<ImportEngine> engines, final SpexService service) {
+        super(engines);
+        this.service = service;
     }
 
     @Override
-    protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        final ImportResultDto validationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> {
-            service.findById(id);
-            return true;
+    protected ImportResultDto processImport(final List<SpexImpexDto> dtos, final Locale locale) {
+        dtos.forEach(dto -> {
+            // TODO
         });
-        final ImportResultDto revivalValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexDto.class, SpexCreateDto.class, SpexUpdateDto.class, id -> {
-            service.findById(id);
-            return true;
-        }, messageSource.getMessage("spex.impex.revivals.sheetName", null, locale));
-        final ImportResultDto categoryValidationResult = validator.validateSheet(messageSource, locale, workbook, SpexCategoryDto.class, id -> {
-            categoryService.findById(id);
-            return true;
-        });
-        final List<String> messages = Stream.concat(
-                        Stream.concat(
-                                validationResult.getMessages().stream(),
-                                revivalValidationResult.getMessages().stream()),
-                        categoryValidationResult.getMessages().stream())
-                .toList();
+        return ImportResultDto.builder().success(true).build();
+    }
 
-        return ImportResultDto.builder().success(messages.isEmpty()).messages(messages).build();
+    @Override
+    protected Class<SpexImpexDto> getImpexDtoClass() {
+        return SpexImpexDto.class;
+    }
+
+    @Override
+    protected Function<Long, Boolean> getExistenceChecker() {
+        return id -> {
+            try {
+                service.findById(id);
+                return true;
+            } catch (final Exception e) {
+                return false;
+            }
+        };
     }
 
 }

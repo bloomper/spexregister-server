@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.importing;
+package nu.fgv.register.server.util.impex.importing.excel;
 
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

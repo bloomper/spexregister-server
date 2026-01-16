@@ -22,7 +22,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 import nu.fgv.register.server.util.validation.Luhn;
 
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
@@ -35,7 +34,6 @@ import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATT
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexareUpdateDto(
         @JsonProperty("id")
-        @ExcelImportCell(position = 0, primaryKey = true)
         Long id,
 
         @NotEmpty(message = "{spexare.firstName.notEmpty}")

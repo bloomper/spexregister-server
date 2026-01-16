@@ -22,7 +22,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 
 /**
  * @author Anders Jacobsson
@@ -35,13 +34,11 @@ public record SpexCreateDto(
         @Size(max = 4, message = "{spex.year.size}")
         @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
         @JsonProperty("year")
-        @ExcelImportCell(position = 1)
         String year,
 
         @NotBlank(message = "{spex.title.notEmpty}")
         @Size(max = 255, message = "{spex.title.size}")
         @JsonProperty("title")
-        @ExcelImportCell(position = 2)
         String title
 ) {
 }

@@ -22,7 +22,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 
 /**
  * @author Anders Jacobsson
@@ -32,20 +31,17 @@ import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexCategoryUpdateDto(
         @JsonProperty("id")
-        @ExcelImportCell(position = 0, primaryKey = true)
         Long id,
 
         @NotBlank(message = "{spexCategory.name.notEmpty}")
         @Size(max = 255, message = "{spexCategory.name.maxSize}")
         @JsonProperty("name")
-        @ExcelImportCell(position = 1)
         String name,
 
         @NotBlank(message = "{spexCategory.firstYear.notEmpty}")
         @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
         @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.regexp}")
         @JsonProperty("firstYear")
-        @ExcelImportCell(position = 2)
         String firstYear
 ) {
 }

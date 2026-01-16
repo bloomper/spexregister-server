@@ -22,7 +22,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
-import nu.fgv.register.server.util.impex.model.excel.ExcelImportCell;
 
 /**
  * @author Anders Jacobsson
@@ -36,7 +35,6 @@ public record TaskCreateDto(
         @NotBlank(message = "{task.name.notEmpty}")
         @Size(max = 255, message = "{task.name.size}")
         @JsonProperty("name")
-        @ExcelImportCell(position = 1)
         String name
 ) {
 }

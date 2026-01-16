@@ -27,46 +27,47 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-public abstract class AbstractImportService {
+public abstract class AbstractImportService<T> {
+
+    protected final List<ImportEngine> engines;
+
+    protected AbstractImportService(final List<ImportEngine> engines) {
+        this.engines = engines;
+    }
 
     public ImportResultDto doImport(final byte[] file, @Nullable final String type, final Locale locale) {
-        try (final var workbook = convertByteArrayToWorkbook(file, type)) {
-            final var validationResult = doValidate(workbook, locale);
+        final ImportEngine engine = engines.stream()
+                .filter(e -> e.supports(type))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported import type " + type));
 
-            return validationResult.isSuccess() ? doImport(workbook, locale) : validationResult;
-        } catch (final IOException e) {
-            log.error("Unexpected error while importing", e);
-            throw new ImportException(e.getMessage());
-        }
-    }
-
-    protected abstract ImportResultDto doImport(final Workbook workbook, final Locale locale);
-
-    protected abstract ImportResultDto doValidate(final Workbook workbook, final Locale locale);
-
-    private Workbook convertByteArrayToWorkbook(final byte[] file, @Nullable final String type) {
         try {
-            final var inputStream = new ByteArrayInputStream(file);
-            switch (type) {
-                case Constants.MediaTypes.APPLICATION_XLSX_VALUE -> {
-                    return new XSSFWorkbook(inputStream);
-                }
-                case Constants.MediaTypes.APPLICATION_XLS_VALUE -> {
-                    return new HSSFWorkbook(inputStream);
-                }
-                case null, default -> throw new IllegalArgumentException("Unrecognized type");
+            final var validationResult = engine.validate(file, getImpexDtoClass(), locale, getExistenceChecker());
+
+            if (validationResult.isSuccess()) {
+                final List<T> dtos = engine.parse(file, getImpexDtoClass(), locale);
+                return processImport(dtos, locale);
             }
-        } catch (final IOException e) {
+            return validationResult;
+        } catch (final Exception e) {
             log.error("Unexpected error while importing", e);
             throw new ImportException(e.getMessage());
         }
     }
+
+    protected abstract ImportResultDto processImport(final List<T> dtos, final Locale locale);
+
+    protected abstract Class<T> getImpexDtoClass();
+
+    protected abstract Function<Long, Boolean> getExistenceChecker();
 
 }

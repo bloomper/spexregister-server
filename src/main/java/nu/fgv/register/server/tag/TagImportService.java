@@ -16,41 +16,54 @@
 
 package nu.fgv.register.server.tag;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.util.impex.importing.AbstractImportService;
-import nu.fgv.register.server.util.impex.importing.ExcelValidator;
+import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
-public class TagImportService extends AbstractImportService {
+public class TagImportService extends AbstractImportService<TagImpexDto> {
 
     private final TagService service;
-    private final MessageSource messageSource;
-    private final ExcelValidator validator = new ExcelValidator();
 
-    @Override
-    protected ImportResultDto doImport(final Workbook workbook, final Locale locale) {
-        return null;
+    public TagImportService(final List<ImportEngine> engines, final TagService service) {
+        super(engines);
+        this.service = service;
     }
 
     @Override
-    protected ImportResultDto doValidate(final Workbook workbook, final Locale locale) {
-        return validator.validateSheet(messageSource, locale, workbook, TagDto.class, TagCreateDto.class, TagUpdateDto.class, id -> {
-            service.findById(id);
-            return true;
+    protected ImportResultDto processImport(final List<TagImpexDto> dtos, final Locale locale) {
+        dtos.forEach(dto -> {
+            // TODO
         });
+        return ImportResultDto.builder().success(true).build();
+    }
+
+    @Override
+    protected Class<TagImpexDto> getImpexDtoClass() {
+        return TagImpexDto.class;
+    }
+
+    @Override
+    protected Function<Long, Boolean> getExistenceChecker() {
+        return id -> {
+            try {
+                service.findById(id);
+                return true;
+            } catch (final Exception e) {
+                return false;
+            }
+        };
     }
 
 }
