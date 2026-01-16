@@ -31,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -103,9 +104,22 @@ public class NewsService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Iterable<News> streamByIds(final List<Long> ids, final Sort sort) {
-        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
-                .iterator();
+    public Iterable<News> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+        return () -> {
+            final Specification<News> spec;
+
+            if (!ids.isEmpty()) {
+                spec = hasIds(ids);
+            } else if (hasText(filter)) {
+                spec = SpecificationsBuilder.<News>builder()
+                        .build(FilterParser.parse(filter), NewsSpecification::new);
+            } else {
+                spec = null;
+            }
+
+            return repository.streamAll(spec, sort, BasePermission.READ)
+                    .iterator();
+        };
     }
 
     @RequiresAdminOrEditor

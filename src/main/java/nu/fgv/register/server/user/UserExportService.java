@@ -48,8 +48,8 @@ public class UserExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
-        final Iterable<User> users = service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "externalId"));
+    protected List<ReportHolder<?>> getReports(final List<Long> ids, final String filter) {
+        final Iterable<User> users = service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "externalId"));
 
         return List.of(
                 ReportHolder.of(

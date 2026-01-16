@@ -96,8 +96,8 @@ public class SpexareExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
-        final Iterable<Spexare> spexareList = service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "firstName"));
+    protected List<ReportHolder<?>> getReports(final List<Long> ids, final String filter) {
+        final Iterable<Spexare> spexareList = service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "firstName"));
         final Map<String, CountryDto> countries = countryService.findAll().stream()
                 .collect(Collectors.toMap(CountryDto::getIsoCode, c -> c));
 
@@ -175,22 +175,22 @@ public class SpexareExportService extends AbstractExportService {
                         ActivityImpexDto.class
                 ),
                 ReportHolder.of(
-                        toImpexDto(spexService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
+                        toImpexDto(spexService.streamByIds(Collections.emptyList(), "", Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
                         SpexImpexDto.class,
                         true
                 ),
                 ReportHolder.of(
-                        toImpexDto(spexService.streamRevivalsByParentIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
+                        toImpexDto(spexService.streamRevivalsByParentIds(Collections.emptyList(), "", Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
                         SpexRevivalImpexDto.class,
                         true
                 ),
                 ReportHolder.of(
-                        toImpexDto(taskService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), TASK_MAPPER::toImpexDto),
+                        toImpexDto(taskService.streamByIds(Collections.emptyList(), "", Sort.by(Sort.Direction.ASC, "name")), TASK_MAPPER::toImpexDto),
                         TaskImpexDto.class,
                         true
                 ),
                 ReportHolder.of(
-                        toImpexDto(tagService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), TAG_MAPPER::toImpexDto),
+                        toImpexDto(tagService.streamByIds(Collections.emptyList(), "", Sort.by(Sort.Direction.ASC, "name")), TAG_MAPPER::toImpexDto),
                         TagImpexDto.class,
                         true
                 ),

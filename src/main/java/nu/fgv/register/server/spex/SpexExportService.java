@@ -49,18 +49,18 @@ public class SpexExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids, final String filter) {
         return List.of(
                 ReportHolder.of(
-                        toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
+                        toImpexDto(service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toImpexDto),
                         SpexImpexDto.class
                 ),
                 ReportHolder.of(
-                        toImpexDto(service.streamRevivalsByParentIds(ids, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
+                        toImpexDto(service.streamRevivalsByParentIds(ids, filter, Sort.by(Sort.Direction.ASC, "year")), SPEX_MAPPER::toRevivalImpexDto),
                         SpexRevivalImpexDto.class
                 ),
                 ReportHolder.of(
-                        toImpexDto(categoryService.streamByIds(Collections.emptyList(), Sort.by(Sort.Direction.ASC, "name")), SPEX_CATEGORY_MAPPER::toImpexDto),
+                        toImpexDto(categoryService.streamByIds(Collections.emptyList(), "", Sort.by(Sort.Direction.ASC, "name")), SPEX_CATEGORY_MAPPER::toImpexDto),
                         SpexCategoryImpexDto.class,
                         true
                 )

@@ -185,7 +185,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_get_export() throws Exception {
         final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
-        when(exportService.doExport(anyList(), any(String.class), any(Locale.class))).thenReturn(export);
+        when(exportService.doExport(anyList(), any(String.class), any(String.class), any(Locale.class))).thenReturn(export);
 
         mockMvc
                 .perform(
@@ -204,7 +204,8 @@ class SpexApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
-                                        parameterWithName("ids").description("The ids of the spex to export").optional()
+                                        parameterWithName("ids").description("The ids of the spex to export").optional(),
+                                        parameterWithName("filter").description("The filter to use for the spex to export").optional()
                                 ),
                                 secureRequestHeaders.and(
                                         headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
@@ -214,7 +215,7 @@ class SpexApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody(),
-                                security(getRolesFromMethod(SpexApi.class, "retrieve", List.class, String.class, Locale.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieve", List.class, String.class, String.class, Locale.class))
                         )
                 );
     }

@@ -36,18 +36,18 @@ public abstract class AbstractExportService {
     }
 
     @Transactional(readOnly = true)
-    public Pair<String, byte[]> doExport(final List<Long> ids, final String type, final Locale locale) {
+    public Pair<String, byte[]> doExport(final List<Long> ids, final String filter, final String contentType, final Locale locale) {
         final ExportEngine engine = engines.stream()
-                .filter(e -> e.supports(type))
+                .filter(e -> e.supports(contentType))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported export type " + type));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported export type " + contentType));
 
-        final List<ReportHolder<?>> reports = getReports(ids);
+        final List<ReportHolder<?>> reports = getReports(ids, filter);
 
-        return Pair.of(engine.getExtension(type), engine.export(reports, locale, type));
+        return Pair.of(engine.getExtension(contentType), engine.export(reports, locale, contentType));
     }
 
-    protected abstract List<ReportHolder<?>> getReports(List<Long> ids);
+    protected abstract List<ReportHolder<?>> getReports(final List<Long> ids, final String filter);
 
     protected <T, R> Iterable<R> toImpexDto(final Iterable<T> entities, final Function<T, R> mapper) {
         return () -> {

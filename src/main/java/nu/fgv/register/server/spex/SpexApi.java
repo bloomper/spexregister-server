@@ -108,8 +108,11 @@ public class SpexApi {
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids, @RequestHeader(HttpHeaders.ACCEPT) final String contentType, final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), contentType, locale);
+    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+                                             @RequestParam(required = false, defaultValue = "") final String filter,
+                                             @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
+                                             final Locale locale) {
+        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, contentType, locale);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(contentType))

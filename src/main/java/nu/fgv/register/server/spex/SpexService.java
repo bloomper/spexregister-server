@@ -40,6 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -129,15 +130,41 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spex> streamByIds(final List<Long> ids, final Sort sort) {
-        return () -> repository.streamAll(ids.isEmpty() ? isNotRevival() : hasIds(ids), sort, BasePermission.READ)
-                .iterator();
+    public Iterable<Spex> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+        return () -> {
+            final Specification<Spex> spec;
+
+            if (!ids.isEmpty()) {
+                spec = hasIds(ids);
+            } else if (hasText(filter)) {
+                spec = SpecificationsBuilder.<Spex>builder()
+                        .build(FilterParser.parse(filter), SpexSpecification::new).and(isNotRevival());
+            } else {
+                spec = isNotRevival();
+            }
+
+            return repository.streamAll(spec, sort, BasePermission.READ)
+                    .iterator();
+        };
     }
 
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spex> streamRevivalsByParentIds(final List<Long> parentIds, final Sort sort) {
-        return () -> repository.streamAll(parentIds.isEmpty() ? isRevival() : hasParentIds(parentIds), sort, BasePermission.READ)
-                .iterator();
+    public Iterable<Spex> streamRevivalsByParentIds(final List<Long> parentIds, final String filter, final Sort sort) {
+        return () -> {
+            final Specification<Spex> spec;
+
+            if (!parentIds.isEmpty()) {
+                spec = hasIds(parentIds);
+            } else if (hasText(filter)) {
+                spec = SpecificationsBuilder.<Spex>builder()
+                        .build(FilterParser.parse(filter), SpexSpecification::new).and(isRevival());
+            } else {
+                spec = isRevival();
+            }
+
+            return repository.streamAll(spec, sort, BasePermission.READ)
+                    .iterator();
+        };
     }
 
     @RequiresAdmin

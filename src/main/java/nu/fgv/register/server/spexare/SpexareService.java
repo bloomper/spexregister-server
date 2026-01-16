@@ -48,6 +48,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -142,9 +143,22 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spexare> streamByIds(final List<Long> ids, final Sort sort) {
-        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
-                .iterator();
+    public Iterable<Spexare> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+        return () -> {
+            final Specification<Spexare> spec;
+
+            if (!ids.isEmpty()) {
+                spec = hasIds(ids);
+            } else if (hasText(filter)) {
+                spec = SpecificationsBuilder.<Spexare>builder()
+                        .build(FilterParser.parse(filter), SpexareSpecification::new);
+            } else {
+                spec = null;
+            }
+
+            return repository.streamAll(spec, sort, BasePermission.READ)
+                    .iterator();
+        };
     }
 
     @RequiresAdmin

@@ -43,10 +43,10 @@ public class NewsExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ReportHolder<?>> getReports(final List<Long> ids) {
+    protected List<ReportHolder<?>> getReports(final List<Long> ids, final String filter) {
         return List.of(
                 ReportHolder.of(
-                        toImpexDto(service.streamByIds(ids, Sort.by(Sort.Direction.ASC, "visibleFrom")), NEWS_MAPPER::toImpexDto),
+                        toImpexDto(service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "visibleFrom")), NEWS_MAPPER::toImpexDto),
                         NewsImpexDto.class
                 )
         );

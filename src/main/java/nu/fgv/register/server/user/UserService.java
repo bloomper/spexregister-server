@@ -55,6 +55,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
@@ -171,9 +172,22 @@ public class UserService {
     }
 
     @RequiresAdmin
-    public Iterable<User> streamByIds(final List<Long> ids, final Sort sort) {
-        return () -> repository.streamAll(ids.isEmpty() ? null : hasIds(ids), sort, BasePermission.READ)
-                .iterator();
+    public Iterable<User> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+        return () -> {
+            final Specification<User> spec;
+
+            if (!ids.isEmpty()) {
+                spec = hasIds(ids);
+            } else if (hasText(filter)) {
+                spec = SpecificationsBuilder.<User>builder()
+                        .build(FilterParser.parse(filter), UserSpecification::new);
+            } else {
+                spec = null;
+            }
+
+            return repository.streamAll(spec, sort, BasePermission.READ)
+                    .iterator();
+        };
     }
 
     @RequiresAdmin
