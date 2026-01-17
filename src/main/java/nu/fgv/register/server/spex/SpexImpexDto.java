@@ -28,6 +28,7 @@ import lombok.Setter;
 import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -58,14 +59,18 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
     @ExcelCell(header = "spex.impex.title.columnName", position = 3, updatable = true, mandatory = true)
     private String title;
 
+    @Nullable
     @JsonProperty("posterUrl")
     @ExcelCell(header = "spex.impex.posterUrl.columnName", position = 4, updatable = true)
     private String posterUrl;
 
     @NotBlank(message = "{spex.category.notEmpty}")
+    @JsonProperty("categoryId")
     @ExcelCell(header = "spex.impex.category.id.columnName", position = 5, updatable = true)
     private Long categoryId;
 
+    @Nullable
+    @JsonProperty("categoryName")
     @ExcelCell(header = "spex.impex.category.name.columnName", position = 6)
     private String categoryName;
 

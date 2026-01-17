@@ -26,6 +26,7 @@ import lombok.Setter;
 import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -49,9 +50,12 @@ public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
     private String name;
 
     @NotBlank(message = "{task.category.notEmpty}")
+    @JsonProperty("categoryId")
     @ExcelCell(header = "task.impex.category.id.columnName", position = 3, updatable = true)
     private Long categoryId;
 
+    @Nullable
+    @JsonProperty("categoryName")
     @ExcelCell(header = "task.impex.category.name.columnName", position = 4)
     private String categoryName;
 

@@ -21,10 +21,14 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 
 /**
  * @author Anders Jacobsson
@@ -36,8 +40,10 @@ public class TagImportService extends AbstractImportService {
 
     private final TagService service;
 
-    public TagImportService(final List<ImportEngine> engines, final TagService service) {
-        super(engines);
+    public TagImportService(final List<ImportEngine> engines,
+                            final TagService service,
+                            final MessageSource messageSource) {
+        super(engines, messageSource);
         this.service = service;
     }
 
@@ -53,15 +59,20 @@ public class TagImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        final List<TagImpexDto> dtos = (List<TagImpexDto>) data.get(TagImpexDto.class);
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
 
-        if (dtos != null) {
-            dtos.forEach(dto -> {
-                // TODO
-            });
-        }
-        return ImportResultDto.builder().success(true).build();
+        handleImport(
+                (List<TagImpexDto>) data.get(TagImpexDto.class),
+                summary,
+                "tag.impex.entityName",
+                dto -> service.create(TAG_MAPPER.toCreateDto(dto)),
+                dto -> service.partialUpdate(TAG_MAPPER.toUpdateDto(dto)),
+                dto -> service.deleteById(dto.getId())
+        );
+
+        return summary.toResult();
     }
 }

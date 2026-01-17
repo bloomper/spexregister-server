@@ -129,8 +129,20 @@ public abstract class AbstractApiTest {
             fieldWithPath("lastModifiedBy").description("Who last modified the entity"),
             fieldWithPath("lastModifiedAt").description("When was the entity last modified")
     );
+
     protected static final ResponseFieldsSnippet auditResponseFields = responseFields(
             auditResponseFieldsDescriptors
+    );
+
+    protected static final List<FieldDescriptor> importResponseFieldsDescriptors = List.of(
+            fieldWithPath("data").description("Any data returned by the import"),
+            fieldWithPath("errors").description("Any errors that occurred during the import"),
+            fieldWithPath("messages").description("Any messages that occurred during the import"),
+            fieldWithPath("success").description("The import result")
+    );
+
+    protected static final ResponseFieldsSnippet importResponseFields = responseFields(
+            importResponseFieldsDescriptors
     );
 
     protected static final List<FieldDescriptor> typeResponseFieldDescriptors = List.of(

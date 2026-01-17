@@ -21,8 +21,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
@@ -37,7 +39,12 @@ public class ImportResultDto {
     @JsonProperty("success")
     private boolean success;
 
+    @JsonProperty("errors")
+    private List<String> errors;
+
     @JsonProperty("messages")
     private List<String> messages;
 
+    @JsonProperty("data")
+    @Nullable private Map<String, Object> data;
 }

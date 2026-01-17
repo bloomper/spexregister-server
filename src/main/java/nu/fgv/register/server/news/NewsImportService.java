@@ -21,10 +21,14 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 
 /**
  * @author Anders Jacobsson
@@ -36,8 +40,10 @@ public class NewsImportService extends AbstractImportService {
 
     private final NewsService service;
 
-    public NewsImportService(final List<ImportEngine> engines, final NewsService service) {
-        super(engines);
+    public NewsImportService(final List<ImportEngine> engines,
+                             final NewsService service,
+                             final MessageSource messageSource) {
+        super(engines, messageSource);
         this.service = service;
     }
 
@@ -53,10 +59,20 @@ public class NewsImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        final List<NewsImpexDto> dtos = (List<NewsImpexDto>) data.get(NewsImpexDto.class);
-        // TODO
-        return ImportResultDto.builder().success(true).build();
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
+
+        handleImport(
+                (List<NewsImpexDto>) data.get(NewsImpexDto.class),
+                summary,
+                "news.impex.entityName",
+                dto -> service.create(NEWS_MAPPER.toCreateDto(dto)),
+                dto -> service.partialUpdate(NEWS_MAPPER.toUpdateDto(dto)),
+                dto -> service.deleteById(dto.getId())
+        );
+
+        return summary.toResult();
     }
 }

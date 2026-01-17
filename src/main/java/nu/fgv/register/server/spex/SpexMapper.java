@@ -59,6 +59,7 @@ public interface SpexMapper {
     @Mapping(target = "categoryName", source = "details.category.name")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
+    @Mapping(target = "rowNumber", ignore = true)
     SpexImpexDto toImpexDto(Spex model);
 
     @Mapping(target = "parentId", source = "parent.id")
@@ -66,6 +67,7 @@ public interface SpexMapper {
     @Mapping(target = "parentTitle", source = "details.title")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
+    @Mapping(target = "rowNumber", ignore = true)
     SpexRevivalImpexDto toRevivalImpexDto(Spex model);
 
     @Mapping(target = "id", ignore = true)
@@ -92,6 +94,10 @@ public interface SpexMapper {
 
     @InheritConfiguration(name = "toModel")
     void toPartialModel(SpexUpdateDto dto, @MappingTarget Spex model);
+
+    SpexCreateDto toCreateDto(SpexImpexDto dto);
+
+    SpexUpdateDto toUpdateDto(SpexImpexDto dto);
 
     @AfterMapping
     default void setRevival(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {

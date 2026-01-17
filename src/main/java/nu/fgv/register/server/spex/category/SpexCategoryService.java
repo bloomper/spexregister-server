@@ -20,7 +20,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -46,6 +45,7 @@ import java.util.Optional;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
+import static nu.fgv.register.server.util.FileUtil.detectMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -182,7 +182,7 @@ public class SpexCategoryService {
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(logo);
-                    category.setLogoContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(logo));
+                    category.setLogoContentType(hasText(contentType) ? contentType : detectMimeType(logo));
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })

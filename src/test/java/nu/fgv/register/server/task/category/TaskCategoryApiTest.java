@@ -22,6 +22,7 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -218,6 +219,37 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 createResponseHeaders,
                                 security(getRolesFromMethod(TaskCategoryApi.class, "create", TaskCategoryCreateDto.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_create_import() throws Exception {
+        final var importResult = ImportResultDto.builder().success(true).build();
+
+        when(importService.doImport(any(), any(String.class), any(Locale.class))).thenReturn(importResult);
+
+        mockMvc
+                .perform(
+                        post("/api/tasks/categories")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(Constants.MediaTypes.APPLICATION_XLSX)
+                                .content(new byte[]{1, 2, 3})
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "task-category-create-import",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                secureRequestHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                importResponseFields,
+                                security(getRolesFromMethod(TaskCategoryApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
                         )
                 );
     }

@@ -79,4 +79,7 @@ public interface AddressMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(AddressUpdateDto dto, @MappingTarget Address model);
 
+    AddressCreateDto toCreateDto(AddressImpexDto dto);
+
+    AddressUpdateDto toUpdateDto(AddressImpexDto dto);
 }

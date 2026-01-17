@@ -17,6 +17,7 @@
 package nu.fgv.register.server.spexare.activity.task.actor;
 
 import nu.fgv.register.server.settings.TypeMapper;
+import nu.fgv.register.server.spexare.activity.ActivityImpexDto;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -63,4 +64,11 @@ public interface ActorMapper {
 
     @InheritConfiguration(name = "toModel")
     void toPartialModel(ActorUpdateDto dto, @MappingTarget Actor model);
+
+    @Mapping(target = "role", source = "dto.actorRole")
+    ActorCreateDto toCreateDto(ActivityImpexDto dto);
+
+    @Mapping(target = "id", source = "dto.actorId")
+    @Mapping(target = "role", source = "dto.actorRole")
+    ActorUpdateDto toUpdateDto(ActivityImpexDto dto);
 }

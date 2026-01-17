@@ -17,6 +17,7 @@
 package nu.fgv.register.server.user;
 
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareService;
 import nu.fgv.register.server.user.authority.AuthorityImpexDto;
 import nu.fgv.register.server.user.authority.AuthorityService;
@@ -25,11 +26,15 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -49,8 +54,9 @@ public class UserImportService extends AbstractImportService {
                              final UserService service,
                              final StateService stateService,
                              final AuthorityService authorityService,
-                             final SpexareService spexareService) {
-        super(engines);
+                             final SpexareService spexareService,
+                             final MessageSource messageSource) {
+        super(engines, messageSource);
         this.service = service;
         this.stateService = stateService;
         this.authorityService = authorityService;
@@ -84,14 +90,81 @@ public class UserImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        List<UserImpexDto> users = (List<UserImpexDto>) data.get(UserImpexDto.class);
-        List<AuthorityImpexDto> authorities = (List<AuthorityImpexDto>) data.get(AuthorityImpexDto.class);
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final Map<Long, Long> userIdMap = new HashMap<>();
+        final Map<String, Map<String, String>> userData = new HashMap<>();
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
 
-        // TODO
+        handleImport(
+                (List<UserImpexDto>) data.get(UserImpexDto.class),
+                summary,
+                "user.impex.entityName",
+                dto -> {
+                    final UserDto user = service.create(USER_MAPPER.toCreateDto(dto));
 
-        return ImportResultDto.builder().success(true).build();
+                    userIdMap.put(dto.getId(), user.getId());
+                    service.setState(user.getId(), dto.getStateId());
+
+                    if (hasText(user.getTemporaryPassword())) {
+                        userData.put(user.getEmail(), Map.of(
+                                "externalId", user.getExternalId(),
+                                "temporaryPassword", user.getTemporaryPassword()
+                        ));
+                    }
+
+                    if (dto.getSpexareId() != null) {
+                        service.addSpexare(user.getId(), dto.getSpexareId());
+                    }
+                },
+                dto -> {
+                    final UserDto user = service.partialUpdate(USER_MAPPER.toUpdateDto(dto));
+
+                    userIdMap.put(dto.getId(), user.getId());
+                    service.setState(user.getId(), dto.getStateId());
+
+                    final SpexareDto currentSpexare = service.findSpexareByUser(user.getId()).orElse(null);
+
+                    if (dto.getSpexareId() != null) {
+                        if (currentSpexare == null || !currentSpexare.getId().equals(dto.getSpexareId())) {
+                            service.addSpexare(user.getId(), dto.getSpexareId());
+                        }
+                    } else if (currentSpexare != null) {
+                        service.removeSpexare(user.getId());
+                    }
+                },
+                dto -> service.deleteById(dto.getId())
+        );
+
+        handleImport(
+                (List<AuthorityImpexDto>) data.get(AuthorityImpexDto.class),
+                summary,
+                "user.impex.authority.entityName",
+                dto -> {
+                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+
+                    service.addAuthority(realUserId, dto.getId());
+                },
+                dto -> {
+                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+
+                    service.addAuthority(realUserId, dto.getId());
+                },
+                dto -> {
+                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+
+                    service.removeAuthority(realUserId, dto.getId());
+                }
+        );
+
+        final Map<String, Object> resultData = new HashMap<>();
+
+        if (!userData.isEmpty()) {
+            resultData.put("users", userData);
+        }
+
+        return summary.toResult(resultData);
     }
 
 }

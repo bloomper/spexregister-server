@@ -33,7 +33,7 @@ import java.util.function.Function;
 public class ImportSpec {
     private final Class<?> clazz;
     @Builder.Default
-    private final Map<String, Function<@Nullable Object, Boolean>> existenceCheckers = Collections.emptyMap();
+    private final Map<String, Function<Object, Boolean>> existenceCheckers = Collections.emptyMap();
     @Nullable
     private final String name;
 }

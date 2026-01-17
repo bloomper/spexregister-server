@@ -54,6 +54,7 @@ public interface SpexareMapper {
     @Mapping(target = "partnerLastName", source = "partner.lastName")
     @Mapping(target = "partnerNickName", source = "partner.nickName")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     SpexareImpexDto toImpexDto(Spexare model);
 
     List<SpexareDto> toDtos(List<Spexare> models);
@@ -97,4 +98,7 @@ public interface SpexareMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(SpexareUpdateDto dto, @MappingTarget Spexare model);
 
+    SpexareCreateDto toCreateDto(SpexareImpexDto dto);
+
+    SpexareUpdateDto toUpdateDto(SpexareImpexDto dto);
 }

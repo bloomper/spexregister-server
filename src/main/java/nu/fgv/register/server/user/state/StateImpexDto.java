@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -40,6 +40,7 @@ public class StateImpexDto {
     @ExcelCell(header = "state.impex.id.columnName", position = 0, primaryKey = true)
     private String id;
 
+    @Nullable
     @JsonProperty("label")
     @ExcelCell(header = "state.impex.label.columnName", position = 1)
     private String label;

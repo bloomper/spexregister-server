@@ -21,10 +21,19 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
+import static nu.fgv.register.server.util.FileUtil.downloadImage;
+import static nu.fgv.register.server.util.FileUtil.isLocalUrl;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
@@ -35,10 +44,15 @@ import java.util.Map;
 public class SpexCategoryImportService extends AbstractImportService {
 
     private final SpexCategoryService service;
+    private final String baseUrl;
 
-    public SpexCategoryImportService(final List<ImportEngine> engines, final SpexCategoryService service) {
-        super(engines);
+    public SpexCategoryImportService(final List<ImportEngine> engines,
+                                     final SpexCategoryService service,
+                                     final MessageSource messageSource,
+                                     @Value("${spexregister.base-url}") final String baseUrl) {
+        super(engines, messageSource);
         this.service = service;
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -53,15 +67,36 @@ public class SpexCategoryImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        final List<SpexCategoryImpexDto> dtos = (List<SpexCategoryImpexDto>) data.get(SpexCategoryImpexDto.class);
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
 
-        if (dtos != null) {
-            dtos.forEach(dto -> {
-                // ... saving logic ...
-            });
+        handleImport(
+                (List<SpexCategoryImpexDto>) data.get(SpexCategoryImpexDto.class),
+                summary,
+                "spexCategory.impex.entityName",
+                dto -> {
+                    final SpexCategoryDto category = service.create(SPEX_CATEGORY_MAPPER.toCreateDto(dto));
+
+                    processLogo(category.getId(), dto.getLogoUrl());
+                },
+                dto -> {
+                    final SpexCategoryDto category = service.update(SPEX_CATEGORY_MAPPER.toUpdateDto(dto));
+
+                    processLogo(category.getId(), dto.getLogoUrl());
+                },
+                dto -> service.deleteById(dto.getId())
+        );
+
+        return summary.toResult();
+    }
+
+    private void processLogo(final Long id, @Nullable final String url) {
+        if (hasText(url) && !isLocalUrl(url, baseUrl)) {
+            service.saveLogo(id, downloadImage(url), null);
+        } else if (!hasText(url)) {
+            service.deleteLogo(id);
         }
-        return ImportResultDto.builder().success(true).build();
     }
 }

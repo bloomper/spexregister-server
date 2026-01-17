@@ -4,6 +4,11 @@
     <additionalParameters>
       <param>
         <option name="enabled" value="true" />
+        <option name="name" value="APP_BASE_URL" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
         <option name="name" value="APP_IV" />
         <option name="value" value="FILL_ME_IN" />
       </param>

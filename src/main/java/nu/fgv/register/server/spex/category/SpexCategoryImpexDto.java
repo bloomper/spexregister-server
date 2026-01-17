@@ -27,6 +27,7 @@ import lombok.Setter;
 import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -56,6 +57,7 @@ public class SpexCategoryImpexDto extends AbstractAuditableImpexDto<SpexCategory
     @ExcelCell(header = "spexCategory.impex.firstYear.columnName", position = 3, updatable = true, mandatory = true)
     private String firstYear;
 
+    @Nullable
     @JsonProperty("logoUrl")
     @ExcelCell(header = "spexCategory.impex.logoUrl.columnName", position = 4)
     private String logoUrl;

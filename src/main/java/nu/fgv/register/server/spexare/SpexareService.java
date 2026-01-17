@@ -20,7 +20,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -68,6 +67,7 @@ import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
+import static nu.fgv.register.server.util.FileUtil.detectMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -238,7 +238,7 @@ public class SpexareService {
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     spexare.setImage(image);
-                    spexare.setImageContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(image));
+                    spexare.setImageContentType(hasText(contentType) ? contentType : detectMimeType(image));
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
                 })

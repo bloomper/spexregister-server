@@ -43,6 +43,7 @@ public interface TagMapper {
     TagDto toDto(Tag model);
 
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     TagImpexDto toImpexDto(Tag model);
 
     @Mapping(target = "id", ignore = true)
@@ -61,4 +62,7 @@ public interface TagMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(TagUpdateDto dto, @MappingTarget Tag model);
 
+    TagCreateDto toCreateDto(TagImpexDto dto);
+
+    TagUpdateDto toUpdateDto(TagImpexDto dto);
 }

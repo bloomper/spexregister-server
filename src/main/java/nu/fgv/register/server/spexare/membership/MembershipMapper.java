@@ -54,4 +54,6 @@ public interface MembershipMapper {
     @Mapping(target = "lastModifiedAt", source = "membership.lastModifiedAt")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     MembershipImpexDto toImpexDto(Spexare spexare, Membership membership, TypeDto type);
+
+    MembershipCreateDto toCreateDto(MembershipImpexDto dto);
 }

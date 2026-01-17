@@ -47,6 +47,7 @@ public interface NewsMapper {
     NewsDto toDto(News model);
 
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     NewsImpexDto toImpexDto(News model);
 
     @Mapping(target = "id", ignore = true)
@@ -85,4 +86,8 @@ public interface NewsMapper {
 
         return isFromValid && isToValid;
     }
+
+    NewsCreateDto toCreateDto(NewsImpexDto dto);
+
+    NewsUpdateDto toUpdateDto(NewsImpexDto dto);
 }

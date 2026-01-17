@@ -54,4 +54,8 @@ public interface ConsentMapper {
     @Mapping(target = "lastModifiedAt", source = "consent.lastModifiedAt")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
     ConsentImpexDto toImpexDto(Spexare spexare, Consent consent, TypeDto type);
+
+    ConsentCreateDto toCreateDto(ConsentImpexDto dto);
+
+    ConsentUpdateDto toUpdateDto(ConsentImpexDto dto);
 }

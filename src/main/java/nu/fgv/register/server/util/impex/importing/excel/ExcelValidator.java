@@ -73,17 +73,17 @@ public class ExcelValidator {
                     .build();
         }
 
-        final List<Field> fields = Arrays.stream(FieldUtils.getAllFields(spec.getClazz()))
+        final List<Field> annotatedFields = Arrays.stream(FieldUtils.getAllFields(spec.getClazz()))
                 .filter(field -> field.isAnnotationPresent(ExcelCell.class))
                 .peek(field -> field.setAccessible(true))
                 .toList();
-        final int maxPosition = determinePositionBeforeAuditableFields(fields);
+        final int maxPosition = determinePositionBeforeAuditableFields(annotatedFields);
 
         final Map<Field, Integer> fieldColumnMap = new HashMap<>();
-        validateColumns(messageSource, locale, sheet, fields, maxPosition, fieldColumnMap, messages);
+        validateColumns(messageSource, locale, sheet, annotatedFields, maxPosition, fieldColumnMap, messages);
 
         if (messages.isEmpty()) {
-            validateRows(messageSource, locale, sheet, spec, fields, maxPosition, fieldColumnMap, validator, messages);
+            validateRows(messageSource, locale, sheet, spec, annotatedFields, maxPosition, fieldColumnMap, validator, messages);
         }
 
         return ImportResultDto.builder()
@@ -148,26 +148,27 @@ public class ExcelValidator {
             final ImpexAction action = (dto instanceof final HasImpexAction impex) ? impex.getAction() : ImpexAction.UPDATE;
             final int rowNum = row.getRowNum() + 1;
 
-            spec.getExistenceCheckers().forEach((fieldName, checker) -> {
-                fields.stream().filter(f -> f.getName().equals(fieldName)).findFirst().ifPresent(field -> {
-                    final ExcelCell annotation = field.getAnnotation(ExcelCell.class);
-                    final Integer colIndex = fieldColumnMap.get(field);
+            spec.getExistenceCheckers().forEach((fieldName, checker) ->
+                    fields.stream().filter(f -> f.getName().equals(fieldName)).findFirst().ifPresent(field -> {
+                        final ExcelCell annotation = field.getAnnotation(ExcelCell.class);
+                        final Integer colIndex = fieldColumnMap.get(field);
 
-                    if (colIndex != null) {
-                        final Cell cell = row.getCell(colIndex);
-                        final Object value = getCellValueByFieldType(cell, field.getType());
+                        if (colIndex != null) {
+                            final Cell cell = row.getCell(colIndex);
+                            final Object value = getCellValueByFieldType(cell, field.getType());
 
-                        if (value != null) {
-                            if (action == ImpexAction.CREATE && annotation.primaryKey()) return;
+                            if (value != null) {
+                                if (action == ImpexAction.CREATE && annotation.primaryKey()) {
+                                    return;
+                                }
 
-                            if (!checker.apply(value)) {
-                                messages.add(String.format("%s %d: %s", rowTranslation, rowNum,
-                                        messageSource.getMessage("impex.import.validation.entryDoesNotExist", null, locale)));
+                                if (!checker.apply(value)) {
+                                    messages.add(String.format("%s %d: %s", rowTranslation, rowNum,
+                                            messageSource.getMessage("impex.import.validation.entryDoesNotExist", null, locale)));
+                                }
                             }
                         }
-                    }
-                });
-            });
+                    }));
 
             validator.validate(dto).forEach(v ->
                     messages.add(String.format("%s %d: %s", rowTranslation, rowNum, v.getMessage()))

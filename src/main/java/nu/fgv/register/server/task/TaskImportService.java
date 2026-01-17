@@ -21,10 +21,14 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 /**
  * @author Anders Jacobsson
@@ -36,8 +40,10 @@ public class TaskImportService extends AbstractImportService {
 
     private final TaskService service;
 
-    public TaskImportService(final List<ImportEngine> engines, final TaskService service) {
-        super(engines);
+    public TaskImportService(final List<ImportEngine> engines,
+                             final TaskService service,
+                             final MessageSource messageSource) {
+        super(engines, messageSource);
         this.service = service;
     }
 
@@ -53,15 +59,30 @@ public class TaskImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        final List<TaskImpexDto> dtos = (List<TaskImpexDto>) data.get(TaskImpexDto.class);
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
 
-        if (dtos != null) {
-            dtos.forEach(dto -> {
-                // TODO
-            });
-        }
-        return ImportResultDto.builder().success(true).build();
+        handleImport(
+                (List<TaskImpexDto>) data.get(TaskImpexDto.class),
+                summary,
+                "task.impex.entityName",
+                dto -> {
+                    final TaskDto task = service.create(TASK_MAPPER.toCreateDto(dto));
+
+                    service.addCategory(task.getId(), dto.getCategoryId());
+                },
+                dto -> {
+                    final TaskDto task = service.partialUpdate(TASK_MAPPER.toUpdateDto(dto));
+
+                    if (!service.findCategoryByTask(task.getId()).getId().equals(dto.getCategoryId())) {
+                        service.addCategory(task.getId(), dto.getCategoryId());
+                    }
+                },
+                dto -> service.deleteById(dto.getId())
+        );
+
+        return summary.toResult();
     }
 }

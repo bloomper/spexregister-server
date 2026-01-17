@@ -25,6 +25,7 @@ import lombok.Setter;
 import nu.fgv.register.server.util.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -46,6 +47,7 @@ public class AuthorityImpexDto extends AbstractImpexDto {
     @ExcelCell(header = "authority.impex.id.columnName", position = 2, primaryKey = true, updatable = true)
     private String id;
 
+    @Nullable
     @JsonProperty("label")
     @ExcelCell(header = "authority.impex.label.columnName", position = 3)
     private String label;

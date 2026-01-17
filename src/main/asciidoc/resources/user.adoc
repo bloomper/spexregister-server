@@ -15,6 +15,11 @@ xref:../api-guide.adoc[Back to API guide]
 
 operation::user-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
 
+[[create_import]]
+== Create/update/delete via import
+
+operation::user-create-import[snippets='security,request-headers,http-request,response-fields,http-response']
+
 [[get_paged]]
 == Get (paged)
 

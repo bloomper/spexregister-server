@@ -21,7 +21,10 @@ import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import nu.fgv.register.server.util.error.InternalErrorException;
 
+import java.io.InputStream;
+import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -41,6 +44,17 @@ public class FileUtil {
         } catch (final MagicException | MagicParseException | MagicMatchNotFoundException _) {
             return "";
         }
+    }
 
+    public static byte[] downloadImage(final String url) {
+        try (final InputStream in = new URI(url).toURL().openStream()) {
+            return in.readAllBytes();
+        } catch (final Exception e) {
+            throw new InternalErrorException("Could not download image from: " + url);
+        }
+    }
+
+    public static boolean isLocalUrl(final String url, final String baseUrl) {
+        return url != null && url.startsWith(baseUrl);
     }
 }

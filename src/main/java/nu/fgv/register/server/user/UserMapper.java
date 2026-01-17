@@ -17,7 +17,6 @@
 package nu.fgv.register.server.user;
 
 import nu.fgv.register.server.spexare.SpexareMapper;
-import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateMapper;
@@ -71,6 +70,7 @@ public interface UserMapper {
     @Mapping(target = "lastModifiedBy", source = "model.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "model.lastModifiedAt")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     UserImpexDto toImpexDto(User model, @Nullable UserRepresentation representation, StateDto state);
 
     @Mapping(target = "id", ignore = true)
@@ -112,4 +112,8 @@ public interface UserMapper {
     default String extractLabel(final Map<String, String> labels, final Locale locale) {
         return labels.getOrDefault(locale.getLanguage(), labels.getOrDefault("sv", ""));
     }
+
+    UserCreateDto toCreateDto(UserImpexDto dto);
+
+    UserUpdateDto toUpdateDto(UserImpexDto dto);
 }

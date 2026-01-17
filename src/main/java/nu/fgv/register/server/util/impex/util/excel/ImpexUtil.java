@@ -17,11 +17,7 @@
 package nu.fgv.register.server.util.impex.util.excel;
 
 import nu.fgv.register.server.util.AbstractAuditableDto;
-import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
-import nu.fgv.register.server.util.impex.model.HasImpexAction;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -46,37 +42,26 @@ public class ImpexUtil {
 
     public static int determinePosition(final Field field, final int maxPosition, final boolean readOnly) {
         final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
+        final String fieldName = field.getName();
 
         if (readOnly) {
-            if (field.getName().equals("action")) {
+            if (fieldName.equals("action")) {
                 return -1;
             }
 
             int pos = excelCell.position();
-            if (field.getDeclaringClass().equals(AbstractAuditableDto.class) || field.getDeclaringClass().equals(AbstractAuditableImpexDto.class)) {
+            if (field.getDeclaringClass().equals(AbstractAuditableDto.class)) {
                 pos += maxPosition;
             }
 
             return pos > 0 ? pos - 1 : 0;
         }
 
-        if (field.getDeclaringClass().equals(AbstractAuditableDto.class) || field.getDeclaringClass().equals(AbstractAuditableImpexDto.class)) {
+        if (field.getDeclaringClass().equals(AbstractAuditableDto.class)) {
             return excelCell.position() + maxPosition;
         }
 
         return excelCell.position();
-    }
-
-    public static boolean isMarkedForDeletion(final Cell cell) {
-        return cell.getCellType() == CellType.STRING && cell.getStringCellValue().toLowerCase().endsWith("d");
-    }
-
-    public static boolean isMarkedForCreation(final Cell cell) {
-        return cell.getCellType() == CellType.STRING && cell.getStringCellValue().toLowerCase().endsWith("n");
-    }
-
-    public static boolean isMarkedForUpdate(final Cell cell) {
-        return !isMarkedForDeletion(cell) && !isMarkedForCreation(cell);
     }
 
 }

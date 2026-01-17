@@ -23,7 +23,6 @@ import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
-import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -62,6 +61,7 @@ import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
+import static nu.fgv.register.server.util.FileUtil.detectMimeType;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.emptyWindow;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
@@ -240,7 +240,7 @@ public class SpexService {
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(poster);
-                    spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : FileUtil.detectMimeType(poster));
+                    spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : detectMimeType(poster));
                     detailsRepository.save(spex.getDetails());
                     touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);

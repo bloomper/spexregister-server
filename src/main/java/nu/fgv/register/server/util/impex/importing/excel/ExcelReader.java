@@ -18,6 +18,7 @@ package nu.fgv.register.server.util.impex.importing.excel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.impex.model.HasImpexAction;
 import nu.fgv.register.server.util.impex.model.ImpexAction;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -81,6 +82,28 @@ public class ExcelReader {
     public <T> T mapRowToDto(final Row row, final Class<T> clazz, final List<Field> fields, final int maxPosition, final Map<Field, Integer> fieldColumnMap) {
         try {
             final T dto = clazz.getDeclaredConstructor().newInstance();
+
+            if (dto instanceof final HasImpexAction impexDto) {
+                impexDto.setRowNumber(row.getRowNum() + 1);
+            }
+
+            fields.stream()
+                    .filter(f -> f.getType() == ImpexAction.class)
+                    .findFirst()
+                    .ifPresent(field -> {
+                        final Integer position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
+                        if (position != null && position >= 0) {
+                            final Cell cell = row.getCell(position);
+                            if (cell != null) {
+                                try {
+                                    setCellValueToField(dto, field, cell);
+                                } catch (IllegalAccessException e) {
+                                    log.warn("Could not set action field", e);
+                                }
+                            }
+                        }
+                    });
+
             for (final Field field : fields) {
                 final Integer position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
                 if (position == null || position < 0) {
@@ -139,19 +162,58 @@ public class ExcelReader {
         final Class<?> type = field.getType();
 
         if (type == String.class) {
-            field.set(dto, getCellStringValue(cell));
+            field.set(dto, getStringifiedCellValue(cell));
         } else if (type == Long.class || type == long.class) {
-            field.set(dto, (long) cell.getNumericCellValue());
+            field.set(dto, getLongifiedNumericCellValue(cell));
         } else if (type == Boolean.class || type == boolean.class) {
-            field.set(dto, cell.getBooleanCellValue());
+            field.set(dto, cell.getCellType() == CellType.BOOLEAN ? cell.getBooleanCellValue() : Boolean.parseBoolean(getStringifiedCellValue(cell)));
         } else if (type == Integer.class || type == int.class) {
-            field.set(dto, (int) cell.getNumericCellValue());
+            field.set(dto, getIntifiedNumericCellValue(cell));
         } else if (type == ImpexAction.class) {
-            field.set(dto, ImpexAction.fromMarker(getCellStringValue(cell)));
+            field.set(dto, parseImpexAction(cell));
         }
     }
 
-    private String getCellStringValue(final Cell cell) {
+    private ImpexAction parseImpexAction(final Cell cell) {
+        final String value = getStringifiedCellValue(cell).trim().toUpperCase();
+
+        if (value.equals("N") || value.equals("C") || value.equals("CREATE") || value.equals("NEW")) {
+            return ImpexAction.CREATE;
+        } else if (value.equals("D") || value.equals("R") || value.equals("DELETE") || value.equals("REMOVE")) {
+            return ImpexAction.DELETE;
+        }
+        return ImpexAction.UPDATE;
+    }
+
+    private long getLongifiedNumericCellValue(final Cell cell) {
+        return switch (cell.getCellType()) {
+            case NUMERIC -> (long) cell.getNumericCellValue();
+            case STRING -> {
+                try {
+                    yield Long.parseLong(cell.getStringCellValue().replaceAll("[^0-9]", ""));
+                } catch (final NumberFormatException e) {
+                    yield 0L;
+                }
+            }
+            default -> 0L;
+        };
+    }
+
+    private int getIntifiedNumericCellValue(final Cell cell) {
+        return switch (cell.getCellType()) {
+            case NUMERIC -> (int) cell.getNumericCellValue();
+            case STRING -> {
+                try {
+                    yield Integer.parseInt(cell.getStringCellValue().replaceAll("[^0-9]", ""));
+                } catch (final NumberFormatException e) {
+                    yield 0;
+                }
+            }
+            default -> 0;
+        };
+    }
+
+    private String getStringifiedCellValue(final Cell cell) {
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();
             case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
@@ -166,7 +228,7 @@ public class ExcelReader {
         }
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             final Cell cell = row.getCell(c);
-            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(getCellStringValue(cell))) {
+            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(getStringifiedCellValue(cell))) {
                 return false;
             }
         }

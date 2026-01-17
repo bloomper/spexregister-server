@@ -27,6 +27,7 @@ import lombok.Setter;
 import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
@@ -43,6 +44,7 @@ public class UserImpexDto extends AbstractAuditableImpexDto<UserImpexDto> {
     @ExcelCell(header = "user.impex.id.columnName", position = 1, primaryKey = true)
     private Long id;
 
+    @Nullable
     @JsonProperty("externalId")
     @ExcelCell(header = "user.impex.externalId.columnName", position = 2)
     private String externalId;
@@ -59,22 +61,27 @@ public class UserImpexDto extends AbstractAuditableImpexDto<UserImpexDto> {
     @ExcelCell(header = "user.impex.state.id.columnName", position = 4, updatable = true, mandatory = true)
     private String stateId;
 
+    @Nullable
     @JsonProperty("stateLabel")
     @ExcelCell(header = "user.impex.state.label.columnName", position = 5)
     private String stateLabel;
 
+    @Nullable
     @JsonProperty("spexareId")
     @ExcelCell(header = "user.impex.spexare.id.columnName", position = 6, updatable = true)
     private Long spexareId;
 
+    @Nullable
     @JsonProperty("spexareFirstName")
     @ExcelCell(header = "user.impex.spexare.firstName.columnName", position = 7)
     private String spexareFirstName;
 
+    @Nullable
     @JsonProperty("spexareLastName")
     @ExcelCell(header = "user.impex.spexare.lastName.columnName", position = 8)
     private String spexareLastName;
 
+    @Nullable
     @JsonProperty("spexareNickName")
     @ExcelCell(header = "user.impex.spexare.nickName.columnName", position = 9)
     private String spexareNickName;

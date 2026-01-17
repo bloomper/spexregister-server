@@ -42,7 +42,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -142,7 +141,7 @@ public class TagApi {
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale, final HttpMethod method) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
         final ImportResultDto result = importService.doImport(file, contentType, locale);
 
         return ResponseEntity
@@ -152,9 +151,9 @@ public class TagApi {
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale, final HttpMethod method) {
+    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
         try {
-            return createAndUpdate(file.getBytes(), file.getContentType(), locale, method);
+            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }

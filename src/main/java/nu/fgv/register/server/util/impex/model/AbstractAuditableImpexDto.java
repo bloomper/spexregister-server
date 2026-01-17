@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.impex.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,4 +37,6 @@ public abstract class AbstractAuditableImpexDto<T extends AbstractAuditableImpex
     @ExcelCell(header = "common.impex.action.columnName", position = 0)
     private ImpexAction action;
 
+    @JsonIgnore
+    private Integer rowNumber;
 }

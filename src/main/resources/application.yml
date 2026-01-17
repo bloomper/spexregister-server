@@ -66,6 +66,7 @@ logging:
     path: ./data/log_data
 
 spexregister:
+  base-url: ${APP_BASE_URL}
   default-language: sv
   languages:
     - en

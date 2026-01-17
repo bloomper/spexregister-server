@@ -22,10 +22,19 @@ import nu.fgv.register.server.util.impex.importing.AbstractImportService;
 import nu.fgv.register.server.util.impex.importing.ImportEngine;
 import nu.fgv.register.server.util.impex.importing.ImportSpec;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
+import static nu.fgv.register.server.util.FileUtil.downloadImage;
+import static nu.fgv.register.server.util.FileUtil.isLocalUrl;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
@@ -37,13 +46,17 @@ public class SpexImportService extends AbstractImportService {
 
     private final SpexService service;
     private final SpexCategoryService categoryService;
+    private final String baseUrl;
 
     public SpexImportService(final List<ImportEngine> engines,
                              final SpexService service,
-                             final SpexCategoryService categoryService) {
-        super(engines);
+                             final SpexCategoryService categoryService,
+                             final MessageSource messageSource,
+                             @Value("${spexregister.base-url}") final String baseUrl) {
+        super(engines, messageSource);
         this.service = service;
         this.categoryService = categoryService;
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -65,14 +78,49 @@ public class SpexImportService extends AbstractImportService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data) {
-        List<SpexImpexDto> mainSpex = (List<SpexImpexDto>) data.get(SpexImpexDto.class);
-        List<SpexRevivalImpexDto> revivals = (List<SpexRevivalImpexDto>) data.get(SpexRevivalImpexDto.class);
+    protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
+        final ImportSummary summary = new ImportSummary(messageSource, locale);
 
-        // TODO
+        handleImport(
+                (List<SpexImpexDto>) data.get(SpexImpexDto.class),
+                summary,
+                "spex.impex.entityName",
+                dto -> {
+                    final SpexDto spex = service.create(SPEX_MAPPER.toCreateDto(dto));
 
-        return ImportResultDto.builder().success(true).build();
+                    service.addCategory(spex.getId(), dto.getCategoryId());
+                    processPoster(spex.getId(), dto.getPosterUrl());
+                },
+                dto -> {
+                    final SpexDto spex = service.partialUpdate(SPEX_MAPPER.toUpdateDto(dto));
+
+                    if (!service.findCategoryBySpex(spex.getId()).getId().equals(dto.getCategoryId())) {
+                        service.addCategory(spex.getId(), dto.getCategoryId());
+                    }
+                    processPoster(spex.getId(), dto.getPosterUrl());
+                },
+                dto -> service.deleteById(dto.getId())
+        );
+
+        handleImport(
+                (List<SpexRevivalImpexDto>) data.get(SpexRevivalImpexDto.class),
+                summary,
+                "spex.impex.revival.entityName",
+                dto -> service.addRevival(dto.getParentId(), dto.getYear()),
+                dto -> service.addRevival(dto.getParentId(), dto.getYear()),
+                dto -> service.deleteRevival(dto.getParentId(), dto.getId())
+        );
+
+        return summary.toResult();
     }
 
+    private void processPoster(final Long id, @Nullable final String url) {
+        if (hasText(url) && !isLocalUrl(url, baseUrl)) {
+            service.savePoster(id, downloadImage(url), null);
+        } else if (!hasText(url)) {
+            service.deletePoster(id);
+        }
+    }
 }

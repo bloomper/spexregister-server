@@ -61,4 +61,7 @@ public interface TaskCategoryMapper {
     @InheritConfiguration(name = "toModel")
     void toPartialModel(TaskCategoryUpdateDto dto, @MappingTarget TaskCategory model);
 
+    TaskCategoryCreateDto toCreateDto(TaskCategoryImpexDto dto);
+
+    TaskCategoryUpdateDto toUpdateDto(TaskCategoryImpexDto dto);
 }

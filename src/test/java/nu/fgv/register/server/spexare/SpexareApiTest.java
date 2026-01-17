@@ -23,6 +23,7 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
+import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
@@ -320,6 +321,37 @@ class SpexareApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 createResponseHeaders,
                                 security(getRolesFromMethod(SpexareApi.class, "create", SpexareCreateDto.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_create_import() throws Exception {
+        final var importResult = ImportResultDto.builder().success(true).build();
+
+        when(importService.doImport(any(), any(String.class), any(Locale.class))).thenReturn(importResult);
+
+        mockMvc
+                .perform(
+                        post("/api/spexare")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(Constants.MediaTypes.APPLICATION_XLSX)
+                                .content(new byte[]{1, 2, 3})
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare-create-import",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                secureRequestHeaders.and(
+                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                ),
+                                importResponseFields,
+                                security(getRolesFromMethod(SpexareApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
                         )
                 );
     }

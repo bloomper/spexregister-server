@@ -98,6 +98,7 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
       LOGGING_FILE_PATH: /data/log_data
       SERVER_FORWARD_HEADERS_STRATEGY: native
+      APP_BASE_URL: https://api.register.fgv.local.nu:8443/api
       APP_KEYCLOAK_URL: http://keycloak:8081/auth
       APP_KEYCLOAK_REALM: ${APP_KEYCLOAK_REALM}
       APP_KEYCLOAK_ADMIN_CLIENT_ID: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
