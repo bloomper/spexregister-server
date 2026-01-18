@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum ExportType {
-    PDF_ADDRESS_LABELS("pdf-address-labels");
+    PDF_ADDRESS_LABELS("pdf-address-labels"),
+    PDF_SCRATCH_LIST("pdf-scratch-list"),
+    PDF_PLATOON_LIST("pdf-platoon-list");
 
     private final String value;
 

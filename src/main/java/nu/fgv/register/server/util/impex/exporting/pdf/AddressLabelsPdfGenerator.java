@@ -128,7 +128,7 @@ public class AddressLabelsPdfGenerator implements PdfGenerator {
             }
 
             if (labelsAdded == 0) {
-                final String noAddressesFound = messageSource.getMessage("impex.export.pdf.noHomeAddressesFound", null, "No home addresses found", locale);
+                final String noAddressesFound = messageSource.getMessage("impex.export.pdf.addressLabels.noHomeAddressesFound", null, "impex.export.pdf.addressLabels.noHomeAddressesFound", locale);
 
                 document.add(new Paragraph(noAddressesFound));
             } else {
