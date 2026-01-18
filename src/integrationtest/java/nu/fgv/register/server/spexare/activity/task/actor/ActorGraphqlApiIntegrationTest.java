@@ -188,60 +188,6 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        void should_return_CONFLICT_when_creating_already_existing_value() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
-            final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
-            final var activity = persistActivity(randomizeActivity(spexare));
-            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            final var vocal = persistVocal(randomizeVocal());
-            final var dto = random.nextObject(ActorCreateDto.class);
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/activity/taskActivity/actor/actorCreate")
-                    .variable("spexareId", spexare.getId())
-                    .variable("activityId", activity.getId())
-                    .variable("taskActivityId", taskActivity.getId())
-                    .variable("vocalId", vocal.getId())
-                    .variables(objectMapper.convertValue(dto, new TypeReference<>() {
-                    }))
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("actorCreate", result -> result
-                            .path("role").entity(String.class).isEqualTo(dto.role())
-                    );
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/activity/taskActivity/actor/actorCreate")
-                    .variable("spexareId", spexare.getId())
-                    .variable("activityId", activity.getId())
-                    .variable("taskActivityId", taskActivity.getId())
-                    .variable("vocalId", vocal.getId())
-                    .variables(objectMapper.convertValue(dto, new TypeReference<>() {
-                    }))
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(CustomErrorType.CONFLICT.toString()))
-                    )
-                    .path("actorCreate")
-                    .valueIsNull();
-
-            assertThat(repository.count()).isEqualTo(1);
-        }
-
-        @Test
         void should_return_NOT_FOUND_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -385,7 +331,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        void should_return_CONFLICT_when_creating_and_incorrect_spexare() {
+        void should_return_NOT_FOUND_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
@@ -415,7 +361,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(CustomErrorType.CONFLICT.toString()))
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
                     )
                     .path("actorCreate")
                     .valueIsNull();
@@ -424,7 +370,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        void should_return_CONFLICT_when_creating_and_incorrect_activity() {
+        void should_return_NOT_FOUND_when_creating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -452,7 +398,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(CustomErrorType.CONFLICT.toString()))
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
                     )
                     .path("actorCreate")
                     .valueIsNull();

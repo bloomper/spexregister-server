@@ -32,7 +32,6 @@ import nu.fgv.register.server.spexare.activity.task.TaskActivity;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
-import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
@@ -154,7 +153,6 @@ public class ActorService {
                             .findById(taskActivityId)
                             .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
                             .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
-                            .filter(taskActivity -> !repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal))))
                             .map(taskActivity -> {
                                 final Actor actor = ACTOR_MAPPER.toModel(dto);
                                 actor.setTaskActivity(taskActivity);
@@ -163,7 +161,7 @@ public class ActorService {
                             })
                     )
                     .map(ACTOR_MAPPER::toDto)
-                    .orElseThrow(() -> new SubresourceAlreadyExistsException(List.of(Spexare.class, Activity.class, TaskActivity.class, Type.class), Actor_.VOCAL, vocalId, spexareId, activityId, taskActivityId));
+                    .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, taskActivityId));
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Activity.class, TaskActivity.class, Type.class), spexareId, activityId, taskActivityId, vocalId);
         }
@@ -183,13 +181,13 @@ public class ActorService {
                     .flatMap(spexare -> typeRepository.findById(vocalId))
                     .flatMap(vocal -> taskActivityRepository
                             .findById(taskActivityId)
-                            .filter(taskActivity -> repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal)).and(hasId(id))))
                             .flatMap(taskActivity -> repository.findById(id))
                             .filter(actor -> actor.getTaskActivity().getId().equals(taskActivityId))
                             .filter(actor -> actor.getTaskActivity().getActivity().getId().equals(activityId))
                             .filter(actor -> actor.getTaskActivity().getActivity().getSpexare().getId().equals(spexareId))
                             .map(actor -> {
                                 ACTOR_MAPPER.toPartialModel(dto, actor);
+                                actor.setVocal(vocal);
                                 return actor;
                             })
                             .map(repository::save)
@@ -211,7 +209,6 @@ public class ActorService {
                     .ifPresentOrElse(
                             vocal -> taskActivityRepository
                                     .findById(taskActivityId)
-                                    .filter(taskActivity -> repository.exists(hasTaskActivity(taskActivity).and(hasVocal(vocal)).and(hasId(id))))
                                     .flatMap(taskActivity -> repository.findById(id))
                                     .filter(actor -> actor.getTaskActivity().getId().equals(taskActivityId))
                                     .filter(actor -> actor.getTaskActivity().getActivity().getId().equals(activityId))

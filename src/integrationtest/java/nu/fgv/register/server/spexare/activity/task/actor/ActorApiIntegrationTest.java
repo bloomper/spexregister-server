@@ -809,48 +809,6 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_409_when_creating_already_existing_value() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
-            final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
-            final var activity = persistActivity(randomizeActivity(spexare));
-            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
-            final var vocal = persistVocal(randomizeVocal());
-            final var dto = random.nextObject(ActorCreateDto.class);
-
-            restTestClient
-                    .post()
-                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .body(dto)
-                    .exchange()
-                    .expectStatus().isCreated();
-
-            final ProblemDetail result = restTestClient
-                    .post()
-                    .uri("/{vocalId}", spexare.getId(), activity.getId(), taskActivity.getId(), vocal.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .body(dto)
-                    .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
-                    .expectBody(ProblemDetail.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(repository.count()).isEqualTo(1);
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
-        }
-
-        @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -978,7 +936,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_return_409_when_creating_and_incorrect_spexare() {
+        void should_return_404_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
@@ -1002,18 +960,18 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .apiVersion("1.0")
                     .body(dto)
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                    .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
                     .expectBody(ProblemDetail.class)
                     .returnResult()
                     .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
-        void should_return_409_when_creating_and_incorrect_activity() {
+        void should_return_404_when_creating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -1035,14 +993,14 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .apiVersion("1.0")
                     .body(dto)
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                    .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
                     .expectBody(ProblemDetail.class)
                     .returnResult()
                     .getResponseBody();
 
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
         @Test
