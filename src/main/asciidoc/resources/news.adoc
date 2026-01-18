@@ -27,8 +27,8 @@ operation::news-get-all-paged[snippets='security,request-headers,query-parameter
 
 For details on filtering, refer to this xref:../api-guide.adoc#filtering[section]
 
-Default filtering is ``published:TRUE``, i.e. exclude any non published news. Note that for USER such ones
-are always excluded regardless of filtering.
+Default filtering is ``published:TRUE``, i.e. exclude any non published news.
+Note that for USER such ones are always excluded regardless of filtering.
 
 [[get_export]]
 == Get (export)

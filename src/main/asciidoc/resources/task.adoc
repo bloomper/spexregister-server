@@ -30,7 +30,8 @@ For details on filtering, refer to this xref:../api-guide.adoc#filtering[section
 [sidebar]
 .NOTE
 --
-It is also possible to filter tasks by category. Use ``category.<category field>``.
+It is also possible to filter tasks by category.
+Use ``category.<category field>``.
 --
 
 [[get_export]]

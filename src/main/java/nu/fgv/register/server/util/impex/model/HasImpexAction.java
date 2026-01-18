@@ -22,7 +22,10 @@ package nu.fgv.register.server.util.impex.model;
  */
 public interface HasImpexAction {
     ImpexAction getAction();
+
     void setAction(ImpexAction action);
+
     Integer getRowNumber();
+
     void setRowNumber(Integer rowNumber);
 }

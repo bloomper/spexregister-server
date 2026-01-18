@@ -78,32 +78,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = TaskCategoryApi.class)
 class TaskCategoryApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private TaskCategoryService service;
-
-    @MockitoBean
-    private TaskCategoryImportService importService;
-
-    @MockitoBean
-    private TaskCategoryExportService exportService;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
             fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("task-categories").description("Link to paged task categories").optional(),
             linkWithRel("events").description("Link to task category events").optional()
     );
+    @MockitoBean
+    private TaskCategoryService service;
+    @MockitoBean
+    private TaskCategoryImportService importService;
+    @MockitoBean
+    private TaskCategoryExportService exportService;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

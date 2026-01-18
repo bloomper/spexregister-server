@@ -86,30 +86,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = UserApi.class)
 class UserApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private UserService service;
-
-    @MockitoBean
-    private UserExportService exportService;
-
-    @MockitoBean
-    private UserImportService importService;
-
-    @MockitoBean
-    private AuthorityApi authorityApi;
-
-    @MockitoBean
-    private StateApi stateApi;
-
-    @MockitoBean
-    private SpexareApi spexareApi;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the user"),
             fieldWithPath("externalId").description("The external id of the user"),
@@ -117,7 +93,6 @@ class UserApiTest extends AbstractApiTest {
             fieldWithPath("temporaryPassword").description("The temporary password of the user").optional(),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("users").description("Link to paged users").optional(),
             linkWithRel("authorities").description("Link to user authorities").optional(),
@@ -125,6 +100,22 @@ class UserApiTest extends AbstractApiTest {
             linkWithRel("spexare").description("Link to user spexare").optional(),
             linkWithRel("events").description("Link to user events").optional()
     );
+    @MockitoBean
+    private UserService service;
+    @MockitoBean
+    private UserExportService exportService;
+    @MockitoBean
+    private UserImportService importService;
+    @MockitoBean
+    private AuthorityApi authorityApi;
+    @MockitoBean
+    private StateApi stateApi;
+    @MockitoBean
+    private SpexareApi spexareApi;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

@@ -25,5 +25,6 @@ import java.util.Set;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public record UserKeycloakData(UserRepresentation representation, Set<AuthorityDto> authorities) {}
+public record UserKeycloakData(UserRepresentation representation, Set<AuthorityDto> authorities) {
+}
 

@@ -78,21 +78,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = NewsApi.class)
 class NewsApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private NewsService service;
-
-    @MockitoBean
-    private NewsExportService exportService;
-
-    @MockitoBean
-    private NewsImportService importService;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the news"),
             fieldWithPath("subject").description("The subject of the news"),
@@ -102,11 +87,20 @@ class NewsApiTest extends AbstractApiTest {
             fieldWithPath("published").description("The flag telling whether the news has been published or not"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("news").description("Link to paged news").optional(),
             linkWithRel("events").description("Link to news events").optional()
     );
+    @MockitoBean
+    private NewsService service;
+    @MockitoBean
+    private NewsExportService exportService;
+    @MockitoBean
+    private NewsImportService importService;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

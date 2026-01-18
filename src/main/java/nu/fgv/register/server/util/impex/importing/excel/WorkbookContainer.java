@@ -35,10 +35,10 @@ import java.util.function.Function;
 @Setter
 class WorkbookContainer extends AbstractWorkbookContainer {
     private final List<String> messages = new ArrayList<>();
+    private final Validator validator;
     private Class<?> createClazz;
     private Class<?> updateClazz;
     private Function<Long, Boolean> existenceChecker;
-    private final Validator validator;
 
     WorkbookContainer() {
         try (final ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {

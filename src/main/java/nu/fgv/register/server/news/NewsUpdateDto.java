@@ -31,22 +31,22 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record NewsUpdateDto(
-    @JsonProperty("id")
-    Long id,
+        @JsonProperty("id")
+        Long id,
 
-    @NotBlank(message = "{news.subject.notEmpty}")
-    @Size(max = 255, message = "{news.subject.size}")
-    @JsonProperty("subject")
-    String subject,
+        @NotBlank(message = "{news.subject.notEmpty}")
+        @Size(max = 255, message = "{news.subject.size}")
+        @JsonProperty("subject")
+        String subject,
 
-    @NotBlank(message = "{news.text.notEmpty}")
-    @JsonProperty("text")
-    String text,
+        @NotBlank(message = "{news.text.notEmpty}")
+        @JsonProperty("text")
+        String text,
 
-    @JsonProperty("visibleFrom")
-    LocalDate visibleFrom,
+        @JsonProperty("visibleFrom")
+        LocalDate visibleFrom,
 
-    @JsonProperty("visibleTo")
-    LocalDate visibleTo
+        @JsonProperty("visibleTo")
+        LocalDate visibleTo
 ) {
 }

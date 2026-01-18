@@ -52,9 +52,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = EventApi.class)
 class EventApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private EventService service;
-
     private final ResponseFieldsSnippet responseFields = responseFields(
             fieldWithPath("id").description("The id of the event"),
             fieldWithPath("event").description("The type of the event"),
@@ -63,7 +60,6 @@ class EventApiTest extends AbstractApiTest {
             fieldWithPath("createdAt").description("When was the entity created"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("news-events").description("Link to news events").optional(),
             linkWithRel("spex-events").description("Link to spex events").optional(),
@@ -74,6 +70,8 @@ class EventApiTest extends AbstractApiTest {
             linkWithRel("task-category-events").description("Link to task category events").optional(),
             linkWithRel("user-events").description("Link to user events").optional()
     );
+    @MockitoBean
+    private EventService service;
 
     @Test
     void should_get_all() throws Exception {

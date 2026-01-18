@@ -31,18 +31,24 @@ import static java.lang.annotation.ElementType.PARAMETER;
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Target( { FIELD, PARAMETER })
+@Target({FIELD, PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Constraint(validatedBy = LuhnValidator.class)
 public @interface Luhn {
 
     String regexp();
+
     int[] inputGroups();
+
     int controlGroup();
+
     int existenceGroup();
+
     String message() default "Invalid control number";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 
 

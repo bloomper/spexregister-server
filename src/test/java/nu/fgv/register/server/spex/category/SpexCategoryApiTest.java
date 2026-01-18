@@ -84,21 +84,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexCategoryApi.class)
 class SpexCategoryApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private SpexCategoryService service;
-
-    @MockitoBean
-    private SpexCategoryImportService importService;
-
-    @MockitoBean
-    private SpexCategoryExportService exportService;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex category"),
             fieldWithPath("name").description("The name of the spex category"),
@@ -106,12 +91,21 @@ class SpexCategoryApiTest extends AbstractApiTest {
             fieldWithPath("logoUrl").description("The logo URL of the spex category"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spex-categories").description("Link to paged spex categories").optional(),
             linkWithRel("logo").description("Link to the current spex category's logo").optional(),
             linkWithRel("events").description("Link to spex category events").optional()
     );
+    @MockitoBean
+    private SpexCategoryService service;
+    @MockitoBean
+    private SpexCategoryImportService importService;
+    @MockitoBean
+    private SpexCategoryExportService exportService;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

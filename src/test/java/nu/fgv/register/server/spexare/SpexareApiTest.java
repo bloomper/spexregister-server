@@ -97,24 +97,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexareApi.class)
 class SpexareApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private SpexareService service;
-
-    @MockitoBean
-    private SpexareImportService importService;
-
-    @MockitoBean
-    private SpexareExportService exportService;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
-    @MockitoBean
-    private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spexare"),
             fieldWithPath("firstName").description("The first name of the spexare"),
@@ -128,7 +110,6 @@ class SpexareApiTest extends AbstractApiTest {
             fieldWithPath("image").description("The image of the spexare"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("image").description("Link to the current spexare's image").optional(),
             linkWithRel("activities").description("Link to the current spexare's activities").optional(),
@@ -140,6 +121,18 @@ class SpexareApiTest extends AbstractApiTest {
             linkWithRel("partner").description("Link to the current spexare's partner").optional(),
             linkWithRel("events").description("Link to spexare events").optional()
     );
+    @MockitoBean
+    private SpexareService service;
+    @MockitoBean
+    private SpexareImportService importService;
+    @MockitoBean
+    private SpexareExportService exportService;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
+    @MockitoBean
+    private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
 
     @Test
     void should_get_paged() throws Exception {

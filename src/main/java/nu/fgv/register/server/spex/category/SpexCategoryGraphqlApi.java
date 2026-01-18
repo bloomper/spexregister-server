@@ -53,7 +53,7 @@ public class SpexCategoryGraphqlApi {
 
     @QueryMapping("spexCategoryPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexCategoryDto> retrieve(final ScrollSubrange subrange,  @Argument final Optional<String> filter, final Optional<Sort> sort) {
+    public Window<SpexCategoryDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());

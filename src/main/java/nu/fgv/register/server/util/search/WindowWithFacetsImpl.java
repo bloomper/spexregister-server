@@ -100,7 +100,7 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
         if (this == o) {
             return true;
         } else if (o != null && getClass() == o.getClass()) {
-            final WindowWithFacetsImpl<?> that = (WindowWithFacetsImpl<?>)o;
+            final WindowWithFacetsImpl<?> that = (WindowWithFacetsImpl<?>) o;
 
             return ObjectUtils.nullSafeEquals(items, that.items) &&
                     ObjectUtils.nullSafeEquals(positionFunction, that.positionFunction) &&

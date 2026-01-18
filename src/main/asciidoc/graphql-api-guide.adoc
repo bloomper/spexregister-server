@@ -11,15 +11,15 @@ xref:index.adoc[Back to start page]
 [[schema]]
 == Schema
 
-The schema is available at https://register.fgv.nu/api/graphql. If running locally, the corresponding URL
-is http://localhost:8080/api/graphql.
+The schema is available at https://register.fgv.nu/api/graphql.
+If running locally, the corresponding URL is http://localhost:8080/api/graphql.
 
 [[errors]]
 == Errors
 
-The GraphQL API provides error details in the ``extensions`` section of the response. The error details mimic
-RFC 9457 for which more information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here]. The structure is
-as follows:
+The GraphQL API provides error details in the ``extensions`` section of the response.
+The error details mimic RFC 9457 for which more information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here].
+The structure is as follows:
 
 include::{static-snippets}/graphql-error/response-fields.adoc[]
 
@@ -27,8 +27,7 @@ For example, a request that attempts to create a duplicate ``Actor`` will produc
 
 include::{static-snippets}/graphql-error/graphql-response.adoc[]
 
-Note that invalid input according to the schema will be detected and reported as validation errors by the client
-which means that the structure is different from described above.
+Note that invalid input according to the schema will be detected and reported as validation errors by the client which means that the structure is different from described above.
 
 [[roles]]
 == Roles
@@ -47,8 +46,8 @@ Spexregister Server uses the following roles:
 [[filtering]]
 == Filtering
 
-When retrieving resources, it is possible to apply filtering. Note that it does not
-apply to all resources.
+When retrieving resources, it is possible to apply filtering.
+Note that it does not apply to all resources.
 
 The available operations are:
 
@@ -69,9 +68,8 @@ The syntax is:
 
 Example: ``nickName:colg*``
 
-Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much
-like the WHERE clause in SQL statements. To group clauses, use ``( `` and `` )`` (note the
-trailing and leading whitespaces).
+Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much like the WHERE clause in SQL statements.
+To group clauses, use ``( `` and `` )`` (note the trailing and leading whitespaces).
 
 Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
 
@@ -87,7 +85,6 @@ Instead, a simple offset/limit mechanism is used.
 [[file_handling]]
 == File handling
 
-As GraphQL does not have any native support for uploading/downloading files, those operations
-must be done via the REST API.
+As GraphQL does not have any native support for uploading/downloading files, those operations must be done via the REST API.
 
 xref:index.adoc[Back to start page]

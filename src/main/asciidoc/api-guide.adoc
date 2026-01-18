@@ -11,8 +11,7 @@ xref:index.adoc[Back to start page]
 [[http_verbs]]
 == HTTP verbs
 
-Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its
-use of HTTP verbs.
+Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its use of HTTP verbs.
 
 |===
 | Verb | Usage
@@ -33,8 +32,7 @@ use of HTTP verbs.
 [[http_status_codes]]
 == HTTP status codes
 
-Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its
-use of HTTP status codes.
+Spexregister Server tries to adhere as closely as possible to standard HTTP and REST conventions in its use of HTTP status codes.
 
 |===
 | Status code | Usage
@@ -65,8 +63,8 @@ use of HTTP status codes.
 [[versioning]]
 == Versioning
 
-The API is versioned, and therefore each request must have a header `X-API-Version` stating which version
-that should be used. The supported versions are:
+The API is versioned, and therefore each request must have a header `X-API-Version` stating which version that should be used.
+The supported versions are:
 
 * 1.0
 
@@ -75,8 +73,8 @@ If no version is specified, it defaults to 1.0.
 [[errors]]
 == Errors
 
-Whenever an error response (status code >= 400) is returned, the body will contain a JSON object
-that describes the problem. The error object is RFC 9457 compliant and has the following structure:
+Whenever an error response (status code >= 400) is returned, the body will contain a JSON object that describes the problem.
+The error object is RFC 9457 compliant and has the following structure:
 
 include::{static-snippets}/error/response-fields.adoc[]
 
@@ -90,11 +88,11 @@ include::{static-snippets}/error/http-response.adoc[]
 [[hypermedia]]
 == Hypermedia
 
-Spexregister Server uses hypermedia and resources include links to other resources in their
-responses. Responses are in https://github.com/mikekelly/hal_specification[Hypertext
-Application Language (HAL)] format. Links can be found beneath the `_links` key. Users of
-the API should not create URIs themselves, instead they should use the above-described
-links to navigate from resource to resource.
+Spexregister Server uses hypermedia and resources include links to other resources in their responses.
+Responses are in https://github.com/mikekelly/hal_specification[Hypertext
+Application Language (HAL)] format.
+Links can be found beneath the `_links` key.
+Users of the API should not create URIs themselves, instead they should use the above-described links to navigate from resource to resource.
 
 [[roles]]
 == Roles
@@ -113,8 +111,8 @@ Spexregister Server uses the following roles:
 [[filtering]]
 == Filtering
 
-When retrieving resources, it is possible to apply filtering. Note that it does not
-apply to all resources.
+When retrieving resources, it is possible to apply filtering.
+Note that it does not apply to all resources.
 
 The available operations are:
 
@@ -135,9 +133,8 @@ The syntax is:
 
 Example: ``nickName:colg*``
 
-Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much
-like the WHERE clause in SQL statements. To group clauses, use ``( `` and `` )`` (note the
-trailing and leading whitespaces).
+Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, very much like the WHERE clause in SQL statements.
+To group clauses, use ``( `` and `` )`` (note the trailing and leading whitespaces).
 
 Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
 

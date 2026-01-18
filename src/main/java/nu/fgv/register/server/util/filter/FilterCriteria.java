@@ -41,16 +41,16 @@ public class FilterCriteria {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 
         if (op == FilterOperation.EQUALITY) {
-                final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.WILDCARD);
-                final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.WILDCARD);
+            final boolean startWithAsterisk = prefix != null && prefix.contains(FilterOperation.WILDCARD);
+            final boolean endWithAsterisk = suffix != null && suffix.contains(FilterOperation.WILDCARD);
 
-                if (startWithAsterisk && endWithAsterisk) {
-                    op = FilterOperation.CONTAINS;
-                } else if (startWithAsterisk) {
-                    op = FilterOperation.ENDS_WITH;
-                } else if (endWithAsterisk) {
-                    op = FilterOperation.STARTS_WITH;
-                }
+            if (startWithAsterisk && endWithAsterisk) {
+                op = FilterOperation.CONTAINS;
+            } else if (startWithAsterisk) {
+                op = FilterOperation.ENDS_WITH;
+            } else if (endWithAsterisk) {
+                op = FilterOperation.STARTS_WITH;
+            }
         }
         this.key = key;
         this.operation = op;

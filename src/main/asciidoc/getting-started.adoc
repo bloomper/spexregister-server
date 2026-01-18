@@ -55,8 +55,7 @@ The parameters can be found under ``.docker/secrets`` where each file represents
 
 |===
 
-There are also configuration parameters in ``.env`` that can be tweaked if so desired but
-the default values will work just fine.
+There are also configuration parameters in ``.env`` that can be tweaked if so desired but the default values will work just fine.
 
 |===
 |Parameter|Purpose|Default value
@@ -101,8 +100,7 @@ $ docker compose up -d
 == Sample data
 
 If ``APP_IMPORT_SAMPLE_DATA`` in ``.env`` is set to ``true``, sample data will be imported.
-Sample data consists both of real data and random data but none of the data can be traced
-to real individuals, i.e. no personally identifiable information (PII).
+Sample data consists both of real data and random data but none of the data can be traced to real individuals, i.e. no personally identifiable information (PII).
 
 [sidebar]
 .NOTE
@@ -116,19 +114,17 @@ Any existing data will be wiped out.
 [[keycloak_customization]]
 === Customization
 
-In order to support passwords from the previous Spexregister generation, a custom password hashing
-provider has been implemented. At first login, the password is re-hashed using the default password
-hashing provider.
+In order to support passwords from the previous Spexregister generation, a custom password hashing provider has been implemented.
+At first login, the password is re-hashed using the default password hashing provider.
 
-The JAR file ``spexregister-server-2.0.0-keycloak.jar`` found in ``build/keycloak-providers`` need to
-be installed into Keycloak. This is done by copying the file into ``/opt/keycloak/providers`` in the
-Docker image.
+The JAR file ``spexregister-server-2.0.0-keycloak.jar`` found in ``build/keycloak-providers`` need to be installed into Keycloak.
+This is done by copying the file into ``/opt/keycloak/providers`` in the Docker image.
 
 [[keycloak_administration]]
 === Administration UI
 
-The administrative UI of Keycloak can be accessed at https://keycloak.fgv.local.nu:8443/auth. The username is set
-by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
+The administrative UI of Keycloak can be accessed at https://keycloak.fgv.local.nu:8443/auth.
+The username is set by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
 
 [[keycloak_setup]]
 === Setup
@@ -156,8 +152,7 @@ These are the steps to create a realm in Keycloak:
 *** view-users
 *** view-clients
 
-To also create test users and export the realm, i.e. ``src/test/resources/keycloak/fgv.json``,
-do the following:
+To also create test users and export the realm, i.e. ``src/test/resources/keycloak/fgv.json``, do the following:
 
 * Start Keycloak by ``./bin/kc.sh start-dev``
 * Follow the steps outlined above
@@ -177,13 +172,12 @@ do the following:
 [[caddy]]
 == Caddy
 
-Caddy is used as a web server in front of Keycloak and Spexregister Server and takes care of creating and
-assigning an SSL certificate. However, since it is listening to local addresses, the certificate is not created
-by a proper CA (Certificate Authority). It is therefore needed to import the root certificate to avoid browsers
-complaining about the certificate.
+Caddy is used as a web server in front of Keycloak and Spexregister Server and takes care of creating and assigning an SSL certificate.
+However, since it is listening to local addresses, the certificate is not created by a proper CA (Certificate Authority).
+It is therefore needed to import the root certificate to avoid browsers complaining about the certificate.
 
-The root certificate can be found in ``.docker/caddy/data/caddy/pki/authorities/local/root.crt``. Import it into
-your OS's trust manager.
+The root certificate can be found in ``.docker/caddy/data/caddy/pki/authorities/local/root.crt``.
+Import it into your OS's trust manager.
 
 [[tests]]
 == Tests
@@ -193,12 +187,11 @@ There are two types of tests:
 * Unit tests, located under ``src/test``
 * Integration tests, located under ``src/integrationtest``
 
-Unit tests do not require any external dependencies, such as a database, and are therefore
-quicker to run. An example of unit tests is API tests which are used to generate the REST API documentation.
+Unit tests do not require any external dependencies, such as a database, and are therefore quicker to run.
+An example of unit tests is API tests which are used to generate the REST API documentation.
 Apart from API tests, unit tests are mostly only written for complex logic.
 
-Integration tests are slow to run as they depend on a full environment but that also means that they are
-end-to-end tests which are generally considered to provide better test value.
+Integration tests are slow to run as they depend on a full environment but that also means that they are end-to-end tests which are generally considered to provide better test value.
 
 [[test_credentials]]
 == Test credentials
@@ -218,11 +211,12 @@ The following test users have been pre-created:
 [[testing_the_api]]
 == Testing the API
 
-There are many tools out there that can be used for manual testing of the APIs. Two examples are
-Postman (https://www.postman.com/) and Brauzie (https://github.com/maslick/brauzie).
+There are many tools out there that can be used for manual testing of the APIs.
+Two examples are Postman (https://www.postman.com/) and Brauzie (https://github.com/maslick/brauzie).
 
 To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`` tab and then select
-``Authorization Code`` as ``Grant type``. Enter values as follows (leave other fields empty).
+``Authorization Code`` as ``Grant type``.
+Enter values as follows (leave other fields empty).
 
 |===
 

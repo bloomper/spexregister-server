@@ -65,19 +65,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = MembershipApi.class)
 class MembershipApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private MembershipService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the membership"),
             fieldWithPath("year").description("The year of the membership"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("memberships").description("Link to the current spexare's memberships")
     );
+    @MockitoBean
+    private MembershipService service;
 
     @Test
     void should_get_paged() throws Exception {

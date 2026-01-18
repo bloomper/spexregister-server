@@ -7,11 +7,9 @@
 [[introduction]]
 == Introduction
 
-Spexregister Server is the second generation of the backend responsible for serving data related to
-Spexregister.
+Spexregister Server is the second generation of the backend responsible for serving data related to Spexregister.
 
-The purpose of this documentation is to provide details on how to develop within Spexregister Server and
-how to integrate Spexregister Server into another application, e.g. a web application.
+The purpose of this documentation is to provide details on how to develop within Spexregister Server and how to integrate Spexregister Server into another application, e.g. a web application.
 
 [[getting_started]]
 == Getting started

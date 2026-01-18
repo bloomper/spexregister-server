@@ -136,17 +136,6 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
         return new PagedWithFacetsModel<>(content, metadata, links, facets);
     }
 
-    @JsonProperty("facets")
-    public Collection<Facet> getFacets() {
-        return facets;
-    }
-
-    @JsonProperty("page")
-    @Nullable
-    public PageMetadata getMetadata() {
-        return metadata;
-    }
-
     @SuppressWarnings("unchecked")
     public static <T extends EntityModel<S>, S> PagedWithFacetsModel<T> wrap(final Iterable<S> content, final PageMetadata metadata, final Collection<Facet> facets) {
         Assert.notNull(content, "Content must not be null!");
@@ -158,6 +147,17 @@ public class PagedWithFacetsModel<T> extends CollectionModel<T> {
         }
 
         return PagedWithFacetsModel.of(resources, metadata, facets);
+    }
+
+    @JsonProperty("facets")
+    public Collection<Facet> getFacets() {
+        return facets;
+    }
+
+    @JsonProperty("page")
+    @Nullable
+    public PageMetadata getMetadata() {
+        return metadata;
     }
 
     @JsonIgnore

@@ -63,17 +63,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = TaskActivityApi.class)
 class TaskActivityApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private TaskActivityService service;
-
-    @MockitoBean
-    private TaskApi taskApi;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task activity"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
@@ -81,17 +74,19 @@ class TaskActivityApiTest extends AbstractApiTest {
             linkWithRel("actors").description("Link to the current spexare's actors"),
             linkWithRel("task").description("Link to the current task")
     );
-
     private final ResponseFieldsSnippet taskResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
             linksSubsection
     );
-
     private final LinksSnippet taskLinks = baseLinks.and(
             linkWithRel("tasks").description("Link to paged tasks").optional(),
             linkWithRel("category").description("Link to the current task's task category").optional()
     );
+    @MockitoBean
+    private TaskActivityService service;
+    @MockitoBean
+    private TaskApi taskApi;
 
     @Test
     void should_get_paged() throws Exception {

@@ -78,31 +78,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = TagApi.class)
 class TagApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private TagService service;
-
-    @MockitoBean
-    private TagImportService importService;
-
-    @MockitoBean
-    private TagExportService exportService;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the tag"),
             fieldWithPath("name").description("The name of the tag"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("tags").description("Link to paged tags").optional(),
             linkWithRel("events").description("Link to tag events").optional()
     );
+    @MockitoBean
+    private TagService service;
+    @MockitoBean
+    private TagImportService importService;
+    @MockitoBean
+    private TagExportService exportService;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

@@ -103,22 +103,20 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int SPEXARE_MIN_AGE = 18;
     private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
-    private static final String SAMPLE_PASSWORD = "s3cr3t";
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
-
+    private static final String SAMPLE_PASSWORD = "s3cr3t";
     private final PermissionService permissionService;
     private final AuthorityService authorityService;
     @Value("${spexregister.sample-data.import:false}")
     private final boolean importSampleData;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
-    @Value("${spexregister.keycloak.realm}")
-    private String keycloakRealm;
-
     private final Random rnd = new SecureRandom();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CustomSwedenIdNumber customSwedenIdNumber = new CustomSwedenIdNumber();
     private final CryptoConverter cryptoConverter;
+    @Value("${spexregister.keycloak.realm}")
+    private String keycloakRealm;
 
     public R__ImportSampleData(final PermissionService permissionService,
                                final AuthorityService authorityService,

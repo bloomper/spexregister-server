@@ -46,9 +46,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = StatisticsApi.class)
 class StatisticsApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private StatisticsService service;
-
     private final ResponseFieldsSnippet responseFields = responseFields(
             fieldWithPath("spexareCount").description("The total number of spexare"),
             fieldWithPath("spexareCountHistory").description("History of the number of spexare per month"),
@@ -71,6 +68,8 @@ class StatisticsApiTest extends AbstractApiTest {
             fieldWithPath("taskCountHistory[].label").description("The month and year (YYYY-MM)"),
             fieldWithPath("taskCountHistory[].count").description("The count for that month")
     );
+    @MockitoBean
+    private StatisticsService service;
 
     @Test
     void should_get() throws Exception {

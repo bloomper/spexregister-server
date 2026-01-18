@@ -86,24 +86,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexApi.class)
 class SpexApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private SpexService service;
-
-    @MockitoBean
-    private SpexImportService importService;
-
-    @MockitoBean
-    private SpexExportService exportService;
-
-    @MockitoBean
-    private SpexCategoryApi categoryApi;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex"),
             fieldWithPath("year").description("The year of the spex"),
@@ -112,7 +94,6 @@ class SpexApiTest extends AbstractApiTest {
             fieldWithPath("posterUrl").description("The poster URL of the spex"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("poster").description("Link to the current spex's poster").optional(),
             linkWithRel("parent").description("Link to the current spex's parent").optional(),
@@ -122,7 +103,6 @@ class SpexApiTest extends AbstractApiTest {
             linkWithRel("spex-including-revivals").description("Link to paged spex (including revivals)").optional(),
             linkWithRel("events").description("Link to spex events").optional()
     );
-
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex category"),
             fieldWithPath("name").description("The name of the spex category"),
@@ -130,12 +110,23 @@ class SpexApiTest extends AbstractApiTest {
             fieldWithPath("logoUrl").description("The logo URL of the spex category"),
             linksSubsection
     );
-
     private final LinksSnippet categoryLinks = baseLinks.and(
             linkWithRel("spex-categories").description("Link to paged spex categories").optional(),
             linkWithRel("logo").description("Link to the current spex category's logo").optional(),
             linkWithRel("events").description("Link to spex category events").optional()
     );
+    @MockitoBean
+    private SpexService service;
+    @MockitoBean
+    private SpexImportService importService;
+    @MockitoBean
+    private SpexExportService exportService;
+    @MockitoBean
+    private SpexCategoryApi categoryApi;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

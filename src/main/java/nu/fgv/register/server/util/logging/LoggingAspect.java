@@ -43,15 +43,15 @@ public class LoggingAspect {
     }
 
     @Pointcut(
-        "within(@org.springframework.stereotype.Repository *)" +
-        " || within(@org.springframework.stereotype.Service *)" +
-        " || within(@org.springframework.web.bind.annotation.RestController *)"
+            "within(@org.springframework.stereotype.Repository *)" +
+                    " || within(@org.springframework.stereotype.Service *)" +
+                    " || within(@org.springframework.web.bind.annotation.RestController *)"
     )
     public void springBeanPointcut() {
     }
 
     @Pointcut(
-        "within(nu.fgv.register..*Service)" + " || within(nu.fgv.register..*Api)"
+            "within(nu.fgv.register..*Service)" + " || within(nu.fgv.register..*Api)"
     )
     public void applicationPackagePointcut() {
     }
@@ -64,20 +64,20 @@ public class LoggingAspect {
     public void logAfterThrowing(final JoinPoint joinPoint, final Throwable e) {
         if (env.acceptsProfiles(Profiles.of("local"))) {
             logger(joinPoint)
-                .error(
-                    "Exception in {}() with cause = '{}' and exception = '{}'",
-                    joinPoint.getSignature().getName(),
-                    e.getCause() != null ? e.getCause() : "NULL",
-                    e.getMessage(),
-                    e
-                );
+                    .error(
+                            "Exception in {}() with cause = '{}' and exception = '{}'",
+                            joinPoint.getSignature().getName(),
+                            e.getCause() != null ? e.getCause() : "NULL",
+                            e.getMessage(),
+                            e
+                    );
         } else {
             logger(joinPoint)
-                .error(
-                    "Exception in {}() with cause = {}",
-                    joinPoint.getSignature().getName(),
-                    e.getCause() != null ? e.getCause() : "NULL"
-                );
+                    .error(
+                            "Exception in {}() with cause = {}",
+                            joinPoint.getSignature().getName(),
+                            e.getCause() != null ? e.getCause() : "NULL"
+                    );
         }
     }
 

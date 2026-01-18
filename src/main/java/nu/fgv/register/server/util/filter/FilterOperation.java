@@ -23,23 +23,15 @@ package nu.fgv.register.server.util.filter;
 public enum FilterOperation {
     EQUALITY, NEGATION, GREATER_THAN, LESS_THAN, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
 
-    static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "~" };
-
-    static final String WILDCARD = "*";
-
-    static final String OR_OPERATOR = "OR";
-
-    static final String AND_OPERATOR = "AND";
-
-    static final String LEFT_PARENTHESIS = "(";
-
-    static final String RIGHT_PARENTHESIS = ")";
-
     public static final String NULL = "NULL";
-
     public static final String TRUE = "TRUE";
-
     public static final String FALSE = "FALSE";
+    static final String[] SIMPLE_OPERATION_SET = {":", "!", ">", "<", "~"};
+    static final String WILDCARD = "*";
+    static final String OR_OPERATOR = "OR";
+    static final String AND_OPERATOR = "AND";
+    static final String LEFT_PARENTHESIS = "(";
+    static final String RIGHT_PARENTHESIS = ")";
 
     public static FilterOperation getSimpleOperation(final char input) {
         return switch (input) {
@@ -48,7 +40,8 @@ public enum FilterOperation {
             case '>' -> GREATER_THAN;
             case '<' -> LESS_THAN;
             case '~' -> LIKE;
-            default -> throw new IllegalArgumentException("Unexpected operation input, expected one of :, !, >, <, ~, but got: " + input);
+            default ->
+                    throw new IllegalArgumentException("Unexpected operation input, expected one of :, !, >, <, ~, but got: " + input);
         };
     }
 }

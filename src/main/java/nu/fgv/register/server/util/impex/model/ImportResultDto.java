@@ -46,5 +46,6 @@ public class ImportResultDto {
     private List<String> messages;
 
     @JsonProperty("data")
-    @Nullable private Map<String, Object> data;
+    @Nullable
+    private Map<String, Object> data;
 }

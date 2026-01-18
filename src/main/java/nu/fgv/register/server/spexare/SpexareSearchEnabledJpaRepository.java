@@ -92,12 +92,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     private static final String AGGREGATION_MEMBERSHIPS = String.join(ATTRIBUTE_DELIMITER, Spexare_.MEMBERSHIPS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "memberships";
     private static final String AGGREGATION_CONSENTS = String.join(ATTRIBUTE_DELIMITER, Spexare_.CONSENTS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "consents";
     private static final String AGGREGATION_TOGGLES = String.join(ATTRIBUTE_DELIMITER, Spexare_.TOGGLES, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "toggles";
-
-    private static final List<String> BOOLEAN_AGGREGATIONS = List.of(
-            AGGREGATION_DECEASED,
-            AGGREGATION_PUBLISHED
-    );
-
     private static final List<String> HIERARCHICAL_AGGREGATIONS = List.of(
             AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_TITLE,
             AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_CATEGORY_NAME,
@@ -109,7 +103,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             AGGREGATION_CONSENTS,
             AGGREGATION_TOGGLES
     );
-
     static final List<String> AGGREGATIONS = List.of(
             AGGREGATION_DECEASED,
             AGGREGATION_PUBLISHED,
@@ -123,6 +116,10 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             AGGREGATION_MEMBERSHIPS,
             AGGREGATION_CONSENTS,
             AGGREGATION_TOGGLES
+    );
+    private static final List<String> BOOLEAN_AGGREGATIONS = List.of(
+            AGGREGATION_DECEASED,
+            AGGREGATION_PUBLISHED
     );
 
     public SpexareSearchEnabledJpaRepository(final Class<Spexare> domainClass, final EntityManager entityManager) {

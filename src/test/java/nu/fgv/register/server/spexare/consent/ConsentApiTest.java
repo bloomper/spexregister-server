@@ -66,19 +66,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ConsentApi.class)
 class ConsentApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private ConsentService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the consent"),
             fieldWithPath("value").description("The value of the consent"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("consents").description("Link to the current spexare's consents")
     );
+    @MockitoBean
+    private ConsentService service;
 
     @Test
     void should_get_paged() throws Exception {

@@ -58,19 +58,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = TaggingApi.class)
 class TaggingApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private TaggingService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the tag"),
             fieldWithPath("name").description("The name of the tag"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("tags").description("Link to the current spexare's tags")
     );
+    @MockitoBean
+    private TaggingService service;
 
     @Test
     void should_get_paged() throws Exception {

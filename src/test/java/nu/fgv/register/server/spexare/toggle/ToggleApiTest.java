@@ -66,19 +66,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ToggleApi.class)
 class ToggleApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private ToggleService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the toggle"),
             fieldWithPath("value").description("The value of the toggle"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("toggles").description("Link to the current spexare's toggles")
     );
+    @MockitoBean
+    private ToggleService service;
 
     @Test
     void should_get_paged() throws Exception {

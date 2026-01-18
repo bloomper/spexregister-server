@@ -47,5 +47,6 @@ public @interface ExcelCell {
 
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Exclude {}
+    @interface Exclude {
+    }
 }

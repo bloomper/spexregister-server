@@ -426,7 +426,8 @@ public class SpexareImportService extends AbstractImportService {
                 }
             } catch (final Exception e) {
                 log.error("Error processing activity", e);
-                summary.addError(dto.getRowNumber(), "activity.impex.entityName", e.getMessage());           }
+                summary.addError(dto.getRowNumber(), "activity.impex.entityName", e.getMessage());
+            }
         });
     }
 

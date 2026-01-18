@@ -55,24 +55,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SpexActivityApi.class)
 class SpexActivityApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private SpexActivityService service;
-
-    @MockitoBean
-    private SpexApi spexApi;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex activity"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
             linkWithRel("spex-activity").description("Link to the current spexare's spex activity"),
             linkWithRel("spex").description("Link to the current spex")
     );
-
     private final ResponseFieldsSnippet spexResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the spex"),
             fieldWithPath("year").description("The year of the spex"),
@@ -81,7 +73,6 @@ class SpexActivityApiTest extends AbstractApiTest {
             fieldWithPath("posterUrl").description("The poster URL of the spex"),
             linksSubsection
     );
-
     private final LinksSnippet spexLinks = baseLinks.and(
             linkWithRel("poster").description("Link to the current spex's poster").optional(),
             linkWithRel("parent").description("Link to the current spex's parent").optional(),
@@ -90,6 +81,10 @@ class SpexActivityApiTest extends AbstractApiTest {
             linkWithRel("spex").description("Link to paged spex").optional(),
             linkWithRel("spex-including-revivals").description("Link to paged spex (including revivals)").optional()
     );
+    @MockitoBean
+    private SpexActivityService service;
+    @MockitoBean
+    private SpexApi spexApi;
 
     @Test
     void should_get() throws Exception {

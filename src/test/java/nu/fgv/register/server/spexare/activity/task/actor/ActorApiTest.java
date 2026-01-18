@@ -67,21 +67,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ActorApi.class)
 class ActorApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private ActorService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the actor"),
             fieldWithPath("role").description("The role of the actor"),
             linksSubsection
     ).andWithPrefix("vocal.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
             linkWithRel("task-activities").description("Link to the current spexare's task activities"),
             linkWithRel("actors").description("Link to the current spexare's actors")
     );
+    @MockitoBean
+    private ActorService service;
 
     @Test
     void should_get_paged() throws Exception {

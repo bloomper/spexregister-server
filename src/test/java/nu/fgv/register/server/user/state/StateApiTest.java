@@ -55,18 +55,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = StateApi.class)
 class StateApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private StateService service;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the state"),
             fieldWithPath("label").description("The label of the state"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("states").description("Link to states").optional()
     );
+    @MockitoBean
+    private StateService service;
 
     @Test
     void should_get_all() throws Exception {

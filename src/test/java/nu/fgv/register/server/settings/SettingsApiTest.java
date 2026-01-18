@@ -62,47 +62,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = SettingsApi.class)
 class SettingsApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private LanguageService languageService;
-
-    @MockitoBean
-    private CountryService countryService;
-
-    @MockitoBean
-    private TypeService typeService;
-
+    protected final RequestHeadersSnippet requestHeaders = requestHeaders(
+            headerWithName("X-API-Version").description("The API version header"),
+            headerWithName(HttpHeaders.ACCEPT_LANGUAGE).description("The accept language header").optional()
+    );
     private final ResponseFieldsSnippet languageResponseFields = responseFields(
             fieldWithPath("isoCode").description("The ISO code of the language"),
             fieldWithPath("label").description("The label of the language"),
             linksSubsection
     );
-
     private final LinksSnippet languageLinks = baseLinks.and(
             linkWithRel("languages").description("Link to all languages")
     );
-
     private final ResponseFieldsSnippet countryResponseFields = responseFields(
             fieldWithPath("isoCode").description("The ISO code of the country"),
             fieldWithPath("label").description("The label of the country"),
             linksSubsection
     );
-
     private final LinksSnippet countryLinks = baseLinks.and(
             linkWithRel("countries").description("Link to all countries")
     );
-
     private final ResponseFieldsSnippet typeResponseFields = auditResponseFields.and(
             Stream.of(typeResponseFieldDescriptors, List.of(linksSubsection)).flatMap(Collection::stream).collect(Collectors.toList())
     );
-
     private final LinksSnippet typeLinks = baseLinks.and(
             linkWithRel("types").description("Link to all types")
     );
-
-    protected final RequestHeadersSnippet requestHeaders = requestHeaders(
-            headerWithName("X-API-Version").description("The API version header"),
-            headerWithName(HttpHeaders.ACCEPT_LANGUAGE).description("The accept language header").optional()
-    );
+    @MockitoBean
+    private LanguageService languageService;
+    @MockitoBean
+    private CountryService countryService;
+    @MockitoBean
+    private TypeService typeService;
 
     @Nested
     @DisplayName("Language")

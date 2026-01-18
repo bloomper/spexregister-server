@@ -127,7 +127,7 @@ public class Address extends AbstractAuditable implements Serializable {
     private Spexare spexare;
 
     @FullTextField(name = "countryName", searchable = Searchable.YES)
-    @IndexingDependency(derivedFrom = { @ObjectPath(@PropertyValue(propertyName = "country")) })
+    @IndexingDependency(derivedFrom = {@ObjectPath(@PropertyValue(propertyName = "country"))})
     public String getCountryName() {
         if (country == null || country.isBlank()) {
             return null;

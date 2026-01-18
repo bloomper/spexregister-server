@@ -80,47 +80,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = TaskApi.class)
 class TaskApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private TaskService service;
-
-    @MockitoBean
-    private TaskImportService importService;
-
-    @MockitoBean
-    private TaskExportService exportService;
-
-    @MockitoBean
-    private TaskCategoryApi categoryApi;
-
-    @MockitoBean
-    private EventService eventService;
-
-    @MockitoBean
-    private EventApi eventApi;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("tasks").description("Link to paged tasks").optional(),
             linkWithRel("category").description("Link to the current task's task category").optional(),
             linkWithRel("events").description("Link to task events").optional()
     );
-
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
             fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
             linksSubsection
     );
-
     private final LinksSnippet categoryLinks = baseLinks.and(
             linkWithRel("task-categories").description("Link to paged task categories").optional(),
             linkWithRel("events").description("Link to task category events").optional()
     );
+    @MockitoBean
+    private TaskService service;
+    @MockitoBean
+    private TaskImportService importService;
+    @MockitoBean
+    private TaskExportService exportService;
+    @MockitoBean
+    private TaskCategoryApi categoryApi;
+    @MockitoBean
+    private EventService eventService;
+    @MockitoBean
+    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {

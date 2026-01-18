@@ -31,9 +31,9 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Jacksonized // Needed due to this class having only one attribute
 public record TagCreateDto(
-    @NotBlank(message = "{tag.name.notEmpty}")
-    @Size(max = 255, message = "{tag.name.maxSize}")
-    @JsonProperty("name")
-    String name
+        @NotBlank(message = "{tag.name.notEmpty}")
+        @Size(max = 255, message = "{tag.name.maxSize}")
+        @JsonProperty("name")
+        String name
 ) {
 }

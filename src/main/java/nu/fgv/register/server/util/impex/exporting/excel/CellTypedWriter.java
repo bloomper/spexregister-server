@@ -33,7 +33,7 @@ class CellTypedWriter {
 
     public final BiConsumer<Cell, Object> intWriter = (Cell cell, Object obj) -> cell.setCellValue((int) obj);
 
-    public final BiConsumer<Cell, Object> shortWriter = (Cell cell, Object obj) -> cell.setCellValue((short)obj);
+    public final BiConsumer<Cell, Object> shortWriter = (Cell cell, Object obj) -> cell.setCellValue((short) obj);
 
     public final BiConsumer<Cell, Object> longWriter = (Cell cell, Object obj) -> cell.setCellValue((long) obj);
 

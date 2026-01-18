@@ -118,9 +118,15 @@ public class WebConfig implements WebMvcConfigurer {
     public RestTemplate restTemplate() throws Exception {
         final TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() { return null; }
-                    public void checkClientTrusted(final X509Certificate[] certs, final String authType) {}
-                    public void checkServerTrusted(final X509Certificate[] certs, final String authType) {}
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    public void checkClientTrusted(final X509Certificate[] certs, final String authType) {
+                    }
+
+                    public void checkServerTrusted(final X509Certificate[] certs, final String authType) {
+                    }
                 }
         };
 

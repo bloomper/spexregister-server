@@ -34,6 +34,7 @@ public class TagSpecification extends BaseSpecification<Tag> {
 
     private TagSpecification() {
     }
+
     public TagSpecification(final FilterCriteria criteria) {
         super(criteria);
     }

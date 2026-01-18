@@ -123,7 +123,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @Column(name = "social_security_number")
     @Convert(converter = CryptoConverter.class)
-    @FullTextField(name = "socialSecurityNumber_",searchable = Searchable.YES)
+    @FullTextField(name = "socialSecurityNumber_", searchable = Searchable.YES)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     @Nullable
     private String socialSecurityNumber;

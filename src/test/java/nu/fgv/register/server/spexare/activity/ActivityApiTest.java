@@ -59,20 +59,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ActivityApi.class)
 class ActivityApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private ActivityService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the activity"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("activities").description("Link to the current spexare's activities"),
             linkWithRel("spex-activity").description("Link to the current spexare's spex activity"),
             linkWithRel("task-activities").description("Link to the current spexare's task activities")
     );
+    @MockitoBean
+    private ActivityService service;
 
     @Test
     void should_get_paged() throws Exception {

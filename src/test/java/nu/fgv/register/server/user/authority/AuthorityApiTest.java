@@ -55,18 +55,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = AuthorityApi.class)
 class AuthorityApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private AuthorityService service;
-
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the authority"),
             fieldWithPath("label").description("The label of the authority"),
             linksSubsection
     );
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("authorities").description("Link to authorities").optional()
     );
+    @MockitoBean
+    private AuthorityService service;
 
     @Test
     void should_get_all() throws Exception {

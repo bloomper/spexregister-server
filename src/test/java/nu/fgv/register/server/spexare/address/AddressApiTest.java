@@ -67,9 +67,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = AddressApi.class)
 class AddressApiTest extends AbstractApiTest {
 
-    @MockitoBean
-    private AddressService service;
-
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the address"),
             fieldWithPath("streetAddress").description("The street address of the address"),
@@ -81,11 +78,12 @@ class AddressApiTest extends AbstractApiTest {
             fieldWithPath("emailAddress").description("The email address of the address"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
-
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("spexare").description("Link to the current spexare"),
             linkWithRel("addresses").description("Link to the current spexare's addresses")
     );
+    @MockitoBean
+    private AddressService service;
 
     @Test
     void should_get_paged() throws Exception {

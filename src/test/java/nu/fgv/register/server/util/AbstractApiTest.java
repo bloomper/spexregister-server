@@ -152,22 +152,8 @@ public abstract class AbstractApiTest {
     );
 
     protected static final SubsectionDescriptor linksSubsection = (SubsectionDescriptor) subsectionWithPath("_links").description("Links section");
-
-    protected MockMvc mockMvc;
-
     protected final ObjectMapper objectMapper = new ObjectMapper();
-
-    @BeforeEach
-    public void setUp(final WebApplicationContext webApplicationContext, final RestDocumentationContextProvider restDocumentation) {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(documentationConfiguration(restDocumentation)
-                        .uris()
-                        .withHost("register.fgv.nu")
-                        .withPort(443)
-                        .withScheme("https"))
-                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
-                .build();
-    }
+    protected MockMvc mockMvc;
 
     protected static SecuritySnippet noSecurity() {
         return security(false, Collections.emptyList());
@@ -183,6 +169,18 @@ public abstract class AbstractApiTest {
 
     protected static List<String> getRolesFromMethod(final Class<?> clazz, final String method, final Class<?>... arguments) throws NoSuchMethodException {
         return RoleExtractor.extractRoles(clazz.getMethod(method, arguments));
+    }
+
+    @BeforeEach
+    public void setUp(final WebApplicationContext webApplicationContext, final RestDocumentationContextProvider restDocumentation) {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(documentationConfiguration(restDocumentation)
+                        .uris()
+                        .withHost("register.fgv.nu")
+                        .withPort(443)
+                        .withScheme("https"))
+                .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
+                .build();
     }
 
     protected static class ConstrainedFields {

@@ -51,9 +51,8 @@ public class PagedWithFacetsResourcesAssembler<T> implements RepresentationModel
     private final HateoasPageableHandlerMethodArgumentResolver pageableResolver;
     private final Optional<UriComponents> baseUri;
     private final EmbeddedWrappers wrappers = new EmbeddedWrappers(false);
-
-    private boolean forceFirstAndLastRels = false;
     private final @Nullable MethodParameter parameter;
+    private boolean forceFirstAndLastRels = false;
 
     public PagedWithFacetsResourcesAssembler(@Nullable final HateoasPageableHandlerMethodArgumentResolver resolver,
                                              @Nullable final UriComponents baseUri) {
@@ -66,6 +65,10 @@ public class PagedWithFacetsResourcesAssembler<T> implements RepresentationModel
         this.pageableResolver = resolver == null ? new HateoasPageableHandlerMethodArgumentResolver() : resolver;
         this.baseUri = baseUri;
         this.parameter = parameter;
+    }
+
+    private static String currentRequest() {
+        return ServletUriComponentsBuilder.fromCurrentRequest().build().toString();
     }
 
     public void setForceFirstAndLastRels(final boolean forceFirstAndLastRels) {
@@ -200,10 +203,6 @@ public class PagedWithFacetsResourcesAssembler<T> implements RepresentationModel
 
     private String baseUriOrCurrentRequest() {
         return baseUri.map(Object::toString).orElseGet(PagedWithFacetsResourcesAssembler::currentRequest);
-    }
-
-    private static String currentRequest() {
-        return ServletUriComponentsBuilder.fromCurrentRequest().build().toString();
     }
 
 }
