@@ -22,9 +22,11 @@ import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.ExportException;
 import nu.fgv.register.server.util.impex.exporting.ExportEngine;
 import nu.fgv.register.server.util.impex.exporting.ExportHolder;
+import nu.fgv.register.server.util.impex.model.ExportType;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +48,7 @@ public class ExcelExportEngine implements ExportEngine {
     private final ExcelWriter writer = new ExcelWriter();
 
     @Override
-    public byte[] export(final List<ExportHolder<?>> reports, final Locale locale, final String contentType) {
+    public byte[] export(final List<ExportHolder<?>> reports, final Locale locale, final String contentType, @Nullable final ExportType type) {
         try (final Workbook workbook = createWorkbook(contentType)) {
             for (final ExportHolder<?> report : reports) {
                 createSheetHelper(workbook, report, locale);

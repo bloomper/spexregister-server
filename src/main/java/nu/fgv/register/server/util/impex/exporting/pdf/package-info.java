@@ -14,22 +14,5 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.exporting;
-
-import nu.fgv.register.server.util.impex.model.ExportType;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Locale;
-
-/**
- * @author Anders Jacobsson
- * @since 2.0
- */
-public interface ExportEngine {
-    byte[] export(List<ExportHolder<?>> reports, Locale locale, String contentType, @Nullable ExportType type);
-
-    boolean supports(String contentType);
-
-    String getExtension(String contentType);
-}
+@org.jspecify.annotations.NullMarked
+package nu.fgv.register.server.util.impex.exporting.pdf;

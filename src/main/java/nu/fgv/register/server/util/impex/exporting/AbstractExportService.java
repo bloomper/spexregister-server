@@ -17,6 +17,8 @@
 package nu.fgv.register.server.util.impex.exporting;
 
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.impex.model.ExportType;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.util.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
+/**
+ * @author Anders Jacobsson
+ * @since 2.0
+ */
 @Slf4j
 public abstract class AbstractExportService {
 
@@ -35,7 +41,7 @@ public abstract class AbstractExportService {
     }
 
     @Transactional(readOnly = true)
-    public Pair<String, byte[]> doExport(final List<Long> ids, final String filter, final String contentType, final Locale locale) {
+    public Pair<String, byte[]> doExport(final List<Long> ids, final String filter, @Nullable final ExportType type, final String contentType, final Locale locale) {
         final ExportEngine engine = engines.stream()
                 .filter(e -> e.supports(contentType))
                 .findFirst()
@@ -43,7 +49,12 @@ public abstract class AbstractExportService {
 
         final List<ExportHolder<?>> reports = getReports(ids, filter);
 
-        return Pair.of(engine.getExtension(contentType), engine.export(reports, locale, contentType));
+        return Pair.of(engine.getExtension(contentType), engine.export(reports, locale, contentType, type));
+    }
+
+    @Transactional(readOnly = true)
+    public Pair<String, byte[]> doExport(final List<Long> ids, final String filter, final String contentType, final Locale locale) {
+        return doExport(ids, filter, null, contentType, locale);
     }
 
     protected abstract List<ExportHolder<?>> getReports(final List<Long> ids, final String filter);

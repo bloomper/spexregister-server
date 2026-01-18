@@ -32,6 +32,7 @@ import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.impex.model.ExportType;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
@@ -130,17 +131,20 @@ public class SpexareApi {
 
     @GetMapping(headers = {
             HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLS_VALUE
+            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLS_VALUE,
+            HttpHeaders.ACCEPT + "=" + MediaType.APPLICATION_PDF_VALUE
     }, produces = {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            Constants.MediaTypes.APPLICATION_XLS_VALUE
+            Constants.MediaTypes.APPLICATION_XLS_VALUE,
+            MediaType.APPLICATION_PDF_VALUE
     })
     @RequiresAdmin
     public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
                                              @RequestParam(required = false, defaultValue = "") final String filter,
+                                             @RequestParam(required = false) final String type,
                                              @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
                                              final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, contentType, locale);
+        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), contentType, locale);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(contentType))

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.impex.exporting;
+package nu.fgv.register.server.util.impex.exporting.pdf;
 
+import nu.fgv.register.server.util.impex.exporting.ExportHolder;
 import nu.fgv.register.server.util.impex.model.ExportType;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
@@ -26,10 +26,8 @@ import java.util.Locale;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface ExportEngine {
-    byte[] export(List<ExportHolder<?>> reports, Locale locale, String contentType, @Nullable ExportType type);
+public interface PdfGenerator {
+    byte[] generate(List<ExportHolder<?>> reports, Locale locale);
 
-    boolean supports(String contentType);
-
-    String getExtension(String contentType);
+    boolean supports(ExportType type);
 }

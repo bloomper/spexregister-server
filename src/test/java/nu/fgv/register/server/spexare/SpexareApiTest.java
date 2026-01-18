@@ -265,10 +265,11 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessResponse(prettyPrint()),
                                 pathParameters(
                                         parameterWithName("ids").description("The ids of the spexare to export").optional(),
-                                        parameterWithName("filter").description("The filter to use for the spexare to export").optional()
+                                        parameterWithName("filter").description("The filter to use for the spexare to export").optional(),
+                                        parameterWithName("type").description("The export type").optional()
                                 ),
                                 secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel and application/pdf supported)")
                                 ),
                                 responseHeaders.and(
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
