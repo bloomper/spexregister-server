@@ -53,4 +53,7 @@ public class CountryDto {
         this.isoCode = isoCode;
         this.label = label;
     }
+
+    public static class CountryDtoBuilder {
+    }
 }
