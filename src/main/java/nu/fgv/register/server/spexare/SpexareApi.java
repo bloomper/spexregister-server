@@ -144,7 +144,7 @@ public class SpexareApi {
                                              @RequestParam(required = false) final String type,
                                              @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
                                              final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), contentType, locale);
+        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, hasText(type) ? ExportType.fromValue(type) : null, contentType, locale);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(contentType))

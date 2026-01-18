@@ -59,6 +59,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -245,7 +246,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_get_export() throws Exception {
         final var export = Pair.of(".xlsx", new byte[]{10, 12});
 
-        when(exportService.doExport(anyList(), any(String.class), any(String.class), any(Locale.class))).thenReturn(export);
+        when(exportService.doExport(anyList(), any(String.class), isNull(), any(String.class), any(Locale.class))).thenReturn(export);
 
         mockMvc
                 .perform(
@@ -276,7 +277,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody(),
-                                security(getRolesFromMethod(SpexareApi.class, "retrieve", List.class, String.class, String.class, Locale.class))
+                                security(getRolesFromMethod(SpexareApi.class, "retrieve", List.class, String.class, String.class, String.class, Locale.class))
                         )
                 );
     }
