@@ -35,6 +35,7 @@ import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.search.WindowWithFacetsImpl;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
@@ -168,7 +169,7 @@ public class SpexareService {
         };
     }
 
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public SpexareDto create(final SpexareCreateDto dto) {
         return Optional.of(SPEXARE_MAPPER.toModel(dto))
                 .map(model -> {

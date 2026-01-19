@@ -158,7 +158,7 @@ public class SpexareApi {
                     Constants.MediaTypes.APPLICATION_XLSX_VALUE,
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
         final ImportResultDto result = importService.doImport(file, contentType, locale);
 
@@ -168,7 +168,7 @@ public class SpexareApi {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale);
@@ -178,7 +178,7 @@ public class SpexareApi {
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<EntityModel<SpexareDto>> create(@Valid @RequestBody final SpexareCreateDto dto) {
         final SpexareDto newDto = service.create(dto);
 

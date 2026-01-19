@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
@@ -74,7 +75,7 @@ public class SpexareGraphqlApi {
     }
 
     @MutationMapping("spexareCreate")
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public SpexareDto create(@Valid @Argument final SpexareCreateDto input) {
         return service.create(input);
     }
