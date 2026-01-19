@@ -57,7 +57,7 @@ public interface SpexMapper {
     @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).orElse(null))")
     @Mapping(target = "categoryId", source = "details.category.id")
     @Mapping(target = "categoryName", source = "details.category.name")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     @Mapping(target = "rowNumber", ignore = true)
     SpexImpexDto toImpexDto(Spex model);
@@ -65,7 +65,7 @@ public interface SpexMapper {
     @Mapping(target = "parentId", source = "parent.id")
     @Mapping(target = "parentYear", source = "parent.year")
     @Mapping(target = "parentTitle", source = "details.title")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     @Mapping(target = "rowNumber", ignore = true)
     SpexRevivalImpexDto toRevivalImpexDto(Spex model);

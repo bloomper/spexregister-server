@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.time.Instant;

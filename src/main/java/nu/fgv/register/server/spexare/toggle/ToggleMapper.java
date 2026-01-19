@@ -52,7 +52,7 @@ public interface ToggleMapper {
     @Mapping(target = "createdAt", source = "toggle.createdAt")
     @Mapping(target = "lastModifiedBy", source = "toggle.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "toggle.lastModifiedAt")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     ToggleImpexDto toImpexDto(Spexare spexare, Toggle toggle, TypeDto type);
 
     ToggleCreateDto toCreateDto(ToggleImpexDto dto);

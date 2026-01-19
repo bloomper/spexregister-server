@@ -66,10 +66,10 @@ public interface ActivityMapper {
     @Mapping(target = "createdAt", source = "activity.createdAt")
     @Mapping(target = "lastModifiedBy", source = "activity.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "activity.lastModifiedAt")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
-    @Mapping(target = "spexActivityAction", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
-    @Mapping(target = "taskActivityAction", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
-    @Mapping(target = "actorAction", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "spexActivityAction", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "taskActivityAction", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "actorAction", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
     ActivityImpexDto toImpexDto(Spexare spexare, Activity activity, SpexActivity spexActivity, TaskActivity taskActivity, @Nullable Actor actor, @Nullable TypeDto vocalType);
 

@@ -23,7 +23,7 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;

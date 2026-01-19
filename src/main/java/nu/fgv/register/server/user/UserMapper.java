@@ -69,7 +69,7 @@ public interface UserMapper {
     @Mapping(target = "createdAt", source = "model.createdAt")
     @Mapping(target = "lastModifiedBy", source = "model.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "model.lastModifiedAt")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
     UserImpexDto toImpexDto(User model, @Nullable UserRepresentation representation, StateDto state);
 

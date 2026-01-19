@@ -17,10 +17,10 @@
 package nu.fgv.register.server.spex.category;
 
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.impex.importing.AbstractImportService;
-import nu.fgv.register.server.util.impex.importing.ImportEngine;
-import nu.fgv.register.server.util.impex.importing.ImportSpec;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.importing.AbstractImportService;
+import nu.fgv.register.server.impex.importing.ImportEngine;
+import nu.fgv.register.server.impex.importing.ImportSpec;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;

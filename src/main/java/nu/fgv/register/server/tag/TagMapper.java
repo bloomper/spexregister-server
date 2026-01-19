@@ -42,7 +42,7 @@ public interface TagMapper {
 
     TagDto toDto(Tag model);
 
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
     TagImpexDto toImpexDto(Tag model);
 

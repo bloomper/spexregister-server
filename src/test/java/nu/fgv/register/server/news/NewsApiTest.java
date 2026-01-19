@@ -22,7 +22,7 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;

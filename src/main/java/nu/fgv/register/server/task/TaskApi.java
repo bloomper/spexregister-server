@@ -27,7 +27,7 @@ import nu.fgv.register.server.task.category.TaskCategoryApi;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;

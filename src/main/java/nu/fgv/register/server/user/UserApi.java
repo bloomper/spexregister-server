@@ -32,7 +32,7 @@ import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;

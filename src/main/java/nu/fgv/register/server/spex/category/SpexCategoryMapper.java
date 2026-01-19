@@ -51,7 +51,7 @@ public interface SpexCategoryMapper {
 
     @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
     @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.util.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
     SpexCategoryImpexDto toImpexDto(SpexCategory model);
 

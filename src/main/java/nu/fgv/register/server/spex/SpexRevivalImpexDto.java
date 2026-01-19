@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.impex.model.AbstractAuditableImpexDto;
-import nu.fgv.register.server.util.impex.model.excel.ExcelCell;
-import nu.fgv.register.server.util.impex.model.excel.ExcelSheet;
+import nu.fgv.register.server.impex.model.AbstractAuditableImpexDto;
+import nu.fgv.register.server.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
 /**
  * @author Anders Jacobsson

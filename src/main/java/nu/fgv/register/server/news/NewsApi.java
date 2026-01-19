@@ -26,7 +26,7 @@ import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
-import nu.fgv.register.server.util.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
