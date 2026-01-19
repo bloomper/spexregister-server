@@ -20,9 +20,11 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.impex.model.ImportResultDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -101,9 +103,9 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @MockitoBean
     private SpexCategoryImportService importService;
     @MockitoBean
-    private SpexCategoryExportService exportService;
-    @MockitoBean
     private EventService eventService;
+    @MockitoBean
+    private JobService jobService;
     @MockitoBean
     private EventApi eventApi;
 
@@ -153,38 +155,28 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        final var export = Pair.of(".xlsx", new byte[]{10, 12});
-
-        when(exportService.doExport(anyList(), any(String.class), any(String.class), any(Locale.class))).thenReturn(export);
+        when(jobService.createExportJob(any(), anyList(), any(String.class), any(ExportType.class), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
-                        get("/api/spex/categories?ids=1,2,3")
+                        get("/api/spex/categories?ids=1,2,3&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andExpect(status().isAccepted())
                 .andDo(print())
                 .andDo(
                         document(
                                 "spex-category-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                pathParameters(
+                                queryParameters(
+                                        parameterWithName("type").description("The export type (excel, excel_xls and pdf supported)"),
                                         parameterWithName("ids").description("The ids of the spex categories to export").optional(),
                                         parameterWithName("filter").description("The filter to use for the spex categories to export").optional()
                                 ),
-                                secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
-                                ),
-                                responseHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                ),
-                                responseBody(),
+                                exportResponseFields,
                                 security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", List.class, String.class, String.class, Locale.class))
                         )
                 );

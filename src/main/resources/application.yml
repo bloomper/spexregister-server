@@ -49,6 +49,13 @@ spring:
         enabled: true
     http:
       path: /api/graphql
+    websocket:
+      path: /api/graphql
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: false
 
 management:
   server:
@@ -77,11 +84,14 @@ spexregister:
     algorithm: "AES/CFB/PKCS5Padding"
   jobs:
     full-index:
-      cron-expression: 0 0 */4 * * ? # Every night at 02:00
+      cron-expression: 0 0 */4 * * ? # Every 4 hours
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
     sync-users:
       cron-expression: 0 30 * * * ? # Every hour
+    job-cleanup:
+      cron-expression: 0 0 3 * * ? # Every day at 03:00
+      purge-threshold-in-days: 7
   keycloak:
     url: ${APP_KEYCLOAK_URL}
     realm: ${APP_KEYCLOAK_REALM}
@@ -91,5 +101,7 @@ spexregister:
     client:
       client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       client-secret: ${APP_KEYCLOAK_CLIENT_CLIENT_SECRET}
+  impex:
+    storage-path: ./data/impex_data
   sample-data:
     import: ${APP_IMPORT_SAMPLE_DATA}

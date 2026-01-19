@@ -57,6 +57,7 @@ public interface AddressMapper {
     @Mapping(target = "lastModifiedBy", source = "address.lastModifiedBy")
     @Mapping(target = "lastModifiedAt", source = "address.lastModifiedAt")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     AddressImpexDto toImpexDto(Spexare spexare, Address address, CountryDto country, TypeDto type);
 
     @Mapping(target = "id", ignore = true)

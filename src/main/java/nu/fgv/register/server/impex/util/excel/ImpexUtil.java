@@ -16,8 +16,8 @@
 
 package nu.fgv.register.server.impex.util.excel;
 
-import nu.fgv.register.server.util.AbstractAuditableDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
+import nu.fgv.register.server.util.AbstractAuditableDto;
 
 import java.lang.reflect.Field;
 import java.util.List;

@@ -42,4 +42,9 @@ public class LocaleAccessor implements ThreadLocalAccessor<Locale> {
         LocaleContextHolder.setLocale(locale);
     }
 
+    @Override
+    public void setValue() {
+        LocaleContextHolder.resetLocaleContext();
+    }
+
 }

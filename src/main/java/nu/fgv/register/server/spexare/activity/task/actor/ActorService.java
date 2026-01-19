@@ -49,9 +49,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorMapper.ACTOR_MAPPER;
-import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecification.hasId;
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecification.hasTaskActivity;
-import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecification.hasVocal;
 import static org.springframework.util.StringUtils.hasText;
 
 /**

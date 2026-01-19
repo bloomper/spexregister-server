@@ -33,7 +33,6 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
-import nu.fgv.register.server.util.graphql.CustomErrorType;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;

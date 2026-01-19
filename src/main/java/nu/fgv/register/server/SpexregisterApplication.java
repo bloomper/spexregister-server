@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration;
+import reactor.core.publisher.Hooks;
 
 /**
  * @author Anders Jacobsson
@@ -33,6 +34,7 @@ public class SpexregisterApplication {
     }
 
     static void main(final String[] args) {
+        Hooks.enableAutomaticContextPropagation();
         SpringApplication.run(SpexregisterApplication.class, args);
     }
 

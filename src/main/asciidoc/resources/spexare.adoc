@@ -56,7 +56,7 @@ operation::spexare-get-all-search[snippets='request-headers,query-parameters,htt
 [[get_export]]
 == Get (export)
 
-operation::spexare-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+operation::spexare-get-export[snippets='security,query-parameters,http-request,response-fields,http-response']
 
 [[get]]
 == Get

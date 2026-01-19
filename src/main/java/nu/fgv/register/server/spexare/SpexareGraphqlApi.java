@@ -23,6 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.JobReferenceDto;
+import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
@@ -40,6 +44,7 @@ import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
@@ -55,6 +60,7 @@ public class SpexareGraphqlApi {
 
     private final SpexareService service;
     private final EventService eventService;
+    private final JobService jobService;
 
     @QueryMapping("spexarePaged")
     @RequiresAdminOrEditorOrUser
@@ -72,6 +78,14 @@ public class SpexareGraphqlApi {
         graphQLContext.put("facets", result.getFacets());
 
         return result;
+    }
+
+    @QueryMapping("spexareExport")
+    @RequiresAdminOrEditor
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, @Argument final ReportType reportType, final Locale locale) {
+        return JobReferenceDto.builder()
+                .id(jobService.createExportJob(SpexareExportService.class, ids, filter, type, reportType, locale))
+                .build();
     }
 
     @MutationMapping("spexareCreate")

@@ -3,6 +3,7 @@ extend type Query {
     user(id: ID!): User
     me: User
     userEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
+    userExport(ids: [ID], filter: String, type: ExportType!): JobReference
 }
 
 extend type Mutation {

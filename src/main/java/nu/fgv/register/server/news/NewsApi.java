@@ -23,18 +23,19 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobApi;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
-import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
 import org.springframework.hateoas.CollectionModel;
@@ -44,7 +45,6 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,9 +82,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class NewsApi {
 
     private final NewsService service;
-    private final NewsExportService exportService;
     private final NewsImportService importService;
     private final EventService eventService;
+    private final JobService jobService;
     private final PagedResourcesAssembler<NewsDto> pagedResourcesAssembler;
     private final EventApi eventApi;
 
@@ -99,24 +99,20 @@ public class NewsApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(headers = {
-            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLS_VALUE
-    }, produces = {
-            Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            Constants.MediaTypes.APPLICATION_XLS_VALUE
-    })
+    @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
-                                             @RequestParam(required = false, defaultValue = "") final String filter,
-                                             @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
-                                             final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, contentType, locale);
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+                                                    @RequestParam(required = false, defaultValue = "") final String filter,
+                                                    @RequestParam final String type,
+                                                    final Locale locale) {
+        final Long jobId = jobService.createExportJob(NewsExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), locale);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"news" + export.getFirst() + "\"")
-                .body(new ByteArrayResource(export.getSecond()));
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
+                .body(JobReferenceDto.builder()
+                        .id(jobId)
+                        .build());
     }
 
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)

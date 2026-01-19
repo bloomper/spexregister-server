@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nu.fgv.register.server.util.AbstractAuditableDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
+import nu.fgv.register.server.util.AbstractAuditableDto;
 
 /**
  * @author Anders Jacobsson

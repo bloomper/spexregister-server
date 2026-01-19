@@ -1,6 +1,7 @@
 schema {
     query: Query
     mutation: Mutation
+    subscription: Subscription
 }
 
 type Query {
@@ -8,6 +9,10 @@ type Query {
 }
 
 type Mutation {
+    noOp: Void
+}
+
+type Subscription {
     noOp: Void
 }
 
@@ -44,6 +49,18 @@ type PageInfo {
 enum SortDirection {
     ASC
     DESC
+}
+
+enum ExportType {
+    EXCEL
+    EXCEL_XLS
+    PDF
+}
+
+enum ReportType {
+    PDF_ADDRESS_LABELS
+    PDF_SCRATCH_LIST
+    PDF_PLATOON_LIST
 }
 
 scalar Date @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")

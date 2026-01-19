@@ -17,7 +17,7 @@
 package nu.fgv.register.server.impex.exporting.pdf;
 
 import nu.fgv.register.server.impex.exporting.ExportHolder;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ReportType;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,5 +29,5 @@ import java.util.Locale;
 public interface PdfGenerator {
     byte[] generate(List<ExportHolder<?>> reports, Locale locale);
 
-    boolean supports(ExportType type);
+    boolean supports(ReportType type);
 }

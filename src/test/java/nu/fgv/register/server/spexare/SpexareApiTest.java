@@ -20,10 +20,12 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.Constants;
-import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
@@ -127,9 +129,9 @@ class SpexareApiTest extends AbstractApiTest {
     @MockitoBean
     private SpexareImportService importService;
     @MockitoBean
-    private SpexareExportService exportService;
-    @MockitoBean
     private EventService eventService;
+    @MockitoBean
+    private JobService jobService;
     @MockitoBean
     private EventApi eventApi;
     @MockitoBean
@@ -244,39 +246,29 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        final var export = Pair.of(".xlsx", new byte[]{10, 12});
-
-        when(exportService.doExport(anyList(), any(String.class), isNull(), any(String.class), any(Locale.class))).thenReturn(export);
+        when(jobService.createExportJob(any(), anyList(), any(String.class), any(ExportType.class), isNull(), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
-                        get("/api/spexare?ids=1,2,3")
+                        get("/api/spexare?ids=1,2,3&type=pdf&reportType=pdf-address-labels")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .accept(Constants.MediaTypes.APPLICATION_XLSX)
                 )
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, Constants.MediaTypes.APPLICATION_XLSX_VALUE))
+                .andExpect(status().isAccepted())
                 .andDo(print())
                 .andDo(
                         document(
                                 "spexare-get-export",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                pathParameters(
+                                queryParameters(
+                                        parameterWithName("type").description("The export type (excel, excel_xls and pdf supported)"),
                                         parameterWithName("ids").description("The ids of the spexare to export").optional(),
                                         parameterWithName("filter").description("The filter to use for the spexare to export").optional(),
-                                        parameterWithName("type").description("The export type").optional()
+                                        parameterWithName("reportType").description("The report type (must be specified when type is pdf)").optional()
                                 ),
-                                secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.ACCEPT).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel and application/pdf supported)")
-                                ),
-                                responseHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                ),
-                                responseBody(),
+                                exportResponseFields,
                                 security(getRolesFromMethod(SpexareApi.class, "retrieve", List.class, String.class, String.class, String.class, Locale.class))
                         )
                 );

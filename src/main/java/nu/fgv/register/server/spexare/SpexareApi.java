@@ -23,6 +23,12 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobApi;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.JobReferenceDto;
+import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.address.AddressApi;
 import nu.fgv.register.server.spexare.consent.ConsentApi;
@@ -32,8 +38,6 @@ import nu.fgv.register.server.spexare.toggle.ToggleApi;
 import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
-import nu.fgv.register.server.impex.model.ExportType;
-import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
@@ -94,14 +98,14 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareApi {
 
     private final SpexareService service;
-    private final SpexareExportService exportService;
     private final SpexareImportService importService;
     private final EventService eventService;
+    private final JobService jobService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
     private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
     private final EventApi eventApi;
 
-    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q"})
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q", "!type"})
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = Spexare_.PUBLISHED + ":true") final String filter) {
@@ -130,27 +134,21 @@ public class SpexareApi {
         return ResponseEntity.ok(paged);
     }
 
-    @GetMapping(headers = {
-            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            HttpHeaders.ACCEPT + "=" + Constants.MediaTypes.APPLICATION_XLS_VALUE,
-            HttpHeaders.ACCEPT + "=" + MediaType.APPLICATION_PDF_VALUE
-    }, produces = {
-            Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-            Constants.MediaTypes.APPLICATION_XLS_VALUE,
-            MediaType.APPLICATION_PDF_VALUE
-    })
+    @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
-                                             @RequestParam(required = false, defaultValue = "") final String filter,
-                                             @RequestParam(required = false) final String type,
-                                             @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
-                                             final Locale locale) {
-        final Pair<String, byte[]> export = exportService.doExport(Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, hasText(type) ? ExportType.fromValue(type) : null, contentType, locale);
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+                                                    @RequestParam(required = false, defaultValue = "") final String filter,
+                                                    @RequestParam(required = false) final String reportType,
+                                                    @RequestParam final String type,
+                                                    final Locale locale) {
+        final Long jobId = jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), hasText(reportType) ? ReportType.fromValue(reportType) : null, locale);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spexare" + export.getFirst() + "\"")
-                .body(new ByteArrayResource(export.getSecond()));
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
+                .body(JobReferenceDto.builder()
+                        .id(jobId)
+                        .build());
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},

@@ -17,11 +17,11 @@
 package nu.fgv.register.server.impex.exporting.pdf;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.impex.exporting.ExportHolder;
+import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.spexare.SpexareImpexDto;
 import nu.fgv.register.server.spexare.address.AddressImpexDto;
 import nu.fgv.register.server.util.error.ExportException;
-import nu.fgv.register.server.impex.exporting.ExportHolder;
-import nu.fgv.register.server.impex.model.ExportType;
 import org.openpdf.text.Document;
 import org.openpdf.text.Element;
 import org.openpdf.text.Font;
@@ -146,8 +146,8 @@ public class AddressLabelsPdfGenerator implements PdfGenerator {
     }
 
     @Override
-    public boolean supports(final ExportType type) {
-        return type == ExportType.PDF_ADDRESS_LABELS;
+    public boolean supports(final ReportType type) {
+        return type == ReportType.PDF_ADDRESS_LABELS;
     }
 
 }

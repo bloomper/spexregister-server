@@ -17,10 +17,10 @@
 package nu.fgv.register.server.impex.exporting.pdf;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.impex.exporting.ExportHolder;
+import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.spexare.SpexareImpexDto;
 import nu.fgv.register.server.util.error.ExportException;
-import nu.fgv.register.server.impex.exporting.ExportHolder;
-import nu.fgv.register.server.impex.model.ExportType;
 import org.openpdf.text.Document;
 import org.openpdf.text.Element;
 import org.openpdf.text.Font;
@@ -117,8 +117,8 @@ public class ScratchListPdfGenerator implements PdfGenerator {
     }
 
     @Override
-    public boolean supports(final ExportType type) {
-        return type == ExportType.PDF_SCRATCH_LIST;
+    public boolean supports(final ReportType type) {
+        return type == ReportType.PDF_SCRATCH_LIST;
     }
 
     private PdfPCell createCell(final String text, final Font font, final Color bgColor, final float height, final int alignment) {

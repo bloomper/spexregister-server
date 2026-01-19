@@ -43,6 +43,7 @@ public interface TaskCategoryMapper {
     TaskCategoryDto toDto(TaskCategory model);
 
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
+    @Mapping(target = "rowNumber", ignore = true)
     TaskCategoryImpexDto toImpexDto(TaskCategory model);
 
     @Mapping(target = "id", ignore = true)

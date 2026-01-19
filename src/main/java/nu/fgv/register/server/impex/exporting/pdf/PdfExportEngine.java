@@ -20,8 +20,8 @@ import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.impex.exporting.ExportEngine;
 import nu.fgv.register.server.impex.exporting.ExportHolder;
 import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ReportType;
 import org.jspecify.annotations.Nullable;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -38,25 +38,25 @@ public class PdfExportEngine implements ExportEngine {
     private final List<PdfGenerator> generators;
 
     @Override
-    public byte[] export(final List<ExportHolder<?>> reports, final Locale locale, final String contentType, @Nullable final ExportType type) {
-        if (type == null) {
-            throw new IllegalArgumentException("Export type must be specified for PDF export");
+    public byte[] export(final List<ExportHolder<?>> reports, final ExportType exportType, @Nullable final ReportType reportType, final Locale locale) {
+        if (reportType == null) {
+            throw new IllegalArgumentException("Report type must be specified for PDF export");
         }
 
         return generators.stream()
-                .filter(g -> g.supports(type))
+                .filter(g -> g.supports(reportType))
                 .findFirst()
                 .map(g -> g.generate(reports, locale))
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported PDF export type: " + type));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported PDF report type: " + reportType));
     }
 
     @Override
-    public boolean supports(final String contentType) {
-        return MediaType.APPLICATION_PDF_VALUE.equals(contentType);
+    public boolean supports(final ExportType exportType) {
+        return exportType == ExportType.PDF;
     }
 
     @Override
-    public String getExtension(final String contentType) {
+    public String getExtension(final ExportType exportType) {
         return ".pdf";
     }
 }

@@ -134,6 +134,14 @@ public abstract class AbstractApiTest {
             auditResponseFieldsDescriptors
     );
 
+    protected static final List<FieldDescriptor> exportResponseFieldsDescriptors = List.of(
+            fieldWithPath("id").description("The id of the export")
+    );
+
+    protected static final ResponseFieldsSnippet exportResponseFields = responseFields(
+            exportResponseFieldsDescriptors
+    );
+
     protected static final List<FieldDescriptor> importResponseFieldsDescriptors = List.of(
             fieldWithPath("data").description("Any data returned by the import"),
             fieldWithPath("errors").description("Any errors that occurred during the import"),

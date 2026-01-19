@@ -79,6 +79,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/docs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/graphiql/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "%s".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.POST, "%s/**".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "%s/schema".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/settings/**").permitAll()

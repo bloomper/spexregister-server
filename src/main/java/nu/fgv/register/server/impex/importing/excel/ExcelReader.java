@@ -39,9 +39,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
+import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static org.springframework.util.StringUtils.hasText;
 
 /**

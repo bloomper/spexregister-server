@@ -37,7 +37,7 @@ Use ``category.<category field>``.
 [[get_export]]
 == Get (export)
 
-operation::task-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+operation::task-get-export[snippets='security,query-parameters,http-request,response-fields,http-response']
 
 [[get]]
 == Get

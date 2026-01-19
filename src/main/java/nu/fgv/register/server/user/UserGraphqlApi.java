@@ -22,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.user.authority.AuthorityDto;
 import nu.fgv.register.server.user.state.StateDto;
@@ -41,6 +44,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -57,6 +61,7 @@ public class UserGraphqlApi {
 
     private final UserService service;
     private final EventService eventService;
+    private final JobService jobService;
 
     @QueryMapping("userPaged")
     @RequiresAdmin
@@ -64,6 +69,14 @@ public class UserGraphqlApi {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    }
+
+    @QueryMapping("userExport")
+    @RequiresAdmin
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, final Locale locale) {
+        return JobReferenceDto.builder()
+                .id(jobService.createExportJob(UserExportService.class, ids, filter, type, locale))
+                .build();
     }
 
     @MutationMapping("userCreate")

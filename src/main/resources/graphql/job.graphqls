@@ -1,0 +1,17 @@
+extend type Query {
+    jobStatus(id: ID!): JobStatus
+}
+
+extend type Subscription {
+    jobProgress(id: ID!): JobStatus
+}
+
+type JobReference {
+    id: ID!
+}
+
+type JobStatus {
+    id: ID!
+    status: String!
+    exitStatus: String
+}

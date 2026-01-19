@@ -3,6 +3,7 @@ extend type Query {
     spexareSearchPaged(offset: Int = 0, limit: Int = 20, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String] = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
     spexare(id: ID!): Spexare
     spexareEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
+    spexareExport(ids: [ID], filter: String, type: ExportType!, reportType: ReportType!): JobReference
 }
 
 extend type Mutation {

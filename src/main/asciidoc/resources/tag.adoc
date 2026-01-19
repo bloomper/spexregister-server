@@ -30,7 +30,7 @@ For details on filtering, refer to this xref:../api-guide.adoc#filtering[section
 [[get_export]]
 == Get (export)
 
-operation::tag-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+operation::tag-get-export[snippets='security,query-parameters,http-request,response-fields,http-response']
 
 [[get]]
 == Get

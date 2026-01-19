@@ -22,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
+import nu.fgv.register.server.impex.JobService;
+import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
@@ -39,6 +42,7 @@ import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
@@ -54,6 +58,7 @@ public class TaskGraphqlApi {
 
     private final TaskService service;
     private final EventService eventService;
+    private final JobService jobService;
 
     @QueryMapping("taskPaged")
     @RequiresAdminOrEditorOrUser
@@ -61,6 +66,14 @@ public class TaskGraphqlApi {
         final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
 
         return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    }
+
+    @QueryMapping("taskExport")
+    @RequiresAdminOrEditor
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, final Locale locale) {
+        return JobReferenceDto.builder()
+                .id(jobService.createExportJob(TaskExportService.class, ids, filter, type, locale))
+                .build();
     }
 
     @MutationMapping("taskCreate")

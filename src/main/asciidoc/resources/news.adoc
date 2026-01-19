@@ -33,7 +33,7 @@ Note that for USER such ones are always excluded regardless of filtering.
 [[get_export]]
 == Get (export)
 
-operation::news-get-export[snippets='security,request-headers,http-request,response-headers,http-response']
+operation::news-get-export[snippets='security,query-parameters,http-request,response-fields,http-response']
 
 [[get]]
 == Get
