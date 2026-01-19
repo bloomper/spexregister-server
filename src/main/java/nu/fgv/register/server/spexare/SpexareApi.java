@@ -38,6 +38,7 @@ import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
@@ -138,7 +139,7 @@ public class SpexareApi {
             Constants.MediaTypes.APPLICATION_XLS_VALUE,
             MediaType.APPLICATION_PDF_VALUE
     })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
                                              @RequestParam(required = false, defaultValue = "") final String filter,
                                              @RequestParam(required = false) final String type,

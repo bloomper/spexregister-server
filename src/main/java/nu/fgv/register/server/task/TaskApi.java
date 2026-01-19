@@ -108,7 +108,7 @@ public class TaskApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
                                              @RequestParam(required = false, defaultValue = "") final String filter,
                                              @RequestHeader(HttpHeaders.ACCEPT) final String contentType,

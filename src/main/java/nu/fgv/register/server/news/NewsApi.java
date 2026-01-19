@@ -27,7 +27,6 @@ import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -107,7 +106,7 @@ public class NewsApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
                                              @RequestParam(required = false, defaultValue = "") final String filter,
                                              @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
@@ -144,7 +143,7 @@ public class NewsApi {
                     Constants.MediaTypes.APPLICATION_XLSX_VALUE,
                     Constants.MediaTypes.APPLICATION_XLS_VALUE
             })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
         final ImportResultDto result = importService.doImport(file, contentType, locale);
 
@@ -154,7 +153,7 @@ public class NewsApi {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
         try {
             return createAndUpdate(file.getBytes(), file.getContentType(), locale);

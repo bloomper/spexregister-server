@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
@@ -104,7 +105,7 @@ public class TaskCategoryApi {
             Constants.MediaTypes.APPLICATION_XLSX_VALUE,
             Constants.MediaTypes.APPLICATION_XLS_VALUE
     })
-    @RequiresAdmin
+    @RequiresAdminOrEditor
     public ResponseEntity<Resource> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
                                              @RequestParam(required = false, defaultValue = "") final String filter,
                                              @RequestHeader(HttpHeaders.ACCEPT) final String contentType,
