@@ -61,7 +61,7 @@ public class JobConfig {
 
         factory.setDataSource(dataSource);
         factory.setTransactionManager(transactionManager);
-        factory.setIsolationLevelForCreateEnum(Isolation.DEFAULT);
+        factory.setIsolationLevelForCreateEnum(Isolation.READ_COMMITTED);
         factory.afterPropertiesSet();
 
         return factory.getObject();

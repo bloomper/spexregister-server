@@ -17,6 +17,7 @@
 package nu.fgv.register.server.impex;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.SecurityUtil;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -47,8 +49,19 @@ public class JobGraphqlApi {
     @QueryMapping("jobStatus")
     @RequiresAdminOrEditor
     public Mono<JobStatusDto> status(@Argument final Long id) {
-        return jobService.getJobExecution(id)
-                .map(jobService::mapToResult);
+        return jobService.getJobStatus(id);
+    }
+
+    @QueryMapping("job")
+    @RequiresAdminOrEditor
+    public Mono<JobDto> retrieve(@Argument final Long id) {
+        return jobService.getJob(id);
+    }
+
+    @QueryMapping("jobs")
+    @RequiresAdminOrEditor
+    public Mono<List<JobDto>> retrieve() {
+        return jobService.getJobs();
     }
 
     @SubscriptionMapping("jobProgress")
@@ -57,15 +70,13 @@ public class JobGraphqlApi {
                 .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
                 .filter(this::hasRequiredAdminOrEditor)
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
-                .flatMapMany(auth -> jobService.getJobExecution(id)
-                        .flatMapMany(execution -> progressService.getStream(id)
-                                .map(dto -> {
-                                    if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
-                                        return jobService.mapToResult(execution);
-                                    }
-                                    return dto;
-                                })
-                        ));
+                .flatMapMany(auth -> progressService.getStream(id)
+                        .flatMap(dto -> {
+                            if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
+                                return jobService.getJobStatus(id);
+                            }
+                            return Mono.just(dto);
+                        }));
     }
 
     private boolean hasRequiredAdminOrEditor(final Authentication auth) {

@@ -17,14 +17,10 @@
 package nu.fgv.register.server.impex;
 
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.job.JobExecution;
-import org.springframework.batch.core.job.JobInstance;
-import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -34,10 +30,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
+import java.util.List;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -69,20 +67,17 @@ class JobApiTest extends AbstractApiTest {
 
     @Test
     void should_get_status() throws Exception {
-        final JobExecution execution = mock(JobExecution.class);
         final JobStatusDto statusDto = JobStatusDto.builder()
                 .id(1L)
                 .status("COMPLETED")
                 .exitStatus("COMPLETED")
-                .importResult(ImportResultDto.builder().success(true).build())
                 .build();
 
-        when(service.getJobExecution(anyLong())).thenReturn(Mono.just(execution));
-        when(service.mapToResult(execution)).thenReturn(statusDto);
+        when(service.getJobStatus(anyLong())).thenReturn(Mono.just(statusDto));
 
         final MvcResult mvcResult = mockMvc
                 .perform(
-                        get("/api/jobs/{id}", 1L)
+                        get("/api/jobs/{id}/status", 1L)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -103,12 +98,7 @@ class JobApiTest extends AbstractApiTest {
                         responseFields(
                                 fieldWithPath("id").description("The id of the job"),
                                 fieldWithPath("status").description("The status of the job"),
-                                fieldWithPath("exitStatus").description("The exit status code"),
-                                subsectionWithPath("importResult").description("The import result details (only for import jobs)").optional(),
-                                fieldWithPath("importResult.success").description("Whether the import was successful").optional(),
-                                fieldWithPath("importResult.messages").description("Summary messages").optional(),
-                                fieldWithPath("importResult.errors").description("Error messages").optional(),
-                                fieldWithPath("importResult.data").description("Additional result data").optional()
+                                fieldWithPath("exitStatus").description("The exit status code")
                         ),
                         secureRequestHeaders,
                         security(getRolesFromMethod(JobApi.class, "status", Long.class))
@@ -116,11 +106,108 @@ class JobApiTest extends AbstractApiTest {
     }
 
     @Test
+    void should_get_job() throws Exception {
+        final JobDto jobDto = JobDto.builder()
+                .id(1L)
+                .name("exportJob")
+                .status("COMPLETED")
+                .exitStatus("COMPLETED")
+                .createdAt(Instant.now())
+                .startedAt(Instant.now())
+                .finishedAt(Instant.now())
+                .importResult(ImportResultDto.builder().success(true).build())
+                .build();
+
+        when(service.getJob(anyLong())).thenReturn(Mono.just(jobDto));
+
+        final MvcResult mvcResult = mockMvc
+                .perform(
+                        get("/api/jobs/{id}", 1L)
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(1)))
+                .andExpect(jsonPath("name", is("exportJob")))
+                .andDo(document(
+                        "job-get",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("id").description("The id of the job")
+                        ),
+                        responseFields(
+                                fieldWithPath("id").description("The id of the job"),
+                                fieldWithPath("name").description("The name of the job"),
+                                fieldWithPath("status").description("The status of the job"),
+                                fieldWithPath("exitStatus").description("The exit status code"),
+                                fieldWithPath("createdAt").description("When the job was created"),
+                                fieldWithPath("startedAt").description("When the job started").optional(),
+                                fieldWithPath("finishedAt").description("When the job finished").optional(),
+                                subsectionWithPath("importResult").description("The import result details (only for import jobs)").optional(),
+                                fieldWithPath("importResult.success").description("Whether the import was successful").optional(),
+                                fieldWithPath("importResult.messages").description("Summary messages").optional(),
+                                fieldWithPath("importResult.errors").description("Error messages").optional(),
+                                fieldWithPath("importResult.data").description("Additional result data").optional()
+                        ),
+                        secureRequestHeaders,
+                        security(getRolesFromMethod(JobApi.class, "retrieve", Long.class))
+                ));
+    }
+
+    @Test
+    void should_retrieve_jobs() throws Exception {
+        final JobDto jobDto = JobDto.builder()
+                .id(1L)
+                .name("exportJob")
+                .status("COMPLETED")
+                .exitStatus("COMPLETED")
+                .createdAt(Instant.now())
+                .build();
+
+        when(service.getJobs()).thenReturn(Mono.just(List.of(jobDto)));
+
+        final MvcResult mvcResult = mockMvc
+                .perform(
+                        get("/api/jobs")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andDo(document(
+                        "job-get-all",
+                        preprocessResponse(prettyPrint()),
+                        responseFields(
+                                fieldWithPath("[].id").description("The id of the job"),
+                                fieldWithPath("[].name").description("The name of the job"),
+                                fieldWithPath("[].status").description("The status of the job"),
+                                fieldWithPath("[].exitStatus").description("The exit status code"),
+                                fieldWithPath("[].createdAt").description("When the job was created"),
+                                fieldWithPath("[].startedAt").description("When the job started").optional(),
+                                fieldWithPath("[].finishedAt").description("When the job finished").optional(),
+                                subsectionWithPath("[].importResult").description("The import result details (only for import jobs)").optional()
+                        ),
+                        secureRequestHeaders,
+                        security(getRolesFromMethod(JobApi.class, "retrieve"))
+                ));
+    }
+
+    @Test
     void should_get_progress() throws Exception {
-        final JobExecution execution = mock(JobExecution.class);
+        final JobStatusDto statusDto = JobStatusDto.builder().id(1L).status("COMPLETED").exitStatus("COMPLETED").build();
         final JobStatusDto pulse = JobStatusDto.builder().id(1L).status("STARTED").exitStatus("UNKNOWN").build();
 
-        when(service.getJobExecution(anyLong())).thenReturn(Mono.just(execution));
+        when(service.getJobStatus(anyLong())).thenReturn(Mono.just(statusDto));
         when(progressService.getStream(anyLong())).thenReturn(Flux.just(pulse));
 
         mockMvc

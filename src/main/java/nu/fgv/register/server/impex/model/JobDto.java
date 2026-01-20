@@ -18,6 +18,9 @@ package nu.fgv.register.server.impex.model;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
+
+import java.time.Instant;
 
 /**
  * @author Anders Jacobsson
@@ -25,8 +28,13 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class JobStatusDto {
+public class JobDto {
     private Long id;
+    private String name;
     private String status;
-    private String exitStatus;
+    private @Nullable String exitStatus;
+    private Instant createdAt;
+    private @Nullable Instant startedAt;
+    private @Nullable Instant finishedAt;
+    private @Nullable ImportResultDto importResult;
 }

@@ -1,5 +1,7 @@
 extend type Query {
     jobStatus(id: ID!): JobStatus
+    job(id: ID!): Job
+    jobs: [Job]
 }
 
 extend type Subscription {
@@ -10,11 +12,21 @@ type JobReference {
     id: ID!
 }
 
+type Job {
+    id: ID!
+    name: String!
+    status: String!
+    exitStatus: String
+    createdAt: Instant
+    startedAt: Instant
+    finishedAt: Instant
+    importResult: ImportResult
+}
+
 type JobStatus {
     id: ID!
     status: String!
     exitStatus: String
-    importResult: ImportResult
 }
 
 type ImportResult {

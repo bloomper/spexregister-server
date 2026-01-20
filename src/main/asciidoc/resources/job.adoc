@@ -10,6 +10,16 @@
 
 xref:../api-guide.adoc[Back to API guide]
 
+[[get]]
+== Get
+
+operation::job-get[snippets='security,request-headers,path-parameters,http-request,response-fields,http-response']
+
+[[get_all]]
+== Get all
+
+operation::job-get-all[snippets='security,request-headers,http-request,response-fields,http-response']
+
 [[get_status]]
 == Get status
 

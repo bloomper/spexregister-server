@@ -22,6 +22,7 @@ import nu.fgv.register.server.impex.exporting.ExportService;
 import nu.fgv.register.server.impex.importing.AbstractImportService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.util.error.InternalErrorException;
@@ -54,6 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
@@ -145,24 +147,6 @@ public class JobService {
         }
     }
 
-    public Mono<JobExecution> getJobExecution(final Long jobId) {
-        return Mono.fromCallable(() -> jobRepository.getJobExecution(jobId))
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Job", jobId)))
-                .flatMap(execution ->
-                        ReactiveSecurityContextHolder.getContext()
-                                .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
-                                .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
-                                .flatMap(auth -> {
-                                    final String requestor = execution.getJobParameters().getString("requestor");
-
-                                    if (requestor == null || !requestor.equals(auth.getName())) {
-                                        return Mono.error(new AccessDeniedException("Access denied"));
-                                    }
-                                    return Mono.just(execution);
-                                })
-                );
-    }
-
     public Mono<Resource> getJobOutputFile(final Long jobId) {
         return getJobExecution(jobId)
                 .flatMap(execution -> {
@@ -180,11 +164,43 @@ public class JobService {
                 });
     }
 
-    public JobStatusDto mapToResult(final JobExecution execution) {
-        final JobStatusDto.JobStatusDtoBuilder builder = JobStatusDto.builder()
+    public Mono<JobStatusDto> getJobStatus(final Long jobId) {
+        return getJobExecution(jobId)
+                .map(this::mapToJobStatus);
+    }
+
+    public Mono<JobDto> getJob(final Long jobId) {
+        return getJobExecution(jobId)
+                .map(this::mapToJob);
+    }
+
+    public Mono<List<JobDto>> getJobs() {
+        return ReactiveSecurityContextHolder.getContext()
+                .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
+                .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
+                .map(auth -> {
+                    final String currentUser = auth.getName();
+                    final String sql = "SELECT JOB_EXECUTION_ID FROM BATCH_JOB_EXECUTION_PARAMS WHERE PARAMETER_NAME = 'requestor' AND PARAMETER_VALUE = ?";
+                    final List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, currentUser);
+
+                    return ids.stream()
+                            .map(jobRepository::getJobExecution)
+                            .filter(java.util.Objects::nonNull)
+                            .sorted((e1, e2) -> e2.getCreateTime().compareTo(e1.getCreateTime()))
+                            .map(this::mapToJob)
+                            .toList();
+                });
+    }
+
+    private JobDto mapToJob(final JobExecution execution) {
+        final JobDto.JobDtoBuilder builder = JobDto.builder()
                 .id(execution.getJobInstance().getInstanceId())
+                .name(execution.getJobInstance().getJobName())
                 .status(execution.getStatus().name())
-                .exitStatus(execution.getExitStatus().getExitCode());
+                .exitStatus(execution.getExitStatus().getExitCode())
+                .createdAt(execution.getCreateTime().toInstant(ZoneOffset.UTC))
+                .startedAt(execution.getStartTime() != null ? execution.getStartTime().toInstant(ZoneOffset.UTC) : null)
+                .finishedAt(execution.getEndTime() != null ? execution.getEndTime().toInstant(ZoneOffset.UTC) : null);
 
         final Object importResult = execution.getExecutionContext().get("importResult");
 
@@ -193,6 +209,32 @@ public class JobService {
         }
 
         return builder.build();
+    }
+
+    private JobStatusDto mapToJobStatus(final JobExecution execution) {
+        return JobStatusDto.builder()
+                .id(execution.getJobInstance().getInstanceId())
+                .status(execution.getStatus().name())
+                .exitStatus(execution.getExitStatus().getExitCode())
+                .build();
+    }
+
+    private Mono<JobExecution> getJobExecution(final Long jobId) {
+        return Mono.fromCallable(() -> jobRepository.getJobExecution(jobId))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Job", jobId)))
+                .flatMap(execution ->
+                        ReactiveSecurityContextHolder.getContext()
+                                .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
+                                .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
+                                .flatMap(auth -> {
+                                    final String requestor = execution.getJobParameters().getString("requestor");
+
+                                    if (requestor == null || !requestor.equals(auth.getName())) {
+                                        return Mono.error(new AccessDeniedException("Access denied"));
+                                    }
+                                    return Mono.just(execution);
+                                })
+                );
     }
 
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")

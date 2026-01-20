@@ -17,6 +17,7 @@
 package nu.fgv.register.server.impex;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import org.springframework.core.io.Resource;
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -42,25 +45,37 @@ public class JobApi {
     private final JobService service;
     private final JobProgressService progressService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/status")
     @RequiresAdminOrEditor
     public Mono<ResponseEntity<JobStatusDto>> status(@PathVariable final Long id) {
-        return service.getJobExecution(id)
-                .map(execution -> ResponseEntity.ok(service.mapToResult(execution)));
+        return service.getJobStatus(id)
+                .map(ResponseEntity::ok);
+    }
+
+    @GetMapping("/{id}")
+    @RequiresAdminOrEditor
+    public Mono<ResponseEntity<JobDto>> retrieve(@PathVariable final Long id) {
+        return service.getJob(id)
+                .map(ResponseEntity::ok);
+    }
+
+    @GetMapping
+    @RequiresAdminOrEditor
+    public Mono<ResponseEntity<List<JobDto>>> retrieve() {
+        return service.getJobs()
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping(path = "/{id}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RequiresAdminOrEditor
     public Flux<JobStatusDto> progress(@PathVariable final Long id) {
-        return service.getJobExecution(id)
-                .flatMapMany(execution -> progressService.getStream(id)
-                        .map(dto -> {
-                            if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
-                                return service.mapToResult(execution);
-                            }
-                            return dto;
-                        })
-                );
+        return progressService.getStream(id)
+                .flatMap(dto -> {
+                    if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
+                        return service.getJobStatus(id);
+                    }
+                    return Mono.just(dto);
+                });
     }
 
     @GetMapping("/{id}/results")
