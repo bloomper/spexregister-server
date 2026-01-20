@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.impex.exporting;
 
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ReportType;
 import org.jspecify.annotations.Nullable;
 
@@ -28,9 +28,9 @@ import java.util.Locale;
  * @since 2.0
  */
 public interface ExportEngine {
-    byte[] export(List<ExportHolder<?>> reports, ExportType exportType, @Nullable ReportType reportType, Locale locale);
+    byte[] export(List<ExportHolder<?>> reports, ImpexType type, @Nullable ReportType reportType, Locale locale);
 
-    boolean supports(ExportType exportType);
+    boolean supports(ImpexType type);
 
-    String getExtension(ExportType exportType);
+    String getExtension(ImpexType type);
 }

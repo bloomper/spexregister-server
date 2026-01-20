@@ -23,7 +23,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -66,7 +66,7 @@ public class SpexCategoryGraphqlApi {
 
     @QueryMapping("spexCategoryExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, final Locale locale) {
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexCategoryExportService.class, ids, filter, type, locale))
                 .build();

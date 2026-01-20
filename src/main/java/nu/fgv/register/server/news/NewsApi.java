@@ -25,10 +25,8 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
-import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
-import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -53,7 +51,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -82,7 +79,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class NewsApi {
 
     private final NewsService service;
-    private final NewsImportService importService;
     private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<NewsDto> pagedResourcesAssembler;
@@ -105,7 +101,7 @@ public class NewsApi {
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
-        final Long jobId = jobService.createExportJob(NewsExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), locale);
+        final Long jobId = jobService.createExportJob(NewsExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ImpexType.fromValue(type), locale);
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
@@ -134,25 +130,28 @@ public class NewsApi {
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
-            consumes = {
-                    Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-                    Constants.MediaTypes.APPLICATION_XLS_VALUE
-            })
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"})
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
-        final ImportResultDto result = importService.doImport(file, contentType, locale);
+    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestBody final byte[] file,
+                                                           @RequestParam final String type,
+                                                           final Locale locale) {
+        final Long jobId = jobService.createImportJob(NewsImportService.class, file, ImpexType.fromValue(type), locale);
 
         return ResponseEntity
-                .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
-                .body(result);
+                .status(HttpStatus.ACCEPTED)
+                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
+                .body(JobReferenceDto.builder()
+                        .id(jobId)
+                        .build());
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
+    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestParam("file") final MultipartFile file,
+                                                           @RequestParam final String type,
+                                                           final Locale locale) {
         try {
-            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
+            return createAndUpdate(file.getBytes(), type, locale);
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }

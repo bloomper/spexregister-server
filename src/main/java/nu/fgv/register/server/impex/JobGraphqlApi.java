@@ -48,11 +48,7 @@ public class JobGraphqlApi {
     @RequiresAdminOrEditor
     public Mono<JobStatusDto> status(@Argument final Long id) {
         return jobService.getJobExecution(id)
-                .map(execution -> JobStatusDto.builder()
-                        .id(id)
-                        .status(execution.getStatus().name())
-                        .exitStatus(execution.getExitStatus().getExitCode())
-                        .build());
+                .map(jobService::mapToResult);
     }
 
     @SubscriptionMapping("jobProgress")
@@ -62,7 +58,14 @@ public class JobGraphqlApi {
                 .filter(this::hasRequiredAdminOrEditor)
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
                 .flatMapMany(auth -> jobService.getJobExecution(id)
-                        .flatMapMany(execution -> progressService.getStream(id)));
+                        .flatMapMany(execution -> progressService.getStream(id)
+                                .map(dto -> {
+                                    if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
+                                        return jobService.mapToResult(execution);
+                                    }
+                                    return dto;
+                                })
+                        ));
     }
 
     private boolean hasRequiredAdminOrEditor(final Authentication auth) {

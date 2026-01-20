@@ -21,11 +21,9 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
-import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
-import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
 import nu.fgv.register.server.util.search.FacetValue;
@@ -246,7 +244,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        when(jobService.createExportJob(any(), anyList(), any(String.class), any(ExportType.class), isNull(), any(Locale.class))).thenReturn(1L);
+        when(jobService.createExportJob(any(), anyList(), any(String.class), any(ImpexType.class), isNull(), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
@@ -263,7 +261,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 queryParameters(
-                                        parameterWithName("type").description("The export type (excel, excel_xls and pdf supported)"),
+                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)"),
                                         parameterWithName("ids").description("The ids of the spexare to export").optional(),
                                         parameterWithName("filter").description("The filter to use for the spexare to export").optional(),
                                         parameterWithName("reportType").description("The report type (must be specified when type is pdf)").optional()
@@ -314,28 +312,25 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_create_import() throws Exception {
-        final var importResult = ImportResultDto.builder().success(true).build();
-
-        when(importService.doImport(any(), any(String.class), any(Locale.class))).thenReturn(importResult);
+        when(jobService.createImportJob(any(), any(), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
-                        post("/api/spexare")
+                        post("/api/spexare?type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(Constants.MediaTypes.APPLICATION_XLSX)
                                 .content(new byte[]{1, 2, 3})
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andDo(print())
                 .andDo(
                         document(
                                 "spexare-create-import",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                queryParameters(
+                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)")
                                 ),
                                 importResponseFields,
                                 security(getRolesFromMethod(SpexareApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))

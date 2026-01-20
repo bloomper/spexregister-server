@@ -42,6 +42,7 @@ public class GraphqlConfig {
                 .scalar(ExtendedScalars.CountryCode)
                 .scalar(ExtendedScalars.Locale)
                 .scalar(ExtendedScalars.GraphQLLong)
+                .scalar(ExtendedScalars.Json)
                 .scalar(
                         ExtendedScalars.newRegexScalar("Email")
                                 .addPattern(Pattern.compile("^(.+)@(\\S+)$"))

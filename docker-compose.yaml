@@ -120,6 +120,7 @@ services:
     volumes:
       - app_log_data:/data/log_data
       - app_index_data:/data/index_data
+      - app_impex_data:/data/impex_data
     networks:
       - app_network
     secrets:
@@ -187,6 +188,12 @@ volumes:
     driver_opts:
       type: none
       device: .docker/app/index_data
+      o: bind
+  app_impex_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/app/impex_data
       o: bind
   caddy_data:
     driver: local

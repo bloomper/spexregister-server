@@ -143,10 +143,7 @@ public abstract class AbstractApiTest {
     );
 
     protected static final List<FieldDescriptor> importResponseFieldsDescriptors = List.of(
-            fieldWithPath("data").description("Any data returned by the import"),
-            fieldWithPath("errors").description("Any errors that occurred during the import"),
-            fieldWithPath("messages").description("Any messages that occurred during the import"),
-            fieldWithPath("success").description("The import result")
+            fieldWithPath("id").description("The id of the import")
     );
 
     protected static final ResponseFieldsSnippet importResponseFields = responseFields(

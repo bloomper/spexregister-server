@@ -14,4 +14,12 @@ type JobStatus {
     id: ID!
     status: String!
     exitStatus: String
+    importResult: ImportResult
+}
+
+type ImportResult {
+    success: Boolean!
+    errors: [String]
+    messages: [String]
+    data: JSON
 }

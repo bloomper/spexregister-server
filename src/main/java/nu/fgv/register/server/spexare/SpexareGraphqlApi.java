@@ -24,7 +24,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
@@ -82,7 +82,7 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, @Argument final ReportType reportType, final Locale locale) {
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ImpexType type, @Argument final ReportType reportType, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexareExportService.class, ids, filter, type, reportType, locale))
                 .build();

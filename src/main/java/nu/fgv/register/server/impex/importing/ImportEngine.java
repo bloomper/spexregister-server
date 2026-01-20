@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.impex.importing;
 
+import nu.fgv.register.server.impex.model.ImpexType;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -26,5 +28,5 @@ import java.util.Locale;
 public interface ImportEngine {
     ImportEngineResponse process(final byte[] file, final List<ImportSpec> specs, final Locale locale);
 
-    boolean supports(final String contentType);
+    boolean supports(final ImpexType type);
 }

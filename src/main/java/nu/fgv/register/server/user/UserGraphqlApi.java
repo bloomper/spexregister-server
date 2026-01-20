@@ -23,7 +23,7 @@ import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.user.authority.AuthorityDto;
@@ -73,7 +73,7 @@ public class UserGraphqlApi {
 
     @QueryMapping("userExport")
     @RequiresAdmin
-    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ExportType type, final Locale locale) {
+    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(UserExportService.class, ids, filter, type, locale))
                 .build();

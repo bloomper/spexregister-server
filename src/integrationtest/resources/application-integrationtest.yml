@@ -38,5 +38,7 @@ spexregister:
     client:
       client-id: spexregister
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
+  impex:
+    storage-path: ./integrationtest-data/impex_data
   sample-data:
     import: false

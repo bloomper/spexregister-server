@@ -21,12 +21,10 @@ import nu.fgv.register.server.event.EventApi;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
-import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.task.category.TaskCategoryApi;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
-import nu.fgv.register.server.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -49,7 +47,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -157,7 +154,7 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export() throws Exception {
-        when(jobService.createExportJob(any(Class.class), anyList(), any(String.class), any(ExportType.class), any(Locale.class))).thenReturn(1L);
+        when(jobService.createExportJob(any(Class.class), anyList(), any(String.class), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
@@ -174,7 +171,7 @@ class TaskApiTest extends AbstractApiTest {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 queryParameters(
-                                        parameterWithName("type").description("The export type (excel, excel_xls and pdf supported)"),
+                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)"),
                                         parameterWithName("ids").description("The ids of the tasks to export").optional(),
                                         parameterWithName("filter").description("The filter to use for the tasks to export").optional()
                                 ),
@@ -220,28 +217,25 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_create_import() throws Exception {
-        final var importResult = ImportResultDto.builder().success(true).build();
-
-        when(importService.doImport(any(), any(String.class), any(Locale.class))).thenReturn(importResult);
+        when(jobService.createImportJob(any(), any(), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
 
         mockMvc
                 .perform(
-                        post("/api/tasks")
+                        post("/api/tasks?type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(Constants.MediaTypes.APPLICATION_XLSX)
                                 .content(new byte[]{1, 2, 3})
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andDo(print())
                 .andDo(
                         document(
                                 "task-create-import",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
-                                secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/vnd.ms-excel supported)")
+                                queryParameters(
+                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)")
                                 ),
                                 importResponseFields,
                                 security(getRolesFromMethod(TaskApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
@@ -397,7 +391,7 @@ class TaskApiTest extends AbstractApiTest {
     @Test
     void should_get_category() throws Exception {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        final var realCategoryApi = new TaskCategoryApi(null, null, null, null, null, null);
+        final var realCategoryApi = new TaskCategoryApi(null, null, null, null, null);
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(category);
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));

@@ -19,3 +19,7 @@ spring:
 logging:
   file:
     path: ./test-data/log_data
+
+spexregister:
+  impex:
+    storage-path: ./test-data/impex_data

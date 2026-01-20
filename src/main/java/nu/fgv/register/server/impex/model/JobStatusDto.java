@@ -29,4 +29,5 @@ public class JobStatusDto {
     private Long id;
     private String status;
     private String exitStatus;
+    private ImportResultDto importResult;
 }

@@ -39,31 +39,34 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class JobApi {
 
-    private final JobService jobService;
+    private final JobService service;
     private final JobProgressService progressService;
 
     @GetMapping("/{id}")
     @RequiresAdminOrEditor
     public Mono<ResponseEntity<JobStatusDto>> status(@PathVariable final Long id) {
-        return jobService.getJobExecution(id)
-                .map(execution -> ResponseEntity.ok(JobStatusDto.builder()
-                        .id(id)
-                        .status(execution.getStatus().name())
-                        .exitStatus(execution.getExitStatus().getExitCode())
-                        .build()));
+        return service.getJobExecution(id)
+                .map(execution -> ResponseEntity.ok(service.mapToResult(execution)));
     }
 
     @GetMapping(path = "/{id}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RequiresAdminOrEditor
     public Flux<JobStatusDto> progress(@PathVariable final Long id) {
-        return jobService.getJobExecution(id)
-                .flatMapMany(execution -> progressService.getStream(id));
+        return service.getJobExecution(id)
+                .flatMapMany(execution -> progressService.getStream(id)
+                        .map(dto -> {
+                            if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
+                                return service.mapToResult(execution);
+                            }
+                            return dto;
+                        })
+                );
     }
 
     @GetMapping("/{id}/results")
     @RequiresAdminOrEditor
     public Mono<ResponseEntity<Resource>> results(@PathVariable final Long id) {
-        return jobService.getJobOutputFile(id)
+        return service.getJobOutputFile(id)
                 .map(resource -> ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")

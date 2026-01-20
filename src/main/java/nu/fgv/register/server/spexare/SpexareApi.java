@@ -25,8 +25,7 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ExportType;
-import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
@@ -35,7 +34,6 @@ import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.spexare.tagging.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
-import nu.fgv.register.server.util.Constants;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.search.AggregationFilter;
@@ -98,7 +96,6 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareApi {
 
     private final SpexareService service;
-    private final SpexareImportService importService;
     private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
@@ -141,7 +138,7 @@ public class SpexareApi {
                                                     @RequestParam(required = false) final String reportType,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
-        final Long jobId = jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ExportType.fromValue(type), hasText(reportType) ? ReportType.fromValue(reportType) : null, locale);
+        final Long jobId = jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), filter, ImpexType.fromValue(type), hasText(reportType) ? ReportType.fromValue(reportType) : null, locale);
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
@@ -151,25 +148,28 @@ public class SpexareApi {
                         .build());
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT},
-            consumes = {
-                    Constants.MediaTypes.APPLICATION_XLSX_VALUE,
-                    Constants.MediaTypes.APPLICATION_XLS_VALUE
-            })
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"})
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType, final Locale locale) {
-        final ImportResultDto result = importService.doImport(file, contentType, locale);
+    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestBody final byte[] file,
+                                                           @RequestParam final String type,
+                                                           final Locale locale) {
+        final Long jobId = jobService.createImportJob(SpexareImportService.class, file, ImpexType.fromValue(type), locale);
 
         return ResponseEntity
-                .status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
-                .body(result);
+                .status(HttpStatus.ACCEPTED)
+                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
+                .body(JobReferenceDto.builder()
+                        .id(jobId)
+                        .build());
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditor
-    public ResponseEntity<ImportResultDto> createAndUpdate(@RequestParam("file") final MultipartFile file, final Locale locale) {
+    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestParam("file") final MultipartFile file,
+                                                           @RequestParam final String type,
+                                                           final Locale locale) {
         try {
-            return createAndUpdate(file.getBytes(), file.getContentType(), locale);
+            return createAndUpdate(file.getBytes(), type, locale);
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }

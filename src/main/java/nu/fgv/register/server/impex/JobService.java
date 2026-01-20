@@ -19,7 +19,10 @@ package nu.fgv.register.server.impex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.impex.exporting.ExportService;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.importing.AbstractImportService;
+import nu.fgv.register.server.impex.model.ImpexType;
+import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
@@ -28,13 +31,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
-import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,6 +71,7 @@ public class JobService {
     private final JobRepository jobRepository;
     private final JobOperator jobOperator;
     private final Job exportJob;
+    private final Job importJob;
     private final ApplicationContext applicationContext;
     private final JdbcTemplate jdbcTemplate;
     @Value("${spexregister.jobs.job-cleanup.purge-threshold-in-days}")
@@ -79,29 +79,22 @@ public class JobService {
     @Value("${spexregister.impex.storage-path}")
     private String storagePath;
 
-    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ExportType exportType, final Locale locale) {
-        return createExportJob(serviceClass, ids, filter, exportType, null, locale);
+    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, final Locale locale) {
+        return createExportJob(serviceClass, ids, filter, type, null, locale);
     }
 
-    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ExportType exportType, @Nullable final ReportType reportType, final Locale locale) {
-        final String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, serviceClass);
-        if (beanNames.length == 0) {
-            throw new InternalErrorException("No bean found for service class: " + serviceClass.getName());
-        }
-        final String serviceBeanName = beanNames[0];
-        final String idsParam = ids.stream().map(Object::toString).collect(Collectors.joining(","));
-        final String requestor = SecurityContextHolder.getContext().getAuthentication() != null ? SecurityContextHolder.getContext().getAuthentication().getName() : null;
-        final String authorities = SecurityContextHolder.getContext().getAuthentication() != null ?
-                SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.joining(",")) : "";
+    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, @Nullable final ReportType reportType, final Locale locale) {
+        final String serviceBeanName = getServiceBeanName(serviceClass);
+        final String requestor = getRequestor();
+        final String authorities = getAuthorities();
 
         if (requestor != null) {
+            final String idsParam = ids.stream().map(Object::toString).collect(Collectors.joining(","));
             final JobParameters jobParameters = new JobParametersBuilder()
                     .addString("serviceBeanName", serviceBeanName)
                     .addString("filter", filter)
                     .addString("ids", idsParam)
-                    .addString("exportType", exportType.name())
+                    .addString("impexType", type.name())
                     .addString("reportType", reportType != null ? reportType.name() : "")
                     .addString("locale", locale.toLanguageTag())
                     .addString("requestor", requestor)
@@ -111,10 +104,41 @@ public class JobService {
 
             try {
                 return jobOperator.start(exportJob, jobParameters).getJobInstance().getInstanceId();
-            } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
-                     InvalidJobParametersException e) {
+            } catch (final Exception e) {
                 log.error("Failed to create export job", e);
                 throw new InternalErrorException("Failed to create export job");
+            }
+        } else {
+            throw new InternalErrorException("No authenticated user");
+        }
+    }
+
+    public Long createImportJob(final Class<? extends AbstractImportService> serviceClass, final byte[] file, final ImpexType type, final Locale locale) {
+        final String serviceBeanName = getServiceBeanName(serviceClass);
+        final String requestor = getRequestor();
+        final String authorities = getAuthorities();
+
+        if (requestor != null) {
+            try {
+                final String fileName = "import-" + System.currentTimeMillis();
+                final Path path = Paths.get(storagePath, "imports", fileName);
+                Files.createDirectories(path.getParent());
+                Files.write(path, file);
+
+                final JobParameters jobParameters = new JobParametersBuilder()
+                        .addString("serviceBeanName", serviceBeanName)
+                        .addString("filePath", path.toString())
+                        .addString("impexType", type.name())
+                        .addString("locale", locale.toLanguageTag())
+                        .addString("requestor", requestor)
+                        .addString("authorities", authorities)
+                        .addLong("timestamp", System.currentTimeMillis())
+                        .toJobParameters();
+
+                return jobOperator.start(importJob, jobParameters).getJobInstance().getInstanceId();
+            } catch (final Exception e) {
+                log.error("Failed to create import job", e);
+                throw new InternalErrorException("Failed to create import job");
             }
         } else {
             throw new InternalErrorException("No authenticated user");
@@ -156,6 +180,21 @@ public class JobService {
                 });
     }
 
+    public JobStatusDto mapToResult(final JobExecution execution) {
+        final JobStatusDto.JobStatusDtoBuilder builder = JobStatusDto.builder()
+                .id(execution.getJobInstance().getInstanceId())
+                .status(execution.getStatus().name())
+                .exitStatus(execution.getExitStatus().getExitCode());
+
+        final Object importResult = execution.getExecutionContext().get("importResult");
+
+        if (importResult instanceof final ImportResultDto resultDto) {
+            builder.importResult(resultDto);
+        }
+
+        return builder.build();
+    }
+
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")
     public void scheduledCleanup() {
         log.info("Starting job metadata and files cleanup job");
@@ -185,6 +224,26 @@ public class JobService {
         } catch (final IOException e) {
             log.error("Failed to cleanup impex files", e);
         }
+    }
+
+    private String getServiceBeanName(final Class<?> serviceClass) {
+        final String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, serviceClass);
+        if (beanNames.length == 0) {
+            throw new InternalErrorException("No bean found for service class: " + serviceClass.getName());
+        }
+        return beanNames[0];
+    }
+
+    private @Nullable String getRequestor() {
+        return SecurityContextHolder.getContext().getAuthentication() != null ?
+                SecurityContextHolder.getContext().getAuthentication().getName() : null;
+    }
+
+    private String getAuthorities() {
+        return SecurityContextHolder.getContext().getAuthentication() != null ?
+                SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(",")) : "";
     }
 
     private void purgeOldJobMetadata(final int purgeThresholdInDays) {

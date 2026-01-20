@@ -18,7 +18,7 @@ operation::user-create[snippets='security,request-headers,request-fields,http-re
 [[create_import]]
 == Create/update/delete via import
 
-operation::user-create-import[snippets='security,request-headers,http-request,response-fields,http-response']
+operation::user-create-import[snippets='security,query-parameters,http-request,response-fields,http-response']
 
 [[get_paged]]
 == Get (paged)

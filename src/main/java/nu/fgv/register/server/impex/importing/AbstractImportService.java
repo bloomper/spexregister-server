@@ -19,6 +19,7 @@ package nu.fgv.register.server.impex.importing;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.impex.model.HasImpexAction;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.error.ImportException;
 import org.jspecify.annotations.Nullable;
@@ -48,11 +49,11 @@ public abstract class AbstractImportService {
         this.messageSource = messageSource;
     }
 
-    public ImportResultDto doImport(final byte[] file, @Nullable final String type, final Locale locale) {
+    public ImportResultDto doImport(final byte[] file, final ImpexType type, final Locale locale) {
         final ImportEngine engine = engines.stream()
                 .filter(e -> e.supports(type))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported import type: " + type));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported impex type: " + type));
 
         final List<ImportSpec> specs = getImportSpecs();
 

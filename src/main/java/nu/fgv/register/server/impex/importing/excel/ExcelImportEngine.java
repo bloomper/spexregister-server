@@ -21,9 +21,9 @@ import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.impex.importing.ImportEngine;
 import nu.fgv.register.server.impex.importing.ImportEngineResponse;
 import nu.fgv.register.server.impex.importing.ImportSpec;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
-import nu.fgv.register.server.util.Constants;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -102,9 +102,8 @@ public class ExcelImportEngine implements ImportEngine {
     }
 
     @Override
-    public boolean supports(final String contentType) {
-        return Constants.MediaTypes.APPLICATION_XLSX_VALUE.equals(contentType) ||
-                Constants.MediaTypes.APPLICATION_XLS_VALUE.equals(contentType);
+    public boolean supports(final ImpexType type) {
+        return type == ImpexType.EXCEL || type == ImpexType.EXCEL_XLS;
     }
 
     private String getSheetName(final Class<?> clazz, final Locale locale, @Nullable final String override) {

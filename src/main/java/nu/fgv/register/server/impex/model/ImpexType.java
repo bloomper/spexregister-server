@@ -23,24 +23,24 @@ import lombok.Getter;
  * @since 2.0
  */
 @Getter
-public enum ExportType {
+public enum ImpexType {
     EXCEL("excel"),
     EXCEL_XLS("excel-xls"),
     PDF("pdf");
 
     private final String value;
 
-    ExportType(final String value) {
+    ImpexType(final String value) {
         this.value = value;
     }
 
-    public static ExportType fromValue(final String value) {
-        for (final ExportType type : ExportType.values()) {
+    public static ImpexType fromValue(final String value) {
+        for (final ImpexType type : ImpexType.values()) {
             if (type.value.equalsIgnoreCase(value)) {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown export type: " + value);
+        throw new IllegalArgumentException("Unknown impex type: " + value);
     }
 
 }

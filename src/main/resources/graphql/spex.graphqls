@@ -3,7 +3,7 @@ extend type Query {
     spex(id: ID!): Spex
     spexRevival(spexId: ID!, id: ID!): Spex
     spexEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
-    spexExport(ids: [ID], filter: String, type: ExportType!): JobReference
+    spexExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {

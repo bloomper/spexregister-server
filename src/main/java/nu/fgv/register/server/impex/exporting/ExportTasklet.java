@@ -17,7 +17,7 @@
 package nu.fgv.register.server.impex.exporting;
 
 import lombok.RequiredArgsConstructor;
-import nu.fgv.register.server.impex.model.ExportType;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.impex.util.CountingIterable;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -62,7 +62,7 @@ public class ExportTasklet implements Tasklet {
         final String serviceBeanName = (String) params.get("serviceBeanName");
         final String filter = (String) params.get("filter");
         final String idsStr = (String) params.get("ids");
-        final ExportType exportType = ExportType.valueOf((String) params.get("exportType"));
+        final ImpexType type = ImpexType.valueOf((String) params.get("impexType"));
         final ReportType reportType = params.get("reportType") != null && hasText((String) params.get("reportType")) ? ReportType.valueOf((String) params.get("reportType")) : null;
         final Locale locale = Locale.forLanguageTag((String) params.get("locale"));
 
@@ -76,11 +76,11 @@ public class ExportTasklet implements Tasklet {
                 .toList();
 
         final ExportEngine engine = engines.stream()
-                .filter(e -> e.supports(exportType))
+                .filter(e -> e.supports(type))
                 .findFirst()
                 .orElseThrow();
-        final byte[] binary = engine.export(countingHolders, exportType, reportType, locale);
-        final String fileName = "export-" + chunkContext.getStepContext().getJobInstanceId() + engine.getExtension(exportType);
+        final byte[] binary = engine.export(countingHolders, type, reportType, locale);
+        final String fileName = "export-" + chunkContext.getStepContext().getJobInstanceId() + engine.getExtension(type);
         final Path path = Paths.get(storagePath, "exports", fileName);
 
         Files.createDirectories(path.getParent());

@@ -53,6 +53,7 @@ public class JobConfig {
     private final SecurityContextStepListener securityListener;
     private final JobProgressService jobProgressService;
     private final Tasklet exportTasklet;
+    private final Tasklet importTasklet;
 
     @Bean
     public JobRepository jobRepository(final DataSource dataSource, final PlatformTransactionManager transactionManager) throws Exception {
@@ -99,10 +100,27 @@ public class JobConfig {
     }
 
     @Bean
+    public Job importJob(final JobRepository jobRepository, final Step importStep) {
+        return new JobBuilder("importJob", jobRepository)
+                .start(importStep)
+                .listener(jobProgressService)
+                .build();
+    }
+
+    @Bean
     public Step exportStep(final JobRepository jobRepository,
                            final PlatformTransactionManager transactionManager) {
         return new StepBuilder("exportStep", jobRepository)
                 .tasklet(exportTasklet, transactionManager)
+                .listener(securityListener)
+                .build();
+    }
+
+    @Bean
+    public Step importStep(final JobRepository jobRepository,
+                           final PlatformTransactionManager transactionManager) {
+        return new StepBuilder("importStep", jobRepository)
+                .tasklet(importTasklet, transactionManager)
                 .listener(securityListener)
                 .build();
     }

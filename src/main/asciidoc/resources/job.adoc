@@ -1,0 +1,28 @@
+= News
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[get_status]]
+== Get status
+
+operation::job-get-status[snippets='security,request-headers,http-request,response-fields,http-response']
+
+[[get_progress]]
+== Get progress
+
+operation::job-get-progress[snippets='security,request-headers,path-parameters,http-request,http-response']
+
+[[get_results]]
+== Get results
+
+operation::job-get-results[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

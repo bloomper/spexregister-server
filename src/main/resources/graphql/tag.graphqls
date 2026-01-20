@@ -2,7 +2,7 @@ extend type Query {
     tagPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["name"], direction: SortDirection = ASC): TagConnection
     tag(id: ID!): Tag
     tagEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
-    tagExport(ids: [ID], filter: String, type: ExportType!): JobReference
+    tagExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
