@@ -27,6 +27,7 @@ import lombok.Getter;
 @Builder
 public class JobStatusDto {
     private Long id;
+    private String name;
     private String status;
     private String exitStatus;
 }

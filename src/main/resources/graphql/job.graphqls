@@ -25,6 +25,7 @@ type Job {
 
 type JobStatus {
     id: ID!
+    name: String!
     status: String!
     exitStatus: String
 }

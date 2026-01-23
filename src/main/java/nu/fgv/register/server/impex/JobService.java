@@ -214,6 +214,7 @@ public class JobService {
     private JobStatusDto mapToJobStatus(final JobExecution execution) {
         return JobStatusDto.builder()
                 .id(execution.getJobInstance().getInstanceId())
+                .name(execution.getJobInstance().getJobName())
                 .status(execution.getStatus().name())
                 .exitStatus(execution.getExitStatus().getExitCode())
                 .build();

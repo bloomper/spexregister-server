@@ -69,6 +69,7 @@ class JobApiTest extends AbstractApiTest {
     void should_get_status() throws Exception {
         final JobStatusDto statusDto = JobStatusDto.builder()
                 .id(1L)
+                .name("export")
                 .status("COMPLETED")
                 .exitStatus("COMPLETED")
                 .build();
@@ -97,6 +98,7 @@ class JobApiTest extends AbstractApiTest {
                         ),
                         responseFields(
                                 fieldWithPath("id").description("The id of the job"),
+                                fieldWithPath("name").description("The name of the job"),
                                 fieldWithPath("status").description("The status of the job"),
                                 fieldWithPath("exitStatus").description("The exit status code")
                         ),
@@ -204,8 +206,8 @@ class JobApiTest extends AbstractApiTest {
 
     @Test
     void should_get_progress() throws Exception {
-        final JobStatusDto statusDto = JobStatusDto.builder().id(1L).status("COMPLETED").exitStatus("COMPLETED").build();
-        final JobStatusDto pulse = JobStatusDto.builder().id(1L).status("STARTED").exitStatus("UNKNOWN").build();
+        final JobStatusDto statusDto = JobStatusDto.builder().id(1L).name("export").status("COMPLETED").exitStatus("COMPLETED").build();
+        final JobStatusDto pulse = JobStatusDto.builder().id(1L).name("export").status("STARTED").exitStatus("UNKNOWN").build();
 
         when(service.getJobStatus(anyLong())).thenReturn(Mono.just(statusDto));
         when(progressService.getStream(anyLong())).thenReturn(Flux.just(pulse));
