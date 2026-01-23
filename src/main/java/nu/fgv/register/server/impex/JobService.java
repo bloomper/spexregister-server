@@ -44,8 +44,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -175,11 +177,10 @@ public class JobService {
     }
 
     public Mono<List<JobDto>> getJobs() {
-        return ReactiveSecurityContextHolder.getContext()
-                .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
+        return currentAuthentication()
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
-                .map(auth -> {
-                    final String currentUser = auth.getName();
+                .map(Authentication::getName)
+                .map(currentUser -> {
                     final String sql = "SELECT JOB_EXECUTION_ID FROM BATCH_JOB_EXECUTION_PARAMS WHERE PARAMETER_NAME = 'requestor' AND PARAMETER_VALUE = ?";
                     final List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, currentUser);
 
@@ -190,6 +191,13 @@ public class JobService {
                             .map(this::mapToJob)
                             .toList();
                 });
+    }
+
+    private Mono<Authentication> currentAuthentication() {
+        return ReactiveSecurityContextHolder.getContext()
+                .mapNotNull(SecurityContext::getAuthentication)
+                .switchIfEmpty(Mono.fromSupplier(() -> SecurityContextHolder.getContext().getAuthentication()))
+                .filter(auth -> auth != null && auth.isAuthenticated());
     }
 
     private JobDto mapToJob(final JobExecution execution) {
@@ -221,13 +229,12 @@ public class JobService {
     }
 
     private Mono<JobExecution> getJobExecution(final Long jobId) {
-        return Mono.fromCallable(() -> jobRepository.getJobExecution(jobId))
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Job", jobId)))
-                .flatMap(execution ->
-                        ReactiveSecurityContextHolder.getContext()
-                                .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
-                                .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
-                                .flatMap(auth -> {
+        return currentAuthentication()
+                .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
+                .flatMap(auth ->
+                        Mono.fromCallable(() -> jobRepository.getJobExecution(jobId))
+                                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Job", jobId)))
+                                .flatMap(execution -> {
                                     final String requestor = execution.getJobParameters().getString("requestor");
 
                                     if (requestor == null || !requestor.equals(auth.getName())) {
