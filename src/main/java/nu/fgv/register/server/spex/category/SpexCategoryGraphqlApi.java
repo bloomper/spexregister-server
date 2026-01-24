@@ -37,6 +37,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -66,9 +67,9 @@ public class SpexCategoryGraphqlApi {
 
     @QueryMapping("spexCategoryExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
-                .id(jobService.createExportJob(SpexCategoryExportService.class, ids, filter, type, locale))
+                .id(jobService.createExportJob(SpexCategoryExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
     }
 

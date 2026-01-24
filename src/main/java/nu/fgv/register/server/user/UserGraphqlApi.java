@@ -43,6 +43,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -73,9 +74,9 @@ public class UserGraphqlApi {
 
     @QueryMapping("userExport")
     @RequiresAdmin
-    public JobReferenceDto export(@Argument final List<Long> ids, @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
-                .id(jobService.createExportJob(UserExportService.class, ids, filter, type, locale))
+                .id(jobService.createExportJob(UserExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
     }
 
