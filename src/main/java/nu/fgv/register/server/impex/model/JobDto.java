@@ -36,5 +36,6 @@ public class JobDto {
     private Instant createdAt;
     private @Nullable Instant startedAt;
     private @Nullable Instant finishedAt;
+    private boolean hasDownload;
     private @Nullable ImportResultDto importResult;
 }

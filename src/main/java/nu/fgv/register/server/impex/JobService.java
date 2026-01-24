@@ -156,7 +156,7 @@ public class JobService {
                         return Mono.error(new InternalErrorException("Job is not finished or failed"));
                     }
 
-                    final String path = execution.getExecutionContext().getString("outputFilePath");
+                    final String path = execution.getExecutionContext().getString("outputFilePath", null);
 
                     if (path == null) {
                         return Mono.error(new ResourceNoValueException("Job", "outputFilePath", jobId));
@@ -201,6 +201,11 @@ public class JobService {
     }
 
     private JobDto mapToJob(final JobExecution execution) {
+        final String outputFilePath = execution.getExecutionContext().getString("outputFilePath", null);
+        final boolean hasDownload = execution.getStatus() == BatchStatus.COMPLETED
+                && outputFilePath != null
+                && Files.exists(Paths.get(outputFilePath));
+
         final JobDto.JobDtoBuilder builder = JobDto.builder()
                 .id(execution.getJobInstance().getInstanceId())
                 .name(execution.getJobInstance().getJobName())
@@ -208,7 +213,8 @@ public class JobService {
                 .exitStatus(execution.getExitStatus().getExitCode())
                 .createdAt(execution.getCreateTime().toInstant(ZoneOffset.UTC))
                 .startedAt(execution.getStartTime() != null ? execution.getStartTime().toInstant(ZoneOffset.UTC) : null)
-                .finishedAt(execution.getEndTime() != null ? execution.getEndTime().toInstant(ZoneOffset.UTC) : null);
+                .finishedAt(execution.getEndTime() != null ? execution.getEndTime().toInstant(ZoneOffset.UTC) : null)
+                .hasDownload(hasDownload);
 
         final Object importResult = execution.getExecutionContext().get("importResult");
 
@@ -269,7 +275,8 @@ public class JobService {
             }).forEach(path -> {
                 try {
                     Files.delete(path);
-                } catch (final IOException _) {}
+                } catch (final IOException _) {
+                }
             });
         } catch (final IOException e) {
             log.error("Failed to cleanup impex files", e);
@@ -322,13 +329,4 @@ public class JobService {
         }
     }
 
-    private void checkOwnership(final JobExecution execution) {
-        final String requestor = execution.getJobParameters().getString("requestor");
-        final String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        System.out.println("currentUser = " + currentUser);
-        if (requestor == null || !requestor.equals(currentUser)) {
-            throw new AccessDeniedException("Access denied: You are not the owner of this job");
-        }
-    }
 }

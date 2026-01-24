@@ -150,6 +150,7 @@ class JobApiTest extends AbstractApiTest {
                                 fieldWithPath("createdAt").description("When the job was created"),
                                 fieldWithPath("startedAt").description("When the job started").optional(),
                                 fieldWithPath("finishedAt").description("When the job finished").optional(),
+                                fieldWithPath("hasDownload").description("Whether the job has a download or not"),
                                 subsectionWithPath("importResult").description("The import result details (only for import jobs)").optional(),
                                 fieldWithPath("importResult.success").description("Whether the import was successful").optional(),
                                 fieldWithPath("importResult.messages").description("Summary messages").optional(),
@@ -197,6 +198,7 @@ class JobApiTest extends AbstractApiTest {
                                 fieldWithPath("[].createdAt").description("When the job was created"),
                                 fieldWithPath("[].startedAt").description("When the job started").optional(),
                                 fieldWithPath("[].finishedAt").description("When the job finished").optional(),
+                                fieldWithPath("[].hasDownload").description("Whether the job has a download or not"),
                                 subsectionWithPath("[].importResult").description("The import result details (only for import jobs)").optional()
                         ),
                         secureRequestHeaders,
