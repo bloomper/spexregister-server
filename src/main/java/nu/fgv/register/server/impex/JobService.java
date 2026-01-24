@@ -53,6 +53,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,6 +81,7 @@ public class JobService {
     private final Job importJob;
     private final ApplicationContext applicationContext;
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper objectMapper;
     @Value("${spexregister.jobs.job-cleanup.purge-threshold-in-days}")
     private int purgeThresholdInDays;
     @Value("${spexregister.impex.storage-path}")
@@ -265,10 +267,14 @@ public class JobService {
                 .finishedAt(execution.getEndTime() != null ? execution.getEndTime().toInstant(ZoneOffset.UTC) : null)
                 .hasDownload(hasDownload);
 
-        final Object importResult = execution.getExecutionContext().get("importResult");
+        final String importResult = execution.getExecutionContext().getString("importResult", null);
 
-        if (importResult instanceof final ImportResultDto resultDto) {
-            builder.importResult(resultDto);
+        if (importResult != null) {
+            try {
+                builder.importResult(objectMapper.readValue(importResult, ImportResultDto.class));
+            } catch (final Exception e) {
+                log.warn("Failed to deserialize import result from execution context", e);
+            }
         }
 
         return builder.build();

@@ -19,6 +19,7 @@ package nu.fgv.register.server.impex.importing;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
@@ -26,6 +27,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +45,7 @@ import java.util.Map;
 public class ImportTasklet implements Tasklet {
 
     private final ApplicationContext applicationContext;
+    private final ObjectMapper objectMapper;
 
     @Override
     public RepeatStatus execute(final StepContribution contribution, final ChunkContext chunkContext) throws Exception {
@@ -59,7 +62,12 @@ public class ImportTasklet implements Tasklet {
 
         final ImportResultDto result = service.doImport(binary, type, locale);
 
-        chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("importResult", result);
+        chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext()
+                .putString("importResult", objectMapper.writeValueAsString(result));
+
+        if (!result.isSuccess()) {
+            contribution.setExitStatus(ExitStatus.FAILED);
+        }
 
         return RepeatStatus.FINISHED;
     }
