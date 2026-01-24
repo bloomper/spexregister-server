@@ -24,6 +24,7 @@ import nu.fgv.register.server.util.error.ExportException;
 import nu.fgv.register.server.util.error.ExternalResourceNotFoundException;
 import nu.fgv.register.server.util.error.ImportException;
 import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.JobDeleteNotAllowedException;
 import nu.fgv.register.server.util.error.ResourceAlreadyExistsException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -82,6 +83,7 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
             case final ExternalResourceNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final ImportException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);
             case final InternalErrorException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);
+            case final JobDeleteNotAllowedException e -> buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
             case final ResourceAlreadyExistsException e -> buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
             case final ResourceNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final ResourceNoValueException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);

@@ -4,6 +4,10 @@ extend type Query {
     jobs: [Job]
 }
 
+extend type Mutation {
+    jobDelete(id: ID!): Void
+}
+
 extend type Subscription {
     jobProgress(id: ID!): JobStatus
 }

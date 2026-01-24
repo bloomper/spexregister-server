@@ -24,6 +24,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +65,13 @@ public class JobApi {
     public Mono<ResponseEntity<List<JobDto>>> retrieve() {
         return service.getJobs()
                 .map(ResponseEntity::ok);
+    }
+
+    @DeleteMapping("/{id}")
+    @RequiresAdminOrEditor
+    public Mono<ResponseEntity<Object>> delete(@PathVariable final Long id) {
+        return service.deleteJob(id)
+                .thenReturn(ResponseEntity.noContent().build());
     }
 
     @GetMapping(path = "/{id}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

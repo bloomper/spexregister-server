@@ -26,6 +26,7 @@ import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.impex.model.ReportType;
 import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.JobDeleteNotAllowedException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import org.jspecify.annotations.Nullable;
@@ -50,6 +51,7 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -193,6 +195,53 @@ public class JobService {
                 });
     }
 
+    @Transactional
+    public Mono<Void> deleteJob(final Long jobId) {
+        return getJobExecution(jobId)
+                .flatMap(execution -> {
+                    final BatchStatus status = execution.getStatus();
+
+                    if (status != BatchStatus.COMPLETED
+                            && status != BatchStatus.FAILED
+                            && status != BatchStatus.STOPPED
+                            && status != BatchStatus.ABANDONED) {
+                        return Mono.error(new JobDeleteNotAllowedException(
+                                "Job cannot be deleted unless it is finished (COMPLETED/FAILED). Current status: " + status
+                        ));
+                    }
+
+                    return Mono.fromRunnable(() -> deleteJobExecution(execution));
+                })
+                .then();
+    }
+
+    void deleteJobExecution(final JobExecution execution) {
+        final Long jobExecutionId = execution.getId();
+        final Long jobInstanceId = execution.getJobInstance().getId();
+
+        final String outputFilePath = execution.getExecutionContext().getString("outputFilePath", null);
+        final String importFilePath = execution.getJobParameters().getString("filePath", null);
+
+        deleteFileIfPresent(outputFilePath);
+        deleteFileIfPresent(importFilePath);
+
+        jdbcTemplate.update("DELETE FROM BATCH_STEP_EXECUTION_CONTEXT WHERE STEP_EXECUTION_ID IN (SELECT STEP_EXECUTION_ID FROM BATCH_STEP_EXECUTION WHERE JOB_EXECUTION_ID = ?)", jobExecutionId);
+        jdbcTemplate.update("DELETE FROM BATCH_STEP_EXECUTION WHERE JOB_EXECUTION_ID = ?", jobExecutionId);
+        jdbcTemplate.update("DELETE FROM BATCH_JOB_EXECUTION_CONTEXT WHERE JOB_EXECUTION_ID = ?", jobExecutionId);
+        jdbcTemplate.update("DELETE FROM BATCH_JOB_EXECUTION_PARAMS WHERE JOB_EXECUTION_ID = ?", jobExecutionId);
+        jdbcTemplate.update("DELETE FROM BATCH_JOB_EXECUTION WHERE JOB_EXECUTION_ID = ?", jobExecutionId);
+
+        final Integer remaining = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM BATCH_JOB_EXECUTION WHERE JOB_INSTANCE_ID = ?",
+                Integer.class,
+                jobInstanceId
+        );
+
+        if (remaining != null && remaining == 0) {
+            jdbcTemplate.update("DELETE FROM BATCH_JOB_INSTANCE WHERE JOB_INSTANCE_ID = ?", jobInstanceId);
+        }
+    }
+
     private Mono<Authentication> currentAuthentication() {
         return ReactiveSecurityContextHolder.getContext()
                 .mapNotNull(SecurityContext::getAuthentication)
@@ -249,6 +298,17 @@ public class JobService {
                                     return Mono.just(execution);
                                 })
                 );
+    }
+
+    private void deleteFileIfPresent(final String path) {
+        if (path == null || path.isBlank()) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(Paths.get(path));
+        } catch (final Exception e) {
+            log.warn("Failed to delete job file: {}", path, e);
+        }
     }
 
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")

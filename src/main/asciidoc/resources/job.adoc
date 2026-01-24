@@ -35,4 +35,9 @@ operation::job-get-progress[snippets='security,request-headers,path-parameters,h
 
 operation::job-get-results[snippets='security,request-headers,path-parameters,http-request,response-headers,http-response']
 
+[[delete]]
+== Delete
+
+operation::job-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
+
 xref:../api-guide.adoc[Back to API guide]

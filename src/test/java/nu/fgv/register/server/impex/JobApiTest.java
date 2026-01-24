@@ -47,6 +47,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -203,6 +204,33 @@ class JobApiTest extends AbstractApiTest {
                         ),
                         secureRequestHeaders,
                         security(getRolesFromMethod(JobApi.class, "retrieve"))
+                ));
+    }
+
+    @Test
+    void should_delete_job() throws Exception {
+        when(service.deleteJob(anyLong())).thenReturn(Mono.empty());
+
+        final MvcResult mvcResult = mockMvc
+                .perform(
+                        delete("/api/jobs/{id}", 1L)
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isNoContent())
+                .andDo(document(
+                        "job-delete",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("id").description("The id of the job")
+                        ),
+                        secureRequestHeaders,
+                        security(getRolesFromMethod(JobApi.class, "delete", Long.class))
                 ));
     }
 
