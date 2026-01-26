@@ -30,6 +30,7 @@ import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.Audited;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -44,6 +45,7 @@ import java.util.Objects;
 @Table(name = "state")
 @EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Audited
 @RequiredArgsConstructor
 @Getter
 @Setter

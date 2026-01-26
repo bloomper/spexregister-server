@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.migration;
+package nu.fgv.register.server.util.data;
 
 import net.datafaker.idnumbers.SwedenIdNumber;
 import net.datafaker.providers.base.BaseProviders;

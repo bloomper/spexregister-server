@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.util.migration;
+package nu.fgv.register.server.util.data;
 
 import jakarta.ws.rs.core.Response;
 import net.datafaker.Faker;
@@ -107,7 +107,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final String SAMPLE_PASSWORD = "s3cr3t";
     private final PermissionService permissionService;
     private final AuthorityService authorityService;
-    @Value("${spexregister.sample-data.import:false}")
+    @Value("${spexregister.data.import-sample-data:false}")
     private final boolean importSampleData;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
@@ -122,7 +122,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                final AuthorityService authorityService,
                                final Keycloak keycloakAdminClient,
                                final String keycloakClientId,
-                               @Value("${spexregister.sample-data.import:false}") final boolean importSampleData,
+                               @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
                                @Value("${spexregister.crypto.algorithm}") final String algorithm,
                                @Value("${spexregister.crypto.secret-key}") final String secretKey,
                                @Value("${spexregister.crypto.initialization-vector}") final String iv) {

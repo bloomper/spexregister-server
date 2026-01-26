@@ -70,6 +70,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |APP_KEYCLOAK_REALM|The Keycloak realm of Spexregister Server|fgv
 |APP_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
 |APP_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
+|APP_SEED_AUDIT_DATA|A flag determining whether to seed audit data or not|false
 |APP_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
 
 |===

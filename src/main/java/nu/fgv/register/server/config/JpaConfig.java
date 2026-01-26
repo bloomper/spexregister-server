@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.envers.repository.config.EnableEnversRepositories;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -49,6 +50,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
                 )
         }
 )
+@EnableEnversRepositories
 public class JpaConfig {
 
     @Bean

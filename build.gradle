@@ -92,6 +92,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.data:spring-data-envers'
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation 'org.springframework.security:spring-security-acl'
     implementation 'org.mapstruct:mapstruct:1.6.3'

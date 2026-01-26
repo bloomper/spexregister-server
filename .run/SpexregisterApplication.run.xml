@@ -49,6 +49,11 @@
       </param>
       <param>
         <option name="enabled" value="true" />
+        <option name="name" value="APP_SEED_AUDIT_DATA" />
+        <option name="value" value="false" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
         <option name="name" value="APP_KEYCLOAK_CLIENT_CLIENT_SECRET" />
         <option name="value" value="FILL_ME_IN" />
       </param>

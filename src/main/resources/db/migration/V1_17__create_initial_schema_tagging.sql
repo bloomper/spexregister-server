@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS tagging
 (
     tag_id     BIGINT NOT NULL,
-    spexare_id BIGINT NOT NULL
+    spexare_id BIGINT NOT NULL,
+    CONSTRAINT PK_TAGGING PRIMARY KEY (tag_id, spexare_id)
 );
 
 ALTER TABLE tagging

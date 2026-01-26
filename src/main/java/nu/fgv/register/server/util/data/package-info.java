@@ -15,4 +15,4 @@
  */
 
 @org.jspecify.annotations.NullMarked
-package nu.fgv.register.server.util.migration;
+package nu.fgv.register.server.util.data;

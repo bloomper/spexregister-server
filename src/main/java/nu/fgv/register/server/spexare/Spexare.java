@@ -52,6 +52,8 @@ import nu.fgv.register.server.util.security.CryptoConverter;
 import nu.fgv.register.server.util.validation.Luhn;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.AuditJoinTable;
+import org.hibernate.envers.Audited;
 import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
@@ -82,6 +84,7 @@ import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysis
 @Table(name = "spexare")
 @EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Audited
 @Indexed(index = "spexare")
 @RequiredArgsConstructor
 @Getter
@@ -179,6 +182,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
             joinColumns = @JoinColumn(name = "spexare_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     @ToString.Exclude
+    @AuditJoinTable
     @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @Nullable

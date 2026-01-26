@@ -28,6 +28,11 @@ spring:
           indexing:
             listeners:
               enabled: true
+      org.hibernate.envers.audit_table_suffix: _audit
+      org.hibernate.envers.audit_strategy: org.hibernate.envers.strategy.internal.ValidityAuditStrategy
+      org.hibernate.envers.audit_strategy_validity_store_revend_timestamp: true
+      org.hibernate.envers.track_entities_changed_in_revision: true
+      org.hibernate.envers.store_data_at_delete: true
   servlet:
     multipart:
       max-file-size: 15MB
@@ -103,5 +108,6 @@ spexregister:
       client-secret: ${APP_KEYCLOAK_CLIENT_CLIENT_SECRET}
   impex:
     storage-path: ./data/impex_data
-  sample-data:
-    import: ${APP_IMPORT_SAMPLE_DATA}
+  data:
+    seed-audit-data: ${APP_SEED_AUDIT_DATA}
+    import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
