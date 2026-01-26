@@ -19,6 +19,7 @@ package nu.fgv.register.server.util;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.envers.NotAudited;
@@ -39,6 +40,9 @@ import java.time.Instant;
 @Getter
 @Setter
 public abstract class AbstractAuditable {
+
+    @Version
+    private Long version;
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, length = 50, updatable = false)

@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.graphql;
 import graphql.ErrorClassification;
 import graphql.GraphQLError;
 import graphql.schema.DataFetchingEnvironment;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolationException;
 import nu.fgv.register.server.util.error.ExportException;
 import nu.fgv.register.server.util.error.ExternalResourceNotFoundException;
@@ -33,9 +34,11 @@ import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -90,6 +93,11 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
             case final ResourcesNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final SubresourceAlreadyExistsException e ->
                     buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
+            case final ObjectOptimisticLockingFailureException e ->
+                    buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
+            case final OptimisticLockingFailureException e ->
+                    buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
+            case final OptimisticLockException e -> buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
             default -> null;
         };
     }

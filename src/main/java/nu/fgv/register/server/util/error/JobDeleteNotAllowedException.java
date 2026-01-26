@@ -26,6 +26,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class JobDeleteNotAllowedException extends ResponseStatusException {
 
     public JobDeleteNotAllowedException(final String reason) {
-        super(HttpStatus.CONFLICT, reason, null);
+        super(HttpStatus.BAD_REQUEST, reason, null);
     }
 }

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS spexare
     created_at             DATETIME              NOT NULL,
     last_modified_by       VARCHAR(255)          NULL,
     last_modified_at       DATETIME              NULL,
+    version                BIGINT                NULL,
     CONSTRAINT PK_SPEXARE PRIMARY KEY (id)
 );
 

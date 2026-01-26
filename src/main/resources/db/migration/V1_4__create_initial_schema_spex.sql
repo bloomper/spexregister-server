@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS spex
     created_at       DATETIME              NOT NULL,
     last_modified_by VARCHAR(255)          NULL,
     last_modified_at DATETIME              NULL,
+    version          BIGINT                NULL,
     CONSTRAINT PK_SPEX PRIMARY KEY (id)
 );
 

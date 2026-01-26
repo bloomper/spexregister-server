@@ -349,9 +349,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSampleNews(final JdbcClient jdbcClient) {
         final String sql = """
                 INSERT INTO news
-                    (visible_from, visible_to, subject, text, published, created_by, created_at)
+                    (visible_from, visible_to, subject, text, published, created_by, created_at, version)
                 VALUES
-                    (:visibleFrom, :visibleTo, :subject, :text, :published, :createdBy, :createdAt)
+                    (:visibleFrom, :visibleTo, :subject, :text, :published, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_NEWS).forEach(i -> {
@@ -388,9 +388,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSampleTags(final JdbcClient jdbcClient) {
         final String sql = """
                 INSERT INTO tag
-                    (name, created_by, created_at)
+                    (name, created_by, created_at, version)
                 VALUES
-                    (:name, :createdBy, :createdAt)
+                    (:name, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(i -> {
@@ -426,9 +426,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
         final List<Type> vocals = getVocals(jdbcClient);
         final String sql = """
                 INSERT INTO spexare
-                    (first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, created_by, created_at)
+                    (first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, created_by, created_at, version)
                 VALUES
-                    (:firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt)
+                    (:firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_SPEXARE).forEach(i -> {
@@ -527,9 +527,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSpexareAddresses(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO address
-                    (street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id, created_by, created_at)
+                    (street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:streetAddress, :postalCode, :city, :country, :phone, :phoneMobile, :emailAddress, :typeId, :spexareId, :createdBy, :createdAt)
+                    (:streetAddress, :postalCode, :city, :country, :phone, :phoneMobile, :emailAddress, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -559,9 +559,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSpexareConsents(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO consent
-                    (value, type_id, spexare_id, created_by, created_at)
+                    (value, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:value, :typeId, :spexareId, :createdBy, :createdAt)
+                    (:value, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -583,9 +583,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSpexareMemberships(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO membership
-                    (year, type_id, spexare_id, created_by, created_at)
+                    (year, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:year, :typeId, :spexareId, :createdBy, :createdAt)
+                    (:year, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         final Instant startYear = LocalDate.of(1948, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -614,9 +614,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private void createSpexareToggles(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO toggle
-                    (value, type_id, spexare_id, created_by, created_at)
+                    (value, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:value, :typeId, :spexareId, :createdBy, :createdAt)
+                    (:value, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -668,27 +668,27 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                          final List<Type> vocals) {
         final String activitySql = """
                 INSERT INTO activity
-                    (spexare_id, created_by, created_at)
+                    (spexare_id, created_by, created_at, version)
                 VALUES
-                    (:spexareId, :createdBy, :createdAt)
+                    (:spexareId, :createdBy, :createdAt, 0)
                 """;
         final String spexActivitySql = """
                 INSERT INTO spex_activity
-                    (activity_id, spex_id, created_by, created_at)
+                    (activity_id, spex_id, created_by, created_at, version)
                 VALUES
-                    (:activityId, :spexId, :createdBy, :createdAt)
+                    (:activityId, :spexId, :createdBy, :createdAt, 0)
                 """;
         final String taskActivitySql = """
                 INSERT INTO task_activity
-                    (activity_id, task_id, created_by, created_at)
+                    (activity_id, task_id, created_by, created_at, version)
                 VALUES
-                    (:activityId, :taskId, :createdBy, :createdAt)
+                    (:activityId, :taskId, :createdBy, :createdAt, 0)
                 """;
         final String actorSql = """
                 INSERT INTO actor
-                    (task_activity_id, vocal_id, role, created_by, created_at)
+                    (task_activity_id, vocal_id, role, created_by, created_at, version)
                 VALUES
-                    (:taskActivityId, :vocalId, :role, :createdBy, :createdAt)
+                    (:taskActivityId, :vocalId, :role, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, rnd.nextInt(NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES)).forEach(i -> {
@@ -780,9 +780,9 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
         final String sql = """
                 INSERT INTO user
-                    (external_id, state_id, spexare_id, created_by, created_at)
+                    (external_id, state_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:externalId, :stateId, :spexareId, :createdBy, :createdAt)
+                    (:externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
                 """;
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
 

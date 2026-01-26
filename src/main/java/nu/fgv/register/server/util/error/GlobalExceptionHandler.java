@@ -16,12 +16,16 @@
 
 package nu.fgv.register.server.util.error;
 
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,6 +55,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ProblemDetail handleAuthenticationException(final AuthenticationException e, final WebRequest request) {
         return createProblemDetail(e, HttpStatus.FORBIDDEN, "Authentication denied", "problemDetail.%s".formatted(e.getClass().getName()), null, request);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ProblemDetail handleAuthorizationDeniedException(final AuthorizationDeniedException e, final WebRequest request) {
+        return createProblemDetail(e, HttpStatus.FORBIDDEN, "Authentication denied", "problemDetail.%s".formatted(e.getClass().getName()), null, request);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleObjectOptimisticLockingFailureException(final ObjectOptimisticLockingFailureException e, final WebRequest request) {
+        return createProblemDetail(e, HttpStatus.CONFLICT, "Resource conflict", "problemDetail.%s".formatted(e.getClass().getName()), null, request);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleOptimisticLockingFailureException(final OptimisticLockingFailureException e, final WebRequest request) {
+        return createProblemDetail(e, HttpStatus.CONFLICT, "Resource conflict", "problemDetail.%s".formatted(e.getClass().getName()), null, request);
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleOptimisticLockException(final OptimisticLockException e, final WebRequest request) {
+        return createProblemDetail(e, HttpStatus.CONFLICT, "Resource conflict", "problemDetail.%s".formatted(e.getClass().getName()), null, request);
     }
 
     @Override
