@@ -132,7 +132,19 @@ The username is set by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.doc
 These are the steps to create a realm in Keycloak:
 
 * Create realm ``fgv``
-** Allow email to be used as username
+** General
+*** Display name: FGV
+*** HTML display name: Föreningen Gamla Västar
+** Login
+*** Forgot password: Enabled
+*** Email as username: Enabled
+*** Login with email: Enabled
+** Themes
+*** Login theme: FGV
+** Localization
+*** Internationalization: Enabled
+*** Supported locales: English, Swedish
+*** Default locale: Swedish
 * Create client ``spexregister``
 ** Enable client authentication
 *** The generated secret found under Credentials -> Client Secret is the one to use for any clients

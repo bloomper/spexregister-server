@@ -1,6 +1,8 @@
 {
   "id": "eb6c4e5f-bbc8-4b32-a178-5989cc10081c",
   "realm": "fgv",
+  "displayName": "FGV",
+  "displayNameHtml": "Föreningen Gamla Västar",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -33,7 +35,7 @@
   "verifyEmail": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
-  "resetPasswordAllowed": false,
+  "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": false,
   "permanentLockout": false,
@@ -1022,7 +1024,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "ip8dFYgp03sVytrrEeXgwHIgHAMtE350",
       "redirectUris": [
-        "*"
+        "/*"
       ],
       "webOrigins": [
         "/*"
@@ -1825,8 +1827,12 @@
       }
     ]
   },
-  "internationalizationEnabled": false,
-  "supportedLocales": [],
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "sv",
+    "en"
+  ],
+  "defaultLocale": "sv",
   "authenticationFlows": [
     {
       "id": "23c6b76a-e934-4633-acab-b5d757fcc38c",
