@@ -60,6 +60,7 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPosit
 public class SpexareGraphqlApi {
 
     private final SpexareService service;
+    private final SpexareSemanticSearchService semanticSearchService;
     private final EventService eventService;
     private final JobService jobService;
 
@@ -73,13 +74,34 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareSearchPaged")
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Argument final Optional<Integer> offset, @Argument final Optional<Integer> limit, @Argument final String q, @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
+    public WindowWithFacets<SpexareDto> search(final GraphQLContext graphQLContext,
+                                               @Argument final Optional<Integer> offset,
+                                               @Argument final Optional<Integer> limit,
+                                               @Argument final String q,
+                                               @Argument final List<AggregationFilter> aggregationFilters,
+                                               final Optional<Sort> sort) {
         final WindowWithFacets<SpexareDto> result = service.search(q, aggregationFilters, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
 
         graphQLContext.put("facets", result.getFacets());
 
         return result;
     }
+
+    @QueryMapping("spexareSemanticSearchPaged")
+    @RequiresAdminOrEditorOrUser
+    public WindowWithFacets<SpexareDto> semanticSearch(final GraphQLContext graphQLContext,
+                                                       @Argument final Optional<Integer> offset,
+                                                       @Argument final Optional<Integer> limit,
+                                                       @Argument final String sq,
+                                                       @Argument final List<AggregationFilter> aggregationFilters,
+                                                       final Optional<Sort> sort) {
+        final WindowWithFacets<SpexareDto> result = semanticSearchService.search(sq, aggregationFilters, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
+
+        graphQLContext.put("facets", result.getFacets());
+
+        return result;
+    }
+
 
     @QueryMapping("spexareExport")
     @RequiresAdminOrEditor

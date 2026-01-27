@@ -31,6 +31,7 @@ import nu.fgv.register.server.util.search.AbstractSearchEnabledJpaRepository;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -131,8 +132,14 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     }
 
     @Override
-    public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
+    public SearchResult<Spexare> search(final SearchSession searchSession,
+                                        final SearchQuery query,
+                                        @Nullable final List<Long> ids,
+                                        final int offset,
+                                        final int limit,
+                                        final Sort sort) {
         final boolean isAdmin = isAdministrator();
+
         var search = searchSession
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
@@ -143,6 +150,8 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                         .should(f.match().fields(EXACT_FIELDS).matching(query.freeTextQuery()).boost(5.0f))
                                         .should(f.match().fields(FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(1.0f))
                                 );
+                            } else if (ids != null && !ids.isEmpty()) {
+                                b.must(f.id().matchingAny(ids));
                             } else {
                                 b.must(f.matchAll());
                             }
@@ -197,8 +206,19 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     }
 
     @Override
-    public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
-        return search(searchSession, query, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
+    public SearchResult<Spexare> search(final SearchSession searchSession,
+                                        final SearchQuery query,
+                                        final int offset,
+                                        final int limit,
+                                        final Sort sort) {
+        return search(searchSession, query, null, offset, limit, sort);
+    }
+
+    @Override
+    public SearchResult<Spexare> search(final SearchSession searchSession,
+                                        final SearchQuery query,
+                                        final Pageable pageable) {
+        return search(searchSession, query, null, pageable);
     }
 
 }

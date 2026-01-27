@@ -112,7 +112,7 @@ public class SpexareExportService extends AbstractExportService {
                 ExportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getAddresses())
-                                        .orElse(Collections.emptyList())
+                                        .orElse(Collections.emptySet())
                                         .stream()
                                         .map(address -> ADDRESS_MAPPER.toImpexDto(spexare, address, countryMap.get(address.getCountry()), TYPE_MAPPER.toDto(address.getType()))))
                                 .iterator(),
@@ -121,7 +121,7 @@ public class SpexareExportService extends AbstractExportService {
                 ExportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getConsents())
-                                        .orElse(Collections.emptyList())
+                                        .orElse(Collections.emptySet())
                                         .stream()
                                         .map(consent -> CONSENT_MAPPER.toImpexDto(spexare, consent, TYPE_MAPPER.toDto(consent.getType()))))
                                 .iterator(),
@@ -130,7 +130,7 @@ public class SpexareExportService extends AbstractExportService {
                 ExportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getMemberships())
-                                        .orElse(Collections.emptyList())
+                                        .orElse(Collections.emptySet())
                                         .stream()
                                         .map(membership -> MEMBERSHIP_MAPPER.toImpexDto(spexare, membership, TYPE_MAPPER.toDto(membership.getType()))))
                                 .iterator(),
@@ -148,7 +148,7 @@ public class SpexareExportService extends AbstractExportService {
                 ExportHolder.of(
                         () -> StreamSupport.stream(spexareList.spliterator(), false)
                                 .flatMap(spexare -> Optional.ofNullable(spexare.getToggles())
-                                        .orElse(Collections.emptyList())
+                                        .orElse(Collections.emptySet())
                                         .stream()
                                         .map(toggle -> TOGGLE_MAPPER.toImpexDto(spexare, toggle, TYPE_MAPPER.toDto(toggle.getType()))))
                                 .iterator(),

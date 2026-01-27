@@ -18,6 +18,8 @@ package nu.fgv.register.server.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.spexare.SpexareSemanticSearchIndexingService;
+import nu.fgv.register.server.util.search.IndexingService;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,16 +40,41 @@ import static org.springframework.util.StringUtils.capitalize;
 public class AdminApi {
 
     private final IndexingService indexingService;
+    private final SpexareSemanticSearchIndexingService spexareSemanticSearchIndexingService;
 
-    @PostMapping(value = "/index/{entity}")
+    @PostMapping(value = "/search/index/{entity}")
     @RequiresAdmin
-    public ResponseEntity<Void> index(final @PathVariable String entity) {
+    public ResponseEntity<Void> searchIndex(final @PathVariable String entity) {
         try {
             final Class<?> clazz = Class.forName(String.format("nu.fgv.register.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
-            indexingService.initiateIndexingFor(clazz, true);
-            return ResponseEntity.ok().build();
+
+            indexingService.initiateIndexingFor(clazz, true)
+                    .whenComplete((ignored, ex) -> {
+                        if (ex != null) {
+                            log.error("Admin-triggered search indexing finished with errors for {}", clazz.getSimpleName(), ex);
+                        } else {
+                            log.info("Admin-triggered search indexing finished successfully for {}", clazz.getSimpleName());
+                        }
+                    });
+
+            return ResponseEntity.accepted().build();
         } catch (final ClassNotFoundException _) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping(value = "/semantic-search/index/spexare")
+    @RequiresAdmin
+    public ResponseEntity<Void> semanticSearchIndex() {
+        spexareSemanticSearchIndexingService.reindex()
+                .whenComplete((ignored, ex) -> {
+                    if (ex != null) {
+                        log.error("Admin-triggered semantic search reindex finished with errors for Spexare", ex);
+                    } else {
+                        log.info("Admin-triggered semantic search reindex finished successfully for Spexare");
+                    }
+                });
+
+        return ResponseEntity.accepted().build();
     }
 }

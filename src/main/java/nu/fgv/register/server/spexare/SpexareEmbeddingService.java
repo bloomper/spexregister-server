@@ -14,33 +14,38 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.admin;
+package nu.fgv.register.server.spexare;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spexare.Spexare;
-import nu.fgv.register.server.util.search.IndexingService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingRequest;
+import org.springframework.ai.embedding.EmbeddingResponse;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Component
 @Slf4j
 @RequiredArgsConstructor
-public class StartupEvent implements ApplicationListener<ApplicationReadyEvent> {
+@Service
+public class SpexareEmbeddingService {
 
-    private final IndexingService indexingService;
+    private final EmbeddingModel embeddingModel;
 
-    @Value("${spexregister.data.import-sample-data:false}")
-    private boolean importSampleData;
+    public float[] embed(final String document) {
+        if (!hasText(document)) {
+            return new float[0];
+        }
 
-    @Override
-    public void onApplicationEvent(final ApplicationReadyEvent event) {
-        indexingService.initiateIndexingFor(Spexare.class, importSampleData);
+        final EmbeddingResponse response = embeddingModel.call(new EmbeddingRequest(List.of(document), null));
+
+        return response.getResults().getFirst().getOutput();
     }
+
 }

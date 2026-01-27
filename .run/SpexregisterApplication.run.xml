@@ -54,7 +54,12 @@
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="APP_KEYCLOAK_CLIENT_CLIENT_SECRET" />
+        <option name="name" value="APP_OLLAMA_URL" />
+        <option name="value" value="FILL_ME_IN" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="APP_QDRANT_URL" />
         <option name="value" value="FILL_ME_IN" />
       </param>
     </additionalParameters>

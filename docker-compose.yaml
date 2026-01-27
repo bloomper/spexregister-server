@@ -105,6 +105,8 @@ services:
       APP_KEYCLOAK_CLIENT_CLIENT_ID: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       APP_SEED_AUDIT_DATA: ${APP_SEED_AUDIT_DATA}
       APP_IMPORT_SAMPLE_DATA: ${APP_IMPORT_SAMPLE_DATA}
+      APP_OLLAMA_URL: http://ollama:11434
+      APP_QDRANT_URL: http://qdrant:6333
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8081/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://keycloak.fgv.local.nu:8443/auth/realms/fgv
     restart: on-failure
@@ -146,6 +148,51 @@ services:
         aliases:
         - keycloak.fgv.local.nu
         - api.register.fgv.local.nu
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    #ports:
+    #  - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - app_network
+
+  ollama:
+    image: ollama/ollama:latest
+    #ports:
+    #  - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: [ "/bin/sh", "-lc" ]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    command:
+      - |
+        until ollama list >/dev/null 2>&1; do
+          echo "Waiting for ollama..."
+          sleep 1
+        done
+        ollama pull nomic-embed-text
+    restart: "no"
+    networks:
+      - app_network
 
 volumes:
   mysql_app_db_data:
@@ -207,6 +254,18 @@ volumes:
     driver_opts:
       type: none
       device: .docker/caddy/config
+      o: bind
+  qdrant_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/qdrant/data
+      o: bind
+  ollama_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: .docker/ollama/data
       o: bind
 
 networks:

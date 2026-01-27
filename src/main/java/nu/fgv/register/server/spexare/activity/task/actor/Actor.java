@@ -48,6 +48,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -78,6 +79,7 @@ public class Actor extends AbstractAuditable implements Serializable {
 
     @Size(max = 255, message = "{actor.role.size}")
     @FullTextField(searchable = Searchable.YES)
+    @Nullable
     private String role;
 
     @NotNull(message = "{actor.vocal.notEmpty}")

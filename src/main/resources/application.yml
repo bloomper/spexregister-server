@@ -61,6 +61,13 @@ spring:
       initialize-schema: never
     job:
       enabled: false
+  ai:
+    model:
+      embedding: ollama
+    ollama:
+      base-url: ${APP_OLLAMA_URL}
+      embedding:
+        model: nomic-embed-text
 
 management:
   server:
@@ -88,8 +95,10 @@ spexregister:
     initialization-vector: ${APP_IV}
     algorithm: "AES/CFB/PKCS5Padding"
   jobs:
-    full-index:
+    search-full-index:
       cron-expression: 0 0 */4 * * ? # Every 4 hours
+    semantic-search-full-index:
+      cron-expression: 0 0 */6 * * ? # Every 6 hours
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
     sync-users:
@@ -111,3 +120,13 @@ spexregister:
   data:
     seed-audit-data: ${APP_SEED_AUDIT_DATA}
     import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
+  semantic-search:
+    qdrant:
+      base-url: ${APP_QDRANT_URL}
+      collection: spexare
+      distance: Cosine
+      doWait: true
+    embedding:
+      batch-size: 32
+      page-size: 200
+      semantic-candidate-limit-for-facets: 2000

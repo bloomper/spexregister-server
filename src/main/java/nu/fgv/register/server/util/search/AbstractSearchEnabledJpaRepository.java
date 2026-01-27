@@ -24,9 +24,11 @@ import org.hibernate.search.engine.search.sort.dsl.CompositeSortComponentsStep;
 import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.engine.search.sort.dsl.SortOrder;
 import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -47,27 +49,61 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
 
     private final EntityManager entityManager;
 
-    protected AbstractSearchEnabledJpaRepository(final Class<T> domainClass, final EntityManager entityManager) {
+    protected AbstractSearchEnabledJpaRepository(final Class<T> domainClass,
+                                                 final EntityManager entityManager) {
         super(domainClass, entityManager);
         this.entityManager = entityManager;
     }
 
-    protected AbstractSearchEnabledJpaRepository(final JpaEntityInformation<T, ID> entityInformation, final EntityManager entityManager) {
+    protected AbstractSearchEnabledJpaRepository(final JpaEntityInformation<T, ID> entityInformation,
+                                                 final EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityManager = entityManager;
     }
 
     @Override
-    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
+    public SearchResult<T> search(final String query,
+                                  @Nullable final List<AggregationFilter> aggregationFilters,
+                                  final Pageable pageable) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), pageable);
     }
 
     @Override
-    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
+    public SearchResult<T> search(final String query,
+                                  @Nullable final List<AggregationFilter> aggregationFilters,
+                                  final int offset,
+                                  final int limit,
+                                  final Sort sort) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), offset, limit, sort);
     }
 
-    SearchQuery parseQuery(final String query, final List<AggregationFilter> aggregationFilters) {
+    @Override
+    public SearchResult<T> search(final String query,
+                                  @Nullable final List<AggregationFilter> aggregationFilters,
+                                  @Nullable final List<ID> ids,
+                                  final Pageable pageable) {
+        return search(Search.session(entityManager), parseQuery(query, aggregationFilters), ids, pageable);
+    }
+
+    @Override
+    public SearchResult<T> search(final String query,
+                                  @Nullable final List<AggregationFilter> aggregationFilters,
+                                  @Nullable final List<ID> ids,
+                                  final int offset,
+                                  final int limit,
+                                  final Sort sort) {
+        return search(Search.session(entityManager), parseQuery(query, aggregationFilters), ids, offset, limit, sort);
+    }
+
+    @Override
+    public SearchResult<T> search(final SearchSession searchSession,
+                                  final SearchQuery query,
+                                  @Nullable final List<ID> ids,
+                                  final Pageable pageable) {
+        return search(searchSession, query, ids, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
+    }
+
+    SearchQuery parseQuery(final String query, @Nullable final List<AggregationFilter> aggregationFilters) {
         final String freeTextQuery = hasText(query) ? query.strip() : "";
 
         return new SearchQuery(freeTextQuery, aggregationFilters);

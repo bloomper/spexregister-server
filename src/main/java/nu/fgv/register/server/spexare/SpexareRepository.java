@@ -17,10 +17,16 @@
 package nu.fgv.register.server.spexare;
 
 import nu.fgv.register.server.util.search.SearchEnabledJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,4 +43,32 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
     }
 
     long countByPublishedTrue();
+
+    @Query("select s.id from Spexare s")
+    Page<Long> findIds(Pageable pageable);
+
+    @EntityGraph(attributePaths = {
+            "addresses",
+            "addresses.type",
+            "consents",
+            "consents.type",
+            "memberships",
+            "memberships.type",
+            "tags",
+            "toggles",
+            "toggles.type",
+            "activities",
+            "activities.spexActivity",
+            "activities.spexActivity.spex",
+            "activities.spexActivity.spex.details",
+            "activities.spexActivity.spex.details.category",
+            "activities.taskActivities",
+            "activities.taskActivities.task",
+            "activities.taskActivities.task.category",
+            "activities.taskActivities.actors",
+            "activities.taskActivities.actors.vocal"
+    })
+    @Query("select distinct s from Spexare s where s.id in :ids")
+    List<Spexare> findAllByIdInWithGraph(@Param("ids") List<Long> ids);
+
 }

@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-import static org.hibernate.engine.internal.Versioning.seed;
-
 /**
  * @author Anders Jacobsson
  * @since 2.0

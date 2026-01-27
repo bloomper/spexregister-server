@@ -100,6 +100,8 @@ dependencies {
     implementation 'org.springframework.data:spring-data-envers'
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
     implementation 'org.springframework.security:spring-security-acl'
+    implementation platform("org.springframework.ai:spring-ai-bom:2.0.0-M2")
+    implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
     implementation 'org.mapstruct:mapstruct:1.6.3'
     implementation('net.sf.jmimemagic:jmimemagic:0.1.5') {
         ['commons-logging', 'log4j'].each {

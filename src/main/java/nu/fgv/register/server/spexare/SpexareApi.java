@@ -96,13 +96,14 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareApi {
 
     private final SpexareService service;
+    private final SpexareSemanticSearchService semanticSearchService;
     private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
     private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
     private final EventApi eventApi;
 
-    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q", "!type"})
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q", "!sq", "!type"})
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<PagedModel<EntityModel<SpexareDto>>> retrieve(@SortDefault(sort = Spexare_.FIRST_NAME, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = Spexare_.PUBLISHED + ":true") final String filter) {
@@ -125,6 +126,25 @@ public class SpexareApi {
                 .toList();
 
         final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(service.search(q, aggregationFilterList, pageable));
+
+        paged.getContent().forEach(this::addLinks);
+
+        return ResponseEntity.ok(paged);
+    }
+
+    @GetMapping(value = "/api/spexare/semantic-search", produces = MediaTypes.HAL_JSON_VALUE, params = {"sq"})
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<PagedWithFacetsModel<EntityModel<SpexareDto>>> semanticSearch(@RequestParam final String sq,
+                                                                                        @Nullable @RequestParam(required = false) final List<String> aggregations,
+                                                                                        @SortDefault(sort = "score", direction = Sort.Direction.DESC) final Pageable pageable
+    ) {
+        final List<AggregationFilter> aggregationFilterList = Optional.ofNullable(aggregations)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::parseAggregation)
+                .toList();
+
+        final PagedWithFacetsModel<EntityModel<SpexareDto>> paged = pagedWithFacetsResourcesAssembler.toModel(semanticSearchService.search(sq, aggregationFilterList, pageable));
 
         paged.getContent().forEach(this::addLinks);
 

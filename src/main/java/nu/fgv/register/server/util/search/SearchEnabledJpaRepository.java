@@ -34,13 +34,49 @@ import java.util.List;
 @NoRepositoryBean
 public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends AclJpaRepository<T, ID> {
 
-    SearchResult<T> search(String query, @Nullable List<AggregationFilter> aggregationFilters, Pageable pageable);
+    SearchResult<T> search(String query,
+                           @Nullable List<AggregationFilter> aggregationFilters,
+                           Pageable pageable);
 
-    SearchResult<T> search(String query, @Nullable List<AggregationFilter> aggregationFilters, int offset, int limit, Sort sort);
+    SearchResult<T> search(String query,
+                           @Nullable List<AggregationFilter> aggregationFilters,
+                           int offset,
+                           int limit,
+                           Sort sort);
 
-    SearchResult<T> search(SearchSession searchSession, SearchQuery query, Pageable pageable);
+    SearchResult<T> search(SearchSession searchSession,
+                           SearchQuery query,
+                           Pageable pageable);
 
-    SearchResult<T> search(SearchSession searchSession, SearchQuery query, int offset, int limit, Sort sort);
+    SearchResult<T> search(SearchSession searchSession,
+                           SearchQuery query,
+                           int offset,
+                           int limit,
+                           Sort sort);
+
+    SearchResult<T> search(String query,
+                           @Nullable List<AggregationFilter> aggregationFilters,
+                           @Nullable List<ID> ids,
+                           Pageable pageable);
+
+    SearchResult<T> search(String query,
+                           @Nullable List<AggregationFilter> aggregationFilters,
+                           @Nullable List<ID> ids,
+                           int offset,
+                           int limit,
+                           Sort sort);
+
+    SearchResult<T> search(SearchSession searchSession,
+                           SearchQuery query,
+                           @Nullable List<ID> ids,
+                           Pageable pageable);
+
+    SearchResult<T> search(SearchSession searchSession,
+                           SearchQuery query,
+                           @Nullable List<ID> ids,
+                           int offset,
+                           int limit,
+                           Sort sort);
 
     record SearchQuery(String freeTextQuery, @Nullable List<AggregationFilter> aggregationFilters) {
     }

@@ -28,8 +28,6 @@ import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
-import nu.fgv.register.server.util.search.FacetGroup;
-import nu.fgv.register.server.util.search.FacetValue;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import nu.fgv.register.server.util.search.WindowWithFacets;
@@ -37,12 +35,8 @@ import nu.fgv.register.server.util.search.WindowWithFacetsImpl;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
-import org.hibernate.search.util.common.SearchException;
 import org.jspecify.annotations.Nullable;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
@@ -56,23 +50,16 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
-import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
 import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
-import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
-import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 import static nu.fgv.register.server.util.FileUtil.detectMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -88,12 +75,12 @@ public class SpexareService {
 
     private final SpexareRepository repository;
     private final PermissionService permissionService;
-    private final MessageSource messageSource;
+    private final SpexareFacetService facetService;
 
     @RequiresAdminOrEditorOrUser
     public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
         final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, offset, limit, sort);
-        final List<Facet> facets = getFacets(searchResult);
+        final List<Facet> facets = facetService.getFacets(searchResult);
         final boolean hasNext = searchResult.total().hitCount() > offset + limit;
 
         return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), _ -> ScrollPosition.offset(offset), hasNext, facets);
@@ -102,7 +89,7 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public PageWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
         final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, pageable);
-        final List<Facet> facets = getFacets(searchResult);
+        final List<Facet> facets = facetService.getFacets(searchResult);
 
         return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
     }
@@ -167,6 +154,26 @@ public class SpexareService {
             return repository.streamAll(spec, sort, BasePermission.READ)
                     .iterator();
         };
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public List<Spexare> getAllowedByIds(final List<Long> ids) {
+        final List<Spexare> result = new ArrayList<>();
+
+        for (final Spexare s : streamByIds(ids, "", Sort.unsorted())) {
+            result.add(s);
+        }
+        return result;
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public List<Long> getAllowedIdsByIds(final List<Long> ids) {
+        final List<Long> result = new ArrayList<>();
+
+        for (final Spexare s : streamByIds(ids, "", Sort.unsorted())) {
+            result.add(s.getId());
+        }
+        return result;
     }
 
     @RequiresAdminOrEditor
@@ -364,110 +371,6 @@ public class SpexareService {
 
     private boolean doSpexareAndPartnerExist(final Long spexareId, final Long partnerId) {
         return doesSpexareExist(spexareId) && doesSpexareExist(partnerId);
-    }
-
-    private List<Facet> getFacets(final SearchResult<Spexare> searchResult) {
-        final boolean isAdmin = isAdministrator();
-
-        return AGGREGATIONS.stream()
-                .filter(a -> {
-                    if (Spexare_.PUBLISHED.equals(a) && !isAdmin) {
-                        return false;
-                    }
-                    try {
-                        searchResult.aggregation(AggregationKey.of(a));
-                        return true;
-                    } catch (final SearchException _) {
-                        return false;
-                    }
-                })
-                .map(a -> {
-                    String baseFieldName = a;
-                    String logicalKey = a;
-
-                    if (a.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
-                        final String[] parts = a.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
-                        baseFieldName = parts[0];
-                        logicalKey = parts[1];
-                    }
-
-                    final Map<Object, Long> values = searchResult.aggregation(AggregationKey.of(a));
-                    final String facetLabel = messageSource.getMessage("facet." + logicalKey, null, logicalKey, LocaleContextHolder.getLocale());
-
-                    if (baseFieldName.contains(AGGREGATION_HIERARCHICAL_MARKER)) {
-                        return Facet.builder()
-                                .id(logicalKey)
-                                .label(facetLabel)
-                                .groups(createNestedGroups(logicalKey, values))
-                                .build();
-                    }
-
-                    return Facet.builder()
-                            .id(logicalKey)
-                            .label(facetLabel)
-                            .groups(List.of(FacetGroup.builder()
-                                    .id(logicalKey)
-                                    .label("")
-                                    .values(createStandardValues(values))
-                                    .build()))
-                            .build();
-                })
-                .toList();
-    }
-
-    private List<FacetValue> createStandardValues(final Map<Object, Long> values) {
-        return values.entrySet().stream()
-                .map(entry -> {
-                    final String rawValue = String.valueOf(entry.getKey());
-                    String id = rawValue;
-                    String displayValue = rawValue;
-
-                    if (entry.getKey() instanceof final Boolean b) {
-                        displayValue = messageSource.getMessage("boolean.%s".formatted(b), null, LocaleContextHolder.getLocale());
-                    } else if (rawValue.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
-                        final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
-                        id = parts[0];
-                        displayValue = parts[1];
-                    }
-                    return new FacetValue(id, displayValue, entry.getValue());
-                })
-                .toList();
-    }
-
-    private List<FacetGroup> createNestedGroups(final String logicalKey, final Map<Object, Long> values) {
-        final Map<String, List<FacetValue>> groups = new HashMap<>();
-        final Map<String, String> groupLabelLookup = new HashMap<>();
-
-        values.forEach((key, count) -> {
-            final String rawValue = String.valueOf(key);
-            if (rawValue.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
-                final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
-                final String technicalValueId = parts[0];
-                final String displayPart = parts[1];
-
-                if (displayPart.contains(":")) {
-                    final String groupId = technicalValueId.contains(":") ? technicalValueId.split(":")[0] : technicalValueId;
-                    final String groupLabel = displayPart.split(":")[0].trim();
-                    final String valueLabel = displayPart.split(":")[1].trim();
-
-                    groupLabelLookup.put(groupId, groupLabel);
-                    groups.computeIfAbsent(groupId, _ -> new ArrayList<>())
-                            .add(new FacetValue(technicalValueId, valueLabel, count));
-                } else {
-                    groupLabelLookup.put(technicalValueId, "");
-                    groups.computeIfAbsent(technicalValueId, _ -> new ArrayList<>())
-                            .add(new FacetValue(technicalValueId, displayPart, count));
-                }
-            }
-        });
-
-        return groupLabelLookup.entrySet().stream()
-                .map(entry -> FacetGroup.builder()
-                        .id(entry.getKey())
-                        .label(entry.getValue())
-                        .values(groups.get(entry.getKey()))
-                        .build())
-                .toList();
     }
 
 }
