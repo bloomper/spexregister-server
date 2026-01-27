@@ -106,7 +106,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event", "spex_category_audit");
     }
 
     @AfterEach

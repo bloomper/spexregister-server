@@ -119,7 +119,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "toggle", "type", "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "toggle", "type", "spexare", "event", "toggle_audit", "type_audit", "spexare_audit");
     }
 
     @AfterEach

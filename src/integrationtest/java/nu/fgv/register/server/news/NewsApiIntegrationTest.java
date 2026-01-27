@@ -93,7 +93,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event", "news_audit");
     }
 
     @AfterEach

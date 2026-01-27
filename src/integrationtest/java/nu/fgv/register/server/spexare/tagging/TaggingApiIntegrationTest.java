@@ -116,7 +116,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tagging", "tag", "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tagging", "tag", "spexare", "event", "tagging_audit", "tag_audit", "spexare_audit");
     }
 
     @AfterEach

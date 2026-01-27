@@ -96,7 +96,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "task", "task_category", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task", "task_category", "event", "task_audit", "task_category_audit");
     }
 
     @AfterEach

@@ -89,7 +89,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event", "tag_audit");
     }
 
     @AfterEach

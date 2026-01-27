@@ -94,7 +94,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "task_category", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task_category", "event", "task_category_audit");
     }
 
     @AfterEach

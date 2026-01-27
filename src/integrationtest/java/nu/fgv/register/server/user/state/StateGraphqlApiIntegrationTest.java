@@ -88,7 +88,7 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        JdbcTestUtils.deleteFromTables(jdbcClient, "state");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "state", "state_audit");
     }
 
     @Nested

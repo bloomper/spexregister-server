@@ -114,7 +114,7 @@ class ConsentGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "consent", "type", "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "consent", "type", "spexare", "event", "consent_audit", "type_audit", "spexare_audit");
     }
 
     @AfterEach

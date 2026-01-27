@@ -145,7 +145,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "event", "spexare_audit");
         Files.deleteIfExists(Path.of(indexDataLocation, "spexare"));
     }
 

@@ -94,7 +94,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event", "tag_audit");
     }
 
     @AfterEach

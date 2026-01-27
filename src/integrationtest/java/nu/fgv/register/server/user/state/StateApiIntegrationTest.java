@@ -95,7 +95,7 @@ class StateApiIntegrationTest extends AbstractIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        JdbcTestUtils.deleteFromTables(jdbcClient, "state");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "state", "state_audit");
     }
 
     @Nested

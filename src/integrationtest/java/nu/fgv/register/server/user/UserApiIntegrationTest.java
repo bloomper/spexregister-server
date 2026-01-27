@@ -152,7 +152,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "event", "user_audit", "state_audit", "spexare_audit");
     }
 
     @AfterEach

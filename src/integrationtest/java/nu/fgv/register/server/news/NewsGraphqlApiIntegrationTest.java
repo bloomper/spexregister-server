@@ -90,7 +90,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event", "news_audit");
     }
 
     @AfterEach

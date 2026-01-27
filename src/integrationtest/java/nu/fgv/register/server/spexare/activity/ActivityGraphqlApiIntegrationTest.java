@@ -104,7 +104,7 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "activity", "spexare", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "activity", "spexare", "event", "activity_audit", "spexare_audit");
     }
 
     @AfterEach

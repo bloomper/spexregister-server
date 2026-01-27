@@ -108,7 +108,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event", "spex_category_audit");
     }
 
     @AfterEach

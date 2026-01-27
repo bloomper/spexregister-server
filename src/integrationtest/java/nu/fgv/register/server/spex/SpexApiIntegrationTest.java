@@ -131,7 +131,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "event");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "event", "spex_audit", "spex_details_audit", "spex_category_audit");
     }
 
     @AfterEach
