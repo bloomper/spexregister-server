@@ -51,6 +51,11 @@ configurations {
     keycloakImplementation.extendsFrom developmentOnly
     keycloakRuntimeOnly.extendsFrom runtimeOnly
     asciidoctorExtensions
+    mockitoAgent {
+        transitive = false
+        canBeConsumed = false
+        canBeResolved = true
+    }
 
     integrationTestRuntimeClasspath {
         exclude group: 'org.springframework.boot', module: 'spring-boot-devtools'
@@ -157,6 +162,10 @@ dependencies {
     if (System.getProperty("os.name").toLowerCase().contains("mac") && System.getProperty("os.arch").toLowerCase().contains("aarch64")) {
         testRuntimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.9.Final:osx-aarch_64'
     }
+
+    mockitoAgent('org.mockito:mockito-core:5.21.0') {
+        transitive = false
+    }
 }
 
 dependencyManagement {
@@ -194,8 +203,10 @@ tasks.register('createKeycloakProvidersDir') {
 
 tasks.named('test') {
     outputs.dir snippetsDir
-    useJUnitPlatform()
     dependsOn createSnippetsDir
+
+    useJUnitPlatform()
+    jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile}"
 }
 
 tasks.register('integrationTest', Test) {
@@ -204,10 +215,9 @@ tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     shouldRunAfter test
-}
 
-integrationTest {
     useJUnitPlatform()
+    jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile}"
 }
 
 rootProject.tasks.named("processIntegrationTestResources") {
