@@ -68,9 +68,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -193,28 +191,28 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @ToString.Exclude
     @IndexedEmbedded
     @Nullable
-    private List<Address> addresses = new ArrayList<>();
+    private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
     @Nullable
-    private List<Membership> memberships = new ArrayList<>();
+    private Set<Membership> memberships = new HashSet<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
     @Nullable
-    private List<Consent> consents = new ArrayList<>();
+    private Set<Consent> consents = new HashSet<>();
 
     @OneToMany(mappedBy = "spexare", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ToString.Exclude
     @IndexedEmbedded
     @Nullable
-    private List<Toggle> toggles = new ArrayList<>();
+    private Set<Toggle> toggles = new HashSet<>();
 
     @Override
     public boolean equals(final Object o) {

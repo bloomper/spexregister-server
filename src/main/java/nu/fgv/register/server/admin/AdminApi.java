@@ -18,6 +18,7 @@ package nu.fgv.register.server.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.util.search.IndexingService;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,8 +45,17 @@ public class AdminApi {
     public ResponseEntity<Void> index(final @PathVariable String entity) {
         try {
             final Class<?> clazz = Class.forName(String.format("nu.fgv.register.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
-            indexingService.initiateIndexingFor(clazz, true);
-            return ResponseEntity.ok().build();
+
+            indexingService.initiateIndexingFor(clazz, true)
+                    .whenComplete((ignored, ex) -> {
+                        if (ex != null) {
+                            log.error("Admin-triggered indexing finished with errors for {}", clazz.getSimpleName(), ex);
+                        } else {
+                            log.info("Admin-triggered indexing finished successfully for {}", clazz.getSimpleName());
+                        }
+                    });
+
+            return ResponseEntity.accepted().build();
         } catch (final ClassNotFoundException _) {
             return ResponseEntity.badRequest().build();
         }

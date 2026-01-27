@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.admin;
+package nu.fgv.register.server.util.search;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 
@@ -45,7 +45,9 @@ public class IndexingService {
 
     @Async
     @Transactional
-    public CompletableFuture<CompletionStage<Void>> initiateIndexingFor(final Class<?> clazz, final boolean force) {
+    public CompletableFuture<Void> initiateIndexingFor(final Class<?> clazz, final boolean force) {
+        final long startedAtNanos = System.nanoTime();
+
         log.info("Initiating indexing for {}", clazz.getSimpleName());
 
         final SearchSession searchSession = Search.session(entityManager);
@@ -54,28 +56,40 @@ public class IndexingService {
                 .where(f -> f.bool().with(b -> b.must(f.matchAll())))
                 .fetchTotalHitCount();
 
-        if (force || count == 0) {
-            return CompletableFuture
-                    .completedFuture(searchSession.massIndexer()
-                            .start()
-                            .thenAccept(action -> log.info("All entities indexed")));
+        if (!force && count > 0) {
+            log.info("Not starting index due to existing documents (count: {})", count);
+            return CompletableFuture.completedFuture(null);
         }
 
         log.info("Not starting index due to existing documents (count: {})", count);
 
-        return CompletableFuture.completedFuture(CompletableFuture
-                .completedFuture(null)
-                .thenAccept(i -> {
-                }));
+        return searchSession.massIndexer()
+                .start()
+                .thenApply(ignored -> (Void) null)
+                .whenComplete((ignored, ex) -> {
+                    final Duration duration = Duration.ofNanos(System.nanoTime() - startedAtNanos);
+
+                    if (ex != null) {
+                        log.error("Indexing failed for {} after {}", clazz.getSimpleName(), duration, ex);
+                    } else {
+                        log.info("Indexing completed for {} in {}", clazz.getSimpleName(), duration);
+                    }
+                })
+                .toCompletableFuture();
     }
+
 
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
     @Transactional
     public void scheduledRun() {
-        log.info("Starting full re-indexing job");
-        runAsSystem(() -> {
-            initiateIndexingFor(Spexare.class, true);
-            log.info("Finished full re-indexing job");
-        });
+        log.info("Starting search full re-indexing job");
+        runAsSystem(() -> initiateIndexingFor(Spexare.class, true)
+                .whenComplete((ignored, e) -> {
+                    if (e != null) {
+                        log.error("Full re-indexing job finished with errors", e);
+                    } else {
+                        log.info("Full re-indexing job finished successfully");
+                    }
+                }));
     }
 }
