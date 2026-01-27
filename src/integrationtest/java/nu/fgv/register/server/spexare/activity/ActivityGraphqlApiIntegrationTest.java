@@ -21,6 +21,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -90,6 +91,7 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("spexActivity").and(ofType(SpexActivity.class)).and(inClass(Activity.class)))
                 .excludeField(named("taskActivities").and(ofType(Set.class)).and(inClass(Activity.class)))
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

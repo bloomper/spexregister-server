@@ -28,6 +28,7 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
@@ -119,6 +120,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("spexActivity").and(ofType(SpexActivity.class)).and(inClass(Activity.class)))
                 .excludeField(named("taskActivities").and(ofType(Set.class)).and(inClass(Activity.class)))
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

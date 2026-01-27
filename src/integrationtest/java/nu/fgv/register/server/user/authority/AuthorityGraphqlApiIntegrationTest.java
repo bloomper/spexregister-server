@@ -17,6 +17,7 @@
 package nu.fgv.register.server.user.authority;
 
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -40,7 +41,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
+import static org.jeasy.random.FieldPredicates.ofType;
 
 /**
  * @author Anders Jacobsson
@@ -69,6 +72,7 @@ class AuthorityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .randomize(
                         named("labels"), new LabelsRandomizer()
                 )
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

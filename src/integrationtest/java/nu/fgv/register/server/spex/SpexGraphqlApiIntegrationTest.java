@@ -22,6 +22,7 @@ import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.graphql.CustomErrorType;
@@ -58,7 +59,9 @@ import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
+import static org.jeasy.random.FieldPredicates.ofType;
 
 /**
  * @author Anders Jacobsson
@@ -99,6 +102,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .randomize(
                         named("firstYear"), new YearRandomizer()
                 )
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

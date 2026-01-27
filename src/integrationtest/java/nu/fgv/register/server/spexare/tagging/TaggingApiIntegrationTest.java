@@ -23,6 +23,7 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -102,6 +103,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

@@ -30,6 +30,7 @@ import nu.fgv.register.server.user.authority.AuthorityRepository;
 import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateDto;
 import nu.fgv.register.server.user.state.StateRepository;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -138,6 +139,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .excludeField(named("consents").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("toggles").and(ofType(List.class)).and(inClass(Spexare.class)))
                 .excludeField(named("tags").and(ofType(List.class)).and(inClass(Spexare.class)))
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)))
                 .randomizationDepth(1);
         random = new EasyRandom(parameters);
     }

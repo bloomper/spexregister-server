@@ -40,5 +40,6 @@ spexregister:
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
   impex:
     storage-path: ./integrationtest-data/impex_data
-  sample-data:
-    import: false
+  data:
+    seed-audit-data: false
+    import-sample-data: false

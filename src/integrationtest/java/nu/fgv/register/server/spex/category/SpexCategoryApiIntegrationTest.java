@@ -20,6 +20,7 @@ import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.event.Event;
 import nu.fgv.register.server.event.EventDto;
 import nu.fgv.register.server.event.EventRepository;
+import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
@@ -58,7 +59,9 @@ import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
+import static org.jeasy.random.FieldPredicates.ofType;
 
 /**
  * @author Anders Jacobsson
@@ -92,7 +95,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         parameters
                 .randomize(
                         named("firstYear"), new YearRandomizer()
-                );
+                )
+                .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)));
         random = new EasyRandom(parameters);
     }
 
