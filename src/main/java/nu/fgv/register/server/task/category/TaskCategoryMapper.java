@@ -51,12 +51,14 @@ public interface TaskCategoryMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     TaskCategory toModel(TaskCategoryCreateDto dto);
 
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     TaskCategory toModel(TaskCategoryUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

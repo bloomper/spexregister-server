@@ -77,6 +77,7 @@ public interface SpexareMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Spexare toModel(SpexareCreateDto dto);
 
     @Mapping(target = "image", ignore = true)
@@ -93,6 +94,7 @@ public interface SpexareMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Spexare toModel(SpexareUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

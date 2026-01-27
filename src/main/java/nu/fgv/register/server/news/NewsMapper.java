@@ -56,6 +56,7 @@ public interface NewsMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     News toModel(NewsCreateDto dto);
 
     @Mapping(target = "published", ignore = true)
@@ -63,6 +64,7 @@ public interface NewsMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     News toModel(NewsUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

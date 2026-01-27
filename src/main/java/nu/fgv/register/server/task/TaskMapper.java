@@ -56,6 +56,7 @@ public interface TaskMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Task toModel(TaskCreateDto dto);
 
     @Mapping(target = "category", ignore = true)
@@ -63,6 +64,7 @@ public interface TaskMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Task toModel(TaskUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

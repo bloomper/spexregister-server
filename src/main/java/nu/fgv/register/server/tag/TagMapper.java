@@ -51,12 +51,14 @@ public interface TagMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Tag toModel(TagCreateDto dto);
 
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Tag toModel(TagUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

@@ -77,6 +77,7 @@ public interface SpexMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Spex toModel(SpexCreateDto dto);
 
     @Mapping(target = "details.title", source = "title")
@@ -85,11 +86,13 @@ public interface SpexMapper {
     @Mapping(target = "details.createdAt", ignore = true)
     @Mapping(target = "details.lastModifiedBy", ignore = true)
     @Mapping(target = "details.lastModifiedAt", ignore = true)
+    @Mapping(target = "details.version", ignore = true)
     @Mapping(target = "parent", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Spex toModel(SpexUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

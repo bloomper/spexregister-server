@@ -67,6 +67,7 @@ public interface AddressMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Address toModel(AddressCreateDto dto);
 
     @Mapping(target = "type", ignore = true)
@@ -75,6 +76,7 @@ public interface AddressMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Address toModel(AddressUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

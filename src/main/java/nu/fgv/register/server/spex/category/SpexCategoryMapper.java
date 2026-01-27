@@ -62,6 +62,7 @@ public interface SpexCategoryMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     SpexCategory toModel(SpexCategoryCreateDto dto);
 
     @Mapping(target = "logo", ignore = true)
@@ -70,6 +71,7 @@ public interface SpexCategoryMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     SpexCategory toModel(SpexCategoryUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

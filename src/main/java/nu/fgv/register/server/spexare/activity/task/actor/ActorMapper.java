@@ -52,6 +52,7 @@ public interface ActorMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Actor toModel(ActorCreateDto dto);
 
     @Mapping(target = "vocal", ignore = true)
@@ -60,6 +61,7 @@ public interface ActorMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Actor toModel(ActorUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

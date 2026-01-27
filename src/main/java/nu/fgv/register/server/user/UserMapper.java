@@ -79,6 +79,7 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     User toModel(String externalId, State state);
 
     @Mapping(target = "externalId", ignore = true)
@@ -88,6 +89,7 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     User toModel(UserUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")
