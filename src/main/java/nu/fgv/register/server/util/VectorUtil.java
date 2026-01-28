@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.config;
+package nu.fgv.register.server.util;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Configuration
-@EnableConfigurationProperties(SemanticSearchProperties.class)
-public class SemanticSearchConfig {
+public final class VectorUtil {
+
+    private VectorUtil() {
+    }
+
+    public static List<Float> toFloatList(final float[] vector) {
+        final List<Float> out = new ArrayList<>(vector.length);
+        for (float v : vector) {
+            out.add(v);
+        }
+        return out;
+    }
 }

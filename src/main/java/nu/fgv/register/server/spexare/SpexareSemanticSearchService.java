@@ -17,32 +17,24 @@
 package nu.fgv.register.server.spexare;
 
 import lombok.RequiredArgsConstructor;
-import nu.fgv.register.server.config.SemanticSearchProperties;
-import nu.fgv.register.server.util.semanticsearch.QdrantClient;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.search.WindowWithFacetsImpl;
-import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.engine.search.query.SearchResultTotal;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.jspecify.annotations.Nullable;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
-import static nu.fgv.register.server.util.semanticsearch.VectorUtil.toFloatList;
-import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson
@@ -55,15 +47,23 @@ public class SpexareSemanticSearchService {
     private final SpexareService spexareService;
     private final SpexareRepository spexareRepository;
     private final SpexareFacetService facetService;
-    private final SpexareEmbeddingService embeddingService;
-    private final QdrantClient qdrantClient;
-    private final SemanticSearchProperties props;
+    private final VectorStore vectorStore;
 
     public WindowWithFacets<SpexareDto> search(final String query,
                                                final List<AggregationFilter> aggregationFilters,
                                                final int offset,
                                                final int limit,
                                                final Sort sort) {
+        final List<String> list = vectorStore.similaritySearch(SearchRequest.builder()
+                .query(query)
+                //.topK(4)
+                //.filterExpression() TODO
+                .build())
+                .stream()
+                .map(Document::getText)
+                .toList();
+
+
         final SemanticSearchExecution exec = executeSemanticSearch(query, aggregationFilters, offset, limit, sort);
 
         if (exec.isEmpty()) {
@@ -105,6 +105,7 @@ public class SpexareSemanticSearchService {
                                                           final int offset,
                                                           final int limit,
                                                           final Sort sort) {
+        /*
         if (!hasText(query)) {
             return SemanticSearchExecution.empty();
         }
@@ -162,8 +163,12 @@ public class SpexareSemanticSearchService {
         final List<SpexareDto> content = mapHitsToDtos(pageHits);
 
         return new SemanticSearchExecution(content, facets, total, totalHitCount);
+
+         */
+        return null;
     }
 
+    /*
     private List<SpexareDto> mapHitsToDtos(final List<QdrantClient.ScoredPoint> pageHits) {
         final List<Long> pageIds = pageHits.stream()
                 .mapToLong(QdrantClient.ScoredPoint::id)
@@ -188,6 +193,7 @@ public class SpexareSemanticSearchService {
                 .toList();
     }
 
+*/
     private record SemanticSearchExecution(
             List<SpexareDto> content,
             List<Facet> facets,

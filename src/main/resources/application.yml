@@ -68,6 +68,15 @@ spring:
       base-url: ${APP_OLLAMA_URL}
       embedding:
         model: nomic-embed-text
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        api-key:
+        collection-name: vector_store
+        content-field-name: doc_content
+        use-tls: false
+        initialize-schema: true
 
 management:
   server:
@@ -120,13 +129,3 @@ spexregister:
   data:
     seed-audit-data: ${APP_SEED_AUDIT_DATA}
     import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
-  semantic-search:
-    qdrant:
-      base-url: ${APP_QDRANT_URL}
-      collection: spexare
-      distance: Cosine
-      doWait: true
-    embedding:
-      batch-size: 32
-      page-size: 200
-      semantic-candidate-limit-for-facets: 2000
