@@ -45,10 +45,10 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.passay.CharacterData;
-import org.passay.CharacterRule;
-import org.passay.EnglishCharacterData;
-import org.passay.PasswordGenerator;
+import org.passay.data.CharacterData;
+import org.passay.rule.CharacterRule;
+import org.passay.data.EnglishCharacterData;
+import org.passay.generate.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,7 +80,7 @@ import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
-import static org.passay.AllowedCharacterRule.ERROR_CODE;
+import static org.passay.rule.AllowedCharacterRule.ERROR_CODE;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -581,17 +581,9 @@ public class UserService {
     }
 
     private String generateTemporaryPassword() {
-        final PasswordGenerator passwordGenerator = new PasswordGenerator();
-
-        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase);
-        lowerCaseRule.setNumberOfCharacters(2);
-
-        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase);
-        upperCaseRule.setNumberOfCharacters(2);
-
-        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit);
-        digitRule.setNumberOfCharacters(2);
-
+        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase, 2);
+        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit, 2);
         final CharacterRule specialCharacterRule = new CharacterRule(new CharacterData() {
             public String getErrorCode() {
                 return ERROR_CODE;
@@ -600,9 +592,9 @@ public class UserService {
             public String getCharacters() {
                 return "!@#$%^&*()_+";
             }
-        });
-        specialCharacterRule.setNumberOfCharacters(2);
+        }, 2);
+        final PasswordGenerator passwordGenerator = new PasswordGenerator(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
 
-        return passwordGenerator.generatePassword(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
+        return passwordGenerator.generate().toString();
     }
 }

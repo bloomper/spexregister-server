@@ -126,14 +126,14 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.45");
+    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46");
 
     /*
     @Container
     private static final OpensearchContainer opensearch;
 
     static {
-        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.4.0"));
+        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.7.0"));
         opensearch.start();
     }
     */
