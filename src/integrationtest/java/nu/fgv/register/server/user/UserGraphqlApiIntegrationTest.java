@@ -45,10 +45,11 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.passay.CharacterData;
-import org.passay.CharacterRule;
-import org.passay.EnglishCharacterData;
-import org.passay.PasswordGenerator;
+import org.passay.data.CharacterData;
+import org.passay.data.EnglishCharacterData;
+import org.passay.generate.PasswordGenerator;
+import org.passay.rule.AllowedCharacterRule;
+import org.passay.rule.CharacterRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
@@ -75,7 +76,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
-import static org.passay.AllowedCharacterRule.ERROR_CODE;
 
 /**
  * @author Anders Jacobsson
@@ -1975,29 +1975,21 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     private String generateTemporaryPassword() {
-        final PasswordGenerator passwordGenerator = new PasswordGenerator();
-
-        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase);
-        lowerCaseRule.setNumberOfCharacters(2);
-
-        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase);
-        upperCaseRule.setNumberOfCharacters(2);
-
-        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit);
-        digitRule.setNumberOfCharacters(2);
-
+        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase, 2);
+        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit, 2);
         final CharacterRule specialCharacterRule = new CharacterRule(new CharacterData() {
             public String getErrorCode() {
-                return ERROR_CODE;
+                return AllowedCharacterRule.ERROR_CODE;
             }
 
             public String getCharacters() {
                 return "!@#$%^&*()_+";
             }
-        });
-        specialCharacterRule.setNumberOfCharacters(2);
+        }, 2);
+        final PasswordGenerator passwordGenerator = new PasswordGenerator(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
 
-        return passwordGenerator.generatePassword(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
+        return passwordGenerator.generate().toString();
     }
 
     private String getRandomAuthority() {

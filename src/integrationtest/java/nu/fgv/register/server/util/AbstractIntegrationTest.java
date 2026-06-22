@@ -139,7 +139,7 @@ public abstract class AbstractIntegrationTest {
     */
 
     @Container
-    private static final KeycloakContainer keycloak = new KeycloakContainer().withRealmImportFile("/keycloak/fgv.json");
+    private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
 
     private final JacksonJsonParser jsonParser = new JacksonJsonParser();
 
