@@ -119,7 +119,7 @@ dependencies {
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
     //implementation 'org.hibernate.search:hibernate-search-backend-elasticsearch'
-    implementation 'org.apache.lucene:lucene-backward-codecs:9.12.3'
+    implementation 'org.apache.lucene:lucene-backward-codecs:10.5.0'
     implementation 'net.datafaker:datafaker:2.6.0'
     implementation 'com.graphql-java:graphql-java-extended-scalars:24.0'
     implementation 'io.micrometer:context-propagation:1.2.1'
