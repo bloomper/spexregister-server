@@ -75,9 +75,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.6.3'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.6.3'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.6.3'
+    developmentOnly 'org.keycloak:keycloak-core:26.6.4'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.6.4'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.6.4'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -112,15 +112,15 @@ dependencies {
     implementation 'com.github.librepdf:openpdf:3.0.5'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
-    implementation 'io.hypersistence:hypersistence-utils-hibernate-71:3.15.3'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-71:3.15.4'
     implementation 'com.google.guava:guava:33.6.0-jre'
-    implementation 'org.keycloak:keycloak-admin-client:26.0.9'
+    implementation 'org.keycloak:keycloak-admin-client:26.0.10'
     implementation 'org.passay:passay:2.0.0'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
     implementation 'org.hibernate.search:hibernate-search-backend-lucene'
     //implementation 'org.hibernate.search:hibernate-search-backend-elasticsearch'
     implementation 'org.apache.lucene:lucene-backward-codecs:9.12.3'
-    implementation 'net.datafaker:datafaker:2.6.0'
+    implementation 'net.datafaker:datafaker:2.7.0'
     implementation 'com.graphql-java:graphql-java-extended-scalars:24.0'
     implementation 'io.micrometer:context-propagation:1.2.1'
 
