@@ -12,7 +12,7 @@ plugins {
     id 'org.sonarqube' version '7.3.1.8318'
     //id 'org.graalvm.buildtools.native' version '1.1.2'
     id 'jacoco'
-    id 'com.google.cloud.tools.jib' version '3.5.3'
+    id 'com.google.cloud.tools.jib' version '3.5.4'
 }
 
 group = 'nu.fgv.register'
@@ -75,9 +75,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.6.4'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.6.4'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.6.4'
+    developmentOnly 'org.keycloak:keycloak-core:26.7.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.0'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -149,7 +149,7 @@ dependencies {
     integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
-    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.2.1'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.3.0'
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
     integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
@@ -171,7 +171,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom 'org.testcontainers:testcontainers-bom:2.0.5'
-        mavenBom 'org.hibernate.search:hibernate-search-bom:8.2.2.Final'
+        mavenBom 'org.hibernate.search:hibernate-search-bom:8.4.0.Final'
     }
 }
 
