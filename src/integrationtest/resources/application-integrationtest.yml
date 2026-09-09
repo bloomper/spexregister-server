@@ -26,6 +26,15 @@ logging:
 
 spexregister:
   base-url: http://localhost:8080/api
+  jobs:
+    full-index:
+      cron-expression: '-'
+    publish-unpublish-news:
+      cron-expression: '-'
+    sync-users:
+      cron-expression: '-'
+    job-cleanup:
+      cron-expression: '-'
   crypto:
     secret-key: 7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+
     initialization-vector: 8914343887327891

@@ -218,6 +218,8 @@ tasks.register('integrationTest', Test) {
 
     useJUnitPlatform()
     jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile}"
+
+    maxParallelForks = (project.findProperty('integrationTestForks') ?: Math.min(4, Runtime.runtime.availableProcessors().intdiv(2))) as int
 }
 
 rootProject.tasks.named("processIntegrationTestResources") {

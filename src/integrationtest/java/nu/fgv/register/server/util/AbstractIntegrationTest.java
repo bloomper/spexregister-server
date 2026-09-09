@@ -20,19 +20,26 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import org.apache.http.client.utils.URIBuilder;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.migration.JavaMigration;
+import org.hibernate.search.mapper.orm.Search;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.keycloak.admin.client.Keycloak;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
@@ -47,7 +54,6 @@ import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -57,16 +63,21 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.mysql.MySQLContainer;
 import tools.jackson.databind.ObjectMapper;
+
+import javax.sql.DataSource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
@@ -78,8 +89,6 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
  * @since 2.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
-@DirtiesContext
 @Import({AbstractIntegrationTest.TestConfig.class})
 @ActiveProfiles("integrationtest")
 @DisabledInAotMode
@@ -124,9 +133,26 @@ public abstract class AbstractIntegrationTest {
     @LocalServerPort
     protected int localPort;
 
-    @Container
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
     @ServiceConnection
-    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46");
+    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46")
+            .withTmpFs(Map.of("/var/lib/mysql", "rw"))
+            .withCommand("mysqld",
+                    "--innodb-flush-log-at-trx-commit=0",
+                    "--innodb-doublewrite=0",
+                    "--skip-log-bin",
+                    "--performance-schema=OFF");
 
     /*
     @Container
@@ -138,12 +164,24 @@ public abstract class AbstractIntegrationTest {
     }
     */
 
-    @Container
     private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
 
-    private final JacksonJsonParser jsonParser = new JacksonJsonParser();
+    static {
+        Startables.deepStart(mysql, keycloak).join();
+    }
 
-    private final LoadingCache<String, String> accessTokenCache;
+    private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
+
+    private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
+
+    private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(2, TimeUnit.MINUTES)
+            .build(new CacheLoader<>() {
+                @Override
+                public @NotNull String load(@NotNull final String key) {
+                    return key.toUpperCase();
+                }
+            });
 
     protected AbstractIntegrationTest(final JdbcClient jdbcClient,
                                       final AclCache aclCache,
@@ -157,15 +195,6 @@ public abstract class AbstractIntegrationTest {
         this.keycloakClientId = keycloakClientId;
         this.permissionService = permissionService;
         this.objectMapper = objectMapper;
-
-        accessTokenCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(10, TimeUnit.MINUTES)
-                .build(new CacheLoader<>() {
-                    @Override
-                    public @NotNull String load(@NotNull final String key) {
-                        return key.toUpperCase();
-                    }
-                });
     }
 
     @DynamicPropertySource
@@ -181,7 +210,40 @@ public abstract class AbstractIntegrationTest {
 
     @BeforeEach
     public void baseSetUp() {
+        resetStateOncePerTestClass();
         SecurityContextHolder.getContext().setAuthentication(TEST_AUTH); // Needed when manually granting permissions
+    }
+
+    private void resetStateOncePerTestClass() {
+        if (!RESET_TEST_CLASSES.add(topLevelClass(getClass()).getName())) {
+            return;
+        }
+        final Flyway flyway = flyway();
+
+        flyway.clean();
+        flyway.migrate();
+        Search.mapping(entityManagerFactory).scope(Object.class).workspace().purge();
+        cacheManager.getCacheNames().forEach(name -> Objects.requireNonNull(cacheManager.getCache(name)).clear());
+    }
+
+    private Flyway flyway() {
+        return Flyway.configure()
+                .dataSource(dataSource)
+                .baselineOnMigrate(true)
+                .installedBy("system")
+                .executeInTransaction(false)
+                .cleanDisabled(false)
+                .javaMigrations(applicationContext.getBeansOfType(JavaMigration.class).values().toArray(new JavaMigration[0]))
+                .load();
+    }
+
+    private static Class<?> topLevelClass(final Class<?> clazz) {
+        Class<?> current = clazz;
+
+        while (current.getEnclosingClass() != null) {
+            current = current.getEnclosingClass();
+        }
+        return current;
     }
 
     @AfterEach
