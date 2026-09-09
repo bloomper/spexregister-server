@@ -1,5 +1,5 @@
 extend type Query {
-    states(sort: [String] = ["id"], direction: SortDirection = ASC): [State]
+    states(sort: [String]! = ["id"], direction: SortDirection = ASC): [State]
     state(id: ID!): State
 }
 

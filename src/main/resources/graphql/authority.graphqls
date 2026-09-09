@@ -1,5 +1,5 @@
 extend type Query {
-    authorities(sort: [String] = ["id"], direction: SortDirection = ASC): [Authority]
+    authorities(sort: [String]! = ["id"], direction: SortDirection = ASC): [Authority]
     authority(id: ID!): Authority
 }
 

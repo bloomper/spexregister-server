@@ -6,7 +6,7 @@ extend type Mutation {
 type Activity {
     id: ID!
     spexActivity: SpexActivity
-    taskActivitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TaskActivityConnection
+    taskActivitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): TaskActivityConnection
     taskActivities: [TaskActivity]
     createdBy: String!
     createdAt: Instant!

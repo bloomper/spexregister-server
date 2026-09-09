@@ -1,6 +1,6 @@
 extend type Query {
-    spexarePaged(first: Int, after: String, last: Int, before: String, filter: String = "published:true", sort: [String] = ["firstName"], direction: SortDirection = ASC): SpexareConnection
-    spexareSearchPaged(first: Int, after: String, last: Int, before: String, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String] = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
+    spexarePaged(first: Int, after: String, last: Int, before: String, filter: String! = "published:true", sort: [String]! = ["firstName"], direction: SortDirection = ASC): SpexareConnection
+    spexareSearchPaged(first: Int, after: String, last: Int, before: String, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String]! = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
     spexare(id: ID!): Spexare
     spexareEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
     spexareExport(ids: [ID], filter: String, type: ImpexType!, reportType: ReportType): JobReference
@@ -26,17 +26,17 @@ type Spexare {
     graduation: String
     comment: String
     imageUrl: String
-    activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ActivityConnection
+    activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ActivityConnection
     activities: [Activity]
-    addressesPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): AddressConnection
+    addressesPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): AddressConnection
     addresses: [Address]
-    consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ConsentConnection
+    consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ConsentConnection
     consents: [Consent]
-    membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): MembershipConnection
+    membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): MembershipConnection
     memberships: [Membership]
-    taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): TagConnection
+    taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): TagConnection
     taggings: [Tag]
-    togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["id"], direction: SortDirection = ASC): ToggleConnection
+    togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ToggleConnection
     toggles: [Toggle]
     partner: SpexarePartner
     createdBy: String!

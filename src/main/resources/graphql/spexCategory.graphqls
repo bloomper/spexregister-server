@@ -1,5 +1,5 @@
 extend type Query {
-    spexCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["name"], direction: SortDirection = ASC): SpexCategoryConnection
+    spexCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): SpexCategoryConnection
     spexCategory(id: ID!): SpexCategory
     spexCategoryEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
     spexCategoryExport(ids: [ID], filter: String, type: ImpexType!): JobReference

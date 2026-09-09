@@ -7,7 +7,7 @@ extend type Mutation {
 type TaskActivity {
     id: ID!
     task: Task!
-    actorsPaged(first: Int, after: String, last: Int, before: String, filter: String = "", sort: [String] = ["id"], direction: SortDirection = ASC): ActorConnection
+    actorsPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): ActorConnection
     actors: [Actor]
     createdBy: String!
     createdAt: Instant!

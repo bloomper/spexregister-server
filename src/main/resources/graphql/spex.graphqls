@@ -1,5 +1,5 @@
 extend type Query {
-    spexPaged(first: Int, after: String, last: Int, before: String, filter: String = "parent:NULL", sort: [String] = ["year"], direction: SortDirection = ASC): SpexConnection
+    spexPaged(first: Int, after: String, last: Int, before: String, filter: String! = "parent:NULL", sort: [String]! = ["year"], direction: SortDirection = ASC): SpexConnection
     spex(id: ID!): Spex
     spexRevival(spexId: ID!, id: ID!): Spex
     spexEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
@@ -25,7 +25,7 @@ type Spex {
     parent: SpexParent
     posterUrl: String
     category: SpexCategory
-    revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String] = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
+    revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
     revivals: [SpexRevival]
     createdBy: String!
     createdAt: Instant!

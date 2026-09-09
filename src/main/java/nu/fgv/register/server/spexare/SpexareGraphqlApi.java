@@ -69,13 +69,13 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareSearchPaged")
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final String q, @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
-        return service.search(q, aggregationFilters, extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
+    public WindowWithFacets<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final String q, @Nullable @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
+        return service.search(q, Optional.ofNullable(aggregationFilters).orElse(Collections.emptyList()), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("spexareExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, @Argument final ReportType reportType, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, @Nullable @Argument final ReportType reportType, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, reportType, locale))
                 .build();
