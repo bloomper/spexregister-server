@@ -18,6 +18,7 @@ package nu.fgv.register.server.config;
 
 import nu.fgv.register.server.util.security.KeycloakJwtRolesConverter;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.JacksonProvider;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -121,6 +122,7 @@ public class SecurityConfig {
             builder.resteasyClient(
                     new org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl()
                             .disableTrustManager()
+                            .register(JacksonProvider.class)
                             .build()
             );
         }
