@@ -53,6 +53,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -203,6 +204,234 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("spexPaged.edges")
                     .entityList(SpexDto.class)
                     .hasSize(size);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Retrieve paged backwards")
+    class RetrievePagedBackwardsTests {
+
+        @Test
+        void should_return_last_page() {
+            final var ids = persistPermittedSpex(25);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(25)
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        @Test
+        void should_return_everything_when_fewer_than_requested() {
+            final var ids = persistPermittedSpex(5);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(5)
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids));
+        }
+
+        @Test
+        void should_return_zero() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(0)
+                    .path("spexPaged.edges").entityList(SpexDto.class).hasSize(0);
+        }
+
+        @Test
+        void should_page_backwards_from_last_page() {
+            final var ids = persistPermittedSpex(25);
+
+            final String startCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.pageInfo.startCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 10)
+                    .variable("before", startCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(5, 15)));
+        }
+
+        @Test
+        void should_round_trip_forwards_to_last_page() {
+            final var ids = persistPermittedSpex(25);
+
+            final String endCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("first", 15)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.pageInfo.endCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("first", 10)
+                    .variable("after", endCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        @Test
+        void should_only_count_and_return_filtered() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final List<Long> matching = new ArrayList<>();
+            IntStream.range(0, 20).forEach(i -> {
+                final var spex = randomizeSpex(category);
+                spex.setYear(i % 2 == 0 ? "1996" : "1997");
+                final var persisted = persistSpex(spex);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, persisted.getId()));
+                if (i % 2 == 0) {
+                    matching.add(persisted.getId());
+                }
+            });
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 4)
+                    .variable("filter", Spex_.YEAR + ":1996")
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(10)
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(matching.subList(6, 10)));
+        }
+
+        @Test
+        void should_exclude_not_permitted_from_total_count() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final List<Long> permitted = new ArrayList<>();
+            IntStream.range(0, 20).forEach(i -> {
+                final var spex = persistSpex(randomizeSpex(category));
+                if (i % 2 == 0) {
+                    grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+                    permitted.add(spex.getId());
+                } else {
+                    grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+                }
+            });
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexPagedCursor")
+                    .variable("last", 4)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(10)
+                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(permitted.subList(6, 10)));
+        }
+
+        @Test
+        void should_return_last_page_of_revivals() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+            final var parent = persistSpex(randomizeSpex(category));
+            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, parent.getId()));
+            final List<Long> revivals = IntStream.range(0, 12)
+                    .mapToObj(_ -> {
+                        final var revival = persistRevival(randomizeRevival(parent));
+                        grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
+                        return revival.getId();
+                    })
+                    .toList();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spex/spexRevivalsPagedCursor")
+                    .variable("id", parent.getId())
+                    .variable("last", 5)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spex.revivalsPaged.totalCount").entity(Integer.class).isEqualTo(12)
+                    .path("spex.revivalsPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spex.revivalsPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spex.revivalsPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(revivals.subList(7, 12)));
+        }
+
+        private List<String> asStrings(final List<Long> ids) {
+            return ids.stream().map(String::valueOf).toList();
+        }
+
+        private List<Long> persistPermittedSpex(final int size) {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
+
+            return IntStream.range(0, size)
+                    .mapToObj(_ -> {
+                        final var spex = persistSpex(randomizeSpex(category));
+                        grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
+                        return spex.getId();
+                    })
+                    .toList();
         }
 
     }

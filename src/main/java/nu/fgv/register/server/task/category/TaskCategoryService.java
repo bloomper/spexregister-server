@@ -24,13 +24,13 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -62,20 +62,20 @@ public class TaskCategoryService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public Window<TaskCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
-        return hasText(filter) ?
-                repository
-                        .findBy(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(TASK_CATEGORY_MAPPER::toDto) :
-                repository
-                        .findBy(NO_FILTER, BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(TASK_CATEGORY_MAPPER::toDto);
+    public CountedWindow<TaskCategoryDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
+        return repository
+                .findBy(hasText(filter) ?
+                                SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new) :
+                                NO_FILTER,
+                        BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(TASK_CATEGORY_MAPPER::toDto), total);
+                        });
     }
 
     @RequiresAdminOrEditorOrUser

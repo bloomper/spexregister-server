@@ -57,11 +57,11 @@ public class IndexingService {
                 .fetchTotalHitCount();
 
         if (!force && count > 0) {
-            log.info("Not starting index due to existing documents (count: {})", count);
+            log.info("Not starting indexing for {} due to existing documents (count: {})", clazz.getSimpleName(), count);
             return CompletableFuture.completedFuture(null);
         }
 
-        log.info("Not starting index due to existing documents (count: {})", count);
+        log.info("Starting indexing for {} (existing documents: {}, forced: {})", clazz.getSimpleName(), count, force);
 
         return searchSession.massIndexer()
                 .start()

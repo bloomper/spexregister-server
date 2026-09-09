@@ -18,6 +18,7 @@ type TaskActivity {
 type TaskActivityConnection {
     edges: [TaskActivityEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type TaskActivityEdge {

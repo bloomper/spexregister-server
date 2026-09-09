@@ -26,6 +26,8 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
@@ -47,7 +49,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.security.acls.domain.BasePermission;
@@ -91,12 +92,17 @@ public class SpexareService {
     private final MessageSource messageSource;
 
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
+    public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final ScrollRequest scroll, final Sort sort) {
+        final int limit = scroll.limit();
+        // The last page can only be located once the number of hits is known, so probe for it first.
+        final long knownTotal = scroll.lastPage() ? repository.search(query, aggregationFilters, 0, 1, sort).total().hitCount() : 0L;
+        final int offset = Math.toIntExact(scroll.offsetFor(knownTotal));
+
         final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, offset, limit, sort);
         final List<Facet> facets = getFacets(searchResult);
-        final boolean hasNext = searchResult.total().hitCount() > offset + limit;
+        final long total = searchResult.total().hitCount();
 
-        return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), _ -> ScrollPosition.offset(offset), hasNext, facets);
+        return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), index -> ScrollPosition.offset(offset + index), total > offset + limit, facets, total);
     }
 
     @RequiresAdminOrEditorOrUser
@@ -108,20 +114,20 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<SpexareDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
-        return hasText(filter) ?
-                repository
-                        .findBy(SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEXARE_MAPPER::toDto) :
-                repository
-                        .findBy(NO_FILTER, BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEXARE_MAPPER::toDto);
+    public CountedWindow<SpexareDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
+        return repository
+                .findBy(hasText(filter) ?
+                                SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new) :
+                                NO_FILTER,
+                        BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(SPEXARE_MAPPER::toDto), total);
+                        });
     }
 
     @RequiresAdminOrEditorOrUser

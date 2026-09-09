@@ -17,6 +17,7 @@ type Toggle {
 type ToggleConnection {
     edges: [ToggleEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type ToggleEdge {

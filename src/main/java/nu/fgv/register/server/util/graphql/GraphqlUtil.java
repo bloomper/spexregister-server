@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
+
 package nu.fgv.register.server.util.graphql;
 
 import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
-import nu.fgv.register.server.spex.SpexDto;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.query.ScrollSubrange;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Anders Jacobsson
@@ -32,22 +34,21 @@ import java.util.Map;
  */
 public class GraphqlUtil {
 
+    private static final int DEFAULT_LIMIT = 10;
+
     private GraphqlUtil() {
     }
 
-    public static <T> Window<T> emptyWindow() {
-        return Window.from(Collections.emptyList(), _ -> ScrollPosition.offset(0), false);
+    public static <T> CountedWindow<T> emptyWindow() {
+        return CountedWindow.of(Window.from(Collections.emptyList(), _ -> ScrollPosition.offset(0), false), 0L);
     }
 
-    public static Window<SpexDto> emptyWindow(final ScrollPosition scrollPosition) {
-        return Window.from(Collections.emptyList(), _ -> scrollPosition, false);
-    }
-
-    public static <T extends Enum<?>> ScrollPositionAndLimitHolder extractScrollPositionAndLimitAndOrder(final ScrollSubrange subrange) {
-        final ScrollPosition scrollPosition = subrange.position().orElse(ScrollPosition.offset());
-        final int limit = subrange.count().orElse(10);
-
-        return new ScrollPositionAndLimitHolder(scrollPosition, limit);
+    public static ScrollRequest extractScrollRequest(final ScrollSubrange subrange) {
+        return new ScrollRequest(
+                subrange.position(),
+                subrange.count().orElse(DEFAULT_LIMIT),
+                !subrange.forward() && subrange.position().isEmpty()
+        );
     }
 
     public static <T> DataFetcherResult<T> buildDataFetcherResult(final T data, final Map<Object, Object> localContextMap) {
@@ -60,6 +61,26 @@ public class GraphqlUtil {
                 .build();
     }
 
-    public record ScrollPositionAndLimitHolder(ScrollPosition scrollPosition, int limit) {
+    public record ScrollRequest(Optional<ScrollPosition> position, int limit, boolean lastPage) {
+
+        public ScrollPosition positionFor(final long total) {
+            if (!lastPage) {
+                return position.orElseGet(ScrollPosition::offset);
+            }
+
+            final long start = Math.max(0L, total - limit);
+
+            return start == 0L ? ScrollPosition.offset() : ScrollPosition.offset(start - 1);
+        }
+
+        public long offsetFor(final long total) {
+            if (!lastPage) {
+                return position
+                        .map(p -> p.isInitial() ? 0L : ((OffsetScrollPosition) p).getOffset() + 1)
+                        .orElse(0L);
+            }
+
+            return Math.max(0L, total - limit);
+        }
     }
 }

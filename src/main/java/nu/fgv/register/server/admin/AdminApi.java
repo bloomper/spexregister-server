@@ -44,7 +44,7 @@ public class AdminApi {
     @RequiresAdmin
     public ResponseEntity<Void> index(final @PathVariable String entity) {
         try {
-            final Class<?> clazz = Class.forName(String.format("nu.fgv.register.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
+            final Class<?> clazz = Class.forName(String.format("nu.fgv.register.server.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
 
             indexingService.initiateIndexingFor(clazz, true)
                     .whenComplete((ignored, ex) -> {

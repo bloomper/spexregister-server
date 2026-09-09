@@ -35,17 +35,24 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
     private final IntFunction<? extends ScrollPosition> positionFunction;
     private final boolean hasNext;
     private final List<Facet> facets;
+    private final long totalCount;
 
-    public WindowWithFacetsImpl(final List<T> items, final IntFunction<? extends ScrollPosition> positionFunction, final boolean hasNext, final List<Facet> facets) {
+    public WindowWithFacetsImpl(final List<T> items, final IntFunction<? extends ScrollPosition> positionFunction, final boolean hasNext, final List<Facet> facets, final long totalCount) {
         this.items = items;
         this.positionFunction = positionFunction;
         this.hasNext = hasNext;
         this.facets = facets;
+        this.totalCount = totalCount;
     }
 
     @Override
     public List<Facet> getFacets() {
         return facets;
+    }
+
+    @Override
+    public long getTotalCount() {
+        return totalCount;
     }
 
     @Override
@@ -87,7 +94,8 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
                         .collect(Collectors.toList()),
                 positionFunction,
                 hasNext,
-                facets);
+                facets,
+                totalCount);
     }
 
     @Override
@@ -105,7 +113,8 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
             return ObjectUtils.nullSafeEquals(items, that.items) &&
                     ObjectUtils.nullSafeEquals(positionFunction, that.positionFunction) &&
                     ObjectUtils.nullSafeEquals(hasNext, that.hasNext) &&
-                    ObjectUtils.nullSafeEquals(facets, that.facets);
+                    ObjectUtils.nullSafeEquals(facets, that.facets) &&
+                    totalCount == that.totalCount;
         } else {
             return false;
         }
@@ -117,6 +126,7 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
         result = 31 * result + ObjectUtils.nullSafeHashCode(positionFunction);
         result = 31 * result + ObjectUtils.nullSafeHashCode(hasNext);
         result = 31 * result + ObjectUtils.nullSafeHashCode(facets);
+        result = 31 * result + Long.hashCode(totalCount);
 
         return result;
     }

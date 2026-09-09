@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.util.search;
 
-import org.springframework.data.domain.Window;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public interface WindowWithFacets<T> extends Window<T> {
+public interface WindowWithFacets<T> extends CountedWindow<T> {
 
     List<Facet> getFacets();
 }

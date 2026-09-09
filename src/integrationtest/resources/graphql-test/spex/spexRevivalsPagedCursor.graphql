@@ -1,0 +1,21 @@
+query spexRevivalsPagedCursor ($id: ID!, $first: Int, $after: String, $last: Int, $before: String, $sort: [String] = ["id"], $direction: SortDirection = ASC) {
+    spex (id: $id) {
+        id
+        revivalsPaged (first: $first, after: $after, last: $last, before: $before, sort: $sort, direction: $direction) {
+            edges {
+                cursor
+                node {
+                    id
+                    year
+                }
+            }
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+            }
+            totalCount
+        }
+    }
+}

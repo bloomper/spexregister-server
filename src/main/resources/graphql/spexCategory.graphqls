@@ -26,6 +26,7 @@ type SpexCategory {
 type SpexCategoryConnection {
     edges: [SpexCategoryEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type SpexCategoryEdge {

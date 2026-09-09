@@ -49,6 +49,7 @@ query spex ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         createdBy
         createdAt

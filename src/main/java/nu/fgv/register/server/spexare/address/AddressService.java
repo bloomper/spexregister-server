@@ -31,13 +31,13 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -80,21 +80,21 @@ public class AddressService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<AddressDto> findBySpexare(final Long id, final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+    public CountedWindow<AddressDto> findBySpexare(final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(id, spexare ->
-                        hasText(filter) ?
-                                repository
-                                        .findBy(SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)), query -> query
-                                                .limit(limit)
-                                                .sortBy(sort)
-                                                .scroll(scrollPosition))
-                                        .map(ADDRESS_MAPPER::toDto) :
-                                repository
-                                        .findBy(hasSpexare(spexare), query -> query
-                                                .limit(limit)
-                                                .sortBy(sort)
-                                                .scroll(scrollPosition))
-                                        .map(ADDRESS_MAPPER::toDto),
+                        repository
+                                .findBy(hasText(filter) ?
+                                                SpecificationsBuilder.<Address>builder().build(FilterParser.parse(filter), AddressSpecification::new).and(hasSpexare(spexare)) :
+                                                hasSpexare(spexare),
+                                        query -> {
+                                            final long total = query.count();
+
+                                            return CountedWindow.of(query
+                                                    .limit(scroll.limit())
+                                                    .sortBy(sort)
+                                                    .scroll(scroll.positionFor(total))
+                                                    .map(ADDRESS_MAPPER::toDto), total);
+                                        }),
                 GraphqlUtil::emptyWindow
         );
     }

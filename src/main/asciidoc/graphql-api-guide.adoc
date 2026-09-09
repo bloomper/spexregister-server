@@ -78,9 +78,13 @@ Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
 
 The GraphQL API of Spexregister Server uses the cursor connection specification for pagination.
 For more details, refer to https://relay.dev/graphql/connections.htm.
+This includes the full text search for the ``Spexare`` resource.
 
-However, when doing a full text search for the ``Spexare`` resource, it is not possible to use this.
-Instead, a simple offset/limit mechanism is used.
+Pages are traversed forwards with ``first``/``after`` and backwards with ``last``/``before``.
+Supplying ``last`` without ``before`` returns the last page.
+
+In addition to ``edges`` and ``pageInfo``, every connection exposes ``totalCount``.
+It holds the number of elements matching the query as a whole rather than the number on the current page, and counts only those elements that are visible to the requesting user.
 
 [[file_handling]]
 == File handling

@@ -173,6 +173,144 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Retrieve paged backwards")
+    class RetrievePagedBackwardsTests {
+
+        @Test
+        void should_return_last_page() {
+            final var ids = persistPermittedTasks(25);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.totalCount").entity(Integer.class).isEqualTo(25)
+                    .path("taskPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("taskPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("taskPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        @Test
+        void should_return_everything_when_fewer_than_requested() {
+            final var ids = persistPermittedTasks(5);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.totalCount").entity(Integer.class).isEqualTo(5)
+                    .path("taskPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("taskPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(false)
+                    .path("taskPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids));
+        }
+
+        @Test
+        void should_return_zero() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.totalCount").entity(Integer.class).isEqualTo(0)
+                    .path("taskPaged.edges").entityList(TaskDto.class).hasSize(0);
+        }
+
+        @Test
+        void should_page_backwards_from_last_page() {
+            final var ids = persistPermittedTasks(25);
+
+            final String startCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.pageInfo.startCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("last", 10)
+                    .variable("before", startCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(true)
+                    .path("taskPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("taskPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(5, 15)));
+        }
+
+        @Test
+        void should_round_trip_forwards_to_last_page() {
+            final var ids = persistPermittedTasks(25);
+
+            final String endCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("first", 15)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.pageInfo.endCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("task/taskPagedCursor")
+                    .variable("first", 10)
+                    .variable("after", endCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("taskPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("taskPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        private List<String> asStrings(final List<Long> ids) {
+            return ids.stream().map(String::valueOf).toList();
+        }
+
+        private List<Long> persistPermittedTasks(final int size) {
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
+
+            return IntStream.range(0, size)
+                    .mapToObj(_ -> {
+                        final var task = persistTask(randomizeTask(category));
+                        grantReadPermissionToRoleUser(toObjectIdentity(Task.class, task.getId()));
+                        return task.getId();
+                    })
+                    .toList();
+        }
+    }
+
+    @Nested
     @DisplayName("Retrieve paged with filtering")
     class RetrievePagedWithFilteringTests {
 

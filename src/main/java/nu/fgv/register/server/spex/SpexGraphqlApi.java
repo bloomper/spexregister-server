@@ -27,13 +27,12 @@ import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -46,7 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -63,10 +62,8 @@ public class SpexGraphqlApi {
 
     @QueryMapping("spexPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    public CountedWindow<SpexDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+        return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("spexExport")
@@ -120,10 +117,8 @@ public class SpexGraphqlApi {
 
     @SchemaMapping(typeName = "Spex", field = "revivalsPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findRevivalsByParent(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    public CountedWindow<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
+        return service.findRevivalsByParent(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @SchemaMapping(typeName = "Spex", field = "revivals")

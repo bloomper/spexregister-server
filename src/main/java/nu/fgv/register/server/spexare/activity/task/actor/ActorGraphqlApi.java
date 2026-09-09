@@ -21,10 +21,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityDto;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -86,22 +85,19 @@ public class ActorGraphqlApi {
 
     @SchemaMapping(typeName = "TaskActivity", field = "actorsPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
-                                                   @LocalContextValue("activityId") final Long activityId,
-                                                   final TaskActivityDto dto,
-                                                   final ScrollSubrange subrange,
-                                                   @Argument final Optional<String> filter,
-                                                   final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
+    public CountedWindow<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
+                                                          @LocalContextValue("activityId") final Long activityId,
+                                                          final TaskActivityDto dto,
+                                                          final ScrollSubrange subrange,
+                                                          @Argument final Optional<String> filter,
+                                                          final Optional<Sort> sort) {
         return service.findByTaskActivity(
                 spexareId,
                 activityId,
                 dto.getId(),
                 filter.orElse(""),
-                holder.limit(),
-                sort.orElse(Sort.unsorted()),
-                holder.scrollPosition()
+                extractScrollRequest(subrange),
+                sort.orElse(Sort.unsorted())
         );
     }
 

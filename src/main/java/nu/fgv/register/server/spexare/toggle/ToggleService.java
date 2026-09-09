@@ -29,13 +29,13 @@ import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -77,14 +77,18 @@ public class ToggleService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<ToggleDto> findBySpexare(final Long spexareId, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+    public CountedWindow<ToggleDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
                         repository
-                                .findBy(hasSpexare(spexare), query -> query
-                                        .limit(limit)
-                                        .sortBy(sort)
-                                        .scroll(scrollPosition))
-                                .map(TOGGLE_MAPPER::toDto),
+                                .findBy(hasSpexare(spexare), query -> {
+                                    final long total = query.count();
+
+                                    return CountedWindow.of(query
+                                            .limit(scroll.limit())
+                                            .sortBy(sort)
+                                            .scroll(scroll.positionFor(total))
+                                            .map(TOGGLE_MAPPER::toDto), total);
+                                }),
                 GraphqlUtil::emptyWindow
         );
     }

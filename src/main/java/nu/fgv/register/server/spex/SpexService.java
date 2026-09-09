@@ -30,15 +30,16 @@ import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.security.acls.domain.BasePermission;
@@ -62,7 +63,6 @@ import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.util.FileUtil.detectMimeType;
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.emptyWindow;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -93,20 +93,20 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
-        return hasText(filter) ?
-                repository
-                        .findBy(SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEX_MAPPER::toDto) :
-                repository
-                        .findBy(NO_FILTER, BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEX_MAPPER::toDto);
+    public CountedWindow<SpexDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
+        return repository
+                .findBy(hasText(filter) ?
+                                SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new) :
+                                NO_FILTER,
+                        BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(SPEX_MAPPER::toDto), total);
+                        });
     }
 
     @RequiresAdminOrEditorOrUser
@@ -322,17 +322,20 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<SpexDto> findRevivalsByParent(final Long id, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+    public CountedWindow<SpexDto> findRevivalsByParent(final Long id, final ScrollRequest scroll, final Sort sort) {
         return findRevivalsByParent(
                 id,
                 parent -> repository
-                        .findBy(hasParent(parent), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition)
-                        )
-                        .map(SPEX_MAPPER::toDto),
-                () -> emptyWindow(scrollPosition)
+                        .findBy(hasParent(parent), BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(SPEX_MAPPER::toDto), total);
+                        }),
+                GraphqlUtil::emptyWindow
         );
     }
 

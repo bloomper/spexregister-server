@@ -24,6 +24,7 @@ type TaskCategory {
 type TaskCategoryConnection {
     edges: [TaskCategoryEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type TaskCategoryEdge {

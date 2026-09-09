@@ -54,6 +54,7 @@ type SpexRevival {
 type SpexConnection {
     edges: [SpexEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type SpexEdge {
@@ -64,6 +65,7 @@ type SpexEdge {
 type SpexRevivalConnection {
     edges: [SpexRevivalEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type SpexRevivalEdge {

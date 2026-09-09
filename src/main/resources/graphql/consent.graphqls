@@ -17,6 +17,7 @@ type Consent {
 type ConsentConnection {
     edges: [ConsentEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type ConsentEdge {

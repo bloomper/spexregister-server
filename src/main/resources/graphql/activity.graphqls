@@ -17,6 +17,7 @@ type Activity {
 type ActivityConnection {
     edges: [ActivityEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type ActivityEdge {

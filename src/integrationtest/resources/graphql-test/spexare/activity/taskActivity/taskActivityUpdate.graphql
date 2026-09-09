@@ -40,6 +40,7 @@ mutation taskActivityUpdate ($spexareId: ID!, $activityId: ID!, $taskId: ID!, $i
                 startCursor
                 endCursor
             }
+            totalCount
         }
         actors {
             id

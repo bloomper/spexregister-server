@@ -26,5 +26,6 @@ query taskPaged ($first: Int = 10, $filter: String = "") {
             startCursor
             endCursor
         }
+        totalCount
     }
 }

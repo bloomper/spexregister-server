@@ -34,13 +34,13 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -83,21 +83,21 @@ public class ActorService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Window<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
+    public CountedWindow<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
-                        hasText(filter) ?
-                                repository
-                                        .findBy(SpecificationsBuilder.<Actor>builder().build(FilterParser.parse(filter), ActorSpecification::new).and(hasTaskActivity(taskActivity)), query -> query
-                                                .limit(limit)
-                                                .sortBy(sort)
-                                                .scroll(scrollPosition))
-                                        .map(ACTOR_MAPPER::toDto) :
-                                repository
-                                        .findBy(hasTaskActivity(taskActivity), query -> query
-                                                .limit(limit)
-                                                .sortBy(sort)
-                                                .scroll(scrollPosition))
-                                        .map(ACTOR_MAPPER::toDto),
+                        repository
+                                .findBy(hasText(filter) ?
+                                                SpecificationsBuilder.<Actor>builder().build(FilterParser.parse(filter), ActorSpecification::new).and(hasTaskActivity(taskActivity)) :
+                                                hasTaskActivity(taskActivity),
+                                        query -> {
+                                            final long total = query.count();
+
+                                            return CountedWindow.of(query
+                                                    .limit(scroll.limit())
+                                                    .sortBy(sort)
+                                                    .scroll(scroll.positionFor(total))
+                                                    .map(ACTOR_MAPPER::toDto), total);
+                                        }),
                 GraphqlUtil::emptyWindow
         );
     }

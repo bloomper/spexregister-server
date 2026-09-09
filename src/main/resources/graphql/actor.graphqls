@@ -17,6 +17,7 @@ type Actor {
 type ActorConnection {
     edges: [ActorEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type ActorEdge {

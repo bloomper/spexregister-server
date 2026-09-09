@@ -70,6 +70,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                             startCursor
                                             endCursor
                                         }
+                                        totalCount
                                     }
                                 }
                                 createdBy
@@ -121,6 +122,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                                 startCursor
                                                 endCursor
                                             }
+                                            totalCount
                                         }
                                         actors {
                                             id
@@ -146,6 +148,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                     startCursor
                                     endCursor
                                 }
+                                totalCount
                             }
                             taskActivities {
                                 id
@@ -188,6 +191,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                         startCursor
                                         endCursor
                                     }
+                                    totalCount
                                 }
                                 actors {
                                     id
@@ -218,6 +222,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 activities {
                     id
@@ -273,6 +278,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                     startCursor
                                     endCursor
                                 }
+                                totalCount
                             }
                         }
                         createdBy
@@ -324,6 +330,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                         startCursor
                                         endCursor
                                     }
+                                    totalCount
                                 }
                                 actors {
                                     id
@@ -349,6 +356,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                             startCursor
                             endCursor
                         }
+                        totalCount
                     }
                     taskActivities {
                         id
@@ -391,6 +399,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                                 startCursor
                                 endCursor
                             }
+                            totalCount
                         }
                         actors {
                             id
@@ -443,6 +452,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 addresses {
                     id
@@ -486,6 +496,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 consents {
                     id
@@ -523,6 +534,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 memberships {
                     id
@@ -555,6 +567,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 taggings {
                     id
@@ -587,6 +600,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 toggles {
                     id
@@ -629,5 +643,6 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
             startCursor
             endCursor
         }
+        totalCount
     }
 }

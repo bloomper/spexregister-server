@@ -21,11 +21,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.task.TaskDto;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -39,7 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -84,14 +83,12 @@ public class TaskActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Activity", field = "taskActivitiesPaged")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<Window<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
-                                                                         final ActivityDto dto,
-                                                                         final ScrollSubrange subrange,
-                                                                         final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
+    public DataFetcherResult<CountedWindow<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
+                                                                                final ActivityDto dto,
+                                                                                final ScrollSubrange subrange,
+                                                                                final Optional<Sort> sort) {
         return buildDataFetcherResult(
-                service.findByActivity(spexareId, dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
+                service.findByActivity(spexareId, dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted())),
                 Map.of(
                         "spexareId", spexareId,
                         "activityId", dto.getId()

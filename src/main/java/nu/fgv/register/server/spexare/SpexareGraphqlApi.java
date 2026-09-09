@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare;
 
-import graphql.GraphQLContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.impex.model.ReportType;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -35,7 +34,6 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -48,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -65,20 +63,14 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexarePaged")
     @RequiresAdminOrEditorOrUser
-    public Window<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.find(filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    public CountedWindow<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+        return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("spexareSearchPaged")
     @RequiresAdminOrEditorOrUser
-    public WindowWithFacets<SpexareDto> retrieve(final GraphQLContext graphQLContext, @Argument final Optional<Integer> offset, @Argument final Optional<Integer> limit, @Argument final String q, @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
-        final WindowWithFacets<SpexareDto> result = service.search(q, aggregationFilters, offset.orElse(0), limit.orElse(20), sort.orElse(Sort.unsorted()));
-
-        graphQLContext.put("facets", result.getFacets());
-
-        return result;
+    public WindowWithFacets<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final String q, @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
+        return service.search(q, aggregationFilters, extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("spexareExport")

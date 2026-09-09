@@ -26,6 +26,7 @@ type Task {
 type TaskConnection {
     edges: [TaskEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type TaskEdge {

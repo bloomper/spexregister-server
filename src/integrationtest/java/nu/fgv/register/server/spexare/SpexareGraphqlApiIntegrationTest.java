@@ -214,6 +214,141 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Retrieve paged backwards")
+    class RetrievePagedBackwardsTests {
+
+        @Test
+        void should_return_last_page() {
+            final var ids = persistPermittedSpexare(25);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.totalCount").entity(Integer.class).isEqualTo(25)
+                    .path("spexarePaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexarePaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexarePaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        @Test
+        void should_return_everything_when_fewer_than_requested() {
+            final var ids = persistPermittedSpexare(5);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.totalCount").entity(Integer.class).isEqualTo(5)
+                    .path("spexarePaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexarePaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexarePaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids));
+        }
+
+        @Test
+        void should_return_zero() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.totalCount").entity(Integer.class).isEqualTo(0)
+                    .path("spexarePaged.edges").entityList(SpexareDto.class).hasSize(0);
+        }
+
+        @Test
+        void should_page_backwards_from_last_page() {
+            final var ids = persistPermittedSpexare(25);
+
+            final String startCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.pageInfo.startCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("last", 10)
+                    .variable("before", startCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexarePaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexarePaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(5, 15)));
+        }
+
+        @Test
+        void should_round_trip_forwards_to_last_page() {
+            final var ids = persistPermittedSpexare(25);
+
+            final String endCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("first", 15)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.pageInfo.endCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexarePagedCursor")
+                    .variable("first", 10)
+                    .variable("after", endCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexarePaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexarePaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
+        }
+
+        private List<String> asStrings(final List<Long> ids) {
+            return ids.stream().map(String::valueOf).toList();
+        }
+
+        private List<Long> persistPermittedSpexare(final int size) {
+            return IntStream.range(0, size)
+                    .mapToObj(_ -> {
+                        final var spexare = persistSpexare(randomizeSpexare());
+                        grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+                        return spexare.getId();
+                    })
+                    .toList();
+        }
+    }
+
+    @Nested
     @DisplayName("Retrieve paged with filtering")
     class RetrieveWithFilteringPagedTests {
 
@@ -340,7 +475,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .build()
                     .documentName("spexare/spexareSearchPaged")
                     .variable("q", "firstName")
-                    .variable("limit", size)
+                    .variable("first", size)
                     .execute()
                     .errors()
                     .verify()
@@ -388,6 +523,107 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .entityList(SpexareDto.class)
                     .hasSize(1);
         }
+    }
+
+    @Nested
+    @DisplayName("Search paged backwards")
+    class SearchPagedBackwardsTests {
+
+        @Test
+        void should_return_last_page() {
+            final int size = 25;
+            IntStream.range(0, size).forEach(_ -> {
+                final var spexare = persistSpexare(randomizeSpexare());
+                spexare.setFirstName("firstName");
+                repository.save(spexare);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            });
+            syncIndex();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareSearchPagedCursor")
+                    .variable("q", "firstName")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareSearchPaged.totalCount").entity(Integer.class).isEqualTo(size)
+                    .path("spexareSearchPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexareSearchPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexareSearchPaged.edges").entityList(SpexareDto.class).hasSize(10);
+        }
+
+        @Test
+        void should_return_everything_when_fewer_than_requested() {
+            final int size = 5;
+            IntStream.range(0, size).forEach(_ -> {
+                final var spexare = persistSpexare(randomizeSpexare());
+                spexare.setFirstName("firstName");
+                repository.save(spexare);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            });
+            syncIndex();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareSearchPagedCursor")
+                    .variable("q", "firstName")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareSearchPaged.totalCount").entity(Integer.class).isEqualTo(size)
+                    .path("spexareSearchPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexareSearchPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(false)
+                    .path("spexareSearchPaged.edges").entityList(SpexareDto.class).hasSize(size);
+        }
+
+        @Test
+        void should_page_backwards_from_last_page() {
+            final int size = 25;
+            IntStream.range(0, size).forEach(_ -> {
+                final var spexare = persistSpexare(randomizeSpexare());
+                spexare.setFirstName("firstName");
+                repository.save(spexare);
+                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
+            });
+            syncIndex();
+
+            final String startCursor = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareSearchPagedCursor")
+                    .variable("q", "firstName")
+                    .variable("last", 10)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareSearchPaged.pageInfo.startCursor")
+                    .entity(String.class)
+                    .get();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareSearchPagedCursor")
+                    .variable("q", "firstName")
+                    .variable("last", 10)
+                    .variable("before", startCursor)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareSearchPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexareSearchPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
+                    .path("spexareSearchPaged.edges").entityList(SpexareDto.class).hasSize(10);
+        }
+
     }
 
     @Nested

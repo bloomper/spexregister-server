@@ -51,6 +51,7 @@ mutation spexActivityCreate ($spexareId: ID!, $activityId: ID!, $spexId: ID!, $f
                     startCursor
                     endCursor
                 }
+                totalCount
             }
         }
         createdBy

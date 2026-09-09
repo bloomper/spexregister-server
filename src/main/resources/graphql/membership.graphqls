@@ -16,6 +16,7 @@ type Membership {
 type MembershipConnection {
     edges: [MembershipEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type MembershipEdge {

@@ -20,10 +20,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Optional;
 
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -60,10 +59,8 @@ public class MembershipGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "membershipsPaged")
     @RequiresAdminOrEditorOrUser
-    public Window<MembershipDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
-        return service.findBySpexare(dto.getId(), filter.orElse(""), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition());
+    public CountedWindow<MembershipDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
+        return service.findBySpexare(dto.getId(), filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @SchemaMapping(typeName = "Spexare", field = "memberships")

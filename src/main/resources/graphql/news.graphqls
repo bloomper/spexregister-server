@@ -27,6 +27,7 @@ type News {
 type NewsConnection {
     edges: [NewsEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type NewsEdge {

@@ -389,7 +389,10 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
         final Function<Sort, TypedQuery<T>> finder = (sort) -> getQuery(spec, domainClass, sort, sid, authoritySids, permission);
         final FetchableFluentQueryBySpecification.SpecificationScrollDelegate<T> scrollDelegate = new FetchableFluentQueryBySpecification.SpecificationScrollDelegate(scrollFunction, entityInformation);
-        final FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification(spec, domainClass, finder, scrollDelegate, count -> count(spec), exists -> exists(spec), entityManager, getProjectionFactory());
+        final FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification(spec, domainClass, finder, scrollDelegate,
+                _ -> executeCountQuery(getCountQuery(spec, domainClass, sid, authoritySids, permission)),
+                _ -> !getQuery(spec, domainClass, Sort.unsorted(), sid, authoritySids, permission).setMaxResults(1).getResultList().isEmpty(),
+                entityManager, getProjectionFactory());
 
         return queryFunction.apply((FluentQuery.FetchableFluentQuery<S>) fluentQuery);
     }

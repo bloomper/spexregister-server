@@ -67,6 +67,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                                     startCursor
                                     endCursor
                                 }
+                                totalCount
                             }
                         }
                         createdBy
@@ -118,6 +119,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                                         startCursor
                                         endCursor
                                     }
+                                    totalCount
                                 }
                                 actors {
                                     id
@@ -143,6 +145,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                             startCursor
                             endCursor
                         }
+                        totalCount
                     }
                     taskActivities {
                         id
@@ -185,6 +188,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                                 startCursor
                                 endCursor
                             }
+                            totalCount
                         }
                         actors {
                             id
@@ -215,6 +219,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         activities {
             id
@@ -270,6 +275,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                             startCursor
                             endCursor
                         }
+                        totalCount
                     }
                 }
                 createdBy
@@ -321,6 +327,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                                 startCursor
                                 endCursor
                             }
+                            totalCount
                         }
                         actors {
                             id
@@ -346,6 +353,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                     startCursor
                     endCursor
                 }
+                totalCount
             }
             taskActivities {
                 id
@@ -388,6 +396,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 actors {
                     id
@@ -440,6 +449,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         addresses {
             id
@@ -483,6 +493,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         consents {
             id
@@ -520,6 +531,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         memberships {
             id
@@ -552,6 +564,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         taggings {
             id
@@ -584,6 +597,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 startCursor
                 endCursor
             }
+            totalCount
         }
         toggles {
             id

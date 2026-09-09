@@ -38,6 +38,8 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -52,9 +54,7 @@ import org.passay.rule.CharacterRule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -105,20 +105,20 @@ public class UserService {
     private String keycloakRealm;
 
     @RequiresAdmin
-    public Window<UserDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
-        return hasText(filter) ?
-                repository
-                        .findBy(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(this::joinModelWithRepresentation) :
-                repository
-                        .findBy(NO_FILTER, BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(this::joinModelWithRepresentation);
+    public CountedWindow<UserDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
+        return repository
+                .findBy(hasText(filter) ?
+                                SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new) :
+                                NO_FILTER,
+                        BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(this::joinModelWithRepresentation), total);
+                        });
     }
 
     @RequiresAdmin

@@ -18,13 +18,20 @@ package nu.fgv.register.server.config;
 
 import graphql.scalars.ExtendedScalars;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.util.graphql.CountingConnectionAdapter;
 import nu.fgv.register.server.util.graphql.CustomScalars;
 import nu.fgv.register.server.util.graphql.CustomSortStrategy;
+import nu.fgv.register.server.util.graphql.TotalCountTypeVisitor;
+import org.springframework.boot.graphql.autoconfigure.GraphQlSourceBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.graphql.data.pagination.ConnectionFieldTypeVisitor;
+import org.springframework.graphql.data.pagination.CursorStrategy;
 import org.springframework.graphql.data.query.SortStrategy;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -59,11 +66,15 @@ public class GraphqlConfig {
                                 .build()
                 )
                 .scalar(CustomScalars.Instant)
-                .scalar(CustomScalars.Void)
-                .type("SpexareWithFacetsConnection", typeWiring -> typeWiring
-                        .dataFetcher("facets", env ->
-                                env.getGraphQlContext().getOrDefault("facets", null)));
+                .scalar(CustomScalars.Void);
+    }
 
+    @Bean
+    public GraphQlSourceBuilderCustomizer connectionCustomizer(final CursorStrategy<ScrollPosition> cursorStrategy) {
+        return builder -> builder.typeVisitors(List.of(
+                ConnectionFieldTypeVisitor.create(new CountingConnectionAdapter(cursorStrategy)),
+                new TotalCountTypeVisitor()
+        ));
     }
 
     @Bean

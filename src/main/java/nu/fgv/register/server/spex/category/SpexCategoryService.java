@@ -25,14 +25,14 @@ import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
+import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.security.acls.domain.BasePermission;
@@ -66,20 +66,20 @@ public class SpexCategoryService {
     private final PermissionService permissionService;
 
     @RequiresAdminOrEditorOrUser
-    public Window<SpexCategoryDto> find(final String filter, final int limit, final Sort sort, final ScrollPosition scrollPosition) {
-        return hasText(filter) ?
-                repository
-                        .findBy(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEX_CATEGORY_MAPPER::toDto) :
-                repository
-                        .findBy(NO_FILTER, BasePermission.READ, query -> query
-                                .limit(limit)
-                                .sortBy(sort)
-                                .scroll(scrollPosition))
-                        .map(SPEX_CATEGORY_MAPPER::toDto);
+    public CountedWindow<SpexCategoryDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
+        return repository
+                .findBy(hasText(filter) ?
+                                SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new) :
+                                NO_FILTER,
+                        BasePermission.READ, query -> {
+                            final long total = query.count();
+
+                            return CountedWindow.of(query
+                                    .limit(scroll.limit())
+                                    .sortBy(sort)
+                                    .scroll(scroll.positionFor(total))
+                                    .map(SPEX_CATEGORY_MAPPER::toDto), total);
+                        });
     }
 
     @RequiresAdminOrEditorOrUser

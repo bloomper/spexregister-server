@@ -1,6 +1,6 @@
 extend type Query {
     spexarePaged(first: Int, after: String, last: Int, before: String, filter: String = "published:true", sort: [String] = ["firstName"], direction: SortDirection = ASC): SpexareConnection
-    spexareSearchPaged(offset: Int = 0, limit: Int = 20, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String] = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
+    spexareSearchPaged(first: Int, after: String, last: Int, before: String, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String] = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
     spexare(id: ID!): Spexare
     spexareEvents(sourceId: ID!, sinceInDays: Int = 90): [Event]
     spexareExport(ids: [ID], filter: String, type: ImpexType!, reportType: ReportType): JobReference
@@ -86,6 +86,7 @@ type SpexarePartner {
 type SpexareConnection {
     edges: [SpexareEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type SpexareEdge {
@@ -96,5 +97,6 @@ type SpexareEdge {
 type SpexareWithFacetsConnection {
     edges: [SpexareEdge]
     pageInfo: PageInfo
+    totalCount: Int!
     facets: [Facet]
 }

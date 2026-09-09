@@ -20,11 +20,10 @@ import graphql.execution.DataFetcherResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
+import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
-import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollPositionAndLimitAndOrder;
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
  * @author Anders Jacobsson
@@ -69,11 +68,9 @@ public class ActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Spexare", field = "activitiesPaged")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<Window<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        final GraphqlUtil.ScrollPositionAndLimitHolder holder = extractScrollPositionAndLimitAndOrder(subrange);
-
+    public DataFetcherResult<CountedWindow<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         return buildDataFetcherResult(
-                service.findBySpexare(dto.getId(), holder.limit(), sort.orElse(Sort.unsorted()), holder.scrollPosition()),
+                service.findBySpexare(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted())),
                 Map.of(
                         "spexareId", dto.getId()
                 )

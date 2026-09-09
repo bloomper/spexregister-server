@@ -23,6 +23,7 @@ type Address {
 type AddressConnection {
     edges: [AddressEdge]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type AddressEdge {

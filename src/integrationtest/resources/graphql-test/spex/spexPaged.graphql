@@ -44,6 +44,7 @@ query spexPaged ($first: Int = 10, $filter: String = "") {
                         startCursor
                         endCursor
                     }
+                    totalCount
                 }
                 revivals {
                     id
@@ -65,5 +66,6 @@ query spexPaged ($first: Int = 10, $filter: String = "") {
             startCursor
             endCursor
         }
+        totalCount
     }
 }
