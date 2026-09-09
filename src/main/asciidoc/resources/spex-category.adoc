@@ -76,6 +76,6 @@ operation::spex-category-logo-add-multipart[snippets='security,request-headers,h
 [[events_get]]
 === Get
 
-operation::spex-category-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::spex-category-event-get[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

@@ -220,6 +220,6 @@ a|
 * ADMIN
 !===
 
-operation::spexare-event-get[snippets='request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::spexare-event-get[snippets='request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

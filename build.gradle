@@ -240,12 +240,20 @@ jacocoTestReport {
 
 check.dependsOn jacocoTestReport
 
+asciidoctorj {
+    version = '3.0.0'
+}
+
 asciidoctor {
     dependsOn createSnippetsDir, test
-    // TODO: Enable when Spring REST Docs support Asciidoctor 4+
-    //configurations 'asciidoctorExtensions'
+    configurations 'asciidoctorExtensions'
     inputs.dir snippetsDir
     sourceDir 'src/main/asciidoc'
+    forkOptions {
+        jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+                '--enable-native-access=ALL-UNNAMED'
+    }
     attributes   \
         'snippets': file('build/generated-snippets'),
         'static-snippets': file('src/main/asciidoc/static-snippets')

@@ -58,6 +58,6 @@ operation::tag-delete[snippets='security,request-headers,path-parameters,http-re
 [[events_get]]
 === Get
 
-operation::tag-event-get[snippets='security,request-headers,query-parameters,http-request,response-headers,response-fields,http-response']
+operation::tag-event-get[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

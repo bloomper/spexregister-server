@@ -836,6 +836,7 @@ class SpexApiTest extends AbstractApiTest {
                                 queryParameters(
                                         parameterWithName("sinceInDays").description("How many days back to check for events")
                                 ),
+                                secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(SpexApi.class, "retrieveEvents", Long.class, Integer.class))
                         )
