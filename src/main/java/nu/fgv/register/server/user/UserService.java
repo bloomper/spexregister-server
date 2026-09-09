@@ -509,7 +509,7 @@ public class UserService {
                                             final ObjectIdentity oid = toObjectIdentity(User.class, user.getId());
 
                                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID);
+                                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(representation.getId()));
                                             alreadyAdded.add(representation.getId());
                                             synced.incrementAndGet();
                                             log.debug("Synced user {} from Keycloak", representation.getId());
