@@ -9,7 +9,7 @@ plugins {
     id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '4.0.5'
-    id 'org.sonarqube' version '7.4.0.8496'
+    id 'org.sonarqube' version '7.5.0.8588'
     //id 'org.graalvm.buildtools.native' version '1.1.2'
     id 'jacoco'
     id 'com.google.cloud.tools.jib' version '3.5.4'
@@ -75,9 +75,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.7.2'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.2'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.2'
+    developmentOnly 'org.keycloak:keycloak-core:26.7.3'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.3'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.3'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
