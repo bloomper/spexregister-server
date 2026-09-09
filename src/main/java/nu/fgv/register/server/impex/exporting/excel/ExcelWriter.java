@@ -77,7 +77,7 @@ public class ExcelWriter {
         }
 
         setSheetName(messageSource, locale, workbook, sheet, clazz, overrideSheetName);
-        addHeaderRow(messageSource, locale, sheet, annotatedFields);
+        addHeaderRow(messageSource, locale, sheet, annotatedFields, styleCache);
         writeRows(sheet, dataList.iterator(), annotatedFields, styleCache);
         finalizeSheet(sheet, annotatedFields, styleCache, readOnly);
     }
@@ -95,8 +95,9 @@ public class ExcelWriter {
         workbook.setSheetName(workbook.getSheetIndex(sheet), sheetName);
     }
 
-    private void addHeaderRow(final MessageSource messageSource, final Locale locale, final Sheet sheet, final List<Field> annotatedFields) {
+    private void addHeaderRow(final MessageSource messageSource, final Locale locale, final Sheet sheet, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache) {
         final Row row = sheet.createRow(0);
+        final CellStyle style = getProtectionStyle(sheet.getWorkbook(), styleCache, true);
 
         for (int position = 0; position < annotatedFields.size(); position++) {
             final Field field = annotatedFields.get(position);
@@ -107,9 +108,20 @@ public class ExcelWriter {
 
             final Cell cell = row.createCell(position);
             cell.setCellValue(header);
+            cell.setCellStyle(style);
             // Rough estimate for width: header length + padding
             sheet.setColumnWidth(position, ((header.length() + 3) * 256) + 200);
         }
+    }
+
+    private CellStyle getProtectionStyle(final Workbook workbook, final Map<String, CellStyle> styleCache, final boolean locked) {
+        return styleCache.computeIfAbsent(String.format("locked-%b", locked), _ -> {
+            final CellStyle style = workbook.createCellStyle();
+
+            style.setLocked(locked);
+
+            return style;
+        });
     }
 
     private void writeRows(final Sheet sheet, final Iterator<?> iterator, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache) {
@@ -125,6 +137,9 @@ public class ExcelWriter {
 
                 try {
                     final Cell cell = row.createCell(position);
+
+                    applyCellStyling(cell, excelCell, styleCache);
+
                     final Object value = field.get(item);
 
                     if (hasText(excelCell.transform()) && value != null) {
@@ -135,8 +150,6 @@ public class ExcelWriter {
                     } else if (value != null) {
                         CellTypedWriterFactory.getTypedWriter(value.getClass()).accept(cell, value);
                     }
-
-                    applyCellStyling(cell, excelCell, styleCache);
                 } catch (final Exception e) {
                     log.warn("Could not write row {} cell {}: {}", row.getRowNum() + 1, position, e.getMessage());
                 }
@@ -145,39 +158,33 @@ public class ExcelWriter {
     }
 
     private void applyCellStyling(final Cell cell, final ExcelCell excelCell, final Map<String, CellStyle> styleCache) {
-        applyCellStyling(cell, excelCell, styleCache, false);
-    }
-
-    private void applyCellStyling(final Cell cell, final ExcelCell excelCell, final Map<String, CellStyle> styleCache, final boolean isNewRow) {
-        final String cacheKey = String.format("upd-%b-man-%b-new-%b", excelCell.updatable(), excelCell.mandatory(), isNewRow);
+        final String cacheKey = String.format("upd-%b-man-%b", excelCell.updatable(), excelCell.mandatory());
 
         final CellStyle style = styleCache.computeIfAbsent(cacheKey, key -> {
             final Workbook workbook = cell.getSheet().getWorkbook();
             final CellStyle newStyle = workbook.createCellStyle();
 
-            newStyle.setLocked(!isNewRow && !excelCell.updatable());
+            newStyle.setLocked(!excelCell.updatable());
 
-            if (!isNewRow) {
-                final IndexedColors color;
-                if (excelCell.updatable() && excelCell.mandatory()) {
-                    color = IndexedColors.GREEN;
-                } else if (excelCell.updatable()) {
-                    color = IndexedColors.LIGHT_GREEN;
-                } else if (excelCell.mandatory()) {
-                    color = IndexedColors.BRIGHT_GREEN;
-                } else {
-                    color = IndexedColors.DARK_RED;
-                }
-
-                newStyle.setBorderTop(BorderStyle.THIN);
-                newStyle.setBorderBottom(BorderStyle.THIN);
-                newStyle.setBorderLeft(BorderStyle.THIN);
-                newStyle.setBorderRight(BorderStyle.THIN);
-                newStyle.setTopBorderColor(color.getIndex());
-                newStyle.setBottomBorderColor(color.getIndex());
-                newStyle.setLeftBorderColor(color.getIndex());
-                newStyle.setRightBorderColor(color.getIndex());
+            final IndexedColors color;
+            if (excelCell.updatable() && excelCell.mandatory()) {
+                color = IndexedColors.GREEN;
+            } else if (excelCell.updatable()) {
+                color = IndexedColors.LIGHT_GREEN;
+            } else if (excelCell.mandatory()) {
+                color = IndexedColors.BRIGHT_GREEN;
+            } else {
+                color = IndexedColors.DARK_RED;
             }
+
+            newStyle.setBorderTop(BorderStyle.THIN);
+            newStyle.setBorderBottom(BorderStyle.THIN);
+            newStyle.setBorderLeft(BorderStyle.THIN);
+            newStyle.setBorderRight(BorderStyle.THIN);
+            newStyle.setTopBorderColor(color.getIndex());
+            newStyle.setBottomBorderColor(color.getIndex());
+            newStyle.setLeftBorderColor(color.getIndex());
+            newStyle.setRightBorderColor(color.getIndex());
 
             return newStyle;
         });
@@ -186,39 +193,51 @@ public class ExcelWriter {
     }
 
     private void finalizeSheet(final Sheet sheet, final List<Field> annotatedFields, final Map<String, CellStyle> styleCache, final boolean readOnly) {
-        final Row headerRow = sheet.getRow(0);
         final int lastColumn = annotatedFields.size();
 
-        if (headerRow != null) {
-            for (int i = 0; i < lastColumn; i++) {
-                sheet.autoSizeColumn(i, false);
+        for (int position = 0; position < lastColumn; position++) {
+            final int headerWidth = sheet.getColumnWidth(position);
+
+            sheet.autoSizeColumn(position, false);
+
+            if (sheet.getColumnWidth(position) < headerWidth) {
+                sheet.setColumnWidth(position, headerWidth);
             }
         }
 
-        if (!readOnly) {
-            final int lastRowNum = sheet.getLastRowNum();
-            final int bufferSize = 50;
+        if (readOnly) {
+            setTabColor(sheet);
+        } else {
+            final CellStyle style = getProtectionStyle(sheet.getWorkbook(), styleCache, false);
 
-            for (int i = 1; i <= bufferSize; i++) {
-                final Row row = sheet.createRow(lastRowNum + i);
-                for (int position = 0; position < annotatedFields.size(); position++) {
-                    final Field field = annotatedFields.get(position);
-                    final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
-                    final Cell cell = row.createCell(position);
-                    applyCellStyling(cell, excelCell, styleCache, true);
-                }
+            for (int position = 0; position < lastColumn; position++) {
+                sheet.setDefaultColumnStyle(position, style);
             }
-        } else if (sheet instanceof final SXSSFSheet sxssfSheet) {
-            final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
-            sxssfSheet.setTabColor(new XSSFColor(red));
-        } else if (sheet instanceof final XSSFSheet xssfSheet) {
-            final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
-            xssfSheet.setTabColor(new XSSFColor(red));
         }
 
         sheet.createFreezePane(0, 1);
-        if (headerRow != null) {
-            sheet.setAutoFilter(new CellRangeAddress(0, 0, 0, Math.max(0, lastColumn - 1)));
+
+        if (lastColumn > 0) {
+            sheet.setAutoFilter(new CellRangeAddress(0, 0, 0, lastColumn - 1));
+            unlockAutoFilter(sheet);
+        }
+    }
+
+    private void setTabColor(final Sheet sheet) {
+        final byte[] red = DefaultIndexedColorMap.getDefaultRGB(IndexedColors.RED.getIndex());
+
+        if (sheet instanceof final SXSSFSheet sxssfSheet) {
+            sxssfSheet.setTabColor(new XSSFColor(red));
+        } else if (sheet instanceof final XSSFSheet xssfSheet) {
+            xssfSheet.setTabColor(new XSSFColor(red));
+        }
+    }
+
+    private void unlockAutoFilter(final Sheet sheet) {
+        if (sheet instanceof final SXSSFSheet sxssfSheet) {
+            sxssfSheet.lockAutoFilter(false);
+        } else if (sheet instanceof final XSSFSheet xssfSheet) {
+            xssfSheet.lockAutoFilter(false);
         }
     }
 
