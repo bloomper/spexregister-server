@@ -17,9 +17,6 @@
 package nu.fgv.register.server.tag;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -63,7 +60,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final TagRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -73,11 +69,9 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                                  final String keycloakClientId,
                                  final PermissionService permissionService,
                                  final TagRepository repository,
-                                 final EventRepository eventRepository,
                                  final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -94,7 +88,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event", "tag_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit");
     }
 
     @AfterEach
@@ -767,38 +761,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.count()).isZero();
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", tag.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TAG.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(tag.getCreatedBy());
         }
     }
 

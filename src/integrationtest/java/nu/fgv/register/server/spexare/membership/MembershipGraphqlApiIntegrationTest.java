@@ -118,7 +118,7 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "membership", "type", "spexare", "event", "membership_audit", "type_audit", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "membership", "type", "spexare", "membership_audit", "type_audit", "spexare_audit");
     }
 
     @AfterEach

@@ -17,9 +17,6 @@
 package nu.fgv.register.server.news;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.jeasy.random.EasyRandom;
@@ -59,7 +56,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
 class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final EasyRandom random;
     private final NewsRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -69,11 +65,9 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final String keycloakClientId,
                                          final PermissionService permissionService,
                                          final NewsRepository repository,
-                                         final EventRepository eventRepository,
                                          final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -90,7 +84,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event", "news_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "news_audit");
     }
 
     @AfterEach
@@ -852,37 +846,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .hasSize(1);
 
             assertThat(repository.count()).isEqualTo(1);
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("news/newsEvents")
-                    .variable("sourceId", news.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("newsEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.NEWS.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(news.getCreatedBy());
         }
     }
 

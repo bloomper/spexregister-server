@@ -148,7 +148,7 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "type", "task_activity", "activity", "spexare", "task", "task_category", "event", "actor_audit", "type_audit", "task_activity_audit", "activity_audit", "spexare_audit", "task_audit", "task_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "type", "task_activity", "activity", "spexare", "task", "task_category", "actor_audit", "type_audit", "task_activity_audit", "activity_audit", "spexare_audit", "task_audit", "task_category_audit");
     }
 
     @AfterEach

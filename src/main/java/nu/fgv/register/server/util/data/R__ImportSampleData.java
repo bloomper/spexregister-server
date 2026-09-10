@@ -107,6 +107,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final String SAMPLE_PASSWORD = "s3cr3t";
     private final PermissionService permissionService;
     private final AuthorityService authorityService;
+    private final AuditDataSeeder auditDataSeeder;
     @Value("${spexregister.data.import-sample-data:false}")
     private final boolean importSampleData;
     private final Keycloak keycloakAdminClient;
@@ -120,6 +121,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
     public R__ImportSampleData(final PermissionService permissionService,
                                final AuthorityService authorityService,
+                               final AuditDataSeeder auditDataSeeder,
                                final Keycloak keycloakAdminClient,
                                final String keycloakClientId,
                                @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
@@ -128,6 +130,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                @Value("${spexregister.crypto.initialization-vector}") final String iv) {
         this.permissionService = permissionService;
         this.authorityService = authorityService;
+        this.auditDataSeeder = auditDataSeeder;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
         this.importSampleData = importSampleData;
@@ -153,7 +156,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
             createSampleNews(jdbcClient);
             createSampleTags(jdbcClient);
             createSampleSpexare(jdbcClient);
-            createSampleUsers(jdbcClient);
+
+            auditDataSeeder.seedSampleHistory(jdbcClient, createSampleUsers(jdbcClient));
 
             SecurityContextHolder.clearContext();
         }
@@ -189,7 +193,6 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 );
 
         final List<String> tables = List.of(
-                "event",
                 "actor",
                 "task_activity",
                 "spex_activity",
@@ -756,7 +759,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
         });
     }
 
-    private void createSampleUsers(final JdbcClient jdbcClient) {
+    private List<String> createSampleUsers(final JdbcClient jdbcClient) {
         final List<RoleRepresentation> authorities = new ArrayList<>();
 
         jdbcClient.sql("SELECT id FROM authority")
@@ -791,6 +794,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
         credentialRepresentation.setTemporary(false);
 
         final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
+        final List<String> emailAddresses = new ArrayList<>();
 
         IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
             final UserRepresentation userRepresentation = new UserRepresentation();
@@ -842,6 +846,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                             permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
                             permissionService.grantPermission(spexareOid, BasePermission.WRITE, new PrincipalSid(externalId));
+
+                            emailAddresses.add(userRepresentation.getEmail());
                         }
                     } catch (final Exception e) {
                         throw new IllegalStateException("Could not retrieve newly created user in Keycloak", e);
@@ -864,6 +870,8 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
                     permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
                 });
+
+        return List.copyOf(emailAddresses);
     }
 
     private Pair<Map<Long, List<Long>>, Map<Long, List<Long>>> getSpexPerSpexCategory(final JdbcClient jdbcClient, final List<SpexCategory> spexCategories) {

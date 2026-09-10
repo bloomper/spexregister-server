@@ -1,0 +1,110 @@
+extend type Query {
+    revisions(type: AuditedType!, id: ID!): [Revision]
+    revision(type: AuditedType!, id: ID!, revision: Long!): Revision
+    relatedRevisions(type: AuditedType!, id: ID!, relatedType: AuditedType!): [Revision]
+    revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, sinceInDays: Int = 90): RevisionFeedConnection
+    restorePreview(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestorePreview
+}
+
+extend type Mutation {
+    restore(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestoreResult
+}
+
+type Revision {
+    revision: Long!
+    type: AuditedType!
+    entityId: Long
+    entityLabel: String
+    revisionType: RevisionType!
+    modifiedAt: Instant!
+    modifiedBy: String!
+    changes: [FieldChange!]!
+}
+
+type FieldChange {
+    field: String!
+    oldValue: String
+    newValue: String
+    binary: Boolean!
+    type: AuditedType
+    entityId: Long
+}
+
+type RevisionFeedEntry {
+    revision: Long!
+    modifiedAt: Instant!
+    modifiedBy: String!
+    types: [AuditedType!]!
+}
+
+type RevisionFeedConnection {
+    edges: [RevisionFeedEdge]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+type RevisionFeedEdge {
+    cursor: String!
+    node: RevisionFeedEntry!
+}
+
+type RestorePreviewEntry {
+    type: AuditedType!
+    id: Long
+    action: RestoreAction!
+    changes: [FieldChange!]!
+}
+
+type RestorePreview {
+    entries: [RestorePreviewEntry!]!
+    warnings: [RestoreWarning!]!
+}
+
+type RestoreResult {
+    revision: Long!
+    updated: Int!
+    created: Int!
+    deleted: Int!
+    warnings: [RestoreWarning!]!
+}
+
+type RestoreWarning {
+    code: String!
+    message: String!
+    previousId: Long
+    newId: Long
+}
+
+enum RevisionType {
+    ADD
+    MOD
+    DEL
+}
+
+enum RestoreAction {
+    UPDATE
+    CREATE
+    DELETE
+}
+
+enum AuditedType {
+    NEWS
+    SPEX
+    SPEX_DETAILS
+    SPEX_CATEGORY
+    SPEXARE
+    ACTIVITY
+    SPEX_ACTIVITY
+    TASK_ACTIVITY
+    ACTOR
+    ADDRESS
+    CONSENT
+    MEMBERSHIP
+    TOGGLE
+    TAG
+    TASK
+    TASK_CATEGORY
+    USER
+    STATE
+    TYPE
+}

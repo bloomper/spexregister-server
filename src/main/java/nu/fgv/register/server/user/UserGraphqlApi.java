@@ -19,9 +19,6 @@ package nu.fgv.register.server.user;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
@@ -60,7 +57,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class UserGraphqlApi {
 
     private final UserService service;
-    private final EventService eventService;
     private final JobService jobService;
 
     @QueryMapping("userPaged")
@@ -166,12 +162,6 @@ public class UserGraphqlApi {
     @RequiresAdmin
     public void removeSpexare(@Argument final Long userId) {
         service.removeSpexare(userId);
-    }
-
-    @QueryMapping("userEvents")
-    @RequiresAdminOrEditorOrUser
-    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySourceTypeAndId(Event.SourceType.USER, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

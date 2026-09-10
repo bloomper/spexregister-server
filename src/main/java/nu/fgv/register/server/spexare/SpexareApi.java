@@ -17,12 +17,10 @@
 package nu.fgv.register.server.spexare;
 
 import jakarta.validation.Valid;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -96,11 +94,9 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareApi {
 
     private final SpexareService service;
-    private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
     private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, params = {"!q", "!type"})
     @RequiresAdminOrEditorOrUser
@@ -285,18 +281,6 @@ public class SpexareApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.SPEXARE, sourceId, sinceInDays).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.SPEXARE, -1)).withSelfRel()));
-    }
-
     private void addLinks(final EntityModel<SpexareDto> entity) {
         if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -322,7 +306,7 @@ public class SpexareApi {
         links.add(linkTo(methodOn(AddressApi.class).retrieve(dto.getId(), Pageable.unpaged(), "")).withRel("addresses"));
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(dto.getId(), Pageable.unpaged())).withRel("tags"));
         links.add(linkTo(methodOn(SpexareApi.class).retrievePartner(dto.getId())).withRel("partner"));
-        links.add(linkTo(methodOn(SpexareApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
+        links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.SPEXARE, String.valueOf(dto.getId()))).withRel("revisions"));
 
         return links;
     }

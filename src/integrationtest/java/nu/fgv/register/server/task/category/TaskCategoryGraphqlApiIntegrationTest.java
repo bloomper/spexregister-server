@@ -17,9 +17,6 @@
 package nu.fgv.register.server.task.category;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.jeasy.random.EasyRandom;
@@ -59,7 +56,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
     private final EasyRandom random;
     private final TaskCategoryRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -69,11 +65,9 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final String keycloakClientId,
                                                  final PermissionService permissionService,
                                                  final TaskCategoryRepository repository,
-                                                 final EventRepository eventRepository,
                                                  final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -90,7 +84,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "task_category", "event", "task_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task_category", "task_category_audit");
     }
 
     @AfterEach
@@ -741,37 +735,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .valueIsNull();
 
             assertThat(repository.count()).isZero();
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("task/category/taskCategoryEvents")
-                    .variable("sourceId", category.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("taskCategoryEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TASK_CATEGORY.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(category.getCreatedBy());
         }
     }
 

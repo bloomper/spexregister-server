@@ -19,9 +19,6 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
@@ -58,7 +55,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class SpexareGraphqlApi {
 
     private final SpexareService service;
-    private final EventService eventService;
     private final JobService jobService;
 
     @QueryMapping("spexarePaged")
@@ -128,12 +124,6 @@ public class SpexareGraphqlApi {
     @RequiresAdminOrEditorOrUser
     public void removePartner(@Argument final Long spexareId) {
         service.removePartner(spexareId);
-    }
-
-    @QueryMapping("spexareEvents")
-    @RequiresAdminOrEditorOrUser
-    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySourceTypeAndId(Event.SourceType.SPEXARE, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

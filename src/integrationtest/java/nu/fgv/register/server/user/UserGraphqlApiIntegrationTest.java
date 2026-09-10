@@ -18,9 +18,6 @@ package nu.fgv.register.server.user;
 
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.authority.Authority;
@@ -90,7 +87,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
-    private final EventRepository eventRepository;
 
     private final EmailRandomizer emailRandomizer = new EmailRandomizer();
     private final Random rnd = new SecureRandom();
@@ -106,14 +102,12 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final AuthorityRepository authorityRepository,
                                          final StateRepository stateRepository,
                                          final SpexareRepository spexareRepository,
-                                         final EventRepository eventRepository,
                                          final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;
         this.spexareRepository = spexareRepository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -150,7 +144,7 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "event", "user_audit", "state_audit", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "user_audit", "state_audit", "spexare_audit");
     }
 
     @AfterEach
@@ -1985,38 +1979,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     )
                     .path("userSpexareRemove")
                     .valueIsNull();
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var state = persistState(randomizeState());
-            final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("user/userEvents")
-                    .variable("sourceId", user.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("userEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.USER.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(user.getCreatedBy());
         }
     }
 

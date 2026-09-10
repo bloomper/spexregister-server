@@ -1,0 +1,20 @@
+= Revisions
+
+xref:../api-guide.adoc[Back to API guide]
+
+[[revisions_get]]
+== Get revisions for an entity
+
+operation::audit-get-revisions[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+
+[[revision_get]]
+== Get a single revision
+
+operation::audit-get-revision[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+
+[[revision_restore]]
+== Restore an entity to a revision
+
+operation::audit-restore[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

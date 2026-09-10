@@ -19,7 +19,6 @@ package nu.fgv.register.server.spex.category;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,7 +32,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
@@ -57,7 +55,6 @@ import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysis
  */
 @Entity
 @Table(name = "spex_category")
-@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Audited
 @RequiredArgsConstructor

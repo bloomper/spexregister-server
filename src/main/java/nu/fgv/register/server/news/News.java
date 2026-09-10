@@ -18,7 +18,6 @@ package nu.fgv.register.server.news;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,7 +29,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.util.AbstractAuditable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -47,7 +45,6 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "news")
-@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Audited
 @RequiredArgsConstructor

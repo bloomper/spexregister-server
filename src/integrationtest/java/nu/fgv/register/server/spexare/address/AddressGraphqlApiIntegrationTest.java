@@ -122,7 +122,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "type", "spexare", "event", "address_audit", "type_audit", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "type", "spexare", "address_audit", "type_audit", "spexare_audit");
     }
 
     @AfterEach

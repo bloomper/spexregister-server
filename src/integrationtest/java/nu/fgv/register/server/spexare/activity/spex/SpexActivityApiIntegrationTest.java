@@ -133,7 +133,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_activity", "activity", "spexare", "spex", "spex_details", "spex_category", "event", "spex_activity_audit", "activity_audit", "spexare_audit", "spex_audit", "spex_details_audit", "spex_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_activity", "activity", "spexare", "spex", "spex_details", "spex_category", "spex_activity_audit", "activity_audit", "spexare_audit", "spex_audit", "spex_details_audit", "spex_category_audit");
     }
 
     @AfterEach

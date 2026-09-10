@@ -17,9 +17,6 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -74,7 +71,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final SpexRepository repository;
     private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -86,13 +82,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                          final SpexRepository repository,
                                          final SpexDetailsRepository detailsRepository,
                                          final SpexCategoryRepository categoryRepository,
-                                         final EventRepository eventRepository,
                                          final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -131,7 +125,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "event", "spex_audit", "spex_details_audit", "spex_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "spex_audit", "spex_details_audit", "spex_category_audit");
     }
 
     @AfterEach
@@ -491,6 +485,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 final var spex = randomizeSpex(category);
                 if (i % 2 == 0) {
                     spex.setYear("1996");
+                } else {
+                    spex.setYear("1997");
                 }
                 final var spex0 = persistSpex(spex);
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex0.getId()));
@@ -1874,38 +1870,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(detailsRepository.count()).isZero();
         }
 
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spex/spexEvents")
-                    .variable("sourceId", spex.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("spexEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(2);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEX.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spex.getCreatedBy());
-        }
     }
 
     private Spex randomizeSpex(@Nullable final SpexCategory category) {

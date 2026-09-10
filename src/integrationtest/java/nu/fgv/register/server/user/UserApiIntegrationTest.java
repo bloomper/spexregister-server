@@ -18,9 +18,6 @@ package nu.fgv.register.server.user;
 
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -95,7 +92,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
-    private final EventRepository eventRepository;
 
     private final EmailRandomizer emailRandomizer = new EmailRandomizer();
     private final Random rnd = new SecureRandom();
@@ -111,14 +107,12 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                                   final AuthorityRepository authorityRepository,
                                   final StateRepository stateRepository,
                                   final SpexareRepository spexareRepository,
-                                  final EventRepository eventRepository,
                                   final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;
         this.spexareRepository = spexareRepository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -152,7 +146,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "event", "user_audit", "state_audit", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user", "state", "spexare", "user_audit", "state_audit", "spexare_audit");
     }
 
     @AfterEach
@@ -1990,39 +1984,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var state = persistState(randomizeState());
-            final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", user.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.USER.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(user.getCreatedBy());
         }
     }
 

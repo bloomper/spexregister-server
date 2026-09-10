@@ -1,0 +1,20 @@
+query revisionFeedPaged ($first: Int, $after: String, $type: AuditedType, $sinceInDays: Int) {
+    revisionFeedPaged (first: $first, after: $after, type: $type, sinceInDays: $sinceInDays) {
+        edges {
+            cursor
+            node {
+                revision
+                modifiedAt
+                modifiedBy
+                types
+            }
+        }
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+        }
+        totalCount
+    }
+}
