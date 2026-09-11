@@ -18,9 +18,6 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
@@ -76,7 +73,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     private final EasyRandom random;
     private final SpexareRepository repository;
-    private final EventRepository eventRepository;
     private final EntityManager entityManager;
     private final PlatformTransactionManager transactionManager;
 
@@ -91,13 +87,11 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                             final String keycloakClientId,
                                             final PermissionService permissionService,
                                             final SpexareRepository repository,
-                                            final EventRepository eventRepository,
                                             final ObjectMapper objectMapper,
                                             final EntityManager entityManager,
                                             final PlatformTransactionManager transactionManager) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
         this.entityManager = entityManager;
         this.transactionManager = transactionManager;
 
@@ -144,7 +138,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "event", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "spexare_audit");
         Files.deleteIfExists(Path.of(indexDataLocation, "spexare"));
     }
 
@@ -1358,37 +1352,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .valueIsNull();
         }
 
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spexare/spexareEvents")
-                    .variable("sourceId", spexare.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("spexareEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEXARE.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spexare.getCreatedBy());
-        }
     }
 
     private Spexare randomizeSpexare() {

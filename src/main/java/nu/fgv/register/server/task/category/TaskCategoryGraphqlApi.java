@@ -19,9 +19,6 @@ package nu.fgv.register.server.task.category;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
@@ -53,7 +50,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class TaskCategoryGraphqlApi {
 
     private final TaskCategoryService service;
-    private final EventService eventService;
     private final JobService jobService;
 
     @QueryMapping("taskCategoryPaged")
@@ -94,9 +90,4 @@ public class TaskCategoryGraphqlApi {
         service.deleteById(id);
     }
 
-    @QueryMapping("taskCategoryEvents")
-    @RequiresAdminOrEditorOrUser
-    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySourceTypeAndId(Event.SourceType.TASK_CATEGORY, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
-    }
 }

@@ -1,9 +1,0 @@
-query taskCategoryEvents ($sourceId: ID!, $sinceInDays: Int = 90) {
-    taskCategoryEvents (sourceId: $sourceId, sinceInDays: $sinceInDays) {
-        id
-        eventType
-        sourceType
-        createdBy
-        createdAt
-    }
-}

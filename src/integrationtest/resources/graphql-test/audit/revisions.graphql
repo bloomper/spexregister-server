@@ -1,0 +1,16 @@
+query revisions ($type: AuditedType!, $id: ID!) {
+    revisions (type: $type, id: $id) {
+        revision
+        type
+        entityId
+        revisionType
+        modifiedAt
+        modifiedBy
+        changes {
+            field
+            oldValue
+            newValue
+            binary
+        }
+    }
+}

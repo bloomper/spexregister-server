@@ -143,7 +143,7 @@ Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
 
 Spexregister Server uses the following resources:
 
-* xref:resources/event.adoc[Event]
+* xref:resources/audit.adoc[Revisions]
 * xref:resources/job.adoc[Job]
 * xref:resources/news.adoc[News]
 * xref:resources/settings.adoc[Settings]

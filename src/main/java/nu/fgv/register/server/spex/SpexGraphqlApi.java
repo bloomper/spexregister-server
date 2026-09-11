@@ -19,9 +19,6 @@ package nu.fgv.register.server.spex;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
@@ -57,7 +54,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class SpexGraphqlApi {
 
     private final SpexService service;
-    private final EventService eventService;
     private final JobService jobService;
 
     @QueryMapping("spexPaged")
@@ -166,12 +162,6 @@ public class SpexGraphqlApi {
     @RequiresAdmin
     public void removeCategory(@Argument final Long spexId) {
         service.removeCategory(spexId);
-    }
-
-    @QueryMapping("spexEvents")
-    @RequiresAdminOrEditorOrUser
-    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySourceTypeAndId(Event.SourceType.SPEX, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
     }
 
 }

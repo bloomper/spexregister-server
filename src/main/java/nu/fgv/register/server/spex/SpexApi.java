@@ -17,12 +17,10 @@
 package nu.fgv.register.server.spex;
 
 import jakarta.validation.Valid;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -87,11 +85,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class SpexApi {
 
     private final SpexService service;
-    private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<SpexDto> pagedResourcesAssembler;
     private final SpexCategoryApi spexCategoryApi;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
@@ -299,18 +295,6 @@ public class SpexApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.SPEX, sourceId, sinceInDays).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.SPEX, -1)).withSelfRel()));
-    }
-
     private void addLinks(final EntityModel<SpexDto> entity) {
         if (entity.getContent() != null) {
             entity.getContent().add(getLinks(entity.getContent()));
@@ -325,7 +309,7 @@ public class SpexApi {
         return getLinks(dto, true);
     }
 
-    public List<Link> getLinks(final SpexDto dto, final boolean includeEvents) {
+    public List<Link> getLinks(final SpexDto dto, final boolean includeRevisions) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexApi.class).retrieve(dto.getId())).withSelfRel());
@@ -338,8 +322,8 @@ public class SpexApi {
         } else {
             links.add(linkTo(methodOn(SpexApi.class).retrieveRevivalsByParent(dto.getId(), Pageable.unpaged())).withRel("revivals"));
         }
-        if (includeEvents) {
-            links.add(linkTo(methodOn(SpexApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
+        if (includeRevisions) {
+            links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.SPEX, String.valueOf(dto.getId()))).withRel("revisions"));
         }
 
         return links;

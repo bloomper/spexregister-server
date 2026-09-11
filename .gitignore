@@ -5,7 +5,7 @@ build/
 !**/src/test/**/build/
 .index
 .docker
-data
+/data/
 test-data
 integrationtest-data
 **/*.log

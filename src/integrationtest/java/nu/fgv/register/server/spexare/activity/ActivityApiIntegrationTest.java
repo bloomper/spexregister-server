@@ -111,7 +111,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "activity", "spexare", "event", "activity_audit", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "activity", "spexare", "activity_audit", "spexare_audit");
     }
 
     @AfterEach

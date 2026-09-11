@@ -16,10 +16,6 @@
 
 package nu.fgv.register.server.task;
 
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.task.category.TaskCategoryApi;
@@ -84,7 +80,7 @@ class TaskApiTest extends AbstractApiTest {
     private final LinksSnippet links = baseLinks.and(
             linkWithRel("tasks").description("Link to paged tasks").optional(),
             linkWithRel("category").description("Link to the current task's task category").optional(),
-            linkWithRel("events").description("Link to task events").optional()
+            linkWithRel("revisions").description("Link to revisions").optional()
     );
     private final ResponseFieldsSnippet categoryResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task category"),
@@ -94,7 +90,7 @@ class TaskApiTest extends AbstractApiTest {
     );
     private final LinksSnippet categoryLinks = baseLinks.and(
             linkWithRel("task-categories").description("Link to paged task categories").optional(),
-            linkWithRel("events").description("Link to task category events").optional()
+            linkWithRel("revisions").description("Link to revisions").optional()
     );
     @MockitoBean
     private TaskService service;
@@ -103,11 +99,7 @@ class TaskApiTest extends AbstractApiTest {
     @MockitoBean
     private TaskCategoryApi categoryApi;
     @MockitoBean
-    private EventService eventService;
-    @MockitoBean
     private JobService jobService;
-    @MockitoBean
-    private EventApi eventApi;
 
     @Test
     void should_get_paged() throws Exception {
@@ -391,7 +383,7 @@ class TaskApiTest extends AbstractApiTest {
     @Test
     void should_get_category() throws Exception {
         final var category = TaskCategoryDto.builder().id(1L).name("category").build();
-        final var realCategoryApi = new TaskCategoryApi(null, null, null, null, null);
+        final var realCategoryApi = new TaskCategoryApi(null, null, null);
 
         when(service.findCategoryByTask(any(Long.class))).thenReturn(category);
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
@@ -464,56 +456,6 @@ class TaskApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 security(getRolesFromMethod(TaskApi.class, "removeCategory", Long.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_get_events() throws Exception {
-        final var event1 = EventDto.builder().id(1L).eventType(Event.EventType.CREATE.name()).sourceType(Event.SourceType.TASK.name()).build();
-        final var event2 = EventDto.builder().id(2L).eventType(Event.EventType.UPDATE.name()).sourceType(Event.SourceType.TASK.name()).build();
-        final var realEventApi = new EventApi(null);
-
-        when(eventService.findBySourceTypeAndId(any(Event.SourceType.class), any(Long.class), any(Integer.class))).thenReturn(List.of(event1, event2));
-        when(eventApi.getLinks(event1)).thenReturn(realEventApi.getLinks(event1));
-        when(eventApi.getLinks(event2)).thenReturn(realEventApi.getLinks(event2));
-
-        mockMvc
-                .perform(
-                        get("/api/tasks/events/{sourceId}?sinceInDays=30", 1)
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.events", hasSize(2)))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-event-get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                responseFields(
-                                        subsectionWithPath("_embedded").description("The embedded section"),
-                                        subsectionWithPath("_embedded.events[]").description("The elements"),
-                                        fieldWithPath("_embedded.events[].id").description("The id of the event"),
-                                        fieldWithPath("_embedded.events[].eventType").description("The type of the event"),
-                                        fieldWithPath("_embedded.events[].sourceType").description("The source type of the event"),
-                                        fieldWithPath("_embedded.events[].sourceId").description("The source id of the event"),
-                                        fieldWithPath("_embedded.events[].createdBy").description("Who created the event"),
-                                        fieldWithPath("_embedded.events[].createdAt").description("When was the event created"),
-                                        subsectionWithPath("_embedded.events[]._links").description("The event links"),
-                                        linksSubsection
-                                ),
-                                pathParameters(
-                                        parameterWithName("sourceId").description("The source id of the event")
-                                ),
-                                queryParameters(
-                                        parameterWithName("sinceInDays").description("How many days back to check for events")
-                                ),
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "retrieveEvents", Long.class, Integer.class))
                         )
                 );
     }

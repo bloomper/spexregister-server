@@ -17,9 +17,6 @@
 package nu.fgv.register.server.spex.category;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
@@ -66,7 +63,6 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
     private final EasyRandom random;
     private final SpexCategoryRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -76,11 +72,9 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final String keycloakClientId,
                                                  final PermissionService permissionService,
                                                  final SpexCategoryRepository repository,
-                                                 final EventRepository eventRepository,
                                                  final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -106,7 +100,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "event", "spex_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_category", "spex_category_audit");
     }
 
     @AfterEach
@@ -859,37 +853,6 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .valueIsNull();
 
             assertThat(repository.count()).isZero();
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("spex/category/spexCategoryEvents")
-                    .variable("sourceId", category.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("spexCategoryEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEX_CATEGORY.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(category.getCreatedBy());
         }
     }
 

@@ -20,7 +20,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,7 +38,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.event.JpaEntityListener;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spexare.consent.Consent;
@@ -80,7 +78,6 @@ import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysis
  */
 @Entity
 @Table(name = "spexare")
-@EntityListeners(JpaEntityListener.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Audited
 @Indexed(index = "spexare")

@@ -17,9 +17,6 @@
 package nu.fgv.register.server.task;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
@@ -68,7 +65,6 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
     private final EasyRandom random;
     private final TaskRepository repository;
     private final TaskCategoryRepository categoryRepository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -79,12 +75,10 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                                   final PermissionService permissionService,
                                   final TaskRepository repository,
                                   final TaskCategoryRepository categoryRepository,
-                                  final EventRepository eventRepository,
                                   final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.categoryRepository = categoryRepository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -101,7 +95,7 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "task", "task_category", "event", "task_audit", "task_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task", "task_category", "task_audit", "task_category_audit");
     }
 
     @AfterEach
@@ -1047,39 +1041,6 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var category = persistTaskCategory(randomizeTaskCategory());
-            final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", task.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(2);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TASK.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(task.getCreatedBy());
-        }
     }
 
     private Task randomizeTask(@Nullable final TaskCategory category) {

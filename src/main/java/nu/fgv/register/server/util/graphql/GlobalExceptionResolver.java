@@ -21,6 +21,7 @@ import graphql.GraphQLError;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolationException;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.ExportException;
 import nu.fgv.register.server.util.error.ExternalResourceNotFoundException;
 import nu.fgv.register.server.util.error.ImportException;
@@ -82,6 +83,7 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
             case final AuthorizationDeniedException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final AccessDeniedException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final AuthenticationException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
+            case final BadRequestException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
             case final ExportException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);
             case final ExternalResourceNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final ImportException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);

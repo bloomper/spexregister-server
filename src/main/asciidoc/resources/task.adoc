@@ -77,12 +77,4 @@ operation::task-category-add[snippets='security,request-headers,path-parameters,
 
 operation::task-category-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
-[[events]]
-== Events
-
-[[events_get]]
-=== Get
-
-operation::task-event-get[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
-
 xref:../api-guide.adoc[Back to API guide]

@@ -18,9 +18,6 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
@@ -80,7 +77,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final SpexareRepository repository;
-    private final EventRepository eventRepository;
     private final ResourceLoader resourceLoader;
     private final EntityManager entityManager;
     private final PlatformTransactionManager transactionManager;
@@ -96,14 +92,12 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                      final String keycloakClientId,
                                      final PermissionService permissionService,
                                      final SpexareRepository repository,
-                                     final EventRepository eventRepository,
                                      final ObjectMapper objectMapper,
                                      final ResourceLoader resourceLoader,
                                      final EntityManager entityManager,
                                      final PlatformTransactionManager transactionManager) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
         this.resourceLoader = resourceLoader;
         this.entityManager = entityManager;
         this.transactionManager = transactionManager;
@@ -145,7 +139,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "event", "spexare_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spexare", "spexare_audit");
         Files.deleteIfExists(Path.of(indexDataLocation, "spexare"));
     }
 
@@ -1303,38 +1297,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", spexare.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEXARE.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spexare.getCreatedBy());
-        }
     }
 
     private Spexare randomizeSpexare() {

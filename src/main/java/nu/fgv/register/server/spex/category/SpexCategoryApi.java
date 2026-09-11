@@ -17,12 +17,10 @@
 package nu.fgv.register.server.spex.category;
 
 import jakarta.validation.Valid;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -84,10 +82,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class SpexCategoryApi {
 
     private final SpexCategoryService service;
-    private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<SpexCategoryDto> pagedResourcesAssembler;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -227,18 +223,6 @@ public class SpexCategoryApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.SPEX_CATEGORY, sourceId, sinceInDays).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.SPEX_CATEGORY, -1)).withSelfRel()));
-    }
-
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
         if (entity.getContent() != null) {
             addLinks(entity.getContent());
@@ -255,7 +239,7 @@ public class SpexCategoryApi {
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("spex-categories"));
         links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
-        links.add(linkTo(methodOn(SpexCategoryApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
+        links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.SPEX_CATEGORY, String.valueOf(dto.getId()))).withRel("revisions"));
 
         return links;
     }

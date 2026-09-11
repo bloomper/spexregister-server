@@ -1,0 +1,14 @@
+mutation restore ($type: AuditedType!, $id: ID!, $revision: Long!, $cascade: Boolean) {
+    restore (type: $type, id: $id, revision: $revision, cascade: $cascade) {
+        revision
+        updated
+        created
+        deleted
+        warnings {
+            code
+            message
+            previousId
+            newId
+        }
+    }
+}

@@ -52,12 +52,4 @@ operation::tag-update-partial[snippets='security,request-headers,request-fields,
 
 operation::tag-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
 
-[[events]]
-== Events
-
-[[events_get]]
-=== Get
-
-operation::tag-event-get[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,response-fields,http-response']
-
 xref:../api-guide.adoc[Back to API guide]

@@ -17,9 +17,6 @@
 package nu.fgv.register.server.news;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -62,7 +59,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final NewsRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -72,11 +68,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                                   final String keycloakClientId,
                                   final PermissionService permissionService,
                                   final NewsRepository repository,
-                                  final EventRepository eventRepository,
                                   final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -93,7 +87,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "event", "news_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "news", "news_audit");
     }
 
     @AfterEach
@@ -816,38 +810,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .getList("news");
 
             assertThat(result).hasSize(1);
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", news.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.NEWS.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(news.getCreatedBy());
         }
     }
 

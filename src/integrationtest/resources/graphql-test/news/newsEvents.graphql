@@ -1,9 +1,0 @@
-query newsEvents ($sourceId: ID!, $sinceInDays: Int = 90) {
-    newsEvents (sourceId: $sourceId, sinceInDays: $sinceInDays) {
-        id
-        eventType
-        sourceType
-        createdBy
-        createdAt
-    }
-}

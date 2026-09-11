@@ -17,12 +17,10 @@
 package nu.fgv.register.server.tag;
 
 import jakarta.validation.Valid;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -77,10 +75,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class TagApi {
 
     private final TagService service;
-    private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<TagDto> pagedResourcesAssembler;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -185,18 +181,6 @@ public class TagApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.TAG, sourceId, sinceInDays).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.TAG, -1)).withSelfRel()));
-    }
-
     private void addLinks(final EntityModel<TagDto> entity) {
         if (entity.getContent() != null) {
             addLinks(entity.getContent());
@@ -212,7 +196,7 @@ public class TagApi {
 
         links.add(linkTo(methodOn(TagApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TagApi.class).retrieve(Pageable.unpaged(), "")).withRel("tags"));
-        links.add(linkTo(methodOn(TagApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
+        links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.TAG, String.valueOf(dto.getId()))).withRel("revisions"));
 
         return links;
     }

@@ -17,12 +17,10 @@
 package nu.fgv.register.server.task.category;
 
 import jakarta.validation.Valid;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventApi;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -78,10 +76,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class TaskCategoryApi {
 
     private final TaskCategoryService service;
-    private final EventService eventService;
     private final JobService jobService;
     private final PagedResourcesAssembler<TaskCategoryDto> pagedResourcesAssembler;
-    private final EventApi eventApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -185,18 +181,6 @@ public class TaskCategoryApi {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/events/{sourceId}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<CollectionModel<EntityModel<EventDto>>> retrieveEvents(@PathVariable final Long sourceId, @RequestParam(defaultValue = "90") final Integer sinceInDays) {
-        final List<EntityModel<EventDto>> events = eventService.findBySourceTypeAndId(Event.SourceType.TASK_CATEGORY, sourceId, sinceInDays).stream()
-                .map(dto -> EntityModel.of(dto, eventApi.getLinks(dto)))
-                .toList();
-
-        return ResponseEntity.ok(
-                CollectionModel.of(events,
-                        linkTo(methodOn(EventApi.class).retrieve(Event.SourceType.TASK_CATEGORY, -1)).withSelfRel()));
-    }
-
     private void addLinks(final EntityModel<TaskCategoryDto> entity) {
         if (entity.getContent() != null) {
             addLinks(entity.getContent());
@@ -212,7 +196,7 @@ public class TaskCategoryApi {
 
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(TaskCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("task-categories"));
-        links.add(linkTo(methodOn(TaskCategoryApi.class).retrieveEvents(dto.getId(), -1)).withRel("events"));
+        links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.TASK_CATEGORY, String.valueOf(dto.getId()))).withRel("revisions"));
 
         return links;
     }

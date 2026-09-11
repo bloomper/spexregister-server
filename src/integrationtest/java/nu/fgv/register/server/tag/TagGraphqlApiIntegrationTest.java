@@ -17,9 +17,6 @@
 package nu.fgv.register.server.tag;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.jeasy.random.EasyRandom;
@@ -58,7 +55,6 @@ import static org.jeasy.random.FieldPredicates.ofType;
 class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final EasyRandom random;
     private final TagRepository repository;
-    private final EventRepository eventRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -68,11 +64,9 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                         final String keycloakClientId,
                                         final PermissionService permissionService,
                                         final TagRepository repository,
-                                        final EventRepository eventRepository,
                                         final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
-        this.eventRepository = eventRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -89,7 +83,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "event", "tag_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit");
     }
 
     @AfterEach
@@ -736,37 +730,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .valueIsNull();
 
             assertThat(repository.count()).isZero();
-        }
-    }
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-
-            final List<EventDto> result = httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("tag/tagEvents")
-                    .variable("sourceId", tag.getId())
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("tagEvents")
-                    .entityList(EventDto.class)
-                    .hasSize(1)
-                    .get();
-
-            assertThat(eventRepository.count()).isEqualTo(1);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.TAG.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(tag.getCreatedBy());
         }
     }
 

@@ -17,9 +17,6 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.acl.PermissionService;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventRepository;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
@@ -77,7 +74,6 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     private final SpexRepository repository;
     private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
-    private final EventRepository eventRepository;
     private final ResourceLoader resourceLoader;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -90,14 +86,12 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                                   final SpexRepository repository,
                                   final SpexDetailsRepository detailsRepository,
                                   final SpexCategoryRepository categoryRepository,
-                                  final EventRepository eventRepository,
                                   final ObjectMapper objectMapper,
                                   final ResourceLoader resourceLoader) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;
-        this.eventRepository = eventRepository;
         this.resourceLoader = resourceLoader;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
@@ -131,7 +125,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                                 .param("id", row.get("id"))
                                 .update()
                 );
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "event", "spex_audit", "spex_details_audit", "spex_category_audit");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "spex", "spex_details", "spex_category", "spex_audit", "spex_details_audit", "spex_category_audit");
     }
 
     @AfterEach
@@ -292,6 +286,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                 final var spex = randomizeSpex(category);
                 if (i % 2 == 0) {
                     spex.setYear("1996");
+                } else {
+                    spex.setYear("1997");
                 }
                 final var spex0 = persistSpex(spex);
                 grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex0.getId()));
@@ -1864,39 +1860,6 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-
-    @Nested
-    @DisplayName("Events")
-    class EventTests {
-
-        @Test
-        void should_return_found() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-
-            final List<EventDto> result = Objects.requireNonNull(
-                            restTestClient
-                                    .get()
-                                    .uri("/events/{sourceId}", spex.getId())
-                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                    .apiVersion("1.0")
-                                    .exchange()
-                                    .expectStatus().isOk()
-                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<EventDto>>() {
-                                    })
-                                    .returnResult()
-                                    .getResponseBody())
-                    .getList("events");
-
-            assertThat(eventRepository.count()).isEqualTo(2);
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getEventType()).isEqualTo(Event.EventType.CREATE.name());
-            assertThat(result.getFirst().getSourceType()).isEqualTo(Event.SourceType.SPEX.name());
-            assertThat(result.getFirst().getCreatedBy()).isEqualTo(spex.getCreatedBy());
-        }
-    }
 
     private Spex randomizeSpex(@Nullable final SpexCategory category) {
         final var spex = random.nextObject(Spex.class);

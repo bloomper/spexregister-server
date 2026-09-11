@@ -19,9 +19,6 @@ package nu.fgv.register.server.news;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.event.Event;
-import nu.fgv.register.server.event.EventDto;
-import nu.fgv.register.server.event.EventService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
@@ -53,7 +50,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class NewsGraphqlApi {
 
     private final NewsService service;
-    private final EventService eventService;
     private final JobService jobService;
 
     @QueryMapping("newsPaged")
@@ -94,9 +90,4 @@ public class NewsGraphqlApi {
         service.deleteById(id);
     }
 
-    @QueryMapping("newsEvents")
-    @RequiresAdminOrEditorOrUser
-    public List<EventDto> events(@Argument final Long sourceId, @Nullable @Argument final Integer sinceInDays) {
-        return eventService.findBySourceTypeAndId(Event.SourceType.NEWS, sourceId, Optional.ofNullable(sinceInDays).orElse(90));
-    }
 }
