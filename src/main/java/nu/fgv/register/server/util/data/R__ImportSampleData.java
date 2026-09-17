@@ -769,7 +769,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
         final List<Pair<String, Boolean>> states = new ArrayList<>();
 
-        jdbcClient.sql("SELECT id FROM state")
+        jdbcClient.sql("SELECT id, enabled FROM state")
                 .query()
                 .listOfRows()
                 .forEach(row -> states.add(Pair.of((String) row.get("id"), (Boolean) row.get("enabled"))));
