@@ -89,6 +89,13 @@ public class SpexareGraphqlApi {
         return service.findById(id);
     }
 
+    @QueryMapping("spexareMe")
+    @RequiresAdminOrEditorOrUser
+    public @Nullable SpexareDto retrieveMe() {
+        return service.findByCurrentUser()
+                .orElse(null);
+    }
+
     @MutationMapping("spexareUpdate")
     @RequiresAdminOrEditorOrUser
     public SpexareDto update(@Valid @Argument final SpexareUpdateDto input) {

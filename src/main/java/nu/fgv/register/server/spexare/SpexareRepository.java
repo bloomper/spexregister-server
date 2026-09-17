@@ -36,5 +36,8 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
                 .findById(id);
     }
 
+    @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
+    Optional<Spexare> findByUserExternalId(final String externalId);
+
     long countByPublishedTrue();
 }

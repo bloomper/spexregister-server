@@ -364,6 +364,36 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
+    void should_get_me() throws Exception {
+        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+
+        when(service.findByCurrentUser()).thenReturn(Optional.of(spexare));
+
+        mockMvc
+                .perform(
+                        get("/api/spexare/me")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(notNullValue())))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare-get-me",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                responseFields,
+                                links,
+                                secureRequestHeaders,
+                                responseHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "retrieveMe"))
+                        )
+                );
+    }
+
+    @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SpexareUpdateDto.class);
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();

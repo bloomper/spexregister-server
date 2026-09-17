@@ -73,6 +73,7 @@ import static nu.fgv.register.server.util.FileUtil.detectMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
@@ -147,6 +148,17 @@ public class SpexareService {
                 .findById0(id)
                 .map(SPEXARE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Optional<SpexareDto> findByCurrentUser() {
+        final String externalId = getCurrentUserSubClaim();
+
+        return hasText(externalId) ?
+                repository
+                        .findByUserExternalId(externalId)
+                        .map(SPEXARE_MAPPER::toDto) :
+                Optional.empty();
     }
 
     @RequiresAdminOrEditorOrUser

@@ -72,6 +72,20 @@ a|
 
 operation::spexare-get[snippets='request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
 
+[[get_me]]
+== Get (me)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::spexare-get-me[snippets='request-headers,http-request,response-headers,response-fields,links,http-response']
+
 [[update]]
 == Update
 

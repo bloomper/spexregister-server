@@ -180,6 +180,14 @@ public class SpexareApi {
                 .body(EntityModel.of(newDto, getLinks(newDto)));
     }
 
+    @GetMapping(value = "/me", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<EntityModel<SpexareDto>> retrieveMe() {
+        return service.findByCurrentUser()
+                .map(dto -> ResponseEntity.ok(EntityModel.of(dto, getLinks(dto))))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final Long id) {
