@@ -1,0 +1,11 @@
+mutation savedSearchCreate ($name: String!, $query: String!) {
+    savedSearchCreate(input: { name: $name, query: $query }) {
+        id
+        name
+        query
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

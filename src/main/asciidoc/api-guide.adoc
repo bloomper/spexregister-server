@@ -149,6 +149,7 @@ Spexregister Server uses the following resources:
 * xref:resources/settings.adoc[Settings]
 * xref:resources/spex.adoc[Spex]
 ** xref:resources/spex-category.adoc[Spex category]
+* xref:resources/saved-search.adoc[Saved search]
 * xref:resources/spexare.adoc[Spexare]
 ** xref:resources/spexare-activity.adoc[Activity]
 *** xref:resources/spexare-activity-spex.adoc[Spex]

@@ -1,0 +1,11 @@
+query savedSearch ($id: ID!) {
+    savedSearch (id: $id) {
+        id
+        name
+        query
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

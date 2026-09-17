@@ -1,0 +1,31 @@
+extend type Query {
+    savedSearches: [SavedSearch]
+    savedSearch(id: ID!): SavedSearch
+}
+
+extend type Mutation {
+    savedSearchCreate(input: SavedSearchCreate!): SavedSearch
+    savedSearchUpdate(input: SavedSearchUpdate!): SavedSearch
+    savedSearchDelete(id: ID!): Void
+}
+
+type SavedSearch {
+    id: ID!
+    name: String!
+    query: String!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+input SavedSearchCreate {
+    name: String!
+    query: String!
+}
+
+input SavedSearchUpdate {
+    id: ID!
+    name: String!
+    query: String!
+}

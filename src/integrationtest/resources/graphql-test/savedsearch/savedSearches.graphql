@@ -1,0 +1,11 @@
+query savedSearches {
+    savedSearches {
+        id
+        name
+        query
+        createdBy
+        createdAt
+        lastModifiedBy
+        lastModifiedAt
+    }
+}

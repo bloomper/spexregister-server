@@ -1,0 +1,86 @@
+= Saved search
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+A saved search is private to the user who created it. Every operation is scoped to the authenticated
+user, so one user can neither see nor change another user's saved searches.
+
+[[get_all]]
+== Get (all)
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::saved-search-get-all[snippets='security,request-headers,http-request,response-headers,http-response']
+
+[[create]]
+== Create
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::saved-search-create[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[get]]
+== Get
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::saved-search-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
+[[update]]
+== Update
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::saved-search-update[snippets='security,request-headers,path-parameters,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[delete]]
+== Delete
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::saved-search-delete[snippets='security,request-headers,path-parameters,http-request,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

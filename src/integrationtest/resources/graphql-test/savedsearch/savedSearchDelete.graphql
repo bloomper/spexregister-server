@@ -1,0 +1,3 @@
+mutation savedSearchDelete ($id: ID!) {
+    savedSearchDelete(id: $id)
+}
