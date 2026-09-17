@@ -1,0 +1,79 @@
+= Graph
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+The graph reads the register as nodes and relations, so a client can start from one entity and walk
+outwards. It adds no storage of its own; every node is an entity that already exists, and every
+relation is a foreign key that is already there.
+
+Node types are `SPEXARE`, `SPEX`, `SPEX_CATEGORY`, `TASK`, `TASK_CATEGORY` and `TAG`. Relations are
+`PARTICIPATION` (a spexare took part in a spex), `FUNCTION` (a function was held in a spex),
+`CATEGORY`, `TAG`, `PARTNER` and `REVIVAL_OF`.
+
+Access follows the same rules as everywhere else: a node the caller may not read is never returned,
+so an unpublished spexare stays invisible to a plain user whichever way the graph is entered.
+
+Hub nodes can have very many neighbours — a tag may reach most of the register — so a neighbourhood
+returns at most `first` neighbours per relation together with the true `totalCount`. Use
+<<get_neighbours>> to walk the remainder.
+
+[[search]]
+== Search
+
+Finds nodes by name or title across all types. An empty `q` is not an error: it returns a single
+random node the caller may read, which is a convenient way to enter the graph.
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::graph-search[snippets='security,request-headers,query-parameters,http-request,response-headers,http-response']
+
+[[get_neighbourhood]]
+== Get neighbourhood
+
+Returns one node together with its neighbours, grouped by relation. Each group carries the total
+number of neighbours of that relation, which may be larger than the number returned.
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::graph-get-neighbourhood[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,http-response']
+
+[[get_neighbours]]
+== Get neighbours
+
+Walks one relation of one node, page by page. Unlike the GraphQL API, which uses cursors, this
+endpoint pages by `offset` so a caller can compute the next page itself.
+
+!===
+|Requires authentication|Yes
+|Required roles
+a|
+* ADMIN
+* EDITOR
+* USER
+!===
+
+operation::graph-get-neighbours[snippets='security,request-headers,path-parameters,query-parameters,http-request,response-headers,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

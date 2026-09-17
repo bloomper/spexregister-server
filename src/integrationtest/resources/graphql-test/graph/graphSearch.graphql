@@ -1,0 +1,11 @@
+query graphSearch ($q: String!, $first: Int! = 10) {
+    graphSearch (q: $q, first: $first) {
+        id
+        type
+        label
+        sublabel
+        imageUrl
+        revival
+        entityId
+    }
+}

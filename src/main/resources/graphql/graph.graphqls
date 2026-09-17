@@ -1,0 +1,64 @@
+extend type Query {
+    graphSearch(q: String!, first: Int! = 10): [GraphNode!]!
+    graphNeighbourhood(type: GraphNodeType!, id: ID!, first: Int! = 25): GraphNeighbourhood
+    graphNeighboursPaged(type: GraphNodeType!, id: ID!, edge: GraphEdgeType!, first: Int, after: String, last: Int, before: String): GraphNodeConnection
+}
+
+enum GraphNodeType {
+    SPEXARE
+    SPEX
+    SPEX_CATEGORY
+    TASK
+    TASK_CATEGORY
+    TAG
+}
+
+enum GraphEdgeType {
+    PARTICIPATION
+    FUNCTION
+    CATEGORY
+    TAG
+    PARTNER
+    REVIVAL_OF
+}
+
+type GraphNode {
+    id: ID!
+    type: GraphNodeType!
+    label: String!
+    sublabel: String
+    imageUrl: String
+    revival: Boolean!
+    entityId: ID!
+}
+
+type GraphEdge {
+    id: ID!
+    source: ID!
+    target: ID!
+    type: GraphEdgeType!
+    label: String
+}
+
+type GraphGroup {
+    type: GraphEdgeType!
+    totalCount: Int!
+    nodes: [GraphNode!]!
+    edges: [GraphEdge!]!
+}
+
+type GraphNeighbourhood {
+    origin: GraphNode!
+    groups: [GraphGroup!]!
+}
+
+type GraphNodeConnection {
+    edges: [GraphNodeEdge]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+type GraphNodeEdge {
+    cursor: String!
+    node: GraphNode!
+}

@@ -1,0 +1,11 @@
+query graphNeighbourhood ($type: GraphNodeType!, $id: ID!, $first: Int! = 25) {
+    graphNeighbourhood (type: $type, id: $id, first: $first) {
+        origin { id type label sublabel imageUrl revival entityId }
+        groups {
+            type
+            totalCount
+            nodes { id type label sublabel imageUrl revival entityId }
+            edges { id source target type label }
+        }
+    }
+}
