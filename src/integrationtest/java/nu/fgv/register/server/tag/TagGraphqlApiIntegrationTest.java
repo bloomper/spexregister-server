@@ -90,6 +90,16 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private Tag randomizeTag() {
+        return random.nextObject(Tag.class);
+    }
+
+    private Tag persistTag(final Tag tag) {
+        tag.setId(null);
+
+        return repository.save(tag);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -731,15 +741,5 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(repository.count()).isZero();
         }
-    }
-
-    private Tag randomizeTag() {
-        return random.nextObject(Tag.class);
-    }
-
-    private Tag persistTag(final Tag tag) {
-        tag.setId(null);
-
-        return repository.save(tag);
     }
 }

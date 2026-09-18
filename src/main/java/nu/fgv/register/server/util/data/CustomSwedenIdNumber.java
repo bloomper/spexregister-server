@@ -31,16 +31,6 @@ import java.time.format.DateTimeFormatter;
 public class CustomSwedenIdNumber extends SwedenIdNumber {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    @Override
-    public PersonIdNumber generateValid(final BaseProviders faker, final IdNumber.IdNumberRequest request) {
-        final LocalDate birthday = birthday(faker, request);
-        final String end = "%03d".formatted(faker.number().numberBetween(1, 1000));
-        final String formattedBirthday = DATE_TIME_FORMATTER.format(birthday);
-        final String basePart = formattedBirthday + "-" + end;
-        final String idNumber = basePart + calculateChecksum(basePart);
-        return new PersonIdNumber(idNumber, birthday, gender(faker, request));
-    }
-
     private static LocalDate birthday(final BaseProviders faker, final IdNumber.IdNumberRequest request) {
         return faker.timeAndDate().birthday(request.minAge(), request.maxAge());
     }
@@ -77,7 +67,7 @@ public class CustomSwedenIdNumber extends SwedenIdNumber {
     private static String calculateDigits(final String numbers) {
         final StringBuilder calculatedNumbers = new StringBuilder();
 
-        for(int i = 0; i < 9; ++i) {
+        for (int i = 0; i < 9; ++i) {
             final int n = numbers.charAt(i) - 48;
             final int res;
 
@@ -97,12 +87,22 @@ public class CustomSwedenIdNumber extends SwedenIdNumber {
         int sum = 0;
         final int length = numbers.length();
 
-        for(int i = 0; i < length; ++i) {
+        for (int i = 0; i < length; ++i) {
             final int n = numbers.charAt(i) - 48;
 
             sum += n;
         }
 
         return sum;
+    }
+
+    @Override
+    public PersonIdNumber generateValid(final BaseProviders faker, final IdNumber.IdNumberRequest request) {
+        final LocalDate birthday = birthday(faker, request);
+        final String end = "%03d".formatted(faker.number().numberBetween(1, 1000));
+        final String formattedBirthday = DATE_TIME_FORMATTER.format(birthday);
+        final String basePart = formattedBirthday + "-" + end;
+        final String idNumber = basePart + calculateChecksum(basePart);
+        return new PersonIdNumber(idNumber, birthday, gender(faker, request));
     }
 }

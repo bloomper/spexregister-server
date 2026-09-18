@@ -17,8 +17,8 @@
 package nu.fgv.register.server.audit;
 
 import lombok.Builder;
-import org.jspecify.annotations.Nullable;
 import org.hibernate.envers.RevisionType;
+import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;

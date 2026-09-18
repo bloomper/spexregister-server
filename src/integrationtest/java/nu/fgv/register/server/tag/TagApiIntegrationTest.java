@@ -95,6 +95,16 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Tag randomizeTag() {
+        return random.nextObject(Tag.class);
+    }
+
+    private Tag persistTag(final Tag tag) {
+        tag.setId(null);
+
+        return repository.save(tag);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -762,15 +772,5 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
-    }
-
-    private Tag randomizeTag() {
-        return random.nextObject(Tag.class);
-    }
-
-    private Tag persistTag(final Tag tag) {
-        tag.setId(null);
-
-        return repository.save(tag);
     }
 }

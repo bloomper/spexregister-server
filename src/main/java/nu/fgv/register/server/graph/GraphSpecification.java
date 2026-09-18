@@ -29,8 +29,8 @@ import nu.fgv.register.server.spexare.activity.task.TaskActivity_;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.Tag_;
 import nu.fgv.register.server.task.Task;
-import nu.fgv.register.server.task.category.TaskCategory_;
 import nu.fgv.register.server.task.Task_;
+import nu.fgv.register.server.task.category.TaskCategory_;
 import org.springframework.data.jpa.domain.Specification;
 
 /**

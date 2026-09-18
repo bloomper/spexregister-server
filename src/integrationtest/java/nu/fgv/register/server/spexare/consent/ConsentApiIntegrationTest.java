@@ -126,6 +126,39 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Consent randomizeConsent(final Type type, final Spexare spexare) {
+        final var consent = random.nextObject(Consent.class);
+        consent.setSpexare(spexare);
+        consent.setType(type);
+        return consent;
+    }
+
+    private Consent persistConsent(final Consent consent) {
+        consent.setId(null);
+
+        return repository.save(consent);
+    }
+
+    private Type randomizeType() {
+        final var type = random.nextObject(Type.class);
+        type.setType(TypeType.CONSENT);
+        return type;
+    }
+
+    private Type persistType(final Type type) {
+        return typeRepository.save(type);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -872,39 +905,6 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private Consent randomizeConsent(final Type type, final Spexare spexare) {
-        final var consent = random.nextObject(Consent.class);
-        consent.setSpexare(spexare);
-        consent.setType(type);
-        return consent;
-    }
-
-    private Consent persistConsent(final Consent consent) {
-        consent.setId(null);
-
-        return repository.save(consent);
-    }
-
-    private Type randomizeType() {
-        final var type = random.nextObject(Type.class);
-        type.setType(TypeType.CONSENT);
-        return type;
-    }
-
-    private Type persistType(final Type type) {
-        return typeRepository.save(type);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 
 }

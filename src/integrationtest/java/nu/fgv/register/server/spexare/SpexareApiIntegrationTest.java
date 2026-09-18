@@ -147,6 +147,39 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Spexare randomizeSpexare() {
+        return randomizeSpexare(true);
+    }
+
+    private Spexare randomizeSpexare(final boolean published) {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setPublished(published);
+
+        return spexare;
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return repository.save(spexare);
+    }
+
+    private void syncIndex() {
+        final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        transactionTemplate.execute(status -> {
+            final SearchSession searchSession = Search.session(entityManager);
+            try {
+                searchSession.massIndexer(Spexare.class).startAndWait();
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1297,38 +1330,5 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
 
-    }
-
-    private Spexare randomizeSpexare() {
-        return randomizeSpexare(true);
-    }
-
-    private Spexare randomizeSpexare(final boolean published) {
-        final var spexare = random.nextObject(Spexare.class);
-
-        spexare.setPublished(published);
-
-        return spexare;
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return repository.save(spexare);
-    }
-
-    private void syncIndex() {
-        final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-
-        transactionTemplate.execute(status -> {
-            final SearchSession searchSession = Search.session(entityManager);
-            try {
-                searchSession.massIndexer(Spexare.class).startAndWait();
-            } catch (final InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            }
-            return null;
-        });
     }
 }

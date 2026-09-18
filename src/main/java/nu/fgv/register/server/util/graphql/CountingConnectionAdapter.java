@@ -23,7 +23,6 @@ import nu.fgv.register.server.util.search.FacetedConnection;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.graphql.data.pagination.CompositeConnectionAdapter;
-import org.springframework.graphql.data.pagination.ConnectionAdapter;
 import org.springframework.graphql.data.pagination.CursorStrategy;
 import org.springframework.graphql.data.query.SliceConnectionAdapter;
 import org.springframework.graphql.data.query.WindowConnectionAdapter;

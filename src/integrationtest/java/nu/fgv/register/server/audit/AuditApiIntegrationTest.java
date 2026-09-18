@@ -105,6 +105,69 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                 "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit", "revchanges", "revinfo");
     }
 
+    private List<RevisionDto> retrieveRevisions(final Long id, final String token) {
+        return retrieveRevisions(AuditedType.TAG, id, token);
+    }
+
+    private List<RevisionDto> retrieveRevisions(final AuditedType type, final Long id, final String token) {
+        return Objects.requireNonNull(
+                        restTestClient
+                                .get()
+                                .uri("/{type}/{id}", type.name(), id)
+                                .header(HttpHeaders.AUTHORIZATION, token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                .apiVersion("1.0")
+                                .exchange()
+                                .expectStatus().isOk()
+                                .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<RevisionDto>>() {
+                                })
+                                .returnResult()
+                                .getResponseBody())
+                .getList("revisions");
+    }
+
+    private SpexCategory persistSpexCategory(final String name) {
+        final var category = random.nextObject(SpexCategory.class);
+
+        category.setId(null);
+        category.setName(name);
+        category.setFirstYear("1948");
+        category.setLogo(null);
+
+        return spexCategoryRepository.save(category);
+    }
+
+    private SpexDetails persistSpexDetails(final SpexCategory category, final String title) {
+        final var details = random.nextObject(SpexDetails.class);
+
+        details.setId(null);
+        details.setTitle(title);
+        details.setCategory(category);
+        details.setPoster(new byte[]{1, 2, 3});
+        details.setPosterContentType(MediaType.IMAGE_PNG_VALUE);
+
+        return spexDetailsRepository.save(details);
+    }
+
+    private Spex persistSpex(final SpexDetails details, final String year) {
+        final var spex = random.nextObject(Spex.class);
+
+        spex.setId(null);
+        spex.setParent(null);
+        spex.setDetails(details);
+        spex.setYear(year);
+
+        return spexRepository.save(spex);
+    }
+
+    private Tag persistTag() {
+        final Tag tag = random.nextObject(Tag.class);
+
+        tag.setId(null);
+
+        return repository.save(tag);
+    }
+
     @Nested
     @DisplayName("Retrieve revisions")
     class RetrieveRevisionsTests {
@@ -413,68 +476,5 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .exchange()
                     .expectStatus().isForbidden();
         }
-    }
-
-    private List<RevisionDto> retrieveRevisions(final Long id, final String token) {
-        return retrieveRevisions(AuditedType.TAG, id, token);
-    }
-
-    private List<RevisionDto> retrieveRevisions(final AuditedType type, final Long id, final String token) {
-        return Objects.requireNonNull(
-                        restTestClient
-                                .get()
-                                .uri("/{type}/{id}", type.name(), id)
-                                .header(HttpHeaders.AUTHORIZATION, token)
-                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .apiVersion("1.0")
-                                .exchange()
-                                .expectStatus().isOk()
-                                .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<RevisionDto>>() {
-                                })
-                                .returnResult()
-                                .getResponseBody())
-                .getList("revisions");
-    }
-
-    private SpexCategory persistSpexCategory(final String name) {
-        final var category = random.nextObject(SpexCategory.class);
-
-        category.setId(null);
-        category.setName(name);
-        category.setFirstYear("1948");
-        category.setLogo(null);
-
-        return spexCategoryRepository.save(category);
-    }
-
-    private SpexDetails persistSpexDetails(final SpexCategory category, final String title) {
-        final var details = random.nextObject(SpexDetails.class);
-
-        details.setId(null);
-        details.setTitle(title);
-        details.setCategory(category);
-        details.setPoster(new byte[]{1, 2, 3});
-        details.setPosterContentType(MediaType.IMAGE_PNG_VALUE);
-
-        return spexDetailsRepository.save(details);
-    }
-
-    private Spex persistSpex(final SpexDetails details, final String year) {
-        final var spex = random.nextObject(Spex.class);
-
-        spex.setId(null);
-        spex.setParent(null);
-        spex.setDetails(details);
-        spex.setYear(year);
-
-        return spexRepository.save(spex);
-    }
-
-    private Tag persistTag() {
-        final Tag tag = random.nextObject(Tag.class);
-
-        tag.setId(null);
-
-        return repository.save(tag);
     }
 }

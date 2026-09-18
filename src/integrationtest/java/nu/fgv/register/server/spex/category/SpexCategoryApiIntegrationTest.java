@@ -109,6 +109,16 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private SpexCategory randomizeSpexCategory() {
+        return random.nextObject(SpexCategory.class);
+    }
+
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
+        return repository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -977,15 +987,5 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
-    }
-
-    private SpexCategory randomizeSpexCategory() {
-        return random.nextObject(SpexCategory.class);
-    }
-
-    private SpexCategory persistSpexCategory(final SpexCategory category) {
-        category.setId(null);
-
-        return repository.save(category);
     }
 }

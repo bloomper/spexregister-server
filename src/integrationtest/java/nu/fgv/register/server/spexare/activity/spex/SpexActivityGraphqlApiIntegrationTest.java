@@ -139,6 +139,71 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
     void tearDown() {
     }
 
+    private SpexActivity randomizeSpexActivity(final Activity activity, final Spex spex) {
+        final var spexActivity = random.nextObject(SpexActivity.class);
+        spexActivity.setActivity(activity);
+        spexActivity.setSpex(spex);
+        return spexActivity;
+    }
+
+    private SpexActivity persistSpexActivity(final SpexActivity spexActivity) {
+        spexActivity.setId(null);
+
+        return repository.save(spexActivity);
+    }
+
+    private Activity randomizeActivity(@Nullable final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+
+        activity.setSpexare(spexare);
+        activity.setSpexActivity(null);
+
+        return activity;
+    }
+
+    private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
+        return activityRepository.save(activity);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
+    private Spex randomizeSpex(final SpexCategory category) {
+        final var spex = random.nextObject(Spex.class);
+        spex.setParent(null);
+        final var details = random.nextObject(SpexDetails.class);
+        details.setCategory(category);
+        spex.setDetails(details);
+        return spex;
+    }
+
+    private Spex persistSpex(final Spex spex) {
+        spex.setId(null);
+        spex.getDetails().setId(null);
+        final var details = spexDetailsRepository.save(spex.getDetails());
+        spex.setDetails(details);
+        return spexRepository.save(spex);
+    }
+
+    private SpexCategory randomizeSpexCategory() {
+        return random.nextObject(SpexCategory.class);
+    }
+
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
+        return spexCategoryRepository.save(category);
+    }
+
     @Nested
     @DisplayName("Create")
     class CreateTests {
@@ -858,71 +923,6 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private SpexActivity randomizeSpexActivity(final Activity activity, final Spex spex) {
-        final var spexActivity = random.nextObject(SpexActivity.class);
-        spexActivity.setActivity(activity);
-        spexActivity.setSpex(spex);
-        return spexActivity;
-    }
-
-    private SpexActivity persistSpexActivity(final SpexActivity spexActivity) {
-        spexActivity.setId(null);
-
-        return repository.save(spexActivity);
-    }
-
-    private Activity randomizeActivity(@Nullable final Spexare spexare) {
-        final var activity = random.nextObject(Activity.class);
-
-        activity.setSpexare(spexare);
-        activity.setSpexActivity(null);
-
-        return activity;
-    }
-
-    private Activity persistActivity(final Activity activity) {
-        activity.setId(null);
-
-        return activityRepository.save(activity);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
-    }
-
-    private Spex randomizeSpex(final SpexCategory category) {
-        final var spex = random.nextObject(Spex.class);
-        spex.setParent(null);
-        final var details = random.nextObject(SpexDetails.class);
-        details.setCategory(category);
-        spex.setDetails(details);
-        return spex;
-    }
-
-    private Spex persistSpex(final Spex spex) {
-        spex.setId(null);
-        spex.getDetails().setId(null);
-        final var details = spexDetailsRepository.save(spex.getDetails());
-        spex.setDetails(details);
-        return spexRepository.save(spex);
-    }
-
-    private SpexCategory randomizeSpexCategory() {
-        return random.nextObject(SpexCategory.class);
-    }
-
-    private SpexCategory persistSpexCategory(final SpexCategory category) {
-        category.setId(null);
-
-        return spexCategoryRepository.save(category);
     }
 
 }

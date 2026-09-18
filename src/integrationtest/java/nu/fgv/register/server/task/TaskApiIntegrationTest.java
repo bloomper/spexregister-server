@@ -102,6 +102,28 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Task randomizeTask(@Nullable final TaskCategory category) {
+        final var task = random.nextObject(Task.class);
+        task.setCategory(category);
+        return task;
+    }
+
+    private TaskCategory randomizeTaskCategory() {
+        return random.nextObject(TaskCategory.class);
+    }
+
+    private Task persistTask(final Task task) {
+        task.setId(null);
+
+        return repository.save(task);
+    }
+
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
+        category.setId(null);
+
+        return categoryRepository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1041,27 +1063,5 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
-    }
-
-    private Task randomizeTask(@Nullable final TaskCategory category) {
-        final var task = random.nextObject(Task.class);
-        task.setCategory(category);
-        return task;
-    }
-
-    private TaskCategory randomizeTaskCategory() {
-        return random.nextObject(TaskCategory.class);
-    }
-
-    private Task persistTask(final Task task) {
-        task.setId(null);
-
-        return repository.save(task);
-    }
-
-    private TaskCategory persistTaskCategory(final TaskCategory category) {
-        category.setId(null);
-
-        return categoryRepository.save(category);
     }
 }

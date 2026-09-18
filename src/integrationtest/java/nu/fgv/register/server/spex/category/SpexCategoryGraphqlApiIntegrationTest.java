@@ -107,6 +107,16 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
     void tearDown() {
     }
 
+    private SpexCategory randomizeSpexCategory() {
+        return random.nextObject(SpexCategory.class);
+    }
+
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
+        return repository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -854,16 +864,6 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             assertThat(repository.count()).isZero();
         }
-    }
-
-    private SpexCategory randomizeSpexCategory() {
-        return random.nextObject(SpexCategory.class);
-    }
-
-    private SpexCategory persistSpexCategory(final SpexCategory category) {
-        category.setId(null);
-
-        return repository.save(category);
     }
 
 }

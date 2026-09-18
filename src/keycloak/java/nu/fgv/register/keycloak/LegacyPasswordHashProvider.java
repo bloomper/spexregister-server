@@ -40,6 +40,16 @@ public class LegacyPasswordHashProvider implements PasswordHashProvider {
         this.providerId = providerId;
     }
 
+    private static String bytesToHex(final byte[] hashBytes) {
+        final StringBuilder sb = new StringBuilder();
+
+        for (final byte b : hashBytes) {
+            sb.append(String.format("%02x", b));
+        }
+
+        return sb.toString();
+    }
+
     @Override
     public boolean policyCheck(final PasswordPolicy passwordPolicy, final PasswordCredentialModel passwordCredentialModel) {
         return true;
@@ -78,16 +88,6 @@ public class LegacyPasswordHashProvider implements PasswordHashProvider {
         }
 
         return null;
-    }
-
-    private static String bytesToHex(final byte[] hashBytes) {
-        final StringBuilder sb = new StringBuilder();
-
-        for (final byte b : hashBytes) {
-            sb.append(String.format("%02x", b));
-        }
-
-        return sb.toString();
     }
 
     @Override

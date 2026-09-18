@@ -85,6 +85,24 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit", "revchanges", "revinfo");
     }
 
+    private Long firstRevisionOf(final Tag tag) {
+        final List<Long> revisions = jdbcClient
+                .sql("SELECT rev FROM tag_audit WHERE id = :id ORDER BY rev ASC")
+                .param("id", tag.getId())
+                .query(Long.class)
+                .list();
+
+        return revisions.getFirst();
+    }
+
+    private Tag persistTag() {
+        final Tag tag = random.nextObject(Tag.class);
+
+        tag.setId(null);
+
+        return repository.save(tag);
+    }
+
     @Nested
     @DisplayName("Retrieve revisions")
     class RetrieveRevisionsTests {
@@ -226,23 +244,5 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                             .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
                     );
         }
-    }
-
-    private Long firstRevisionOf(final Tag tag) {
-        final List<Long> revisions = jdbcClient
-                .sql("SELECT rev FROM tag_audit WHERE id = :id ORDER BY rev ASC")
-                .param("id", tag.getId())
-                .query(Long.class)
-                .list();
-
-        return revisions.getFirst();
-    }
-
-    private Tag persistTag() {
-        final Tag tag = random.nextObject(Tag.class);
-
-        tag.setId(null);
-
-        return repository.save(tag);
     }
 }

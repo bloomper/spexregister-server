@@ -40,11 +40,10 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
-import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +59,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nu.fgv.register.server.graph.GraphNodeDto.idOf;
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
+import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -82,12 +83,80 @@ public class GraphService {
     private final TaskCategoryRepository taskCategoryRepository;
     private final TagRepository tagRepository;
 
+    private static GraphqlUtil.ScrollRequest firstOnly(final int first) {
+        return new GraphqlUtil.ScrollRequest(Optional.empty(), first, false);
+    }
+
+    private static <T> GraphGroupDto group(final GraphEdgeType type, final long totalCount, final Stream<T> items,
+                                           final java.util.function.Function<T, GraphNodeDto> toNode,
+                                           final java.util.function.Function<T, GraphEdgeDto> toEdge) {
+        final List<T> materialised = items.toList();
+
+        return new GraphGroupDto(type, totalCount,
+                materialised.stream().map(toNode).toList(),
+                materialised.stream().map(toEdge).toList());
+    }
+
+    private static String yearOf(final Activity activity) {
+        return Optional.ofNullable(activity.getSpexActivity())
+                .map(spexActivity -> spexActivity.getSpex().getYear())
+                .orElse("");
+    }
+
+    private static String rolesOf(final TaskActivity taskActivity) {
+        return taskActivity.getActors().stream()
+                .map(Actor::getRole)
+                .filter(role -> role != null && !role.isBlank())
+                .reduce((a, b) -> "%s, %s".formatted(a, b))
+                .orElse("");
+    }
+
+    private static GraphNodeDto nodeOf(final Spexare spexare) {
+        return new GraphNodeDto(idOf(GraphNodeType.SPEXARE, spexare.getId()), GraphNodeType.SPEXARE,
+                "%s %s".formatted(spexare.getFirstName(), spexare.getLastName()), spexare.getNickName(),
+                imageUrl(spexare.getImage(), () -> methodOn(SpexareApi.class).downloadImage(spexare.getId())),
+                false, spexare.getId());
+    }
+
+    private static GraphNodeDto nodeOf(final Spex spex) {
+        return new GraphNodeDto(idOf(GraphNodeType.SPEX, spex.getId()), GraphNodeType.SPEX,
+                spex.getDetails().getTitle(), spex.getYear(),
+                imageUrl(spex.getDetails().getPoster(), () -> methodOn(SpexApi.class).downloadPoster(spex.getId())),
+                spex.getParent() != null, spex.getId());
+    }
+
+    private static GraphNodeDto nodeOf(final SpexCategory category) {
+        return new GraphNodeDto(idOf(GraphNodeType.SPEX_CATEGORY, category.getId()), GraphNodeType.SPEX_CATEGORY,
+                category.getName(), null,
+                imageUrl(category.getLogo(), () -> methodOn(SpexCategoryApi.class).downloadLogo(category.getId())),
+                false, category.getId());
+    }
+
+    private static GraphNodeDto nodeOf(final Task task) {
+        return new GraphNodeDto(idOf(GraphNodeType.TASK, task.getId()), GraphNodeType.TASK,
+                task.getName(), null, null, false, task.getId());
+    }
+
+    private static GraphNodeDto nodeOf(final TaskCategory category) {
+        return new GraphNodeDto(idOf(GraphNodeType.TASK_CATEGORY, category.getId()), GraphNodeType.TASK_CATEGORY,
+                category.getName(), null, null, false, category.getId());
+    }
+
+    private static GraphNodeDto nodeOf(final Tag tag) {
+        return new GraphNodeDto(idOf(GraphNodeType.TAG, tag.getId()), GraphNodeType.TAG,
+                tag.getName(), null, null, false, tag.getId());
+    }
+
+    private static @Nullable String imageUrl(final byte @Nullable [] data, final Supplier<Object> endpoint) {
+        return data == null ? null : linkTo(endpoint.get()).toUri().toString();
+    }
+
     @RequiresAdminOrEditorOrUser
     public List<GraphNodeDto> search(final String q, final int first) {
         final String term = q.trim();
 
         if (term.isEmpty()) {
-            return randomSpexare().map(List::of).orElseGet(List::of);
+            return currentUserSpexare().or(this::randomSpexare).map(List::of).orElseGet(List::of);
         }
 
         final List<GraphNodeDto> nodes = new ArrayList<>();
@@ -112,9 +181,11 @@ public class GraphService {
         return switch (type) {
             case SPEXARE -> spexareRepository.findById0(id).map(spexare -> neighbourhoodOf(spexare, first));
             case SPEX -> spexRepository.findById0(id).map(spex -> neighbourhoodOf(spex, first));
-            case SPEX_CATEGORY -> spexCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
+            case SPEX_CATEGORY ->
+                    spexCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
             case TASK -> taskRepository.findById0(id).map(task -> neighbourhoodOf(task, first));
-            case TASK_CATEGORY -> taskCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
+            case TASK_CATEGORY ->
+                    taskCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
             case TAG -> tagRepository.findById0(id).map(tag -> neighbourhoodOf(tag, first));
         };
     }
@@ -134,28 +205,38 @@ public class GraphService {
                     : GraphqlUtil.emptyWindow();
             case SPEX_CATEGORY -> edge == GraphEdgeType.CATEGORY
                     ? spexRepository.findBy(GraphSpecification.spexInCategory(id), BasePermission.READ, query -> {
-                        final long total = query.count();
+                final long total = query.count();
 
-                        return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
-                                .scroll(scroll.positionFor(total)).map(GraphService::nodeOf), total);
-                    })
+                return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
+                        .scroll(scroll.positionFor(total)).map(GraphService::nodeOf), total);
+            })
                     : GraphqlUtil.emptyWindow();
             case TASK_CATEGORY -> edge == GraphEdgeType.CATEGORY
                     ? taskRepository.findBy(GraphSpecification.taskInCategory(id), BasePermission.READ, query -> {
-                        final long total = query.count();
+                final long total = query.count();
 
-                        return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
-                                .scroll(scroll.positionFor(total)).map(GraphService::nodeOf), total);
-                    })
+                return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
+                        .scroll(scroll.positionFor(total)).map(GraphService::nodeOf), total);
+            })
                     : GraphqlUtil.emptyWindow();
             case SPEXARE -> GraphqlUtil.emptyWindow();
         };
     }
 
-    /**
-     * A random readable person, for seeding the graph when no search term was given. Counting first
-     * and scrolling to an offset keeps the ACL filter in SQL rather than loading everyone.
-     */
+    private Optional<GraphNodeDto> currentUserSpexare() {
+        final String externalId = getCurrentUserSubClaim();
+
+        if (!hasText(externalId)) {
+            return Optional.empty();
+        }
+
+        try {
+            return spexareRepository.findByUserExternalId(externalId).map(GraphService::nodeOf);
+        } catch (final AccessDeniedException e) {
+            return Optional.empty();
+        }
+    }
+
     private Optional<GraphNodeDto> randomSpexare() {
         return spexareRepository.findBy(Specification.unrestricted(), BasePermission.READ, query -> {
             final long total = query.count();
@@ -328,74 +409,6 @@ public class GraphService {
             return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
                     .scroll(scroll.positionFor(total)).map(GraphService::nodeOf), total);
         });
-    }
-
-    private static GraphqlUtil.ScrollRequest firstOnly(final int first) {
-        return new GraphqlUtil.ScrollRequest(Optional.empty(), first, false);
-    }
-
-    private static <T> GraphGroupDto group(final GraphEdgeType type, final long totalCount, final Stream<T> items,
-                                           final java.util.function.Function<T, GraphNodeDto> toNode,
-                                           final java.util.function.Function<T, GraphEdgeDto> toEdge) {
-        final List<T> materialised = items.toList();
-
-        return new GraphGroupDto(type, totalCount,
-                materialised.stream().map(toNode).toList(),
-                materialised.stream().map(toEdge).toList());
-    }
-
-    private static String yearOf(final Activity activity) {
-        return Optional.ofNullable(activity.getSpexActivity())
-                .map(spexActivity -> spexActivity.getSpex().getYear())
-                .orElse("");
-    }
-
-    private static String rolesOf(final TaskActivity taskActivity) {
-        return taskActivity.getActors().stream()
-                .map(Actor::getRole)
-                .filter(role -> role != null && !role.isBlank())
-                .reduce((a, b) -> "%s, %s".formatted(a, b))
-                .orElse("");
-    }
-
-    private static GraphNodeDto nodeOf(final Spexare spexare) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEXARE, spexare.getId()), GraphNodeType.SPEXARE,
-                "%s %s".formatted(spexare.getFirstName(), spexare.getLastName()), spexare.getNickName(),
-                imageUrl(spexare.getImage(), () -> methodOn(SpexareApi.class).downloadImage(spexare.getId())),
-                false, spexare.getId());
-    }
-
-    private static GraphNodeDto nodeOf(final Spex spex) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEX, spex.getId()), GraphNodeType.SPEX,
-                spex.getDetails().getTitle(), spex.getYear(),
-                imageUrl(spex.getDetails().getPoster(), () -> methodOn(SpexApi.class).downloadPoster(spex.getId())),
-                spex.getParent() != null, spex.getId());
-    }
-
-    private static GraphNodeDto nodeOf(final SpexCategory category) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEX_CATEGORY, category.getId()), GraphNodeType.SPEX_CATEGORY,
-                category.getName(), null,
-                imageUrl(category.getLogo(), () -> methodOn(SpexCategoryApi.class).downloadLogo(category.getId())),
-                false, category.getId());
-    }
-
-    private static GraphNodeDto nodeOf(final Task task) {
-        return new GraphNodeDto(idOf(GraphNodeType.TASK, task.getId()), GraphNodeType.TASK,
-                task.getName(), null, null, false, task.getId());
-    }
-
-    private static GraphNodeDto nodeOf(final TaskCategory category) {
-        return new GraphNodeDto(idOf(GraphNodeType.TASK_CATEGORY, category.getId()), GraphNodeType.TASK_CATEGORY,
-                category.getName(), null, null, false, category.getId());
-    }
-
-    private static GraphNodeDto nodeOf(final Tag tag) {
-        return new GraphNodeDto(idOf(GraphNodeType.TAG, tag.getId()), GraphNodeType.TAG,
-                tag.getName(), null, null, false, tag.getId());
-    }
-
-    private static @Nullable String imageUrl(final byte @Nullable [] data, final Supplier<Object> endpoint) {
-        return data == null ? null : linkTo(endpoint.get()).toUri().toString();
     }
 
 }

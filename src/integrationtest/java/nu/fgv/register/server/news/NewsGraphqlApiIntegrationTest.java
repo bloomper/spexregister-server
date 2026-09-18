@@ -91,6 +91,20 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private News randomizeNews() {
+        final var news = random.nextObject(News.class);
+
+        news.setPublished(true);
+
+        return news;
+    }
+
+    private News persistNews(final News news) {
+        news.setId(null);
+
+        return repository.save(news);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -847,19 +861,5 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private News randomizeNews() {
-        final var news = random.nextObject(News.class);
-
-        news.setPublished(true);
-
-        return news;
-    }
-
-    private News persistNews(final News news) {
-        news.setId(null);
-
-        return repository.save(news);
     }
 }

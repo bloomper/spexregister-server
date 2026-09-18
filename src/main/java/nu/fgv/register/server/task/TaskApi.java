@@ -17,10 +17,10 @@
 package nu.fgv.register.server.task;
 
 import jakarta.validation.Valid;
-import nu.fgv.register.server.audit.AuditApi;
-import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -36,7 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.SortDefault;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;

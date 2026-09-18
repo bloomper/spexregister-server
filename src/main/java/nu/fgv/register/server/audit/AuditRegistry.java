@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.audit;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsRepository;
@@ -61,8 +62,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
@@ -102,33 +101,6 @@ public class AuditRegistry {
 
     private final Map<AuditedType, AuditedEntityDescriptor> descriptors = new EnumMap<>(AuditedType.class);
     private final Map<String, AuditedType> typesByEntityName = new java.util.HashMap<>();
-
-    @PostConstruct
-    void initialize() {
-        register(AuditedEntityDescriptor.of(AuditedType.NEWS, News.class, Long::valueOf, newsRepository::findById, self(), List.of()).withLabel((News n) -> n.getSubject()));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX, Spex.class, Long::valueOf, spexRepository::findById, self(), List.of()).withLabel((Spex x) -> x.getYear()).withReferences(new AuditedReferenceDescriptor(AuditedType.SPEX_DETAILS, SpexDetails.class, "details")));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, self(), List.of()).withLabel((SpexDetails d) -> d.getTitle()));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_CATEGORY, SpexCategory.class, Long::valueOf, spexCategoryRepository::findById, self(), List.of()).withLabel((SpexCategory c) -> c.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TAG, Tag.class, Long::valueOf, tagRepository::findById, self(), List.of()).withLabel((Tag t) -> t.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TASK, Task.class, Long::valueOf, taskRepository::findById, self(), List.of()).withLabel((Task t) -> t.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TASK_CATEGORY, TaskCategory.class, Long::valueOf, taskCategoryRepository::findById, self(), List.of()).withLabel((TaskCategory c) -> c.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.USER, User.class, Long::valueOf, userRepository::findById, self(), List.of()).withLabel((User u) -> u.getSpexare() == null ? u.getExternalId() : fullName(u.getSpexare().getFirstName(), u.getSpexare().getLastName())));
-        register(AuditedEntityDescriptor.of(AuditedType.STATE, State.class, Function.identity(), stateRepository::findById, null, List.of()).withLabel((State st) -> localized(st.getLabels(), st.getId())));
-        register(AuditedEntityDescriptor.of(AuditedType.TYPE, Type.class, Function.identity(), typeRepository::findById, null, List.of()).withLabel((Type ty) -> localized(ty.getLabels(), ty.getId())));
-
-        register(AuditedEntityDescriptor.of(AuditedType.SPEXARE, Spexare.class, Long::valueOf, spexareRepository::findById, self(), spexareChildren()).withLabel((Spexare sp) -> fullName(sp.getFirstName(), sp.getLastName())));
-        register(AuditedEntityDescriptor.of(AuditedType.ADDRESS, Address.class, Long::valueOf, addressRepository::findById, Address::getSpexare, List.of()).withLabel((Address a) -> a.getStreetAddress()));
-        register(AuditedEntityDescriptor.of(AuditedType.CONSENT, Consent.class, Long::valueOf, consentRepository::findById, Consent::getSpexare, List.of()).withLabel((Consent c) -> c.getType() == null ? null : localized(c.getType().getLabels(), c.getType().getId())));
-        register(AuditedEntityDescriptor.of(AuditedType.MEMBERSHIP, Membership.class, Long::valueOf, membershipRepository::findById, Membership::getSpexare, List.of()).withLabel((Membership m) -> m.getYear()));
-        register(AuditedEntityDescriptor.of(AuditedType.TOGGLE, Toggle.class, Long::valueOf, toggleRepository::findById, Toggle::getSpexare, List.of()).withLabel((Toggle t) -> t.getType() == null ? null : localized(t.getType().getLabels(), t.getType().getId())));
-        register(AuditedEntityDescriptor.of(AuditedType.ACTIVITY, Activity.class, Long::valueOf, activityRepository::findById, Activity::getSpexare, activityChildren()).withLabel((Activity a) -> a.getSpexare() == null ? null : fullName(a.getSpexare().getFirstName(), a.getSpexare().getLastName())));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_ACTIVITY, SpexActivity.class, Long::valueOf, spexActivityRepository::findById,
-                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), List.of()).withLabel((SpexActivity sa) -> sa.getSpex() == null ? null : sa.getSpex().getYear()));
-        register(AuditedEntityDescriptor.of(AuditedType.TASK_ACTIVITY, TaskActivity.class, Long::valueOf, taskActivityRepository::findById,
-                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), taskActivityChildren()).withLabel((TaskActivity ta) -> ta.getTask() == null ? null : ta.getTask().getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.ACTOR, Actor.class, Long::valueOf, actorRepository::findById,
-                a -> a.getTaskActivity() == null || a.getTaskActivity().getActivity() == null ? null : a.getTaskActivity().getActivity().getSpexare(), List.of()).withLabel((Actor a) -> a.getRole()));
-    }
 
     private static List<AuditedChildDescriptor> spexareChildren() {
         return List.of(
@@ -201,6 +173,45 @@ public class AuditRegistry {
         return e -> e;
     }
 
+    private static @Nullable String localized(final @Nullable Map<String, String> labels, final String fallback) {
+        if (labels == null) {
+            return fallback;
+        }
+
+        return labels.getOrDefault(LocaleContextHolder.getLocale().getLanguage(), fallback);
+    }
+
+    private static String fullName(final @Nullable String firstName, final @Nullable String lastName) {
+        return ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
+    }
+
+    @PostConstruct
+    void initialize() {
+        register(AuditedEntityDescriptor.of(AuditedType.NEWS, News.class, Long::valueOf, newsRepository::findById, self(), List.of()).withLabel((News n) -> n.getSubject()));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX, Spex.class, Long::valueOf, spexRepository::findById, self(), List.of()).withLabel((Spex x) -> x.getYear()).withReferences(new AuditedReferenceDescriptor(AuditedType.SPEX_DETAILS, SpexDetails.class, "details")));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, self(), List.of()).withLabel((SpexDetails d) -> d.getTitle()));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_CATEGORY, SpexCategory.class, Long::valueOf, spexCategoryRepository::findById, self(), List.of()).withLabel((SpexCategory c) -> c.getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.TAG, Tag.class, Long::valueOf, tagRepository::findById, self(), List.of()).withLabel((Tag t) -> t.getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.TASK, Task.class, Long::valueOf, taskRepository::findById, self(), List.of()).withLabel((Task t) -> t.getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.TASK_CATEGORY, TaskCategory.class, Long::valueOf, taskCategoryRepository::findById, self(), List.of()).withLabel((TaskCategory c) -> c.getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.USER, User.class, Long::valueOf, userRepository::findById, self(), List.of()).withLabel((User u) -> u.getSpexare() == null ? u.getExternalId() : fullName(u.getSpexare().getFirstName(), u.getSpexare().getLastName())));
+        register(AuditedEntityDescriptor.of(AuditedType.STATE, State.class, Function.identity(), stateRepository::findById, null, List.of()).withLabel((State st) -> localized(st.getLabels(), st.getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.TYPE, Type.class, Function.identity(), typeRepository::findById, null, List.of()).withLabel((Type ty) -> localized(ty.getLabels(), ty.getId())));
+
+        register(AuditedEntityDescriptor.of(AuditedType.SPEXARE, Spexare.class, Long::valueOf, spexareRepository::findById, self(), spexareChildren()).withLabel((Spexare sp) -> fullName(sp.getFirstName(), sp.getLastName())));
+        register(AuditedEntityDescriptor.of(AuditedType.ADDRESS, Address.class, Long::valueOf, addressRepository::findById, Address::getSpexare, List.of()).withLabel((Address a) -> a.getStreetAddress()));
+        register(AuditedEntityDescriptor.of(AuditedType.CONSENT, Consent.class, Long::valueOf, consentRepository::findById, Consent::getSpexare, List.of()).withLabel((Consent c) -> c.getType() == null ? null : localized(c.getType().getLabels(), c.getType().getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.MEMBERSHIP, Membership.class, Long::valueOf, membershipRepository::findById, Membership::getSpexare, List.of()).withLabel((Membership m) -> m.getYear()));
+        register(AuditedEntityDescriptor.of(AuditedType.TOGGLE, Toggle.class, Long::valueOf, toggleRepository::findById, Toggle::getSpexare, List.of()).withLabel((Toggle t) -> t.getType() == null ? null : localized(t.getType().getLabels(), t.getType().getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.ACTIVITY, Activity.class, Long::valueOf, activityRepository::findById, Activity::getSpexare, activityChildren()).withLabel((Activity a) -> a.getSpexare() == null ? null : fullName(a.getSpexare().getFirstName(), a.getSpexare().getLastName())));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_ACTIVITY, SpexActivity.class, Long::valueOf, spexActivityRepository::findById,
+                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), List.of()).withLabel((SpexActivity sa) -> sa.getSpex() == null ? null : sa.getSpex().getYear()));
+        register(AuditedEntityDescriptor.of(AuditedType.TASK_ACTIVITY, TaskActivity.class, Long::valueOf, taskActivityRepository::findById,
+                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), taskActivityChildren()).withLabel((TaskActivity ta) -> ta.getTask() == null ? null : ta.getTask().getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.ACTOR, Actor.class, Long::valueOf, actorRepository::findById,
+                a -> a.getTaskActivity() == null || a.getTaskActivity().getActivity() == null ? null : a.getTaskActivity().getActivity().getSpexare(), List.of()).withLabel((Actor a) -> a.getRole()));
+    }
+
     private void register(final AuditedEntityDescriptor descriptor) {
         descriptors.put(descriptor.type(), descriptor);
         typesByEntityName.put(descriptor.entityClass().getName(), descriptor.type());
@@ -228,18 +239,6 @@ public class AuditRegistry {
         } catch (final RuntimeException e) {
             return null;
         }
-    }
-
-    private static @Nullable String localized(final @Nullable Map<String, String> labels, final String fallback) {
-        if (labels == null) {
-            return fallback;
-        }
-
-        return labels.getOrDefault(LocaleContextHolder.getLocale().getLanguage(), fallback);
-    }
-
-    private static String fullName(final @Nullable String firstName, final @Nullable String lastName) {
-        return ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
     }
 
     public @Nullable AuditedType byEntityName(final String entityName) {

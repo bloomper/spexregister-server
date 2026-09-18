@@ -92,6 +92,10 @@ public class AuditDataSeeder {
     private final Random rnd = new SecureRandom();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
 
+    private static String placeholders(final List<Long> ids) {
+        return String.join(", ", ids.stream().map(_ -> "?").toList());
+    }
+
     public void seedBaseline(final JdbcClient jdbcClient) {
         purge(jdbcClient);
 
@@ -256,10 +260,6 @@ public class AuditDataSeeder {
         }
 
         return query.query(Long.class).list();
-    }
-
-    private static String placeholders(final List<Long> ids) {
-        return String.join(", ", ids.stream().map(_ -> "?").toList());
     }
 
     private void seedDeletedAddresses(final JdbcClient jdbcClient, final List<Revision> revisions) {

@@ -91,6 +91,14 @@ class AuthorityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
         JdbcTestUtils.deleteFromTables(jdbcClient, "authority");
     }
 
+    private Authority randomizeAuthority() {
+        return random.nextObject(Authority.class);
+    }
+
+    private Authority persistAuthority(final Authority authority) {
+        return repository.save(authority);
+    }
+
     @Nested
     @DisplayName("Retrieve all")
     class RetrieveAllTests {
@@ -185,14 +193,6 @@ class AuthorityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                     .path("authority")
                     .valueIsNull();
         }
-    }
-
-    private Authority randomizeAuthority() {
-        return random.nextObject(Authority.class);
-    }
-
-    private Authority persistAuthority(final Authority authority) {
-        return repository.save(authority);
     }
 
 }

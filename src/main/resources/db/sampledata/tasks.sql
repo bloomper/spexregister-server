@@ -2,32 +2,32 @@
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Kommitté', 0, 'system', CURRENT_TIME, 0);
 SET
-@task_category_kommitte = LAST_INSERT_ID();
+    @task_category_kommitte = LAST_INSERT_ID();
 
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Orkester', 0, 'system', CURRENT_TIME, 0);
 SET
-@task_category_orkester = LAST_INSERT_ID();
+    @task_category_orkester = LAST_INSERT_ID();
 
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Ensemble', 1, 'system', CURRENT_TIME, 0);
 SET
-@task_category_ensemble = LAST_INSERT_ID();
+    @task_category_ensemble = LAST_INSERT_ID();
 
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Bandet', 0, 'system', CURRENT_TIME, 0);
 SET
-@task_category_bandet = LAST_INSERT_ID();
+    @task_category_bandet = LAST_INSERT_ID();
 
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Symphonin', 0, 'system', CURRENT_TIME, 0);
 SET
-@task_category_symphonin = LAST_INSERT_ID();
+    @task_category_symphonin = LAST_INSERT_ID();
 
 INSERT INTO task_category (name, actor_present, created_by, created_at, version)
 VALUES ('Annat', 0, 'system', CURRENT_TIME, 0);
 SET
-@task_category_annat = LAST_INSERT_ID();
+    @task_category_annat = LAST_INSERT_ID();
 
 -- Tasks
 INSERT INTO task (name, category_id, created_by, created_at, version)

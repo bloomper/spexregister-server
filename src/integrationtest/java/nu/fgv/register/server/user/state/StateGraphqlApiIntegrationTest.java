@@ -91,6 +91,14 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         JdbcTestUtils.deleteFromTables(jdbcClient, "state", "state_audit");
     }
 
+    private State randomizeState() {
+        return random.nextObject(State.class);
+    }
+
+    private State persistState(final State state) {
+        return repository.save(state);
+    }
+
     @Nested
     @DisplayName("Retrieve all")
     class RetrieveAllTests {
@@ -185,14 +193,6 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("state")
                     .valueIsNull();
         }
-    }
-
-    private State randomizeState() {
-        return random.nextObject(State.class);
-    }
-
-    private State persistState(final State state) {
-        return repository.save(state);
     }
 
 }

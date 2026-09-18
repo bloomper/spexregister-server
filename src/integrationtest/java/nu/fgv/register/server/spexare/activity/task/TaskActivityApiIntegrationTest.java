@@ -141,6 +141,65 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private TaskActivity randomizeTaskActivity(final Activity activity, final Task task) {
+        final var taskActivity = random.nextObject(TaskActivity.class);
+        taskActivity.setActivity(activity);
+        taskActivity.setTask(task);
+        return taskActivity;
+    }
+
+    private TaskActivity persistTaskActivity(final TaskActivity taskActivity) {
+        taskActivity.setId(null);
+
+        return repository.save(taskActivity);
+    }
+
+    private Activity randomizeActivity(@Nullable final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+
+        activity.setSpexare(spexare);
+
+        return activity;
+    }
+
+    private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
+        return activityRepository.save(activity);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
+    private Task randomizeTask(final TaskCategory category) {
+        final var task = random.nextObject(Task.class);
+        task.setCategory(category);
+        return task;
+    }
+
+    private Task persistTask(final Task task) {
+        task.setId(null);
+
+        return taskRepository.save(task);
+    }
+
+    private TaskCategory randomizeTaskCategory() {
+        return random.nextObject(TaskCategory.class);
+    }
+
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
+        category.setId(null);
+
+        return taskCategoryRepository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1114,65 +1173,6 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private TaskActivity randomizeTaskActivity(final Activity activity, final Task task) {
-        final var taskActivity = random.nextObject(TaskActivity.class);
-        taskActivity.setActivity(activity);
-        taskActivity.setTask(task);
-        return taskActivity;
-    }
-
-    private TaskActivity persistTaskActivity(final TaskActivity taskActivity) {
-        taskActivity.setId(null);
-
-        return repository.save(taskActivity);
-    }
-
-    private Activity randomizeActivity(@Nullable final Spexare spexare) {
-        final var activity = random.nextObject(Activity.class);
-
-        activity.setSpexare(spexare);
-
-        return activity;
-    }
-
-    private Activity persistActivity(final Activity activity) {
-        activity.setId(null);
-
-        return activityRepository.save(activity);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
-    }
-
-    private Task randomizeTask(final TaskCategory category) {
-        final var task = random.nextObject(Task.class);
-        task.setCategory(category);
-        return task;
-    }
-
-    private Task persistTask(final Task task) {
-        task.setId(null);
-
-        return taskRepository.save(task);
-    }
-
-    private TaskCategory randomizeTaskCategory() {
-        return random.nextObject(TaskCategory.class);
-    }
-
-    private TaskCategory persistTaskCategory(final TaskCategory category) {
-        category.setId(null);
-
-        return taskCategoryRepository.save(category);
     }
 
 }

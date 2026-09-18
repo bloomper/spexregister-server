@@ -97,6 +97,28 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private Task randomizeTask(@Nullable final TaskCategory category) {
+        final var task = random.nextObject(Task.class);
+        task.setCategory(category);
+        return task;
+    }
+
+    private TaskCategory randomizeTaskCategory() {
+        return random.nextObject(TaskCategory.class);
+    }
+
+    private Task persistTask(final Task task) {
+        task.setId(null);
+
+        return repository.save(task);
+    }
+
+    private TaskCategory persistTaskCategory(final TaskCategory category) {
+        category.setId(null);
+
+        return categoryRepository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1073,27 +1095,5 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(repository.count()).isZero();
         }
 
-    }
-
-    private Task randomizeTask(@Nullable final TaskCategory category) {
-        final var task = random.nextObject(Task.class);
-        task.setCategory(category);
-        return task;
-    }
-
-    private TaskCategory randomizeTaskCategory() {
-        return random.nextObject(TaskCategory.class);
-    }
-
-    private Task persistTask(final Task task) {
-        task.setId(null);
-
-        return repository.save(task);
-    }
-
-    private TaskCategory persistTaskCategory(final TaskCategory category) {
-        category.setId(null);
-
-        return categoryRepository.save(category);
     }
 }

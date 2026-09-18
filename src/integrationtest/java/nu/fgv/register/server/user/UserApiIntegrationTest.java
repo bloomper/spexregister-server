@@ -153,6 +153,154 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private User randomizeUser(final State state) {
+        final var user = random.nextObject(User.class);
+
+        user.setState(state);
+
+        return user;
+    }
+
+    private User persistUser(final User user, final String... roles) {
+        user.setId(null);
+        final var representation = persistUserInKeycloak(roles);
+        user.setExternalId(representation.getId());
+        return repository.save(user);
+    }
+
+    private UserRepresentation persistUserInKeycloak(final String... roles) {
+        final UserRepresentation userRepresentation = new UserRepresentation();
+
+        userRepresentation.setEmail(emailRandomizer.getRandomValue());
+        userRepresentation.setEnabled(false);
+
+        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(generateTemporaryPassword());
+        credentialRepresentation.setTemporary(true);
+
+        try (final Response response = keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .create(userRepresentation)
+        ) {
+            if (response.getStatus() == HttpStatus.CREATED.value()) {
+                final String locationPath = response.getLocation().getPath();
+                final String id = locationPath.substring(locationPath.lastIndexOf('/') + 1);
+                final UserResource userResource = keycloakAdminClient
+                        .realm(keycloakRealm)
+                        .users()
+                        .get(id);
+
+                if (roles.length != 0) {
+                    final List<RoleRepresentation> roleRepresentations = getRoleRepresentationsInKeycloak().stream()
+                            .filter(r -> List.of(roles).contains(r.getName()))
+                            .toList();
+
+                    userResource
+                            .roles()
+                            .clientLevel(keycloakClientId)
+                            .add(roleRepresentations);
+                }
+
+                return userResource.toRepresentation();
+            } else {
+                throw new RuntimeException("Could not persist user in Keycloak");
+            }
+        }
+    }
+
+    private List<RoleRepresentation> getRoleRepresentationsInKeycloak() {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .clients()
+                .get(keycloakClientId)
+                .roles()
+                .list();
+    }
+
+    private List<RoleRepresentation> getRoleRepresentationsForUserInKeycloak(final User user) {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .get(user.getExternalId())
+                .roles()
+                .clientLevel(keycloakClientId)
+                .listAll();
+    }
+
+    private UserRepresentation getUserRepresentationForUserInKeycloak(final User user) {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .get(user.getExternalId())
+                .toRepresentation();
+    }
+
+    private Integer getUsersCountInKeycloak() {
+        return keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .count();
+    }
+
+    private String generateTemporaryPassword() {
+        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase, 2);
+        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit, 2);
+        final CharacterRule specialCharacterRule = new CharacterRule(new CharacterData() {
+            public String getErrorCode() {
+                return AllowedCharacterRule.ERROR_CODE;
+            }
+
+            public String getCharacters() {
+                return "!@#$%^&*()_+";
+            }
+        }, 2);
+        final PasswordGenerator passwordGenerator = new PasswordGenerator(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
+
+        return passwordGenerator.generate().toString();
+    }
+
+    private String getRandomAuthority() {
+        return AUTHORITIES.get(rnd.nextInt(AUTHORITIES.size()));
+    }
+
+    private List<String> getRandomAuthorities(final int numberOfAuthorities) {
+        if (numberOfAuthorities > AUTHORITIES.size()) {
+            throw new IllegalArgumentException();
+        }
+        final List<String> randomAuthorities = new ArrayList<>(AUTHORITIES);
+        Collections.shuffle(randomAuthorities);
+        return randomAuthorities.subList(0, numberOfAuthorities);
+    }
+
+    private Authority randomizeAuthority() {
+        return random.nextObject(Authority.class);
+    }
+
+    private Authority persistAuthority(final Authority authority) {
+        return authorityRepository.save(authority);
+    }
+
+    private State randomizeState() {
+        return random.nextObject(State.class);
+    }
+
+    private State persistState(final State state) {
+        return stateRepository.save(state);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1985,153 +2133,5 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
-    }
-
-    private User randomizeUser(final State state) {
-        final var user = random.nextObject(User.class);
-
-        user.setState(state);
-
-        return user;
-    }
-
-    private User persistUser(final User user, final String... roles) {
-        user.setId(null);
-        final var representation = persistUserInKeycloak(roles);
-        user.setExternalId(representation.getId());
-        return repository.save(user);
-    }
-
-    private UserRepresentation persistUserInKeycloak(final String... roles) {
-        final UserRepresentation userRepresentation = new UserRepresentation();
-
-        userRepresentation.setEmail(emailRandomizer.getRandomValue());
-        userRepresentation.setEnabled(false);
-
-        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
-        credentialRepresentation.setValue(generateTemporaryPassword());
-        credentialRepresentation.setTemporary(true);
-
-        try (final Response response = keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .create(userRepresentation)
-        ) {
-            if (response.getStatus() == HttpStatus.CREATED.value()) {
-                final String locationPath = response.getLocation().getPath();
-                final String id = locationPath.substring(locationPath.lastIndexOf('/') + 1);
-                final UserResource userResource = keycloakAdminClient
-                        .realm(keycloakRealm)
-                        .users()
-                        .get(id);
-
-                if (roles.length != 0) {
-                    final List<RoleRepresentation> roleRepresentations = getRoleRepresentationsInKeycloak().stream()
-                            .filter(r -> List.of(roles).contains(r.getName()))
-                            .toList();
-
-                    userResource
-                            .roles()
-                            .clientLevel(keycloakClientId)
-                            .add(roleRepresentations);
-                }
-
-                return userResource.toRepresentation();
-            } else {
-                throw new RuntimeException("Could not persist user in Keycloak");
-            }
-        }
-    }
-
-    private List<RoleRepresentation> getRoleRepresentationsInKeycloak() {
-        return keycloakAdminClient
-                .realm(keycloakRealm)
-                .clients()
-                .get(keycloakClientId)
-                .roles()
-                .list();
-    }
-
-    private List<RoleRepresentation> getRoleRepresentationsForUserInKeycloak(final User user) {
-        return keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .get(user.getExternalId())
-                .roles()
-                .clientLevel(keycloakClientId)
-                .listAll();
-    }
-
-    private UserRepresentation getUserRepresentationForUserInKeycloak(final User user) {
-        return keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .get(user.getExternalId())
-                .toRepresentation();
-    }
-
-    private Integer getUsersCountInKeycloak() {
-        return keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .count();
-    }
-
-    private String generateTemporaryPassword() {
-        final CharacterRule lowerCaseRule = new CharacterRule(EnglishCharacterData.LowerCase, 2);
-        final CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase, 2);
-        final CharacterRule digitRule = new CharacterRule(EnglishCharacterData.Digit, 2);
-        final CharacterRule specialCharacterRule = new CharacterRule(new CharacterData() {
-            public String getErrorCode() {
-                return AllowedCharacterRule.ERROR_CODE;
-            }
-
-            public String getCharacters() {
-                return "!@#$%^&*()_+";
-            }
-        }, 2);
-        final PasswordGenerator passwordGenerator = new PasswordGenerator(15, List.of(specialCharacterRule, lowerCaseRule, upperCaseRule, digitRule));
-
-        return passwordGenerator.generate().toString();
-    }
-
-    private String getRandomAuthority() {
-        return AUTHORITIES.get(rnd.nextInt(AUTHORITIES.size()));
-    }
-
-    private List<String> getRandomAuthorities(final int numberOfAuthorities) {
-        if (numberOfAuthorities > AUTHORITIES.size()) {
-            throw new IllegalArgumentException();
-        }
-        final List<String> randomAuthorities = new ArrayList<>(AUTHORITIES);
-        Collections.shuffle(randomAuthorities);
-        return randomAuthorities.subList(0, numberOfAuthorities);
-    }
-
-    private Authority randomizeAuthority() {
-        return random.nextObject(Authority.class);
-    }
-
-    private Authority persistAuthority(final Authority authority) {
-        return authorityRepository.save(authority);
-    }
-
-    private State randomizeState() {
-        return random.nextObject(State.class);
-    }
-
-    private State persistState(final State state) {
-        return stateRepository.save(state);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 }

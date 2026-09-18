@@ -111,6 +111,28 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private Activity randomizeActivity(final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+        activity.setSpexare(spexare);
+        return activity;
+    }
+
+    private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
+        return repository.save(activity);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Create")
     class CreateTests {
@@ -403,28 +425,6 @@ class ActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private Activity randomizeActivity(final Spexare spexare) {
-        final var activity = random.nextObject(Activity.class);
-        activity.setSpexare(spexare);
-        return activity;
-    }
-
-    private Activity persistActivity(final Activity activity) {
-        activity.setId(null);
-
-        return repository.save(activity);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 
 }

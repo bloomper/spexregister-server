@@ -116,6 +116,26 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private Tag randomizeTag() {
+        return random.nextObject(Tag.class);
+    }
+
+    private Tag persistTag(final Tag tag) {
+        tag.setId(null);
+
+        return tagRepository.save(tag);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Create")
     class CreateTests {
@@ -479,26 +499,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(repository.countTaggings()).isZero();
         }
-    }
-
-    private Tag randomizeTag() {
-        return random.nextObject(Tag.class);
-    }
-
-    private Tag persistTag(final Tag tag) {
-        tag.setId(null);
-
-        return tagRepository.save(tag);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 
 }

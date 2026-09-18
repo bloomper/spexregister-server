@@ -29,7 +29,14 @@ import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.ActivityRepository;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivityRepository;
+import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.task.TaskRepository;
+import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.user.UserRepository;
+import nu.fgv.register.server.user.state.State;
+import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
@@ -73,6 +80,10 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final SpexRepository spexRepository;
     private final SpexDetailsRepository spexDetailsRepository;
     private final SpexCategoryRepository spexCategoryRepository;
+    private final TaskRepository taskRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final UserRepository userRepository;
+    private final StateRepository stateRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -87,6 +98,10 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final SpexRepository spexRepository,
                                           final SpexDetailsRepository spexDetailsRepository,
                                           final SpexCategoryRepository spexCategoryRepository,
+                                          final TaskRepository taskRepository,
+                                          final TaskCategoryRepository taskCategoryRepository,
+                                          final UserRepository userRepository,
+                                          final StateRepository stateRepository,
                                           final ObjectMapper objectMapper) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.spexareRepository = spexareRepository;
@@ -95,6 +110,10 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.spexRepository = spexRepository;
         this.spexDetailsRepository = spexDetailsRepository;
         this.spexCategoryRepository = spexCategoryRepository;
+        this.taskRepository = taskRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
+        this.userRepository = userRepository;
+        this.stateRepository = stateRepository;
 
         final EasyRandomParameters parameters = new EasyRandomParameters();
 
@@ -126,8 +145,115 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         jdbcClient.sql("UPDATE spexare SET partner_id = NULL").update();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "spex_activity", "activity", "spexare", "spex", "spex_details", "spex_category",
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user_audit", "user", "spex_activity", "activity", "spexare", "spex", "spex_details", "spex_category",
+                "task", "task_category", "task_audit", "task_category_audit",
                 "spex_activity_audit", "activity_audit", "spexare_audit", "spex_audit", "spex_details_audit", "spex_category_audit");
+    }
+
+    private Spexare persistReadableSpexare(final String firstName, final String lastName, final boolean published) {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setId(null);
+        spexare.setFirstName(firstName);
+        spexare.setLastName(lastName);
+        spexare.setPublished(published);
+
+        final var saved = spexareRepository.save(spexare);
+        final var oid = toObjectIdentity(Spexare.class, saved.getId());
+
+        // Mirrors SpexareService.create: the user role only gets READ on published people.
+        grantReadPermissionToRoleAdmin(oid);
+        grantReadPermissionToRoleEditor(oid);
+
+        if (published) {
+            grantReadPermissionToRoleUser(oid);
+        }
+
+        return saved;
+    }
+
+    /** Points the register's own user row at the Keycloak account the test authenticates as. */
+    private void linkToTestUser(final Spexare spexare) {
+        final var externalId = keycloakAdminClient.realm(keycloakRealm).users().search(TEST_USER).getFirst().getId();
+        final var user = new User();
+
+        user.setExternalId(externalId);
+        user.setState(stateRepository.save(random.nextObject(State.class)));
+        user.setSpexare(spexare);
+
+        userRepository.save(user);
+    }
+
+    private Task persistReadableTask(final String name, final String categoryName) {
+        final var category = random.nextObject(TaskCategory.class);
+
+        category.setId(null);
+        category.setName(categoryName);
+
+        final var savedCategory = taskCategoryRepository.save(category);
+
+        grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, savedCategory.getId()));
+
+        final var task = random.nextObject(Task.class);
+
+        task.setId(null);
+        task.setName(name);
+        task.setCategory(savedCategory);
+
+        final var saved = taskRepository.save(task);
+
+        grantReadPermissionToRoleUser(toObjectIdentity(Task.class, saved.getId()));
+
+        return saved;
+    }
+
+    private Spex persistReadableSpex() {
+        final var category = random.nextObject(SpexCategory.class);
+
+        category.setId(null);
+
+        final var savedCategory = spexCategoryRepository.save(category);
+
+        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+
+        final var details = random.nextObject(SpexDetails.class);
+
+        details.setId(null);
+        details.setCategory(savedCategory);
+
+        final var spex = random.nextObject(Spex.class);
+
+        spex.setId(null);
+        spex.setParent(null);
+        spex.setDetails(spexDetailsRepository.save(details));
+
+        final var saved = spexRepository.save(spex);
+        final var oid = toObjectIdentity(Spex.class, saved.getId());
+
+        grantReadPermissionToRoleAdmin(oid);
+        grantReadPermissionToRoleEditor(oid);
+        grantReadPermissionToRoleUser(oid);
+
+        return saved;
+    }
+
+    private void persistParticipation(final Spexare spexare, final Spex spex) {
+        final var activity = random.nextObject(Activity.class);
+
+        activity.setId(null);
+        activity.setSpexare(spexare);
+        activity.setSpexActivity(null);
+
+        final var savedActivity = activityRepository.save(activity);
+        final var spexActivity = random.nextObject(SpexActivity.class);
+
+        spexActivity.setId(null);
+        spexActivity.setActivity(savedActivity);
+        spexActivity.setSpex(spex);
+
+        spexActivityRepository.save(spexActivity);
     }
 
     @Nested
@@ -204,6 +330,61 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("graphSearch")
                     .entityList(GraphNodeDto.class)
                     .hasSize(1);
+        }
+
+        /**
+         * A blank term is "take me somewhere": your own entry if the account is linked to one, a
+         * random person otherwise.
+         */
+        @Test
+        void should_seed_the_current_users_own_spexare_when_linked() {
+            // A crowd to pick from, so a fallback to random would show up as a failure rather than
+            // passing half the time, and the search is repeated to make that near-certain.
+            for (int i = 0; i < 10; i++) {
+                persistReadableSpexare("Someone", String.valueOf(i), true);
+            }
+
+            final var mine = persistReadableSpexare("Grace", "Hopper", true);
+
+            linkToTestUser(mine);
+
+            for (int attempt = 0; attempt < 5; attempt++) {
+                httpGraphQlTester
+                        .mutate()
+                        .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                        .build()
+                        .documentName("graph/graphSearch")
+                        .variable("q", "")
+                        .execute()
+                        .errors()
+                        .verify()
+                        .path("graphSearch").entityList(GraphNodeDto.class).hasSize(1)
+                        .path("graphSearch[0].label").entity(String.class).isEqualTo("Grace Hopper");
+            }
+        }
+
+        /**
+         * Being linked to an entry you are not allowed to read must not break the way in; it falls
+         * back to a random person like any unlinked account.
+         */
+        @Test
+        void should_fall_back_to_random_when_the_own_spexare_is_not_readable() {
+            final var readable = persistReadableSpexare("Ada", "Lovelace", true);
+            final var mine = persistReadableSpexare("Grace", "Hopper", false);
+
+            linkToTestUser(mine);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphSearch")
+                    .variable("q", "")
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphSearch").entityList(GraphNodeDto.class).hasSize(1)
+                    .path("graphSearch[0].entityId").entity(String.class).isEqualTo(String.valueOf(readable.getId()));
         }
 
         @Test
@@ -376,6 +557,31 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Task")
+    class TaskTests {
+
+        @Test
+        void should_return_the_category_of_a_function() {
+            final var task = persistReadableTask("Skadespelare", "Skadespeleri");
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.TASK)
+                    .variable("id", task.getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.groups[?(@.type == 'CATEGORY')].totalCount")
+                    .entityList(Integer.class).containsExactly(1)
+                    .path("graphNeighbourhood.groups[?(@.type == 'CATEGORY')].nodes[0].label")
+                    .entityList(String.class).containsExactly("Skadespeleri");
+        }
+    }
+
+    @Nested
     @DisplayName("Neighbours paged")
     class NeighboursPagedTests {
 
@@ -422,77 +628,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .verify()
                     .path("graphNeighboursPaged.totalCount").entity(Integer.class).isEqualTo(0);
         }
-    }
-
-    private Spexare persistReadableSpexare(final String firstName, final String lastName, final boolean published) {
-        final var spexare = random.nextObject(Spexare.class);
-
-        spexare.setId(null);
-        spexare.setFirstName(firstName);
-        spexare.setLastName(lastName);
-        spexare.setPublished(published);
-
-        final var saved = spexareRepository.save(spexare);
-        final var oid = toObjectIdentity(Spexare.class, saved.getId());
-
-        // Mirrors SpexareService.create: the user role only gets READ on published people.
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-
-        if (published) {
-            grantReadPermissionToRoleUser(oid);
-        }
-
-        return saved;
-    }
-
-    private Spex persistReadableSpex() {
-        final var category = random.nextObject(SpexCategory.class);
-
-        category.setId(null);
-
-        final var savedCategory = spexCategoryRepository.save(category);
-
-        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-
-        final var details = random.nextObject(SpexDetails.class);
-
-        details.setId(null);
-        details.setCategory(savedCategory);
-
-        final var spex = random.nextObject(Spex.class);
-
-        spex.setId(null);
-        spex.setParent(null);
-        spex.setDetails(spexDetailsRepository.save(details));
-
-        final var saved = spexRepository.save(spex);
-        final var oid = toObjectIdentity(Spex.class, saved.getId());
-
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-        grantReadPermissionToRoleUser(oid);
-
-        return saved;
-    }
-
-    private void persistParticipation(final Spexare spexare, final Spex spex) {
-        final var activity = random.nextObject(Activity.class);
-
-        activity.setId(null);
-        activity.setSpexare(spexare);
-        activity.setSpexActivity(null);
-
-        final var savedActivity = activityRepository.save(activity);
-        final var spexActivity = random.nextObject(SpexActivity.class);
-
-        spexActivity.setId(null);
-        spexActivity.setActivity(savedActivity);
-        spexActivity.setSpex(spex);
-
-        spexActivityRepository.save(spexActivity);
     }
 
 }

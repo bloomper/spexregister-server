@@ -98,6 +98,14 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
         JdbcTestUtils.deleteFromTables(jdbcClient, "authority");
     }
 
+    private Authority randomizeAuthority() {
+        return random.nextObject(Authority.class);
+    }
+
+    private Authority persistAuthority(final Authority authority) {
+        return repository.save(authority);
+    }
+
     @Nested
     @DisplayName("Retrieve all")
     class RetrieveAllTests {
@@ -212,14 +220,6 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         }
-    }
-
-    private Authority randomizeAuthority() {
-        return random.nextObject(Authority.class);
-    }
-
-    private Authority persistAuthority(final Authority authority) {
-        return repository.save(authority);
     }
 
 }

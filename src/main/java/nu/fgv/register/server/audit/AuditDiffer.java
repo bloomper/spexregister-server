@@ -53,6 +53,34 @@ public class AuditDiffer {
 
     private final Map<Class<?>, List<SingularAttribute<?, ?>>> auditedAttributes = new ConcurrentHashMap<>();
 
+    private static boolean isNotAudited(final Class<?> entityClass, final Attribute<?, ?> attribute) {
+        final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
+
+        return field == null || field.isAnnotationPresent(NotAudited.class);
+    }
+
+    private static boolean isBinary(final SingularAttribute<?, ?> attribute) {
+        return byte[].class.equals(attribute.getJavaType());
+    }
+
+    private static byte @Nullable [] asBytes(final @Nullable Object value) {
+        return value instanceof final byte[] bytes ? bytes : null;
+    }
+
+    private static @Nullable String identityOf(final SingularAttribute<?, ?> attribute, final @Nullable Object value, final PersistenceUnitUtil util) {
+        if (value == null) {
+            return null;
+        }
+
+        if (attribute.isAssociation()) {
+            final Object identifier = util.getIdentifier(value);
+
+            return identifier == null ? null : String.valueOf(identifier);
+        }
+
+        return String.valueOf(value);
+    }
+
     public List<FieldChangeDto> diff(final Class<?> entityClass, final @Nullable Object before, final @Nullable Object after) {
         if (before == null && after == null) {
             return List.of();
@@ -108,12 +136,6 @@ public class AuditDiffer {
                 .toList();
     }
 
-    private static boolean isNotAudited(final Class<?> entityClass, final Attribute<?, ?> attribute) {
-        final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
-
-        return field == null || field.isAnnotationPresent(NotAudited.class);
-    }
-
     public boolean isBinaryProperty(final Class<?> entityClass, final String name) {
         return attributesOf(entityClass).stream()
                 .filter(a -> a.getName().equals(name))
@@ -126,14 +148,6 @@ public class AuditDiffer {
         final Object contentType = readProperty(entityClass, attribute.getName() + "ContentType", entity);
 
         return contentType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : String.valueOf(contentType);
-    }
-
-    private static boolean isBinary(final SingularAttribute<?, ?> attribute) {
-        return byte[].class.equals(attribute.getJavaType());
-    }
-
-    private static byte @Nullable [] asBytes(final @Nullable Object value) {
-        return value instanceof final byte[] bytes ? bytes : null;
     }
 
     public @Nullable Object readProperty(final Class<?> entityClass, final String name, final @Nullable Object entity) {
@@ -158,20 +172,6 @@ public class AuditDiffer {
         ReflectionUtils.makeAccessible(field);
 
         return ReflectionUtils.getField(field, entity);
-    }
-
-    private static @Nullable String identityOf(final SingularAttribute<?, ?> attribute, final @Nullable Object value, final PersistenceUnitUtil util) {
-        if (value == null) {
-            return null;
-        }
-
-        if (attribute.isAssociation()) {
-            final Object identifier = util.getIdentifier(value);
-
-            return identifier == null ? null : String.valueOf(identifier);
-        }
-
-        return String.valueOf(value);
     }
 
     private @Nullable String display(final SingularAttribute<?, ?> attribute, final @Nullable Object value, final PersistenceUnitUtil util) {

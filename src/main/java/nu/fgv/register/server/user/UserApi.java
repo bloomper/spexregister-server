@@ -17,10 +17,10 @@
 package nu.fgv.register.server.user;
 
 import jakarta.validation.Valid;
-import nu.fgv.register.server.audit.AuditApi;
-import nu.fgv.register.server.audit.AuditedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditedType;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -35,7 +35,6 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

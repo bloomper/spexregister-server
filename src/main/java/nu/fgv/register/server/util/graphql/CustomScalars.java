@@ -38,9 +38,6 @@ import java.util.Locale;
  */
 public class CustomScalars {
 
-    private CustomScalars() {
-    }
-
     public static final GraphQLScalarType Instant = GraphQLScalarType.newScalar()
             .name("Instant")
             .description("A custom scalar that handles Java 8 Instant types")
@@ -78,7 +75,6 @@ public class CustomScalars {
                 }
             })
             .build();
-
     public static final GraphQLScalarType Void = GraphQLScalarType.newScalar()
             .name("Void")
             .description("A custom scalar that represents the null value")
@@ -90,7 +86,7 @@ public class CustomScalars {
 
                 @Override
                 public Void parseValue(final Object input, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseValueException {
-                   return null;
+                    return null;
                 }
 
                 @Override
@@ -99,4 +95,7 @@ public class CustomScalars {
                 }
             })
             .build();
+
+    private CustomScalars() {
+    }
 }

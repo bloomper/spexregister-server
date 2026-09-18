@@ -94,57 +94,21 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 @DisabledInAotMode
 public abstract class AbstractIntegrationTest {
 
-    private static final String TEST_REALM = "fgv";
-    private static final String TEST_GRANT_TYPE = "password";
-    private static final String TEST_DOMAIN = "@spexregister.com";
-    private static final String TEST_PASSWORD = "s3cr3t";
-    protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
-    protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
-    protected static final String TEST_USER = "user" + TEST_DOMAIN;
-    protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
-    protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
-    protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
     protected static final Authentication TEST_AUTH = new TestingAuthenticationToken("whoever", "ignored", "ROLE_ADMIN");
     protected static final String AUTHORITY_ADMIN = "ADMIN";
     protected static final String AUTHORITY_EDITOR = "EDITOR";
     protected static final String AUTHORITY_USER = "USER";
     protected static final List<String> AUTHORITIES = List.of(AUTHORITY_ADMIN, AUTHORITY_EDITOR, AUTHORITY_USER);
-
-    private static URI authorizationURI;
-
-    protected final JdbcClient jdbcClient;
-    protected final Keycloak keycloakAdminClient;
-    protected final String keycloakClientId;
-    protected final PermissionService permissionService;
-    protected final ObjectMapper objectMapper;
-    protected RestTestClient restTestClient;
-
-    private final AclCache aclCache;
-
-    @Value("${spexregister.keycloak.realm}")
-    protected String keycloakRealm;
-
-    @Value("${spexregister.keycloak.client.client-id}")
-    protected String keycloakClientClientId;
-
-    @Value("${spexregister.keycloak.client.client-secret}")
-    protected String keycloakClientClientSecret;
-
-    @LocalServerPort
-    protected int localPort;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
-
+    private static final String TEST_REALM = "fgv";
+    private static final String TEST_GRANT_TYPE = "password";
+    private static final String TEST_DOMAIN = "@spexregister.com";
+    protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
+    protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
+    protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
+    protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
+    protected static final String TEST_USER = "user" + TEST_DOMAIN;
+    protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
+    private static final String TEST_PASSWORD = "s3cr3t";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
@@ -153,6 +117,36 @@ public abstract class AbstractIntegrationTest {
                     "--innodb-doublewrite=0",
                     "--skip-log-bin",
                     "--performance-schema=OFF");
+    private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
+    private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
+    private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
+    private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(2, TimeUnit.MINUTES)
+            .build(new CacheLoader<>() {
+                @Override
+                public @NotNull String load(@NotNull final String key) {
+                    return key.toUpperCase();
+                }
+            });
+    private static URI authorizationURI;
+
+    static {
+        Startables.deepStart(mysql, keycloak).join();
+    }
+
+    protected final JdbcClient jdbcClient;
+    protected final Keycloak keycloakAdminClient;
+    protected final String keycloakClientId;
+    protected final PermissionService permissionService;
+    protected final ObjectMapper objectMapper;
+    private final AclCache aclCache;
+    protected RestTestClient restTestClient;
+    @Value("${spexregister.keycloak.realm}")
+    protected String keycloakRealm;
+    @Value("${spexregister.keycloak.client.client-id}")
+    protected String keycloakClientClientId;
+    @Value("${spexregister.keycloak.client.client-secret}")
+    protected String keycloakClientClientSecret;
 
     /*
     @Container
@@ -163,25 +157,16 @@ public abstract class AbstractIntegrationTest {
         opensearch.start();
     }
     */
-
-    private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
-
-    static {
-        Startables.deepStart(mysql, keycloak).join();
-    }
-
-    private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
-
-    private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
-
-    private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(2, TimeUnit.MINUTES)
-            .build(new CacheLoader<>() {
-                @Override
-                public @NotNull String load(@NotNull final String key) {
-                    return key.toUpperCase();
-                }
-            });
+    @LocalServerPort
+    protected int localPort;
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
+    private CacheManager cacheManager;
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     protected AbstractIntegrationTest(final JdbcClient jdbcClient,
                                       final AclCache aclCache,
@@ -206,6 +191,15 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/" + TEST_REALM);
         registry.add("spexregister.keycloak.url", keycloak::getAuthServerUrl);
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
+    }
+
+    private static Class<?> topLevelClass(final Class<?> clazz) {
+        Class<?> current = clazz;
+
+        while (current.getEnclosingClass() != null) {
+            current = current.getEnclosingClass();
+        }
+        return current;
     }
 
     @BeforeEach
@@ -237,15 +231,6 @@ public abstract class AbstractIntegrationTest {
                 .load();
     }
 
-    private static Class<?> topLevelClass(final Class<?> clazz) {
-        Class<?> current = clazz;
-
-        while (current.getEnclosingClass() != null) {
-            current = current.getEnclosingClass();
-        }
-        return current;
-    }
-
     @AfterEach
     public void baseTearDown() {
         jdbcClient.sql("DELETE FROM acl_entry").update();
@@ -265,14 +250,6 @@ public abstract class AbstractIntegrationTest {
                         // Ignored
                     }
                 });
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public AuditorAware<String> auditorAware() {
-            return () -> Optional.of("dummy");
-        }
     }
 
     protected String obtainAccessToken(final String username, final String password) {
@@ -356,5 +333,13 @@ public abstract class AbstractIntegrationTest {
 
     protected void revokeWritePermissionFromRoleAdmin(final ObjectIdentity oid) {
         revokePermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public AuditorAware<String> auditorAware() {
+            return () -> Optional.of("dummy");
+        }
     }
 }

@@ -20,15 +20,15 @@ import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
-import nu.fgv.register.server.spexare.Spexare;
-import nu.fgv.register.server.spexare.SpexareRepository;
-import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
 import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spexare.address.AddressRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
@@ -55,9 +55,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
@@ -72,6 +72,14 @@ import static org.jeasy.random.FieldPredicates.ofType;
  */
 class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
+    private static final List<String> EDITORS = List.of(
+            "anna@spexregister.com",
+            "erik@spexregister.com",
+            "karin@spexregister.com",
+            "lars@spexregister.com",
+            "maria@spexregister.com",
+            "olof@spexregister.com"
+    );
     private final EasyRandom random;
     private final AuditDataSeeder seeder;
     private final TagRepository tagRepository;
@@ -138,14 +146,79 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
                 "revchanges", "revinfo");
     }
 
-    private static final List<String> EDITORS = List.of(
-            "anna@spexregister.com",
-            "erik@spexregister.com",
-            "karin@spexregister.com",
-            "lars@spexregister.com",
-            "maria@spexregister.com",
-            "olof@spexregister.com"
-    );
+    private <T> T asAdmin(final Supplier<T> supplier) {
+        final AtomicReference<T> result = new AtomicReference<>();
+
+        runAsSystem(() -> result.set(supplier.get()));
+
+        return result.get();
+    }
+
+    private SpexCategory persistSpexCategory() {
+        final var category = random.nextObject(SpexCategory.class);
+
+        category.setId(null);
+        category.setFirstYear("1948");
+        category.setLogo(null);
+
+        return spexCategoryRepository.save(category);
+    }
+
+    private SpexDetails persistSpexDetails(final SpexCategory category, final String title) {
+        final var details = random.nextObject(SpexDetails.class);
+
+        details.setId(null);
+        details.setTitle(title);
+        details.setCategory(category);
+        details.setPoster(null);
+
+        return spexDetailsRepository.save(details);
+    }
+
+    private Spex persistSpex(final SpexDetails details, final String year) {
+        final var spex = random.nextObject(Spex.class);
+
+        spex.setId(null);
+        spex.setParent(null);
+        spex.setDetails(details);
+        spex.setYear(year);
+
+        return spexRepository.save(spex);
+    }
+
+    private Tag persistTag() {
+        final Tag tag = random.nextObject(Tag.class);
+
+        tag.setId(null);
+
+        return tagRepository.save(tag);
+    }
+
+    private Type persistType() {
+        final var type = random.nextObject(Type.class);
+
+        type.setType(TypeType.ADDRESS);
+
+        return typeRepository.save(type);
+    }
+
+    private Spexare persistSpexare() {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
+    private Address persistAddress(final Type type, final Spexare spexare) {
+        final var address = random.nextObject(Address.class);
+
+        address.setId(null);
+        address.setType(type);
+        address.setSpexare(spexare);
+
+        return addressRepository.save(address);
+    }
 
     @Nested
     @DisplayName("Seed baseline")
@@ -389,79 +462,5 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
                     .filteredOn(e -> e.action() == RestoreAction.CREATE)
                     .isNotEmpty();
         }
-    }
-
-    private <T> T asAdmin(final Supplier<T> supplier) {
-        final AtomicReference<T> result = new AtomicReference<>();
-
-        runAsSystem(() -> result.set(supplier.get()));
-
-        return result.get();
-    }
-
-    private SpexCategory persistSpexCategory() {
-        final var category = random.nextObject(SpexCategory.class);
-
-        category.setId(null);
-        category.setFirstYear("1948");
-        category.setLogo(null);
-
-        return spexCategoryRepository.save(category);
-    }
-
-    private SpexDetails persistSpexDetails(final SpexCategory category, final String title) {
-        final var details = random.nextObject(SpexDetails.class);
-
-        details.setId(null);
-        details.setTitle(title);
-        details.setCategory(category);
-        details.setPoster(null);
-
-        return spexDetailsRepository.save(details);
-    }
-
-    private Spex persistSpex(final SpexDetails details, final String year) {
-        final var spex = random.nextObject(Spex.class);
-
-        spex.setId(null);
-        spex.setParent(null);
-        spex.setDetails(details);
-        spex.setYear(year);
-
-        return spexRepository.save(spex);
-    }
-
-    private Tag persistTag() {
-        final Tag tag = random.nextObject(Tag.class);
-
-        tag.setId(null);
-
-        return tagRepository.save(tag);
-    }
-
-    private Type persistType() {
-        final var type = random.nextObject(Type.class);
-
-        type.setType(TypeType.ADDRESS);
-
-        return typeRepository.save(type);
-    }
-
-    private Spexare persistSpexare() {
-        final var spexare = random.nextObject(Spexare.class);
-
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
-    }
-
-    private Address persistAddress(final Type type, final Spexare spexare) {
-        final var address = random.nextObject(Address.class);
-
-        address.setId(null);
-        address.setType(type);
-        address.setSpexare(spexare);
-
-        return addressRepository.save(address);
     }
 }

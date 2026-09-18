@@ -37,8 +37,8 @@ import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.data.domain.Window;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -78,6 +78,31 @@ public class AuditService {
     private final PermissionService permissionService;
     private final EntityManager entityManager;
     private final EntityManagerFactory entityManagerFactory;
+
+    private static void writeField(final Object target, final String name, final @Nullable Object value) {
+        final Field field = ReflectionUtils.findField(target.getClass(), name);
+
+        if (field == null) {
+            return;
+        }
+
+        ReflectionUtils.makeAccessible(field);
+        ReflectionUtils.setField(field, target, value);
+    }
+
+    private static @Nullable Long asLong(final @Nullable Object id) {
+        return switch (id) {
+            case null -> null;
+            case final Number number -> number.longValue();
+            default -> null;
+        };
+    }
+
+    private static Instant sinceFrom(final @Nullable Integer sinceInDays) {
+        final int days = sinceInDays == null || sinceInDays == -1 ? DEFAULT_SINCE_IN_DAYS : sinceInDays;
+
+        return LocalDate.now().minusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant();
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRevisions(final AuditedType type, final String rawId) {
@@ -571,17 +596,6 @@ public class AuditService {
         }
     }
 
-    private static void writeField(final Object target, final String name, final @Nullable Object value) {
-        final Field field = ReflectionUtils.findField(target.getClass(), name);
-
-        if (field == null) {
-            return;
-        }
-
-        ReflectionUtils.makeAccessible(field);
-        ReflectionUtils.setField(field, target, value);
-    }
-
     private Object instantiate(final Class<?> entityClass) {
         try {
             final var constructor = entityClass.getDeclaredConstructor();
@@ -723,20 +737,6 @@ public class AuditService {
         return entityManagerFactory.getPersistenceUnitUtil().getIdentifier(entity);
     }
 
-    private static @Nullable Long asLong(final @Nullable Object id) {
-        return switch (id) {
-            case null -> null;
-            case final Number number -> number.longValue();
-            default -> null;
-        };
-    }
-
-    private static Instant sinceFrom(final @Nullable Integer sinceInDays) {
-        final int days = sinceInDays == null || sinceInDays == -1 ? DEFAULT_SINCE_IN_DAYS : sinceInDays;
-
-        return LocalDate.now().minusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant();
-    }
-
     private record FeedCriteria(long since, @Nullable String entityName) {
         private String where() {
             return "WHERE r.modifiedAt >= :since" + (entityName == null ? "" : " AND :entityName MEMBER OF r.modifiedEntityNames");
@@ -744,9 +744,9 @@ public class AuditService {
     }
 
     private static final class RestoreContext {
+        private final List<RestoreWarningDto> warnings = new ArrayList<>();
         private int updated;
         private int created;
         private int deleted;
-        private final List<RestoreWarningDto> warnings = new ArrayList<>();
     }
 }

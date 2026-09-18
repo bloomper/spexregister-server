@@ -10,8 +10,8 @@
 
 xref:../api-guide.adoc[Back to API guide]
 
-A saved search is private to the user who created it. Every operation is scoped to the authenticated
-user, so one user can neither see nor change another user's saved searches.
+A saved search is private to the user who created it.
+Every operation is scoped to the authenticated user, so one user can neither see nor change another user's saved searches.
 
 [[get_all]]
 == Get (all)

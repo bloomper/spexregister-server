@@ -121,6 +121,39 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     void tearDown() {
     }
 
+    private Toggle randomizeToggle(final Type type, final Spexare spexare) {
+        final var toggle = random.nextObject(Toggle.class);
+        toggle.setSpexare(spexare);
+        toggle.setType(type);
+        return toggle;
+    }
+
+    private Toggle persistToggle(final Toggle toggle) {
+        toggle.setId(null);
+
+        return repository.save(toggle);
+    }
+
+    private Type randomizeType() {
+        final var type = random.nextObject(Type.class);
+        type.setType(TypeType.TOGGLE);
+        return type;
+    }
+
+    private Type persistType(final Type type) {
+        return typeRepository.save(type);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Create")
     class CreateTests {
@@ -798,39 +831,6 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private Toggle randomizeToggle(final Type type, final Spexare spexare) {
-        final var toggle = random.nextObject(Toggle.class);
-        toggle.setSpexare(spexare);
-        toggle.setType(type);
-        return toggle;
-    }
-
-    private Toggle persistToggle(final Toggle toggle) {
-        toggle.setId(null);
-
-        return repository.save(toggle);
-    }
-
-    private Type randomizeType() {
-        final var type = random.nextObject(Type.class);
-        type.setType(TypeType.TOGGLE);
-        return type;
-    }
-
-    private Type persistType(final Type type) {
-        return typeRepository.save(type);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 
 }

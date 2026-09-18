@@ -132,6 +132,46 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Spex randomizeSpex(@Nullable final SpexCategory category) {
+        final var spex = random.nextObject(Spex.class);
+        spex.setParent(null);
+        final var details = random.nextObject(SpexDetails.class);
+        details.setCategory(category);
+        spex.setDetails(details);
+        return spex;
+    }
+
+    private Spex randomizeRevival(final Spex parent) {
+        final var revival = random.nextObject(Spex.class);
+        revival.setParent(parent);
+        revival.setDetails(parent.getDetails());
+        return revival;
+    }
+
+    private SpexCategory randomizeSpexCategory() {
+        return random.nextObject(SpexCategory.class);
+    }
+
+    private Spex persistSpex(final Spex spex) {
+        spex.setId(null);
+        spex.getDetails().setId(null);
+        final var details = detailsRepository.save(spex.getDetails());
+        spex.setDetails(details);
+        return repository.save(spex);
+    }
+
+    private Spex persistRevival(final Spex spex) {
+        spex.setId(null);
+
+        return repository.save(spex);
+    }
+
+    private SpexCategory persistSpexCategory(final SpexCategory category) {
+        category.setId(null);
+
+        return categoryRepository.save(category);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -1858,46 +1898,5 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
-    }
-
-
-    private Spex randomizeSpex(@Nullable final SpexCategory category) {
-        final var spex = random.nextObject(Spex.class);
-        spex.setParent(null);
-        final var details = random.nextObject(SpexDetails.class);
-        details.setCategory(category);
-        spex.setDetails(details);
-        return spex;
-    }
-
-    private Spex randomizeRevival(final Spex parent) {
-        final var revival = random.nextObject(Spex.class);
-        revival.setParent(parent);
-        revival.setDetails(parent.getDetails());
-        return revival;
-    }
-
-    private SpexCategory randomizeSpexCategory() {
-        return random.nextObject(SpexCategory.class);
-    }
-
-    private Spex persistSpex(final Spex spex) {
-        spex.setId(null);
-        spex.getDetails().setId(null);
-        final var details = detailsRepository.save(spex.getDetails());
-        spex.setDetails(details);
-        return repository.save(spex);
-    }
-
-    private Spex persistRevival(final Spex spex) {
-        spex.setId(null);
-
-        return repository.save(spex);
-    }
-
-    private SpexCategory persistSpexCategory(final SpexCategory category) {
-        category.setId(null);
-
-        return categoryRepository.save(category);
     }
 }

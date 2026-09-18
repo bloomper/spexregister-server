@@ -2,22 +2,22 @@
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
 VALUES ('Chalmersspexet', '1948', 'system', CURRENT_TIME, 0);
 SET
-@spex_category_chalmersspexet = LAST_INSERT_ID();
+    @spex_category_chalmersspexet = LAST_INSERT_ID();
 
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
 VALUES ('Bobspexet', '2003', 'system', CURRENT_TIME, 0);
 SET
-@spex_category_bobspexet = LAST_INSERT_ID();
+    @spex_category_bobspexet = LAST_INSERT_ID();
 
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
 VALUES ('Veraspexet', '2003', 'system', CURRENT_TIME, 0);
 SET
-@spex_category_veraspexet = LAST_INSERT_ID();
+    @spex_category_veraspexet = LAST_INSERT_ID();
 
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
 VALUES ('Jubileumsspex', '1948', 'system', CURRENT_TIME, 0);
 SET
-@spex_category_jubileumsspex = LAST_INSERT_ID();
+    @spex_category_jubileumsspex = LAST_INSERT_ID();
 
 -- Spex details
 INSERT INTO spex_details (title, category_id, created_by, created_at, version)
@@ -230,235 +230,331 @@ VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', C
 
 -- Revivals
 CREATE
-TEMPORARY TABLE temp_spex AS
+    TEMPORARY TABLE temp_spex AS
 SELECT id, year, details_id
 FROM spex
 WHERE parent_id IS NULL;
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1968', (SELECT id FROM spex_details WHERE title = 'Henrik 8'),
-        (SELECT id FROM temp_spex WHERE year = '1954' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Henrik 8')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1954'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Henrik 8')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1971', (SELECT id FROM spex_details WHERE title = 'Montezuma'),
-        (SELECT id FROM temp_spex WHERE year = '1966' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Montezuma')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1966'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Montezuma')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1972', (SELECT id FROM spex_details WHERE title = 'Alexander'),
-        (SELECT id FROM temp_spex WHERE year = '1967' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Alexander')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1967'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Alexander')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1973', (SELECT id FROM spex_details WHERE title = 'Richard III'),
-        (SELECT id FROM temp_spex WHERE year = '1968' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Richard III')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1968'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Richard III')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1974', (SELECT id FROM spex_details WHERE title = 'Nebukadnessar'),
-        (SELECT id FROM temp_spex WHERE year = '1964' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Nebukadnessar')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1964'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Nebukadnessar')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1975', (SELECT id FROM spex_details WHERE title = 'Margareta'),
-        (SELECT id FROM temp_spex WHERE year = '1969' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Margareta')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1969'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Margareta')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1976', (SELECT id FROM spex_details WHERE title = 'Charles II'),
-        (SELECT id FROM temp_spex WHERE year = '1963' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Charles II')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1963'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Charles II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1977', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
-        (SELECT id FROM temp_spex WHERE year = '1959' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1959'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1978', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
-        (SELECT id FROM temp_spex WHERE year = '1950' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1950'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1980', (SELECT id FROM spex_details WHERE title = 'George Washington'),
-        (SELECT id FROM temp_spex WHERE year = '1970' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'George Washington')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1970'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'George Washington')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1981', (SELECT id FROM spex_details WHERE title = 'Don Pedro'),
-        (SELECT id FROM temp_spex WHERE year = '1962' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Don Pedro')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1962'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Don Pedro')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1982', (SELECT id FROM spex_details WHERE title = 'Lionardo da Vinci'),
-        (SELECT id FROM temp_spex WHERE year = '1975' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Lionardo da Vinci')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1975'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Lionardo da Vinci')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1983', (SELECT id FROM spex_details WHERE title = 'Anna'),
-        (SELECT id FROM temp_spex WHERE year = '1952' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Anna')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1952'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Anna')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1985', (SELECT id FROM spex_details WHERE title = 'Napoleon'),
-        (SELECT id FROM temp_spex WHERE year = '1956' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Napoleon')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1956'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Napoleon')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1986', (SELECT id FROM spex_details WHERE title = 'Noak'),
-        (SELECT id FROM temp_spex WHERE year = '1971' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Noak')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1971'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Noak')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1987', (SELECT id FROM spex_details WHERE title = 'Nero'),
-        (SELECT id FROM temp_spex WHERE year = '1979' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Nero')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1979'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Nero')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1988', (SELECT id FROM spex_details WHERE title = 'Gustav E:son Vasa'),
-        (SELECT id FROM temp_spex WHERE year = '1955' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Gustav E:son Vasa')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1955'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Gustav E:son Vasa')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1989', (SELECT id FROM spex_details WHERE title = 'Turandot'),
-        (SELECT id FROM temp_spex WHERE year = '1972' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Turandot')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1972'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Turandot')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1989', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
-        (SELECT id FROM temp_spex WHERE year = '1959' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1959'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1990', (SELECT id FROM spex_details WHERE title = 'Nils Dacke'),
-        (SELECT id FROM temp_spex WHERE year = '1977' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Nils Dacke')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1977'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Nils Dacke')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1991', (SELECT id FROM spex_details WHERE title = 'Sherlock Holmes'),
-        (SELECT id FROM temp_spex WHERE year = '1974' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Sherlock Holmes')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1974'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Sherlock Holmes')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1992', (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven'),
-        (SELECT id FROM temp_spex WHERE year = '1981' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1981'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1993', (SELECT id FROM spex_details WHERE title = 'Sven Duva'),
-        (SELECT id FROM temp_spex WHERE year = '1965' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Sven Duva')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1965'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Sven Duva')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1994', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'),
-        (SELECT id FROM temp_spex WHERE year = '1984' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1984'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1995', (SELECT id FROM spex_details WHERE title = 'Dr Livingstone'),
-        (SELECT id FROM temp_spex WHERE year = '1978' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Dr Livingstone')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1978'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Dr Livingstone')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1996', (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung'),
-        (SELECT id FROM temp_spex WHERE year = '1985' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1985'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1997', (SELECT id FROM spex_details WHERE title = 'Tutankhamon'),
-        (SELECT id FROM temp_spex WHERE year = '1980' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Tutankhamon')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1980'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Tutankhamon')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'Klondike'),
-        (SELECT id FROM temp_spex WHERE year = '1990' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Klondike')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1990'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Klondike')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'Henrik 8'),
-        (SELECT id FROM temp_spex WHERE year = '1954' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Henrik 8')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1954'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Henrik 8')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'George Washington'),
-        (SELECT id FROM temp_spex WHERE year = '1970' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'George Washington')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1970'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'George Washington')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1998', (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven'),
-        (SELECT id FROM temp_spex WHERE year = '1981' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1981'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Ludwig van Beethoven')), 'system', CURRENT_TIME,
+        0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1999', (SELECT id FROM spex_details WHERE title = 'John Ericsson'),
-        (SELECT id FROM temp_spex WHERE year = '1982' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'John Ericsson')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1982'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'John Ericsson')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2000', (SELECT id FROM spex_details WHERE title = 'Bojan'),
-        (SELECT id FROM temp_spex WHERE year = '1948' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Bojan')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1948'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Bojan')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2001', (SELECT id FROM spex_details WHERE title = 'Ludvig XIV'),
-        (SELECT id FROM temp_spex WHERE year = '1976' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Ludvig XIV')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1976'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Ludvig XIV')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2002', (SELECT id FROM spex_details WHERE title = 'Anna'),
-        (SELECT id FROM temp_spex WHERE year = '1952' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Anna')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1952'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Anna')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2005', (SELECT id FROM spex_details WHERE title = 'Montgomery'),
-        (SELECT id FROM temp_spex WHERE year = '1987' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Montgomery')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1987'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Montgomery')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2006', (SELECT id FROM spex_details WHERE title = 'Stradivarius'),
-        (SELECT id FROM temp_spex WHERE year = '1993' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Stradivarius')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1993'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Stradivarius')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2007', (SELECT id FROM spex_details WHERE title = 'Filip II'),
-        (SELECT id FROM temp_spex WHERE year = '1983' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Filip II')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1983'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Filip II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2008', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
-        (SELECT id FROM temp_spex WHERE year = '1950' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1950'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2009', (SELECT id FROM spex_details WHERE title = 'Svartskägg'),
-        (SELECT id FROM temp_spex WHERE year = '1988' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Svartskägg')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1988'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Svartskägg')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2010', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
-        (SELECT id FROM temp_spex WHERE year = '1950' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1950'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2012', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
-        (SELECT id FROM temp_spex WHERE year = '1959' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1959'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Gagarin'),
-        (SELECT id FROM temp_spex WHERE year = '2003' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Gagarin')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '2003'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Gagarin')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Mata Hari'),
-        (SELECT id FROM temp_spex WHERE year = '2003' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Mata Hari')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '2003'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Mata Hari')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'),
-        (SELECT id FROM temp_spex WHERE year = '1984' AND
-        details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1984'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
 
 DROP
-TEMPORARY TABLE temp_spex;
+    TEMPORARY TABLE temp_spex;

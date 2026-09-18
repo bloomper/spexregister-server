@@ -118,6 +118,28 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private Activity randomizeActivity(final Spexare spexare) {
+        final var activity = random.nextObject(Activity.class);
+        activity.setSpexare(spexare);
+        return activity;
+    }
+
+    private Activity persistActivity(final Activity activity) {
+        activity.setId(null);
+
+        return repository.save(activity);
+    }
+
+    private Spexare randomizeSpexare() {
+        return random.nextObject(Spexare.class);
+    }
+
+    private Spexare persistSpexare(final Spexare spexare) {
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -531,28 +553,6 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(repository.count()).isEqualTo(1);
         }
-    }
-
-    private Activity randomizeActivity(final Spexare spexare) {
-        final var activity = random.nextObject(Activity.class);
-        activity.setSpexare(spexare);
-        return activity;
-    }
-
-    private Activity persistActivity(final Activity activity) {
-        activity.setId(null);
-
-        return repository.save(activity);
-    }
-
-    private Spexare randomizeSpexare() {
-        return random.nextObject(Spexare.class);
-    }
-
-    private Spexare persistSpexare(final Spexare spexare) {
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
     }
 
 }

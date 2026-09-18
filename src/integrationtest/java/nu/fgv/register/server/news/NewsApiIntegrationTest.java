@@ -94,6 +94,20 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     void tearDown() {
     }
 
+    private News randomizeNews() {
+        final var news = random.nextObject(News.class);
+
+        news.setPublished(true);
+
+        return news;
+    }
+
+    private News persistNews(final News news) {
+        news.setId(null);
+
+        return repository.save(news);
+    }
+
     @Nested
     @DisplayName("Retrieve paged")
     class RetrievePagedTests {
@@ -811,20 +825,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).hasSize(1);
         }
-    }
-
-    private News randomizeNews() {
-        final var news = random.nextObject(News.class);
-
-        news.setPublished(true);
-
-        return news;
-    }
-
-    private News persistNews(final News news) {
-        news.setId(null);
-
-        return repository.save(news);
     }
 
 }

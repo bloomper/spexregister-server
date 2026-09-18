@@ -26,22 +26,22 @@ import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spexare.address.AddressRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.CountryCodeRandomizer;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
-import nu.fgv.register.server.util.AbstractIntegrationTest;
-import nu.fgv.register.server.util.HalEmbeddedResponse;
+import org.hibernate.envers.RevisionType;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.EmailRandomizer;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.hibernate.envers.RevisionType;
-import org.jspecify.annotations.NonNull;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -52,7 +52,6 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -121,6 +120,36 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
 
         JdbcTestUtils.deleteFromTables(jdbcClient, "address", "type", "spexare",
                 "address_audit", "type_audit", "spexare_audit", "revchanges", "revinfo");
+    }
+
+    private long latestRevision() {
+        return Objects.requireNonNull(jdbcClient.sql("SELECT MAX(id) FROM revinfo").query(Long.class).single());
+    }
+
+    private Type persistType() {
+        final var type = random.nextObject(Type.class);
+
+        type.setType(TypeType.ADDRESS);
+
+        return typeRepository.save(type);
+    }
+
+    private Spexare persistSpexare() {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setId(null);
+
+        return spexareRepository.save(spexare);
+    }
+
+    private Address persistAddress(final Type type, final Spexare spexare) {
+        final var address = random.nextObject(Address.class);
+
+        address.setId(null);
+        address.setType(type);
+        address.setSpexare(spexare);
+
+        return addressRepository.save(address);
     }
 
     @Nested
@@ -316,35 +345,5 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             assertThat(remaining).extracting(Address::getId).contains(kept.getId());
             assertThat(remaining).extracting(Address::getId).doesNotContain(added.getId(), removed.getId());
         }
-    }
-
-    private long latestRevision() {
-        return Objects.requireNonNull(jdbcClient.sql("SELECT MAX(id) FROM revinfo").query(Long.class).single());
-    }
-
-    private Type persistType() {
-        final var type = random.nextObject(Type.class);
-
-        type.setType(TypeType.ADDRESS);
-
-        return typeRepository.save(type);
-    }
-
-    private Spexare persistSpexare() {
-        final var spexare = random.nextObject(Spexare.class);
-
-        spexare.setId(null);
-
-        return spexareRepository.save(spexare);
-    }
-
-    private Address persistAddress(final Type type, final Spexare spexare) {
-        final var address = random.nextObject(Address.class);
-
-        address.setId(null);
-        address.setType(type);
-        address.setSpexare(spexare);
-
-        return addressRepository.save(address);
     }
 }

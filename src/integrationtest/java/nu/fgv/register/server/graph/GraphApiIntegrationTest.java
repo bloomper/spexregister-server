@@ -130,6 +130,77 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
                 "spex_activity_audit", "activity_audit", "spexare_audit", "spex_audit", "spex_details_audit", "spex_category_audit");
     }
 
+    private Spexare persistReadableSpexare(final String firstName, final String lastName, final boolean published) {
+        final var spexare = random.nextObject(Spexare.class);
+
+        spexare.setId(null);
+        spexare.setFirstName(firstName);
+        spexare.setLastName(lastName);
+        spexare.setPublished(published);
+
+        final var saved = spexareRepository.save(spexare);
+        final var oid = toObjectIdentity(Spexare.class, saved.getId());
+
+        // Mirrors SpexareService.create: the user role only gets READ on published people.
+        grantReadPermissionToRoleAdmin(oid);
+        grantReadPermissionToRoleEditor(oid);
+
+        if (published) {
+            grantReadPermissionToRoleUser(oid);
+        }
+
+        return saved;
+    }
+
+    private Spex persistReadableSpex() {
+        final var category = random.nextObject(SpexCategory.class);
+
+        category.setId(null);
+
+        final var savedCategory = spexCategoryRepository.save(category);
+
+        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
+
+        final var details = random.nextObject(SpexDetails.class);
+
+        details.setId(null);
+        details.setCategory(savedCategory);
+
+        final var spex = random.nextObject(Spex.class);
+
+        spex.setId(null);
+        spex.setParent(null);
+        spex.setDetails(spexDetailsRepository.save(details));
+
+        final var saved = spexRepository.save(spex);
+        final var oid = toObjectIdentity(Spex.class, saved.getId());
+
+        grantReadPermissionToRoleAdmin(oid);
+        grantReadPermissionToRoleEditor(oid);
+        grantReadPermissionToRoleUser(oid);
+
+        return saved;
+    }
+
+    private void persistParticipation(final Spexare spexare, final Spex spex) {
+        final var activity = random.nextObject(Activity.class);
+
+        activity.setId(null);
+        activity.setSpexare(spexare);
+        activity.setSpexActivity(null);
+
+        final var savedActivity = activityRepository.save(activity);
+        final var spexActivity = random.nextObject(SpexActivity.class);
+
+        spexActivity.setId(null);
+        spexActivity.setActivity(savedActivity);
+        spexActivity.setSpex(spex);
+
+        spexActivityRepository.save(spexActivity);
+    }
+
     @Nested
     @DisplayName("Search")
     class SearchTests {
@@ -316,77 +387,6 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody()
                     .jsonPath("_embedded").doesNotExist();
         }
-    }
-
-    private Spexare persistReadableSpexare(final String firstName, final String lastName, final boolean published) {
-        final var spexare = random.nextObject(Spexare.class);
-
-        spexare.setId(null);
-        spexare.setFirstName(firstName);
-        spexare.setLastName(lastName);
-        spexare.setPublished(published);
-
-        final var saved = spexareRepository.save(spexare);
-        final var oid = toObjectIdentity(Spexare.class, saved.getId());
-
-        // Mirrors SpexareService.create: the user role only gets READ on published people.
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-
-        if (published) {
-            grantReadPermissionToRoleUser(oid);
-        }
-
-        return saved;
-    }
-
-    private Spex persistReadableSpex() {
-        final var category = random.nextObject(SpexCategory.class);
-
-        category.setId(null);
-
-        final var savedCategory = spexCategoryRepository.save(category);
-
-        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-
-        final var details = random.nextObject(SpexDetails.class);
-
-        details.setId(null);
-        details.setCategory(savedCategory);
-
-        final var spex = random.nextObject(Spex.class);
-
-        spex.setId(null);
-        spex.setParent(null);
-        spex.setDetails(spexDetailsRepository.save(details));
-
-        final var saved = spexRepository.save(spex);
-        final var oid = toObjectIdentity(Spex.class, saved.getId());
-
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-        grantReadPermissionToRoleUser(oid);
-
-        return saved;
-    }
-
-    private void persistParticipation(final Spexare spexare, final Spex spex) {
-        final var activity = random.nextObject(Activity.class);
-
-        activity.setId(null);
-        activity.setSpexare(spexare);
-        activity.setSpexActivity(null);
-
-        final var savedActivity = activityRepository.save(activity);
-        final var spexActivity = random.nextObject(SpexActivity.class);
-
-        spexActivity.setId(null);
-        spexActivity.setActivity(savedActivity);
-        spexActivity.setSpex(spex);
-
-        spexActivityRepository.save(spexActivity);
     }
 
 }
