@@ -157,6 +157,7 @@ Spexregister Server uses the following resources:
 *** xref:resources/spexare-activity-task.adoc[Task]
 **** xref:resources/spexare-activity-task-actor.adoc[Actor]
 ** xref:resources/spexare-address.adoc[Address]
+** xref:resources/spexare-bulk.adoc[Bulk]
 ** xref:resources/spexare-consent.adoc[Consent]
 ** xref:resources/spexare-membership.adoc[Membership]
 ** xref:resources/spexare-tagging.adoc[Tag]

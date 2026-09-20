@@ -34,7 +34,7 @@ public class AuditOperationInstrumentation extends SimplePerformantInstrumentati
 
     @Override
     public InstrumentationContext<ExecutionResult> beginExecuteOperation(final InstrumentationExecuteOperationParameters parameters,
-                                                                        final InstrumentationState state) {
+                                                                         final InstrumentationState state) {
         final AuditContext.Origin origin = AuditContext.current();
         final OperationDefinition operation = parameters.getExecutionContext().getOperationDefinition();
         final String name = operation == null ? null : operation.getName();

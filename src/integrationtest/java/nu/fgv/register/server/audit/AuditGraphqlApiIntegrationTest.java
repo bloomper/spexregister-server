@@ -99,7 +99,9 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         return revisions.getFirst();
     }
 
-    /** Envers stamps the time itself, so an old revision has to be made old afterwards. */
+    /**
+     * Envers stamps the time itself, so an old revision has to be made old afterwards.
+     */
     private void backdateRevision(final Long revision, final LocalDate when) {
         jdbcClient
                 .sql("UPDATE revinfo SET modified_at = :modifiedAt WHERE id = :id")

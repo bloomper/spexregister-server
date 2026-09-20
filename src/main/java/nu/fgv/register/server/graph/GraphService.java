@@ -60,9 +60,9 @@ import java.util.stream.Stream;
 
 import static nu.fgv.register.server.graph.GraphNodeDto.idOf;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
-import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author Anders Jacobsson

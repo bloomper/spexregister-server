@@ -1,0 +1,15 @@
+query spexareBulkPreview ($input: SpexareBulkInput!) {
+    spexareBulkPreview(input: $input) {
+        operation
+        requested
+        applied
+        unchanged
+        blocked
+        entries {
+            id
+            label
+            outcome
+            detail
+        }
+    }
+}

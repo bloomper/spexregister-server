@@ -1,0 +1,35 @@
+= Bulk
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+A bulk operation applies one change to many spexare at once.
+The whole batch runs in a single transaction, so it is recorded as one revision in the audit trail.
+Supply a reason in the ``X-Audit-Reason`` request header to have it recorded with that revision.
+
+The target is either ``ids`` or ``filter``, never both, and is limited to 500 spexare.
+
+A spexare that already has the requested state is reported as ``UNCHANGED`` and skipped rather than failing the batch.
+A spexare the caller may not modify is reported as ``NOT_PERMITTED`` and left alone.
+An unknown tag, spex, task or type id fails the whole batch before anything is written.
+
+[[preview]]
+== Preview
+
+Computes the outcome without writing anything, so the counts can be confirmed before applying.
+
+operation::spexare-bulk-preview[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+[[apply]]
+== Apply
+
+operation::spexare-bulk-apply[snippets='security,request-headers,request-fields,http-request,response-headers,response-fields,links,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

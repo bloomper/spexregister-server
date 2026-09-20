@@ -1,0 +1,15 @@
+mutation spexareBulkApply ($input: SpexareBulkInput!) {
+    spexareBulkApply(input: $input) {
+        operation
+        requested
+        applied
+        unchanged
+        blocked
+        entries {
+            id
+            label
+            outcome
+            detail
+        }
+    }
+}

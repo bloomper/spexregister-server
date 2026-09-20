@@ -172,7 +172,9 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         return saved;
     }
 
-    /** Points the register's own user row at the Keycloak account the test authenticates as. */
+    /**
+     * Points the register's own user row at the Keycloak account the test authenticates as.
+     */
     private void linkToTestUser(final Spexare spexare) {
         final var externalId = keycloakAdminClient.realm(keycloakRealm).users().search(TEST_USER).getFirst().getId();
         final var user = new User();

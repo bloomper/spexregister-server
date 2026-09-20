@@ -1,0 +1,67 @@
+extend type Query {
+    spexareBulkPreview(input: SpexareBulkInput!): BulkResult
+}
+
+extend type Mutation {
+    spexareBulkApply(input: SpexareBulkInput!): BulkResult
+}
+
+input BulkTarget {
+    ids: [ID!]
+    filter: String
+}
+
+input TypeValue {
+    typeId: ID!
+    value: Boolean!
+}
+
+input SpexareBulkFields {
+    published: Boolean
+    deceased: Boolean
+}
+
+input SpexareBulkInput {
+    target: BulkTarget!
+    operation: SpexareBulkOperation!
+    tags: [ID!]
+    spex: [ID!]
+    tasks: [ID!]
+    spexId: ID
+    values: [TypeValue!]
+    fields: SpexareBulkFields
+}
+
+enum SpexareBulkOperation {
+    TAG_ADD
+    TAG_REMOVE
+    SPEX_ADD
+    SPEX_REMOVE
+    TASK_ADD
+    TASK_REMOVE
+    CONSENT_SET
+    TOGGLE_SET
+    FIELDS_SET
+}
+
+type BulkResult {
+    operation: SpexareBulkOperation!
+    requested: Int!
+    applied: Int!
+    unchanged: Int!
+    blocked: Int!
+    entries: [BulkEntry!]!
+}
+
+type BulkEntry {
+    id: ID!
+    label: String!
+    outcome: BulkOutcome!
+    detail: String
+}
+
+enum BulkOutcome {
+    APPLIED
+    UNCHANGED
+    NOT_PERMITTED
+}
