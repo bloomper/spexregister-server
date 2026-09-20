@@ -1,0 +1,27 @@
+query revisionDetail ($revision: Long!) {
+    revisionDetail (revision: $revision) {
+        revision
+        modifiedAt
+        modifiedBy
+        source
+        operation
+        comment
+        entities {
+            type
+            entityId
+            entityLabel
+            revisionType
+            changes {
+                field
+                oldValue
+                newValue
+                binary
+            }
+            target {
+                type
+                id
+                label
+            }
+        }
+    }
+}

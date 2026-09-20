@@ -19,6 +19,8 @@ package nu.fgv.register.server.audit;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -69,6 +71,16 @@ public class AuditRevisionEntity {
 
     @Column(name = "modified_by")
     private String modifiedBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", length = 32)
+    private AuditSource source;
+
+    @Column(name = "operation")
+    private String operation;
+
+    @Column(name = "comment", length = 512)
+    private String comment;
 
     @ElementCollection(
             fetch = FetchType.EAGER

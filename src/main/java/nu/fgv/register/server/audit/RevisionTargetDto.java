@@ -18,24 +18,15 @@ package nu.fgv.register.server.audit;
 
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
-import org.springframework.hateoas.server.core.Relation;
-
-import java.time.Instant;
-import java.util.List;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Builder
-@Relation(collectionRelation = "revisions", itemRelation = "revision")
-public record RevisionFeedEntryDto(
-        Long revision,
-        Instant modifiedAt,
-        String modifiedBy,
-        List<AuditedType> types,
-        @Nullable AuditSource source,
-        @Nullable String operation,
-        @Nullable String comment
+public record RevisionTargetDto(
+        AuditedType type,
+        Long id,
+        @Nullable String label
 ) {
 }

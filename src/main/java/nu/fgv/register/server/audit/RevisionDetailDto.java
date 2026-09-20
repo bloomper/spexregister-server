@@ -28,14 +28,14 @@ import java.util.List;
  * @since 2.0
  */
 @Builder
-@Relation(collectionRelation = "revisions", itemRelation = "revision")
-public record RevisionFeedEntryDto(
+@Relation(itemRelation = "revisionDetail")
+public record RevisionDetailDto(
         Long revision,
         Instant modifiedAt,
         String modifiedBy,
-        List<AuditedType> types,
         @Nullable AuditSource source,
         @Nullable String operation,
-        @Nullable String comment
+        @Nullable String comment,
+        List<RevisionEntityChangeDto> entities
 ) {
 }

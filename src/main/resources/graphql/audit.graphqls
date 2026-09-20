@@ -2,7 +2,9 @@ extend type Query {
     revisions(type: AuditedType!, id: ID!): [Revision]
     revision(type: AuditedType!, id: ID!, revision: Long!): Revision
     relatedRevisions(type: AuditedType!, id: ID!, relatedType: AuditedType!): [Revision]
-    revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, sinceInDays: Int = 90): RevisionFeedConnection
+    revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, modifiedBy: [String!], sources: [AuditSource!], from: Date, to: Date, sinceInDays: Int = 90): RevisionFeedConnection
+    revisionDetail(revision: Long!): RevisionDetail
+    revisionAuthors: [String!]!
     restorePreview(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestorePreview
 }
 
@@ -35,6 +37,34 @@ type RevisionFeedEntry {
     modifiedAt: Instant!
     modifiedBy: String!
     types: [AuditedType!]!
+    source: AuditSource
+    operation: String
+    comment: String
+}
+
+type RevisionDetail {
+    revision: Long!
+    modifiedAt: Instant!
+    modifiedBy: String!
+    source: AuditSource
+    operation: String
+    comment: String
+    entities: [RevisionEntityChange!]!
+}
+
+type RevisionEntityChange {
+    type: AuditedType!
+    entityId: Long
+    entityLabel: String
+    revisionType: RevisionType!
+    changes: [FieldChange!]!
+    target: RevisionTarget
+}
+
+type RevisionTarget {
+    type: AuditedType!
+    id: Long!
+    label: String
 }
 
 type RevisionFeedConnection {
@@ -85,6 +115,13 @@ enum RestoreAction {
     UPDATE
     CREATE
     DELETE
+}
+
+enum AuditSource {
+    WEB
+    IMPORT
+    RESTORE
+    SYSTEM
 }
 
 enum AuditedType {

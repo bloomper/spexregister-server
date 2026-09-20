@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +63,26 @@ public class AuditApi {
     @RequiresAdmin
     public ResponseEntity<PagedModel<EntityModel<RevisionFeedEntryDto>>> retrieveFeed(final Pageable pageable,
                                                                                       @Nullable @RequestParam(required = false) final AuditedType type,
+                                                                                      @Nullable @RequestParam(required = false) final List<String> modifiedBy,
+                                                                                      @Nullable @RequestParam(required = false) final List<AuditSource> sources,
+                                                                                      @Nullable @RequestParam(required = false) final LocalDate from,
+                                                                                      @Nullable @RequestParam(required = false) final LocalDate to,
                                                                                       @RequestParam(required = false, defaultValue = "90") final Integer sinceInDays) {
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(service.findFeedPaged(type, sinceInDays, pageable)));
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(
+                service.findFeedPaged(RevisionFeedFilter.of(type, modifiedBy, sources, from, to, sinceInDays), pageable)));
+    }
+
+    @GetMapping(value = "/authors", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
+    public ResponseEntity<CollectionModel<String>> retrieveAuthors() {
+        return ResponseEntity.ok(CollectionModel.of(service.findAuthors(),
+                linkTo(methodOn(AuditApi.class).retrieveAuthors()).withSelfRel()));
+    }
+
+    @GetMapping(value = "/detail/{revision}", produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdmin
+    public ResponseEntity<EntityModel<RevisionDetailDto>> retrieveDetail(@PathVariable final Long revision) {
+        return ResponseEntity.ok(EntityModel.of(service.findDetail(revision)));
     }
 
     @GetMapping(value = "/{type}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

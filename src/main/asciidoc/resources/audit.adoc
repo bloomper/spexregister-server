@@ -12,6 +12,11 @@ operation::audit-get-revisions[snippets='security,request-headers,path-parameter
 
 operation::audit-get-revision[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
 
+[[revision_detail]]
+== Get everything a revision changed
+
+operation::audit-get-revision-detail[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,http-response']
+
 [[revision_restore]]
 == Restore an entity to a revision
 

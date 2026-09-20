@@ -28,6 +28,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,8 +69,24 @@ public class AuditGraphqlApi {
     @RequiresAdmin
     public CountedWindow<RevisionFeedEntryDto> revisionFeed(final ScrollSubrange subrange,
                                                             @Nullable @Argument final AuditedType type,
+                                                            @Nullable @Argument final List<String> modifiedBy,
+                                                            @Nullable @Argument final List<AuditSource> sources,
+                                                            @Nullable @Argument final LocalDate from,
+                                                            @Nullable @Argument final LocalDate to,
                                                             @Nullable @Argument final Integer sinceInDays) {
-        return service.findFeed(type, sinceInDays, extractScrollRequest(subrange));
+        return service.findFeed(RevisionFeedFilter.of(type, modifiedBy, sources, from, to, sinceInDays), extractScrollRequest(subrange));
+    }
+
+    @QueryMapping("revisionDetail")
+    @RequiresAdmin
+    public RevisionDetailDto revisionDetail(@Argument final Long revision) {
+        return service.findDetail(revision);
+    }
+
+    @QueryMapping("revisionAuthors")
+    @RequiresAdmin
+    public List<String> revisionAuthors() {
+        return service.findAuthors();
     }
 
     @QueryMapping("restorePreview")

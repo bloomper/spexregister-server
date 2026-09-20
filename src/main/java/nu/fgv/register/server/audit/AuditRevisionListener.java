@@ -30,8 +30,12 @@ public class AuditRevisionListener implements RevisionListener {
     @Override
     public void newRevision(final Object revisionEntity) {
         final AuditRevisionEntity rev = (AuditRevisionEntity) revisionEntity;
+        final AuditContext.Origin origin = AuditContext.currentOrSystem();
 
         rev.setModifiedBy(resolveCurrentUser());
+        rev.setSource(origin.source());
+        rev.setOperation(origin.operation());
+        rev.setComment(origin.comment());
     }
 
     private String resolveCurrentUser() {

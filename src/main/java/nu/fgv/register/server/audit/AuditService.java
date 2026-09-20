@@ -57,11 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
- * Reads the Envers history of any audited entity and restores an entity, optionally together with
- * the children of its aggregate, to a previous revision.
- *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -98,10 +96,22 @@ public class AuditService {
         };
     }
 
-    private static Instant sinceFrom(final @Nullable Integer sinceInDays) {
+    private static Instant startOfDay(final LocalDate date) {
+        return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+    }
+
+    /**
+     * The default window, counted back from {@code until} rather than from today, so that asking for
+     * everything up to some past date returns the period before it instead of nothing.
+     */
+    private static Instant sinceFrom(final @Nullable LocalDate until, final @Nullable Integer sinceInDays) {
         final int days = sinceInDays == null || sinceInDays == -1 ? DEFAULT_SINCE_IN_DAYS : sinceInDays;
 
-        return LocalDate.now().minusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return startOfDay((until == null ? LocalDate.now() : until).minusDays(days));
+    }
+
+    private static String restoreComment(final long revision, final boolean cascade) {
+        return "Restored from revision %d%s".formatted(revision, cascade ? " including related records" : "");
     }
 
     @RequiresAdminOrEditorOrUser
@@ -293,8 +303,8 @@ public class AuditService {
     }
 
     @RequiresAdmin
-    public CountedWindow<RevisionFeedEntryDto> findFeed(final @Nullable AuditedType type, final @Nullable Integer sinceInDays, final GraphqlUtil.ScrollRequest scroll) {
-        final FeedCriteria criteria = criteriaFor(type, sinceInDays);
+    public CountedWindow<RevisionFeedEntryDto> findFeed(final RevisionFeedFilter filter, final GraphqlUtil.ScrollRequest scroll) {
+        final FeedCriteria criteria = criteriaFor(filter);
         final long total = countFeed(criteria);
 
         if (total == 0L) {
@@ -313,8 +323,8 @@ public class AuditService {
     }
 
     @RequiresAdmin
-    public Page<RevisionFeedEntryDto> findFeedPaged(final @Nullable AuditedType type, final @Nullable Integer sinceInDays, final Pageable pageable) {
-        final FeedCriteria criteria = criteriaFor(type, sinceInDays);
+    public Page<RevisionFeedEntryDto> findFeedPaged(final RevisionFeedFilter filter, final Pageable pageable) {
+        final FeedCriteria criteria = criteriaFor(filter);
         final long total = countFeed(criteria);
 
         if (total == 0L) {
@@ -328,35 +338,173 @@ public class AuditService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    private FeedCriteria criteriaFor(final @Nullable AuditedType type, final @Nullable Integer sinceInDays) {
-        return new FeedCriteria(
-                sinceFrom(sinceInDays).toEpochMilli(),
-                type == null ? null : registry.require(type).entityClass().getName()
-        );
+    /**
+     * Everyone who has ever written a revision, so that a client can offer them as filter choices
+     * rather than asking for a name to be typed exactly.
+     */
+    @RequiresAdmin
+    public List<String> findAuthors() {
+        return entityManager.createQuery("""
+                        SELECT DISTINCT r.modifiedBy FROM AuditRevisionEntity r
+                        WHERE r.modifiedBy IS NOT NULL ORDER BY r.modifiedBy
+                        """, String.class)
+                .getResultList();
+    }
+
+    private FeedCriteria criteriaFor(final RevisionFeedFilter filter) {
+        final List<String> clauses = new ArrayList<>();
+        final Map<String, Object> parameters = new LinkedHashMap<>();
+
+        clauses.add("r.modifiedAt >= :from");
+        parameters.put("from", (filter.from() == null
+                ? sinceFrom(filter.to(), filter.sinceInDays())
+                : startOfDay(filter.from())).toEpochMilli());
+
+        if (filter.to() != null) {
+            // Inclusive of the whole day the caller named, hence the exclusive upper bound.
+            clauses.add("r.modifiedAt < :to");
+            parameters.put("to", startOfDay(filter.to().plusDays(1)).toEpochMilli());
+        }
+
+        if (filter.type() != null) {
+            clauses.add(":entityName MEMBER OF r.modifiedEntityNames");
+            parameters.put("entityName", registry.require(filter.type()).entityClass().getName());
+        }
+
+        if (!filter.modifiedBy().isEmpty()) {
+            clauses.add("r.modifiedBy IN :modifiedBy");
+            parameters.put("modifiedBy", filter.modifiedBy());
+        }
+
+        if (!filter.sources().isEmpty()) {
+            clauses.add("r.source IN :sources");
+            parameters.put("sources", filter.sources());
+        }
+
+        return new FeedCriteria("WHERE " + String.join(" AND ", clauses), Map.copyOf(parameters));
     }
 
     private long countFeed(final FeedCriteria criteria) {
-        final var query = entityManager.createQuery("SELECT COUNT(r) FROM AuditRevisionEntity r " + criteria.where(), Long.class)
-                .setParameter("since", criteria.since());
+        final var query = entityManager.createQuery("SELECT COUNT(r) FROM AuditRevisionEntity r " + criteria.where(), Long.class);
 
-        if (criteria.entityName() != null) {
-            query.setParameter("entityName", criteria.entityName());
-        }
+        criteria.parameters().forEach(query::setParameter);
 
         return Optional.ofNullable(query.getSingleResult()).orElse(0L);
     }
 
     private List<AuditRevisionEntity> queryFeed(final FeedCriteria criteria, final int offset, final int limit) {
         final var query = entityManager.createQuery("SELECT r FROM AuditRevisionEntity r " + criteria.where() + " ORDER BY r.id DESC", AuditRevisionEntity.class)
-                .setParameter("since", criteria.since())
                 .setFirstResult(offset)
                 .setMaxResults(limit);
 
-        if (criteria.entityName() != null) {
-            query.setParameter("entityName", criteria.entityName());
-        }
+        criteria.parameters().forEach(query::setParameter);
 
         return query.getResultList();
+    }
+
+    /**
+     * Everything a single revision did, across every entity it touched. This is what makes a feed
+     * entry answerable: which records took part, what each of them changed, and where to look at
+     * them.
+     */
+    @RequiresAdmin
+    public RevisionDetailDto findDetail(final long revision) {
+        final AuditRevisionEntity revisionEntity = entityManager.find(AuditRevisionEntity.class, revision);
+
+        if (revisionEntity == null) {
+            throw new ResourceNotFoundException(AuditRevisionEntity.class, revision);
+        }
+
+        final List<RevisionEntityChangeDto> entities = new ArrayList<>();
+
+        for (final String entityName : revisionEntity.getModifiedEntityNames()) {
+            final AuditedType type = registry.byEntityName(entityName);
+
+            if (type != null) {
+                entities.addAll(entityChangesAt(registry.require(type), revision));
+            }
+        }
+
+        entities.sort(Comparator.comparingInt(entity -> entity.type().ordinal()));
+
+        return RevisionDetailDto.builder()
+                .revision(revisionEntity.getId())
+                .modifiedAt(revisionEntity.getModifiedAt().toInstant(java.time.ZoneOffset.UTC))
+                .modifiedBy(revisionEntity.getModifiedBy())
+                .source(revisionEntity.getSource())
+                .operation(revisionEntity.getOperation())
+                .comment(revisionEntity.getComment())
+                .entities(List.copyOf(entities))
+                .build();
+    }
+
+    private List<RevisionEntityChangeDto> entityChangesAt(final AuditedEntityDescriptor descriptor, final long revision) {
+        final List<Object[]> triples = envers.revisionTriples(descriptor.entityClass(), false, true,
+                q -> q.add(AuditEntity.revisionNumber().eq(revision)));
+        final List<RevisionEntityChangeDto> changes = new ArrayList<>(triples.size());
+
+        for (final Object[] triple : triples) {
+            final Object snapshot = triple[0];
+            final RevisionType revisionType = (RevisionType) triple[2];
+            final Object id = snapshot == null ? null : identifierOf(snapshot);
+
+            changes.add(RevisionEntityChangeDto.builder()
+                    .type(descriptor.type())
+                    .entityId(asLong(id))
+                    .entityLabel(snapshot == null ? null : registry.labelFor(snapshot))
+                    .revisionType(revisionType)
+                    .changes(id == null || revisionType == RevisionType.DEL
+                            ? List.of()
+                            : differ.diff(descriptor.entityClass(), previousSnapshot(descriptor, id, revision), snapshot).stream()
+                            .map(change -> change.ownedBy(descriptor.type(), asLong(id)))
+                            .toList())
+                    .target(id == null ? null : targetOf(descriptor, id))
+                    .build());
+        }
+
+        return changes;
+    }
+
+    private @Nullable Object previousSnapshot(final AuditedEntityDescriptor descriptor, final Object id, final long revision) {
+        final List<?> previous = envers.revisionEntities(descriptor.entityClass(), false,
+                q -> q.add(AuditEntity.id().eq(id))
+                        .add(AuditEntity.revisionNumber().lt(revision))
+                        .addOrder(AuditEntity.revisionNumber().desc())
+                        .setMaxResults(1));
+
+        return previous.isEmpty() ? null : previous.getFirst();
+    }
+
+    /**
+     * The aggregate root a client should open to see this entity, which for children such as
+     * addresses and actors is the spexare they hang off. Deleted entities have nothing to open.
+     */
+    private @Nullable RevisionTargetDto targetOf(final AuditedEntityDescriptor descriptor, final Object id) {
+        final Function<Object, Object> aclRoot = descriptor.aclRoot();
+
+        if (aclRoot == null) {
+            return null;
+        }
+
+        final Object root = descriptor.findCurrent().apply(id).map(aclRoot).orElse(null);
+
+        if (root == null) {
+            return null;
+        }
+
+        final Object unwrapped = Hibernate.unproxy(root);
+        final AuditedType type = registry.byEntityName(Hibernate.getClass(unwrapped).getName());
+        final Long rootId = asLong(identifierOf(unwrapped));
+
+        if (type == null || rootId == null) {
+            return null;
+        }
+
+        return RevisionTargetDto.builder()
+                .type(type)
+                .id(rootId)
+                .label(registry.labelFor(unwrapped))
+                .build();
     }
 
     @RequiresAdmin
@@ -388,8 +536,17 @@ public class AuditService {
                 .build();
     }
 
+    /**
+     * A restore says why by itself, so it stamps its own origin onto the revision it produces —
+     * keeping any reason the caller already supplied, which is both more specific and in their
+     * language.
+     */
     @RequiresAdmin
     public RestoreResultDto restore(final AuditedType type, final String rawId, final long revision, final boolean cascade) {
+        AuditContext.stamp(AuditContext.currentOrSystem()
+                .withSource(AuditSource.RESTORE)
+                .withCommentIfAbsent(restoreComment(revision, cascade)));
+
         final AuditedEntityDescriptor descriptor = registry.require(type);
         final Object id = parseId(descriptor, rawId);
         final Object current = authorizeWrite(descriptor, id);
@@ -665,6 +822,9 @@ public class AuditService {
                 .modifiedAt(revisionEntity.getModifiedAt().toInstant(java.time.ZoneOffset.UTC))
                 .modifiedBy(revisionEntity.getModifiedBy())
                 .types(types.stream().sorted().toList())
+                .source(revisionEntity.getSource())
+                .operation(revisionEntity.getOperation())
+                .comment(revisionEntity.getComment())
                 .build();
     }
 
@@ -737,10 +897,7 @@ public class AuditService {
         return entityManagerFactory.getPersistenceUnitUtil().getIdentifier(entity);
     }
 
-    private record FeedCriteria(long since, @Nullable String entityName) {
-        private String where() {
-            return "WHERE r.modifiedAt >= :since" + (entityName == null ? "" : " AND :entityName MEMBER OF r.modifiedEntityNames");
-        }
+    private record FeedCriteria(String where, Map<String, Object> parameters) {
     }
 
     private static final class RestoreContext {

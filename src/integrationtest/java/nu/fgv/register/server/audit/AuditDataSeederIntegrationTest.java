@@ -273,6 +273,70 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        void should_spread_ordinary_edits_over_one_revision_each() {
+            IntStream.range(0, 40).forEach(_ -> persistTag());
+
+            runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
+
+            final List<Integer> rowsPerRevision = jdbcClient
+                    .sql("""
+                            SELECT COUNT(*) FROM tag_audit a
+                             JOIN revinfo r ON r.id = a.rev
+                             WHERE a.revtype = 1 AND r.source <> 'IMPORT'
+                             GROUP BY a.rev
+                            """)
+                    .query(Integer.class)
+                    .list();
+
+            assertThat(rowsPerRevision).as("the seeder must produce ordinary edits at all").isNotEmpty();
+            assertThat(rowsPerRevision)
+                    .as("an ordinary edit is one person changing one record, not a batch")
+                    .containsOnly(1);
+        }
+
+        @Test
+        void should_record_where_each_seeded_revision_came_from() {
+            IntStream.range(0, 40).forEach(_ -> persistTag());
+
+            runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
+
+            final List<String> sources = jdbcClient
+                    .sql("SELECT DISTINCT source FROM revinfo")
+                    .query(String.class)
+                    .list();
+            final Integer withoutOrigin = jdbcClient
+                    .sql("SELECT COUNT(*) FROM revinfo WHERE source IS NULL OR operation IS NULL")
+                    .query(Integer.class)
+                    .single();
+            final Integer importsWithoutReason = jdbcClient
+                    .sql("SELECT COUNT(*) FROM revinfo WHERE source = 'IMPORT' AND comment IS NULL")
+                    .query(Integer.class)
+                    .single();
+
+            assertThat(withoutOrigin).as("every seeded revision must say where it came from").isZero();
+            assertThat(importsWithoutReason).isZero();
+            assertThat(sources).contains("SYSTEM", "WEB");
+        }
+
+        @Test
+        void should_keep_revision_ids_in_the_same_order_as_their_timestamps() {
+            IntStream.range(0, 40).forEach(_ -> persistTag());
+
+            runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
+
+            final Integer outOfOrder = jdbcClient
+                    .sql("""
+                            SELECT COUNT(*) FROM revinfo a
+                             JOIN revinfo b ON b.id > a.id
+                             WHERE b.modified_at < a.modified_at
+                            """)
+                    .query(Integer.class)
+                    .single();
+
+            assertThat(outOfOrder).isZero();
+        }
+
+        @Test
         void should_leave_the_live_data_untouched() {
             final var tag = persistTag();
             final var originalName = tag.getName();

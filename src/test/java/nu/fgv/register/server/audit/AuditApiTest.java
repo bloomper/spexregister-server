@@ -167,6 +167,69 @@ class AuditApiTest extends AbstractApiTest {
     }
 
     @Test
+    void should_get_revision_detail() throws Exception {
+        when(service.findDetail(anyLong()))
+                .thenReturn(RevisionDetailDto.builder()
+                        .revision(2L)
+                        .modifiedAt(Instant.parse("2026-09-08T14:02:00Z"))
+                        .modifiedBy("anna@spexregister.com")
+                        .source(AuditSource.WEB)
+                        .operation("tagUpdate")
+                        .comment("Corrected a typo")
+                        .entities(List.of(RevisionEntityChangeDto.builder()
+                                .type(AuditedType.TAG)
+                                .entityId(1L)
+                                .entityLabel("tag2")
+                                .revisionType(RevisionType.MOD)
+                                .changes(List.of(FieldChangeDto.builder()
+                                        .field("name")
+                                        .oldValue("tag1")
+                                        .newValue("tag2")
+                                        .binary(false)
+                                        .build()))
+                                .target(RevisionTargetDto.builder()
+                                        .type(AuditedType.TAG)
+                                        .id(1L)
+                                        .label("tag2")
+                                        .build())
+                                .build()))
+                        .build());
+
+        mockMvc
+                .perform(
+                        get("/api/revisions/detail/{revision}", 2L)
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("entities", hasSize(1)))
+                .andDo(print())
+                .andDo(
+                        document(
+                                "audit-get-revision-detail",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
+                                responseFields(
+                                        fieldWithPath("revision").description("The revision number"),
+                                        fieldWithPath("modifiedAt").description("When the change was made"),
+                                        fieldWithPath("modifiedBy").description("Who made the change"),
+                                        fieldWithPath("source").description("What kind of activity produced the revision").optional(),
+                                        fieldWithPath("operation").description("Which operation produced the revision").optional(),
+                                        fieldWithPath("comment").description("The reason given for the change").optional(),
+                                        subsectionWithPath("entities").description("What each entity touched by the revision changed, and where to look at it")
+                                ),
+                                pathParameters(
+                                        parameterWithName("revision").description("The revision number")
+                                ),
+                                secureRequestHeaders,
+                                responseHeaders,
+                                security(getRolesFromMethod(AuditApi.class, "retrieveDetail", Long.class))
+                        )
+                );
+    }
+
+    @Test
     void should_restore() throws Exception {
         when(service.restore(any(AuditedType.class), anyString(), anyLong(), anyBoolean()))
                 .thenReturn(RestoreResultDto.builder()

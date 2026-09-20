@@ -18,6 +18,8 @@ package nu.fgv.register.server.util.data;
 
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
+import nu.fgv.register.server.audit.AuditSource;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 /**
@@ -43,9 +46,11 @@ import java.util.stream.IntStream;
 @Component
 public class AuditDataSeeder {
 
-    private static final int NUMBER_OF_REVISIONS = 12;
     private static final int HISTORY_SPAN_IN_DAYS = 540;
     private static final int PERCENTAGE_OF_ROWS_WITH_HISTORY = 30;
+    private static final int PERCENTAGE_OF_CHANGES_FROM_IMPORT = 20;
+    private static final int PERCENTAGE_OF_CHANGES_FROM_RESTORE = 5;
+    private static final int MAX_SINGLE_EDITS_PER_PASS = 40;
     private static final int NUMBER_OF_EDITORS = 6;
     private static final int NUMBER_OF_DELETED_ADDRESSES = 10;
     private static final String SYSTEM_USER = "system";
@@ -99,7 +104,9 @@ public class AuditDataSeeder {
     public void seedBaseline(final JdbcClient jdbcClient) {
         purge(jdbcClient);
 
-        final Revision initial = new Revision(insertRevision(jdbcClient, SYSTEM_USER, Instant.now().toEpochMilli()), Instant.now().toEpochMilli());
+        final long now = Instant.now().toEpochMilli();
+        final Revision initial = new Revision(
+                insertRevision(jdbcClient, SYSTEM_USER, now, AuditSource.SYSTEM, "seed", null), now);
 
         TABLES.forEach(table -> seedInitialRevision(jdbcClient, table, initial));
 
@@ -109,17 +116,65 @@ public class AuditDataSeeder {
     public void seedSampleHistory(final JdbcClient jdbcClient, final List<String> editors) {
         purge(jdbcClient);
 
-        final List<Revision> revisions = createRevisions(jdbcClient, resolveEditors(editors));
-        final Revision initial = revisions.getFirst();
+        final Instant oldest = Instant.now().minus(HISTORY_SPAN_IN_DAYS, ChronoUnit.DAYS);
+        final Revision baseline = new Revision(
+                insertRevision(jdbcClient, SYSTEM_USER, oldest.toEpochMilli(), AuditSource.SYSTEM, "seed", null),
+                oldest.toEpochMilli());
 
-        TABLES.forEach(table -> seedInitialRevision(jdbcClient, table, initial));
-        TABLES.stream()
-                .filter(AuditedTable::hasHistory)
-                .forEach(table -> seedHistory(jdbcClient, table, revisions));
+        TABLES.forEach(table -> seedInitialRevision(jdbcClient, table, baseline));
+
+        final List<Edit> plan = new ArrayList<>(planEdits(jdbcClient, baseline));
+
+        Collections.shuffle(plan, rnd);
+
+        final List<Revision> revisions = createRevisions(jdbcClient, resolveEditors(editors), plan, oldest);
+
+        IntStream.range(0, plan.size()).forEach(i ->
+                pushRevision(jdbcClient, plan.get(i).table(), revisions.get(i), plan.get(i).mutation(), plan.get(i).ids()));
 
         seedDeletedAddresses(jdbcClient, revisions);
 
-        log.info("Seeded sample audit history: {} revisions across {} tables", revisions.size(), TABLES.size());
+        log.info("Seeded sample audit history: {} revisions across {} tables", revisions.size() + 1, TABLES.size());
+    }
+
+    private List<Edit> planEdits(final JdbcClient jdbcClient, final Revision baseline) {
+        final List<Edit> plan = new ArrayList<>();
+        final AtomicInteger job = new AtomicInteger(1);
+
+        TABLES.stream().filter(AuditedTable::hasHistory).forEach(table -> {
+            final List<Long> allIds = jdbcClient
+                    .sql("SELECT id FROM %s".formatted(table.table()))
+                    .query(Long.class)
+                    .list();
+
+            if (allIds.isEmpty()) {
+                return;
+            }
+
+            table.mutations().forEach(mutation -> {
+                final List<Long> ids = sample(allIds);
+                final int individually = Math.min(
+                        ids.size() - ids.size() * PERCENTAGE_OF_CHANGES_FROM_IMPORT / 100,
+                        MAX_SINGLE_EDITS_PER_PASS);
+                final List<Long> imported = ids.subList(individually, ids.size());
+
+                if (imported.size() > 1) {
+                    plan.add(new Edit(table, mutation, List.copyOf(imported), AuditSource.IMPORT, "import",
+                            "Import job %d (%s)".formatted(job.getAndIncrement(), table.table().toUpperCase(Locale.ROOT))));
+                }
+
+                ids.subList(0, individually).forEach(id -> {
+                    final boolean restored = rnd.nextInt(100) < PERCENTAGE_OF_CHANGES_FROM_RESTORE;
+
+                    plan.add(restored
+                            ? new Edit(table, mutation, List.of(id), AuditSource.RESTORE, "restore",
+                            "Återställd från version %d".formatted(baseline.id()))
+                            : new Edit(table, mutation, List.of(id), AuditSource.WEB, updateOperationOf(table), null));
+                });
+            });
+        });
+
+        return plan;
     }
 
     private void purge(final JdbcClient jdbcClient) {
@@ -143,34 +198,51 @@ public class AuditDataSeeder {
         return List.copyOf(editors);
     }
 
-    private List<Revision> createRevisions(final JdbcClient jdbcClient, final List<String> editors) {
-        final Instant oldest = Instant.now().minus(HISTORY_SPAN_IN_DAYS, ChronoUnit.DAYS);
+    private List<Revision> createRevisions(final JdbcClient jdbcClient,
+                                           final List<String> editors,
+                                           final List<Edit> plan,
+                                           final Instant oldest) {
         final long spanInMillis = Instant.now().toEpochMilli() - oldest.toEpochMilli();
+        final List<Long> timestamps = plan.stream()
+                .map(_ -> oldest.toEpochMilli() + 1 + (long) (rnd.nextDouble() * (spanInMillis - 1)))
+                .sorted(Comparator.naturalOrder())
+                .toList();
 
-        final List<Long> timestamps = new ArrayList<>();
-
-        timestamps.add(oldest.toEpochMilli());
-        IntStream.range(1, NUMBER_OF_REVISIONS).forEach(_ ->
-                timestamps.add(oldest.toEpochMilli() + (long) (rnd.nextDouble() * spanInMillis))
-        );
-        timestamps.sort(Comparator.naturalOrder());
-
-        return IntStream.range(0, timestamps.size())
+        return IntStream.range(0, plan.size())
                 .mapToObj(i -> {
-                    final String modifiedBy = i == 0 ? SYSTEM_USER : editors.get(rnd.nextInt(editors.size()));
+                    final Edit edit = plan.get(i);
+                    final String modifiedBy = edit.source() == AuditSource.IMPORT
+                            ? SYSTEM_USER
+                            : editors.get(rnd.nextInt(editors.size()));
 
-                    return new Revision(insertRevision(jdbcClient, modifiedBy, timestamps.get(i)), timestamps.get(i));
+                    return new Revision(
+                            insertRevision(jdbcClient, modifiedBy, timestamps.get(i), edit.source(), edit.operation(), edit.comment()),
+                            timestamps.get(i));
                 })
                 .toList();
     }
 
-    private long insertRevision(final JdbcClient jdbcClient, final String modifiedBy, final long modifiedAt) {
+    private String updateOperationOf(final AuditedTable table) {
+        final String entity = table.entityName().substring(table.entityName().lastIndexOf('.') + 1);
+
+        return "%s%sUpdate".formatted(entity.substring(0, 1).toLowerCase(Locale.ROOT), entity.substring(1));
+    }
+
+    private long insertRevision(final JdbcClient jdbcClient,
+                                final String modifiedBy,
+                                final long modifiedAt,
+                                final AuditSource source,
+                                final String operation,
+                                final @Nullable String comment) {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcClient
-                .sql("INSERT INTO revinfo (modified_by, modified_at) VALUES (?, ?)")
+                .sql("INSERT INTO revinfo (modified_by, modified_at, source, operation, comment) VALUES (?, ?, ?, ?, ?)")
                 .param(modifiedBy)
                 .param(modifiedAt)
+                .param(source.name())
+                .param(operation)
+                .param(comment)
                 .update(keyHolder);
 
         return Objects.requireNonNull(keyHolder.getKey()).longValue();
@@ -185,29 +257,6 @@ public class AuditDataSeeder {
 
         if (rows > 0) {
             insertRevChanges(jdbcClient, revision.id(), table.entityName());
-        }
-    }
-
-    private void seedHistory(final JdbcClient jdbcClient, final AuditedTable table, final List<Revision> revisions) {
-        final List<Long> allIds = jdbcClient
-                .sql("SELECT id FROM %s".formatted(table.table()))
-                .query(Long.class)
-                .list();
-
-        if (allIds.isEmpty()) {
-            return;
-        }
-
-        for (int hop = 0; hop < table.mutations().size(); hop++) {
-            final List<Long> ids = sample(allIds);
-
-            if (ids.isEmpty()) {
-                continue;
-            }
-
-            final Revision revision = revisions.get(1 + rnd.nextInt(revisions.size() - 1));
-
-            pushRevision(jdbcClient, table, revision, table.mutations().get(hop), ids);
         }
     }
 
@@ -332,5 +381,13 @@ public class AuditDataSeeder {
     }
 
     private record Revision(long id, long timestamp) {
+    }
+
+    private record Edit(AuditedTable table,
+                        String mutation,
+                        List<Long> ids,
+                        AuditSource source,
+                        String operation,
+                        @Nullable String comment) {
     }
 }

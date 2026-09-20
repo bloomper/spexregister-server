@@ -1,5 +1,5 @@
-query revisionFeedPaged ($first: Int, $after: String, $type: AuditedType, $sinceInDays: Int) {
-    revisionFeedPaged (first: $first, after: $after, type: $type, sinceInDays: $sinceInDays) {
+query revisionFeedPaged ($first: Int, $after: String, $type: AuditedType, $modifiedBy: [String!], $sources: [AuditSource!], $from: Date, $to: Date, $sinceInDays: Int) {
+    revisionFeedPaged (first: $first, after: $after, type: $type, modifiedBy: $modifiedBy, sources: $sources, from: $from, to: $to, sinceInDays: $sinceInDays) {
         edges {
             cursor
             node {
@@ -7,6 +7,9 @@ query revisionFeedPaged ($first: Int, $after: String, $type: AuditedType, $since
                 modifiedAt
                 modifiedBy
                 types
+                source
+                operation
+                comment
             }
         }
         pageInfo {

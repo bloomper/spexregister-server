@@ -17,6 +17,8 @@
 package nu.fgv.register.server.impex.importing;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.audit.AuditContext;
+import nu.fgv.register.server.audit.AuditSource;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import org.springframework.batch.core.ExitStatus;
@@ -59,6 +61,9 @@ public class ImportTasklet implements Tasklet {
         final AbstractImportService service = applicationContext.getBean(serviceBeanName, AbstractImportService.class);
         final Path path = Paths.get(filePath);
         final byte[] binary = Files.readAllBytes(path);
+        final Long jobId = chunkContext.getStepContext().getStepExecution().getJobExecutionId();
+
+        AuditContext.stamp(new AuditContext.Origin(AuditSource.IMPORT, "import", "Import job %d (%s)".formatted(jobId, type)));
 
         final ImportResultDto result = service.doImport(binary, type, locale);
 
