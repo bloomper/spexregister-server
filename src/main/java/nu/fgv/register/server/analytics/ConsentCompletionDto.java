@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.statistics;
+package nu.fgv.register.server.analytics;
 
 import lombok.Builder;
-
-import java.util.List;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Builder
-public record StatisticsDto(
-        Long spexareCount,
-        List<HistoryDto> spexareCountHistory,
-        Long userCount,
-        List<HistoryDto> userCountHistory,
-        Long spexCount,
-        List<HistoryDto> spexCountHistory,
-        Long spexRevivalCount,
-        List<HistoryDto> spexRevivalCountHistory,
-        Long taskCount,
-        List<HistoryDto> taskCountHistory
+public record ConsentCompletionDto(
+        String key,
+        String label,
+        Long granted,
+        Long denied,
+        Long missing
 ) {
 }

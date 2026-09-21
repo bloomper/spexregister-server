@@ -1,0 +1,90 @@
+extend type Query {
+    analytics: Analytics
+}
+
+type Analytics {
+    totals: Totals!
+    participation: Participation!
+    demographics: Demographics!
+    lifecycle: Lifecycle!
+    dataQuality: DataQuality
+    operations: Operations
+}
+
+type Totals {
+    spexareCount: Long!
+    spexareCountHistory: [History!]!
+    userCount: Long!
+    userCountHistory: [History!]!
+    spexCount: Long!
+    spexCountHistory: [History!]!
+    spexRevivalCount: Long!
+    spexRevivalCountHistory: [History!]!
+    taskCount: Long!
+    taskCountHistory: [History!]!
+}
+
+type History {
+    label: String!
+    count: Long!
+}
+
+type Bucket {
+    key: String!
+    label: String!
+    count: Long!
+    facet: String
+}
+
+type Participation {
+    bySpexYear: [Bucket!]!
+    bySpexCategory: [Bucket!]!
+    topSpex: [Bucket!]!
+    byTaskCategory: [Bucket!]!
+    topTask: [Bucket!]!
+    byVocal: [Bucket!]!
+}
+
+type Demographics {
+    byCountry: [Bucket!]!
+    byAddressType: [Bucket!]!
+    byMembership: [Bucket!]!
+    byTag: [Bucket!]!
+    byToggle: [Bucket!]!
+    byStatus: [Bucket!]!
+    consentCompletion: [ConsentCompletion!]!
+}
+
+type ConsentCompletion {
+    key: String!
+    label: String!
+    granted: Long!
+    denied: Long!
+    missing: Long!
+}
+
+type Lifecycle {
+    newcomersByYear: [Bucket!]!
+    lastActiveByYear: [Bucket!]!
+    byEngagement: [Bucket!]!
+    byDormancy: [Bucket!]!
+    oneTimers: Long!
+    returning: Long!
+    veterans: Long!
+    neverActive: Long!
+}
+
+type DataQuality {
+    total: Long!
+    issues: [Bucket!]!
+    complete: Long!
+}
+
+type Operations {
+    usersByState: [Bucket!]!
+    usersWithoutSpexare: Long!
+    spexareWithoutUser: Long!
+    revisionsByMonth: [Bucket!]!
+    revisionsBySource: [Bucket!]!
+    topEditors: [Bucket!]!
+}

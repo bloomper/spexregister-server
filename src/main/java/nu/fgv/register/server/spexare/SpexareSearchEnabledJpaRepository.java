@@ -29,6 +29,8 @@ import nu.fgv.register.server.tag.Tag_;
 import nu.fgv.register.server.task.Task_;
 import nu.fgv.register.server.util.search.AbstractSearchEnabledJpaRepository;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -37,6 +39,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
@@ -80,18 +83,51 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)
     };
 
+    static final String AGGREGATION_DATA_QUALITY = "quality";
+
+    public static final String FACET_DECEASED = Spexare_.DECEASED;
+    public static final String FACET_PUBLISHED = Spexare_.PUBLISHED;
+    public static final String FACET_SPEX_YEARS = "spexYears";
+    public static final String FACET_SPEX_TITLES = "spexTitles";
+    public static final String FACET_SPEX_CATEGORY_NAMES = "spexCategoryNames";
+    public static final String FACET_TASK_NAMES = "taskNames";
+    public static final String FACET_TASK_CATEGORY_NAMES = "taskCategoryNames";
+    public static final String FACET_ACTOR_VOCALS = "actorVocals";
+    public static final String FACET_TAGS = "tags";
+    public static final String FACET_MEMBERSHIPS = "memberships";
+    public static final String FACET_CONSENTS = "consents";
+    public static final String FACET_TOGGLES = "toggles";
+    public static final String FACET_ADDRESS_TYPES = "addressTypes";
+    public static final String FACET_COUNTRIES = "countries";
+    public static final String FACET_DEBUT_YEARS = "debutYears";
+    public static final String FACET_LAST_ACTIVE_YEARS = "lastActiveYears";
+    public static final String FACET_SPEX_COUNTS = "spexCounts";
+
+    private static final String FIELD_HAS_IMAGE = "hasImage";
+    private static final String FIELD_DEBUT_YEAR = "debutYear";
+    private static final String FIELD_LAST_ACTIVE_YEAR = "lastActiveYear";
+    private static final String FIELD_SPEX_COUNT = "spexCount";
+
+    private static final Pattern YEAR_RANGE_PATTERN = Pattern.compile("^(\\d{4})?\\.\\.(\\d{4})?$");
+    private static final List<String> YEAR_RANGE_FACETS = List.of(FACET_SPEX_YEARS, FACET_DEBUT_YEARS, FACET_LAST_ACTIVE_YEARS);
+
     private static final String AGGREGATION_DECEASED = Spexare_.DECEASED;
     private static final String AGGREGATION_PUBLISHED = Spexare_.PUBLISHED;
-    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_YEAR = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR) + AGGREGATION_COMPOSITE_DELIMITER + "spexYears";
-    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_TITLE = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "spexTitles";
-    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_CATEGORY_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.CATEGORY, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "spexCategoryNames";
-    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_TASK_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.TASK, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "taskNames";
-    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_TASK_CATEGORY_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.TASK, Task_.CATEGORY, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "taskCategoryNames";
-    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_ACTORS_VOCAL = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "actorVocals";
-    private static final String AGGREGATION_TAGS_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "tags";
-    private static final String AGGREGATION_MEMBERSHIPS = String.join(ATTRIBUTE_DELIMITER, Spexare_.MEMBERSHIPS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "memberships";
-    private static final String AGGREGATION_CONSENTS = String.join(ATTRIBUTE_DELIMITER, Spexare_.CONSENTS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "consents";
-    private static final String AGGREGATION_TOGGLES = String.join(ATTRIBUTE_DELIMITER, Spexare_.TOGGLES, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + "toggles";
+    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_YEAR = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR) + AGGREGATION_COMPOSITE_DELIMITER + FACET_SPEX_YEARS;
+    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_TITLE = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_SPEX_TITLES;
+    private static final String AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_CATEGORY_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.CATEGORY, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_SPEX_CATEGORY_NAMES;
+    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_TASK_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.TASK, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_TASK_NAMES;
+    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_TASK_CATEGORY_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.TASK, Task_.CATEGORY, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_TASK_CATEGORY_NAMES;
+    private static final String AGGREGATION_ACTIVITIES_TASK_ACTIVITIES_ACTORS_VOCAL = String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_ACTOR_VOCALS;
+    private static final String AGGREGATION_TAGS_NAME = String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_TAGS;
+    private static final String AGGREGATION_MEMBERSHIPS = String.join(ATTRIBUTE_DELIMITER, Spexare_.MEMBERSHIPS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_MEMBERSHIPS;
+    private static final String AGGREGATION_CONSENTS = String.join(ATTRIBUTE_DELIMITER, Spexare_.CONSENTS, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_CONSENTS;
+    private static final String AGGREGATION_TOGGLES = String.join(ATTRIBUTE_DELIMITER, Spexare_.TOGGLES, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_TOGGLES;
+    private static final String AGGREGATION_ADDRESSES_TYPE = String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, AGGREGATION_HIERARCHICAL_MARKER) + AGGREGATION_COMPOSITE_DELIMITER + FACET_ADDRESS_TYPES;
+    private static final String AGGREGATION_ADDRESSES_COUNTRY = String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.COUNTRY) + AGGREGATION_COMPOSITE_DELIMITER + FACET_COUNTRIES;
+    private static final String AGGREGATION_DEBUT_YEAR = FIELD_DEBUT_YEAR + AGGREGATION_COMPOSITE_DELIMITER + FACET_DEBUT_YEARS;
+    private static final String AGGREGATION_LAST_ACTIVE_YEAR = FIELD_LAST_ACTIVE_YEAR + AGGREGATION_COMPOSITE_DELIMITER + FACET_LAST_ACTIVE_YEARS;
+    private static final String AGGREGATION_SPEX_COUNT = FIELD_SPEX_COUNT + AGGREGATION_COMPOSITE_DELIMITER + FACET_SPEX_COUNTS;
     static final List<String> AGGREGATIONS = List.of(
             AGGREGATION_DECEASED,
             AGGREGATION_PUBLISHED,
@@ -104,7 +140,18 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             AGGREGATION_TAGS_NAME,
             AGGREGATION_MEMBERSHIPS,
             AGGREGATION_CONSENTS,
-            AGGREGATION_TOGGLES
+            AGGREGATION_TOGGLES,
+            AGGREGATION_ADDRESSES_TYPE,
+            AGGREGATION_ADDRESSES_COUNTRY,
+            AGGREGATION_DEBUT_YEAR,
+            AGGREGATION_LAST_ACTIVE_YEAR,
+            AGGREGATION_SPEX_COUNT
+    );
+    private static final List<String> STRING_AGGREGATIONS = List.of(
+            AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_YEAR,
+            AGGREGATION_ADDRESSES_COUNTRY,
+            AGGREGATION_DEBUT_YEAR,
+            AGGREGATION_LAST_ACTIVE_YEAR
     );
     private static final List<String> HIERARCHICAL_AGGREGATIONS = List.of(
             AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_DETAILS_TITLE,
@@ -115,7 +162,8 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             AGGREGATION_TAGS_NAME,
             AGGREGATION_MEMBERSHIPS,
             AGGREGATION_CONSENTS,
-            AGGREGATION_TOGGLES
+            AGGREGATION_TOGGLES,
+            AGGREGATION_ADDRESSES_TYPE
     );
     private static final List<String> BOOLEAN_AGGREGATIONS = List.of(
             AGGREGATION_DECEASED,
@@ -152,6 +200,11 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                             if (query.aggregationFilters() != null && !query.aggregationFilters().isEmpty()) {
                                 b.must(f.bool().with(fb -> {
                                     query.aggregationFilters().forEach(a -> {
+                                        if (AGGREGATION_DATA_QUALITY.equals(a.name())) {
+                                            DataQualityIssue.fromKey(a.value())
+                                                    .ifPresent(issue -> applyDataQualityIssue(f, fb, issue));
+                                            return;
+                                        }
                                         final String fullKey = AGGREGATIONS.stream()
                                                 .filter(key -> key.endsWith(AGGREGATION_COMPOSITE_DELIMITER + a.name()) || key.equals(a.name()))
                                                 .findFirst()
@@ -172,8 +225,16 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                             fb.must(f.wildcard().field(localizedField).matching(filterValue + AGGREGATION_COMPOSITE_DELIMITER + "*"));
                                         } else if (BOOLEAN_AGGREGATIONS.contains(fieldPath)) {
                                             fb.must(f.match().field(fieldPath).matching(Boolean.valueOf(a.value())));
+                                        } else if (FACET_SPEX_COUNTS.equals(a.name())) {
+                                            fb.must(f.match().field(fieldPath).matching(Integer.valueOf(a.value())));
                                         } else {
-                                            fb.must(f.match().field(fieldPath).matching(a.value()));
+                                            final Matcher range = YEAR_RANGE_PATTERN.matcher(a.value());
+
+                                            if (range.matches() && YEAR_RANGE_FACETS.contains(a.name())) {
+                                                fb.must(f.range().field(fieldPath).between(range.group(1), range.group(2)));
+                                            } else {
+                                                fb.must(f.match().field(fieldPath).matching(a.value()));
+                                            }
                                         }
                                     });
                                 }));
@@ -182,10 +243,12 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                 )
                 .aggregation(AggregationKey.of(AGGREGATION_DECEASED), f -> f.terms().field(AGGREGATION_DECEASED, Boolean.class))
                 .aggregation(AggregationKey.of(AGGREGATION_PUBLISHED), f -> isAdmin ? f.terms().field(AGGREGATION_PUBLISHED, Boolean.class) : f.terms().field(AGGREGATION_DECEASED, Boolean.class))
-                .aggregation(AggregationKey.of(AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_YEAR), f -> {
-                    final String fieldName = AGGREGATION_ACTIVITIES_SPEX_ACTIVITY_SPEX_YEAR.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
-                    return f.terms().field(fieldName, String.class);
-                });
+                .aggregation(AggregationKey.of(AGGREGATION_SPEX_COUNT), f -> f.terms().field(FIELD_SPEX_COUNT, Integer.class));
+
+        for (final String key : STRING_AGGREGATIONS) {
+            final String fieldName = key.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
+            search = search.aggregation(AggregationKey.of(key), f -> f.terms().field(fieldName, String.class));
+        }
 
         for (final String key : HIERARCHICAL_AGGREGATIONS) {
             final String fieldPrefix = key.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
@@ -199,6 +262,44 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
         return search(searchSession, query, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
+    }
+
+    public long countByDataQualityIssue(final DataQualityIssue issue) {
+        final boolean isAdmin = isAdministrator();
+
+        return searchSession()
+                .search(Spexare.class)
+                .where(f -> f.bool().with(b -> {
+                    b.must(f.matchAll());
+                    if (!isAdmin) {
+                        b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
+                    }
+                    applyDataQualityIssue(f, b, issue);
+                }))
+                .fetchTotalHitCount();
+    }
+
+    private static void applyDataQualityIssue(final SearchPredicateFactory f, final BooleanPredicateOptionsCollector<?, ?> collector, final DataQualityIssue issue) {
+        switch (issue) {
+            case NO_ADDRESS -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.ADDRESSES)));
+            case NO_EMAIL_ADDRESS ->
+                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)));
+            case NO_PHONE -> {
+                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE)));
+                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE)));
+            }
+            case NO_IMAGE -> collector.must(f.match().field(FIELD_HAS_IMAGE).matching(false));
+            case NO_MEMBERSHIP -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.MEMBERSHIPS)));
+            case NO_CONSENT -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.CONSENTS)));
+            case NO_ACTIVITY ->
+                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR)));
+            case NO_SOCIAL_SECURITY_NUMBER -> collector.mustNot(f.exists().field(Spexare_.SOCIAL_SECURITY_NUMBER));
+            case NO_TAG -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.TAGS)));
+        }
+    }
+
+    private static String hierarchicalField(final String collection) {
+        return String.join(ATTRIBUTE_DELIMITER, collection, AGGREGATION_HIERARCHICAL_MARKER + LocaleContextHolder.getLocale().getLanguage());
     }
 
 }

@@ -38,7 +38,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spexare.consent.Consent;
 import nu.fgv.register.server.spexare.membership.Membership;
@@ -62,13 +64,17 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
@@ -210,6 +216,66 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @IndexedEmbedded
     @Nullable
     private Set<Toggle> toggles = new HashSet<>();
+
+    @GenericField(name = "hasImage", aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "image")))
+    public boolean isImagePresent() {
+        return image != null && image.length > 0;
+    }
+
+    @GenericField(name = "debutYear", aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath({
+            @PropertyValue(propertyName = "activities"),
+            @PropertyValue(propertyName = "spexActivity"),
+            @PropertyValue(propertyName = "spex"),
+            @PropertyValue(propertyName = "year")
+    }))
+    public @Nullable String getDebutYear() {
+        return spexYears().min(Comparator.naturalOrder()).orElse(null);
+    }
+
+    @GenericField(name = "lastActiveYear", aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath({
+            @PropertyValue(propertyName = "activities"),
+            @PropertyValue(propertyName = "spexActivity"),
+            @PropertyValue(propertyName = "spex"),
+            @PropertyValue(propertyName = "year")
+    }))
+    public @Nullable String getLastActiveYear() {
+        return spexYears().max(Comparator.naturalOrder()).orElse(null);
+    }
+
+    @GenericField(name = "spexCount", aggregable = Aggregable.YES, searchable = Searchable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath({
+            @PropertyValue(propertyName = "activities"),
+            @PropertyValue(propertyName = "spexActivity"),
+            @PropertyValue(propertyName = "spex")
+    }))
+    public int getSpexCount() {
+        return Math.toIntExact(spexActivities()
+                .map(SpexActivity::getSpex)
+                .filter(Objects::nonNull)
+                .map(Spex::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .count());
+    }
+
+    private Stream<SpexActivity> spexActivities() {
+        return activities == null ?
+                Stream.empty() :
+                activities.stream()
+                        .map(Activity::getSpexActivity)
+                        .filter(Objects::nonNull);
+    }
+
+    private Stream<String> spexYears() {
+        return spexActivities()
+                .map(SpexActivity::getSpex)
+                .filter(Objects::nonNull)
+                .map(Spex::getYear)
+                .filter(Objects::nonNull);
+    }
 
     @Override
     public boolean equals(final Object o) {

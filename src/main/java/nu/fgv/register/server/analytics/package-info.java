@@ -15,4 +15,4 @@
  */
 
 @org.jspecify.annotations.NullMarked
-package nu.fgv.register.server.statistics;
+package nu.fgv.register.server.analytics;

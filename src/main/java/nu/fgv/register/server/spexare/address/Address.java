@@ -38,8 +38,10 @@ import nu.fgv.register.server.util.ApplicationContextHolder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
+import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef;
 import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
 import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.AssociationInverseSide;
@@ -49,6 +51,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -70,6 +73,7 @@ import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysis
 @Getter
 @Setter
 @ToString
+@TypeBinding(binder = @TypeBinderRef(type = AddressTypeBinder.class))
 public class Address extends AbstractAuditable implements Serializable {
 
     @Serial
@@ -96,7 +100,7 @@ public class Address extends AbstractAuditable implements Serializable {
 
     @Size(max = 2, message = "{address.country.size}")
     @Column(name = "country")
-    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(searchable = Searchable.YES, aggregable = Aggregable.YES, normalizer = NORMALIZER_LOWERCASE)
     private String country;
 
     @Size(max = 255, message = "{address.phone.size}")

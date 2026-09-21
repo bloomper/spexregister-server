@@ -1,0 +1,182 @@
+query analytics {
+    analytics {
+        totals {
+            spexareCount
+            spexareCountHistory {
+                label
+                count
+            }
+            userCount
+            userCountHistory {
+                label
+                count
+            }
+            spexCount
+            spexCountHistory {
+                label
+                count
+            }
+            spexRevivalCount
+            spexRevivalCountHistory {
+                label
+                count
+            }
+            taskCount
+            taskCountHistory {
+                label
+                count
+            }
+        }
+        participation {
+            bySpexYear {
+                key
+                label
+                count
+                facet
+            }
+            bySpexCategory {
+                key
+                label
+                count
+                facet
+            }
+            topSpex {
+                key
+                label
+                count
+                facet
+            }
+            byTaskCategory {
+                key
+                label
+                count
+                facet
+            }
+            topTask {
+                key
+                label
+                count
+                facet
+            }
+            byVocal {
+                key
+                label
+                count
+                facet
+            }
+        }
+        demographics {
+            byCountry {
+                key
+                label
+                count
+                facet
+            }
+            byAddressType {
+                key
+                label
+                count
+                facet
+            }
+            byMembership {
+                key
+                label
+                count
+                facet
+            }
+            byTag {
+                key
+                label
+                count
+                facet
+            }
+            byToggle {
+                key
+                label
+                count
+                facet
+            }
+            byStatus {
+                key
+                label
+                count
+                facet
+            }
+            consentCompletion {
+                key
+                label
+                granted
+                denied
+                missing
+            }
+        }
+        lifecycle {
+            newcomersByYear {
+                key
+                label
+                count
+                facet
+            }
+            lastActiveByYear {
+                key
+                label
+                count
+                facet
+            }
+            byEngagement {
+                key
+                label
+                count
+                facet
+            }
+            byDormancy {
+                key
+                label
+                count
+                facet
+            }
+            oneTimers
+            returning
+            veterans
+            neverActive
+        }
+        dataQuality {
+            total
+            issues {
+                key
+                label
+                count
+                facet
+            }
+            complete
+        }
+        operations {
+            usersByState {
+                key
+                label
+                count
+                facet
+            }
+            usersWithoutSpexare
+            spexareWithoutUser
+            revisionsByMonth {
+                key
+                label
+                count
+                facet
+            }
+            revisionsBySource {
+                key
+                label
+                count
+                facet
+            }
+            topEditors {
+                key
+                label
+                count
+                facet
+            }
+        }
+    }
+}

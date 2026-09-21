@@ -67,8 +67,16 @@ public class SecurityUtil {
     }
 
     public static boolean isAdministrator() {
+        return hasRole(SecurityUtil.ROLE_ADMIN);
+    }
+
+    public static boolean isEditor() {
+        return hasRole(SecurityUtil.ROLE_EDITOR);
+    }
+
+    private static boolean hasRole(final String role) {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(SecurityUtil.ROLE_ADMIN));
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
     }
 
     public static void runAsSystem(final Runnable runnable) {

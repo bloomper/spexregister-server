@@ -24,6 +24,7 @@ import org.hibernate.search.engine.search.sort.dsl.CompositeSortComponentsStep;
 import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.engine.search.sort.dsl.SortOrder;
 import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
@@ -65,6 +66,10 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
     @Override
     public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), offset, limit, sort);
+    }
+
+    protected SearchSession searchSession() {
+        return Search.session(entityManager);
     }
 
     SearchQuery parseQuery(final String query, final List<AggregationFilter> aggregationFilters) {

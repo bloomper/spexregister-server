@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.statistics;
-
-import lombok.RequiredArgsConstructor;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
+package nu.fgv.register.server.analytics;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Controller
-@RequiredArgsConstructor
-public class StatisticsGraphqlApi {
-
-    private final StatisticsService service;
-
-    @QueryMapping("statistics")
-    @RequiresAdminOrEditorOrUser
-    public StatisticsDto getStatistics() {
-        return service.getStatistics();
-    }
-
+public record HistoryDto(String label, Long count) {
 }

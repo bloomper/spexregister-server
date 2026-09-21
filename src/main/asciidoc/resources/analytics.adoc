@@ -1,0 +1,49 @@
+= Analytics
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:favicon: /favicon.ico
+:operation-http-request-title: Example request
+:operation-http-response-title: Example response
+
+xref:../api-guide.adoc[Back to API guide]
+
+The whole dashboard, in sections that stack by role: `totals`, `participation`, `demographics` and
+`lifecycle` are returned to any caller, `dataQuality` only to editors and administrators, and
+`operations` only to administrators. A section the caller may not read is `null` rather than empty.
+
+`totals` is the register's headline counts with three years of monthly growth — what the separate
+`statistics` resource used to return before the two were merged.
+
+Over GraphQL only the selected sections are computed; REST has no field selection and always
+returns all of them.
+
+Counts are read off the spexare search index and obey the same visibility rules as the search
+itself, so a non-admin's numbers describe the records a non-admin can see.
+
+[[drill-down]]
+== Drill-down
+
+Every bucket carries the search filter that opens the records behind it. A bucket with
+`facet` `spexYears` and `key` `2024` corresponds to the aggregation filter
+`{"name": "spexYears", "value": "2024"}` on `spexareSearchPaged`, which the web client writes as
+`?f.spexYears=2024`. A bucket with a `null` facet is a summary with no list behind it.
+
+Two filter values exist only for this purpose:
+
+* The `quality` facet is filter-only — it has no aggregation of its own. Its values are the
+  data-quality keys (`noAddress`, `noEmailAddress`, `noPhone`, `noImage`, `noMembership`,
+  `noConsent`, `noActivity`, `noSocialSecurityNumber`, `noTag`), and each narrows the result to the
+  records carrying that gap. The dashboard count and the filtered list resolve to the same index
+  predicate.
+* The year facets (`spexYears`, `debutYears`, `lastActiveYears`) additionally accept a range value
+  such as `2016..2022`, with either bound omitted for an open end. The dormancy bands use it.
+
+[[get]]
+== Get
+
+operation::analytics-get[snippets='security,request-headers,http-request,response-headers,response-fields,http-response']
+
+xref:../api-guide.adoc[Back to API guide]

@@ -14,11 +14,28 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.statistics;
+package nu.fgv.register.server.analytics;
+
+import lombok.Builder;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public record HistoryDto(String label, Long count) {
+@Builder
+public record BucketDto(
+        String key,
+        String label,
+        Long count,
+        @Nullable String facet
+) {
+
+    public static BucketDto of(final String key, final String label, final Long count, final @Nullable String facet) {
+        return BucketDto.builder().key(key).label(label).count(count).facet(facet).build();
+    }
+
+    public static BucketDto of(final String key, final String label, final Long count) {
+        return of(key, label, count, null);
+    }
 }

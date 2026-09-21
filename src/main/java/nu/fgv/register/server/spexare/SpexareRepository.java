@@ -40,4 +40,6 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
     Optional<Spexare> findByUserExternalId(final String externalId);
 
     long countByPublishedTrue();
+
+    long countByDataQualityIssue(DataQualityIssue issue);
 }

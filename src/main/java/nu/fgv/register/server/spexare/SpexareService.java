@@ -57,14 +57,17 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
+import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.FACET_COUNTRIES;
 import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
@@ -112,6 +115,16 @@ public class SpexareService {
         final List<Facet> facets = getFacets(searchResult);
 
         return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public List<Facet> facets() {
+        return getFacets(repository.search("", Collections.emptyList(), 0, 1, Sort.unsorted()));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public long countByDataQualityIssue(final DataQualityIssue issue) {
+        return repository.countByDataQualityIssue(issue);
     }
 
     @RequiresAdminOrEditorOrUser
@@ -426,14 +439,14 @@ public class SpexareService {
                             .groups(List.of(FacetGroup.builder()
                                     .id(logicalKey)
                                     .label("")
-                                    .values(createStandardValues(values))
+                                    .values(createStandardValues(logicalKey, values))
                                     .build()))
                             .build();
                 })
                 .toList();
     }
 
-    private List<FacetValue> createStandardValues(final Map<Object, Long> values) {
+    private List<FacetValue> createStandardValues(final String logicalKey, final Map<Object, Long> values) {
         return values.entrySet().stream()
                 .map(entry -> {
                     final String rawValue = String.valueOf(entry.getKey());
@@ -446,6 +459,8 @@ public class SpexareService {
                         final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
                         id = parts[0];
                         displayValue = parts[1];
+                    } else if (FACET_COUNTRIES.equals(logicalKey)) {
+                        displayValue = new Locale.Builder().setRegion(rawValue).build().getDisplayCountry(LocaleContextHolder.getLocale());
                     }
                     return new FacetValue(id, displayValue, entry.getValue());
                 })
