@@ -66,6 +66,10 @@ public class GraphSpecification {
         };
     }
 
+    public static Specification<Spexare> spexareWithId(final Long spexareId) {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.ID), spexareId);
+    }
+
     public static Specification<Spexare> partnerOf(final Long spexareId) {
         return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.PARTNER).get(Spexare_.ID), spexareId);
     }

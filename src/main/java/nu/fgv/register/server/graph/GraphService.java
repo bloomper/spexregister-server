@@ -295,7 +295,8 @@ public class GraphService {
 
         final List<Spexare> partners = Stream.concat(
                         Optional.ofNullable(spexare.getPartner())
-                                .flatMap(partner -> spexareRepository.findById0(partner.getId()))
+                                .map(partner -> spexareRepository.findAll(GraphSpecification.spexareWithId(partner.getId()), BY_ID, BasePermission.READ))
+                                .orElseGet(List::of)
                                 .stream(),
                         spexareRepository.findAll(GraphSpecification.partnerOf(spexare.getId()), BY_ID, BasePermission.READ).stream())
                 .collect(Collectors.toMap(Spexare::getId, partner -> partner, (a, b) -> a, LinkedHashMap::new))

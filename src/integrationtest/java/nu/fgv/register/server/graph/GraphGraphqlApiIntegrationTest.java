@@ -474,6 +474,30 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        void should_omit_an_unreadable_partner_rather_than_deny() {
+            final var ada = persistReadableSpexare("Ada", "Lovelace", true);
+            final var grace = persistReadableSpexare("Grace", "Hopper", false);
+
+            ada.setPartner(grace);
+            grace.setPartner(ada);
+            spexareRepository.save(ada);
+            spexareRepository.save(grace);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.SPEXARE)
+                    .variable("id", ada.getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.groups[?(@.type == 'PARTNER')].totalCount")
+                    .entityList(Integer.class).containsExactly(0);
+        }
+
+        @Test
         void should_return_null_when_not_found() {
             httpGraphQlTester
                     .mutate()
