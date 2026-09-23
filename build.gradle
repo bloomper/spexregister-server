@@ -75,9 +75,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.7.3'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.3'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.3'
+    developmentOnly 'org.keycloak:keycloak-core:26.7.4'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.4'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.4'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
