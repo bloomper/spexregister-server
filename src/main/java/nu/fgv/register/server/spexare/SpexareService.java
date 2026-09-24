@@ -42,7 +42,6 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.util.common.SearchException;
-import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -72,7 +71,7 @@ import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
-import static nu.fgv.register.server.util.FileUtil.detectMimeType;
+import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -264,13 +263,13 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public SpexareDto saveImage(final Long id, final byte[] image, @Nullable final String contentType) {
+    public SpexareDto saveImage(final Long id, final byte[] image) {
         return repository
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     spexare.setImage(image);
-                    spexare.setImageContentType(hasText(contentType) ? contentType : detectMimeType(image));
+                    spexare.setImageContentType(requireSupportedImageMimeType(image));
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
                 })

@@ -52,7 +52,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +62,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -239,8 +237,8 @@ public class SpexareApi {
 
     @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestBody final byte[] file, @RequestHeader(HttpHeaders.CONTENT_TYPE) @Nullable final String contentType) {
-        service.saveImage(spexareId, file, contentType);
+    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestBody final byte[] file) {
+        service.saveImage(spexareId, file);
 
         return ResponseEntity.noContent().build();
     }
@@ -249,7 +247,7 @@ public class SpexareApi {
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestParam("file") final MultipartFile file) {
         try {
-            return uploadImage(spexareId, file.getBytes(), file.getContentType());
+            return uploadImage(spexareId, file.getBytes());
         } catch (final IOException e) {
             throw new InternalErrorException(e.getMessage());
         }

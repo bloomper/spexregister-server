@@ -36,7 +36,6 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,7 +61,7 @@ import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
-import static nu.fgv.register.server.util.FileUtil.detectMimeType;
+import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -234,13 +233,13 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditor
-    public SpexDto savePoster(final Long id, final byte[] poster, @Nullable final String contentType) {
+    public SpexDto savePoster(final Long id, final byte[] poster) {
         return repository
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(poster);
-                    spex.getDetails().setPosterContentType(hasText(contentType) ? contentType : detectMimeType(poster));
+                    spex.getDetails().setPosterContentType(requireSupportedImageMimeType(poster));
                     detailsRepository.save(spex.getDetails());
                     touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);

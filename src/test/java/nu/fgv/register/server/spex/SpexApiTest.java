@@ -442,7 +442,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_upload_poster() throws Exception {
         final var poster = new byte[]{10, 12};
         final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(spex);
+        when(service.savePoster(any(Long.class), any())).thenReturn(spex);
 
         mockMvc
                 .perform(
@@ -467,7 +467,7 @@ class SpexApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", Long.class, byte[].class, String.class))
+                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", Long.class, byte[].class))
                         )
                 );
     }
@@ -476,7 +476,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_upload_poster_via_multipart() throws Exception {
         final var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any(), any(String.class))).thenReturn(spex);
+        when(service.savePoster(any(Long.class), any())).thenReturn(spex);
 
         mockMvc
                 .perform(

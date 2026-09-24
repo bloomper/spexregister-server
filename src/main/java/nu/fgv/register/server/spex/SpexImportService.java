@@ -118,7 +118,7 @@ public class SpexImportService extends AbstractImportService {
 
     private void processPoster(final Long id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
-            service.savePoster(id, downloadImage(url), null);
+            service.savePoster(id, downloadImage(url));
         } else if (!hasText(url)) {
             service.deletePoster(id);
         }

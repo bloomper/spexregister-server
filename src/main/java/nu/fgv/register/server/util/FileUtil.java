@@ -21,17 +21,21 @@ import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 public class FileUtil {
+
+    private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = Set.of("image/png", "image/jpeg", "image/gif");
 
     private FileUtil() {
     }
@@ -44,6 +48,16 @@ public class FileUtil {
         } catch (final MagicException | MagicParseException | MagicMatchNotFoundException _) {
             return "";
         }
+    }
+
+    public static String requireSupportedImageMimeType(final byte[] file) {
+        final String mimeType = detectMimeType(file);
+
+        if (!SUPPORTED_IMAGE_MIME_TYPES.contains(mimeType)) {
+            throw new BadRequestException("Unsupported image type, expected one of %s".formatted(SUPPORTED_IMAGE_MIME_TYPES));
+        }
+
+        return mimeType;
     }
 
     public static byte[] downloadImage(final String url) {

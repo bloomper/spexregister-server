@@ -29,7 +29,6 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -45,7 +44,7 @@ import java.util.Optional;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
-import static nu.fgv.register.server.util.FileUtil.detectMimeType;
+import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -176,13 +175,13 @@ public class SpexCategoryService {
     }
 
     @RequiresAdmin
-    public SpexCategoryDto saveLogo(final Long id, final byte[] logo, @Nullable final String contentType) {
+    public SpexCategoryDto saveLogo(final Long id, final byte[] logo) {
         return repository
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(logo);
-                    category.setLogoContentType(hasText(contentType) ? contentType : detectMimeType(logo));
+                    category.setLogoContentType(requireSupportedImageMimeType(logo));
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })

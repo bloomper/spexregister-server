@@ -420,7 +420,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_upload_logo() throws Exception {
         final var logo = new byte[]{10, 12};
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(category);
+        when(service.saveLogo(any(Long.class), any())).thenReturn(category);
 
         mockMvc
                 .perform(
@@ -445,7 +445,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, byte[].class, String.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, byte[].class))
                         )
                 );
     }
@@ -454,7 +454,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
     void should_upload_logo_via_multipart() throws Exception {
         final var logo = new MockMultipartFile("file", "logo.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any(), any(String.class))).thenReturn(category);
+        when(service.saveLogo(any(Long.class), any())).thenReturn(category);
 
         mockMvc
                 .perform(

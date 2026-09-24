@@ -559,7 +559,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var image = new byte[]{10, 12};
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(spexare);
+        when(service.saveImage(any(Long.class), any())).thenReturn(spexare);
 
         mockMvc
                 .perform(
@@ -584,7 +584,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, byte[].class, String.class))
+                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, byte[].class))
                         )
                 );
     }
@@ -594,7 +594,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any(), any(String.class))).thenReturn(spexare);
+        when(service.saveImage(any(Long.class), any())).thenReturn(spexare);
 
         mockMvc
                 .perform(

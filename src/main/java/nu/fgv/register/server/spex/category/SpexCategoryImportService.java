@@ -94,7 +94,7 @@ public class SpexCategoryImportService extends AbstractImportService {
 
     private void processLogo(final Long id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
-            service.saveLogo(id, downloadImage(url), null);
+            service.saveLogo(id, downloadImage(url));
         } else if (!hasText(url)) {
             service.deleteLogo(id);
         }

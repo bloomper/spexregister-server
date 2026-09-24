@@ -433,7 +433,7 @@ public class SpexareImportService extends AbstractImportService {
 
     private void processImage(final Long id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
-            service.saveImage(id, downloadImage(url), null);
+            service.saveImage(id, downloadImage(url));
         } else if (!hasText(url)) {
             service.deleteImage(id);
         }
