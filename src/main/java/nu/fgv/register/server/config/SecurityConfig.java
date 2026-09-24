@@ -32,12 +32,17 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.server.resource.authentication.DelegatingJwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -79,16 +84,19 @@ public class SecurityConfig {
                         authorize
                                 .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/docs/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/graphiql/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "%s".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.POST, "%s/**".formatted(graphqlBaseUrl)).permitAll()
-                                .requestMatchers(HttpMethod.GET, "%s/schema".formatted(graphqlBaseUrl)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/settings/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .securityContext(context -> context.requireExplicitSave(false))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
         return http.build();
+    }
+
+    @Bean
+    public OAuth2TokenValidator<Jwt> authorizedPartyValidator(@Value("${spexregister.security.authorized-parties:${spexregister.keycloak.client.client-id}}") final List<String> authorizedParties) {
+        return new JwtClaimValidator<String>("azp", authorizedParties::contains);
     }
 
     @Bean

@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.util.filter;
 
+import nu.fgv.register.server.util.error.BadRequestException;
+
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -67,6 +69,9 @@ public class FilterParser {
                         } else if (token.equals(FilterOperation.RIGHT_PARENTHESIS)) {
                             while (stack.peek() != null && !stack.peek().equals(FilterOperation.LEFT_PARENTHESIS)) {
                                 output.push(stack.pop());
+                            }
+                            if (stack.isEmpty()) {
+                                throw new BadRequestException("Malformed filter: unbalanced parentheses");
                             }
                             stack.pop();
                         } else {

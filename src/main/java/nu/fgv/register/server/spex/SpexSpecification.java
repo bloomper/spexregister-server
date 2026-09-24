@@ -22,6 +22,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Anders Jacobsson
@@ -37,6 +38,11 @@ public class SpexSpecification extends BaseSpecification<Spex> {
 
     public SpexSpecification(final FilterCriteria criteria) {
         super(criteria);
+    }
+
+    @Override
+    protected Set<String> nestedPaths() {
+        return Set.of("details.title", "details.category.id", "details.category.name");
     }
 
     public static Specification<Spex> isRevival() {

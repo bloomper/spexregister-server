@@ -16,13 +16,14 @@
 
 package nu.fgv.register.server.util.filter;
 
-import nu.fgv.register.server.util.error.InternalErrorException;
+import nu.fgv.register.server.util.error.BadRequestException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 /**
@@ -39,6 +40,14 @@ public class SpecificationsBuilder<T> {
     }
 
     public Specification<T> build(final Deque<?> postFixedExpressionStack, final Function<FilterCriteria, Specification<T>> converter) {
+        try {
+            return build0(postFixedExpressionStack, converter);
+        } catch (final NoSuchElementException _) {
+            throw new BadRequestException("Malformed filter");
+        }
+    }
+
+    private Specification<T> build0(final Deque<?> postFixedExpressionStack, final Function<FilterCriteria, Specification<T>> converter) {
         final Deque<Specification<T>> specificationStack = new LinkedList<>();
 
         Collections.reverse((List<?>) postFixedExpressionStack);
@@ -61,7 +70,7 @@ public class SpecificationsBuilder<T> {
         }
 
         if (specificationStack.isEmpty()) {
-            throw new InternalErrorException("Expected non-empty specification stack");
+            throw new BadRequestException("Malformed filter");
         }
         return specificationStack.pop();
     }

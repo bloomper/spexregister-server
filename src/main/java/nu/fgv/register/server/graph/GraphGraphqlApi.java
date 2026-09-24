@@ -28,6 +28,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
+import static nu.fgv.register.server.util.graphql.GraphqlUtil.MAX_LIMIT;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
@@ -44,7 +45,7 @@ public class GraphGraphqlApi {
     @QueryMapping("graphSearch")
     @RequiresAdminOrEditorOrUser
     public List<GraphNodeDto> search(@Argument final String q, @Argument final int first) {
-        return service.search(q, first);
+        return service.search(q, Math.min(first, MAX_LIMIT));
     }
 
     @QueryMapping("graphNeighbourhood")
@@ -52,7 +53,7 @@ public class GraphGraphqlApi {
     public @Nullable GraphNeighbourhoodDto retrieveNeighbourhood(@Argument final GraphNodeType type,
                                                                  @Argument final Long id,
                                                                  @Argument final int first) {
-        return service.findNeighbourhood(type, id, first).orElse(null);
+        return service.findNeighbourhood(type, id, Math.min(first, MAX_LIMIT)).orElse(null);
     }
 
     @QueryMapping("graphNeighboursPaged")

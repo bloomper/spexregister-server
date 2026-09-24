@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.config;
 
+import graphql.analysis.MaxQueryComplexityInstrumentation;
+import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.scalars.ExtendedScalars;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.graphql.CountingConnectionAdapter;
@@ -75,6 +77,16 @@ public class GraphqlConfig {
                 ConnectionFieldTypeVisitor.create(new CountingConnectionAdapter(cursorStrategy)),
                 new TotalCountTypeVisitor()
         ));
+    }
+
+    @Bean
+    public MaxQueryDepthInstrumentation maxQueryDepthInstrumentation() {
+        return new MaxQueryDepthInstrumentation(15);
+    }
+
+    @Bean
+    public MaxQueryComplexityInstrumentation maxQueryComplexityInstrumentation() {
+        return new MaxQueryComplexityInstrumentation(1000);
     }
 
     @Bean

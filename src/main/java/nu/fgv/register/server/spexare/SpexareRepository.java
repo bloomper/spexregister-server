@@ -18,9 +18,12 @@ package nu.fgv.register.server.spexare;
 
 import nu.fgv.register.server.util.search.SearchEnabledJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,6 +41,9 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
 
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     Optional<Spexare> findByUserExternalId(final String externalId);
+
+    @Query("SELECT s FROM Spexare s JOIN FETCH s.partner WHERE s.id IN :ids")
+    List<Spexare> findWithPartnerByIdIn(Collection<Long> ids);
 
     long countByPublishedTrue();
 

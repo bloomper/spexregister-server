@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
 
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
-import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
+import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -182,7 +182,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
 
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
-        final boolean isAdmin = isAdministrator();
+        final boolean readsUnpublished = isAdministratorOrEditor();
         final boolean sensitiveReadable = SpexareSensitiveData.isReadableForAll();
         var search = searchSession
                 .search(Spexare.class)
@@ -204,7 +204,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                             } else {
                                 b.must(f.matchAll());
                             }
-                            if (!isAdmin) {
+                            if (!readsUnpublished) {
                                 b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
                             }
                             if (query.aggregationFilters() != null && !query.aggregationFilters().isEmpty()) {
@@ -252,7 +252,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                         })
                 )
                 .aggregation(AggregationKey.of(AGGREGATION_DECEASED), f -> f.terms().field(AGGREGATION_DECEASED, Boolean.class))
-                .aggregation(AggregationKey.of(AGGREGATION_PUBLISHED), f -> isAdmin ? f.terms().field(AGGREGATION_PUBLISHED, Boolean.class) : f.terms().field(AGGREGATION_DECEASED, Boolean.class))
+                .aggregation(AggregationKey.of(AGGREGATION_PUBLISHED), f -> readsUnpublished ? f.terms().field(AGGREGATION_PUBLISHED, Boolean.class) : f.terms().field(AGGREGATION_DECEASED, Boolean.class))
                 .aggregation(AggregationKey.of(AGGREGATION_SPEX_COUNT), f -> f.terms().field(FIELD_SPEX_COUNT, Integer.class));
 
         for (final String key : STRING_AGGREGATIONS) {
@@ -275,13 +275,13 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     }
 
     public long countByDataQualityIssue(final DataQualityIssue issue) {
-        final boolean isAdmin = isAdministrator();
+        final boolean readsUnpublished = isAdministratorOrEditor();
 
         return searchSession()
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
                     b.must(f.matchAll());
-                    if (!isAdmin) {
+                    if (!readsUnpublished) {
                         b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
                     }
                     applyDataQualityIssue(f, b, issue);

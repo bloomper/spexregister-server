@@ -58,6 +58,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -66,6 +67,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
@@ -79,7 +81,7 @@ import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
-import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
+import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -100,7 +102,6 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final ScrollRequest scroll, final Sort sort) {
         final int limit = scroll.limit();
-        // The last page can only be located once the number of hits is known, so probe for it first.
         final long knownTotal = scroll.lastPage() ? repository.search(query, aggregationFilters, 0, 1, sort).total().hitCount() : 0L;
         final int offset = Math.toIntExact(scroll.offsetFor(knownTotal));
 
@@ -320,6 +321,13 @@ public class SpexareService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public Map<Long, SpexareDto> findPartnersBySpexare(final Collection<Long> ids) {
+        return repository.findWithPartnerByIdIn(ids).stream()
+                .filter(spexare -> permissionService.hasReadPermission(spexare.getPartner()))
+                .collect(Collectors.toMap(Spexare::getId, spexare -> SPEXARE_MAPPER.toDto(spexare.getPartner())));
+    }
+
+    @RequiresAdminOrEditorOrUser
     public void addPartner(final Long spexareId, final Long id) {
         if (doSpexareAndPartnerExist(spexareId, id)) {
             final Spexare spexare = repository.findById(spexareId)
@@ -386,7 +394,6 @@ public class SpexareService {
         }
     }
 
-    // A caller who cannot read the full personnummer must not be able to probe it with a filter either.
     private static Deque<?> parseFilter(final String filter) {
         final Deque<?> parsed = FilterParser.parse(filter);
 
@@ -398,7 +405,6 @@ public class SpexareService {
         return parsed;
     }
 
-    // The mapper ignores null properties, so a caller who was only shown the birth date leaves the number untouched.
     private static SpexareUpdateDto withoutSensitiveData(final SpexareUpdateDto dto) {
         return new SpexareUpdateDto(dto.id(), dto.firstName(), dto.lastName(), dto.nickName(), null,
                 dto.deceased(), dto.published(), dto.graduation(), dto.comment());
@@ -413,11 +419,11 @@ public class SpexareService {
     }
 
     private List<Facet> getFacets(final SearchResult<Spexare> searchResult) {
-        final boolean isAdmin = isAdministrator();
+        final boolean readsUnpublished = isAdministratorOrEditor();
 
         return AGGREGATIONS.stream()
                 .filter(a -> {
-                    if (Spexare_.PUBLISHED.equals(a) && !isAdmin) {
+                    if (Spexare_.PUBLISHED.equals(a) && !readsUnpublished) {
                         return false;
                     }
                     try {

@@ -32,16 +32,19 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -114,11 +117,14 @@ public class SpexareGraphqlApi {
         service.deleteImage(id);
     }
 
-    @SchemaMapping(typeName = "Spexare", field = "partner")
+    @BatchMapping(typeName = "Spexare", field = "partner")
     @RequiresAdminOrEditorOrUser
-    public @Nullable SpexareDto retrievePartner(final SpexareDto dto) {
-        return service.findPartnerBySpexare(dto.getId())
-                .orElse(null);
+    public Map<SpexareDto, SpexareDto> retrievePartners(final List<SpexareDto> dtos) {
+        final Map<Long, SpexareDto> partners = service.findPartnersBySpexare(dtos.stream().map(SpexareDto::getId).toList());
+
+        return dtos.stream()
+                .filter(dto -> partners.containsKey(dto.getId()))
+                .collect(Collectors.toMap(Function.identity(), dto -> partners.get(dto.getId()), (a, _) -> a));
     }
 
     @MutationMapping("spexarePartnerAdd")

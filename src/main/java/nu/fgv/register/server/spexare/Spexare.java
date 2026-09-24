@@ -132,6 +132,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Convert(converter = CryptoConverter.class)
     @KeywordField(name = INDEX_SOCIAL_SECURITY_NUMBER_HASH, valueBridge = @ValueBridgeRef(type = SocialSecurityNumberHashBridge.class))
     @KeywordField(name = INDEX_BIRTH_DATE, valueBridge = @ValueBridgeRef(type = SocialSecurityNumberBirthDateBridge.class))
+    @ToString.Exclude
     @Nullable
     private String socialSecurityNumber;
 
@@ -158,6 +159,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
 
     @Lob
     @Column(name = "image", columnDefinition = "MEDIUMBLOB")
+    @ToString.Exclude
     @Nullable
     private byte[] image;
 

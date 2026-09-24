@@ -52,10 +52,16 @@ spring:
     schema:
       printer:
         enabled: true
+      introspection:
+        enabled: false
     http:
       path: /api/graphql
     websocket:
       path: /api/graphql
+  data:
+    web:
+      pageable:
+        max-page-size: 100
   batch:
     jdbc:
       initialize-schema: never
@@ -85,8 +91,6 @@ spexregister:
     - sv
   crypto:
     secret-key: ${APP_SECRET_KEY}
-    initialization-vector: ${APP_IV}
-    algorithm: "AES/CFB/PKCS5Padding"
   jobs:
     full-index:
       cron-expression: 0 0 */4 * * ? # Every 4 hours
@@ -111,3 +115,13 @@ spexregister:
   data:
     seed-audit-data: ${APP_SEED_AUDIT_DATA}
     import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  graphql:
+    schema:
+      introspection:
+        enabled: true

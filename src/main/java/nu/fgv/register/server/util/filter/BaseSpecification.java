@@ -22,10 +22,12 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.Getter;
+import nu.fgv.register.server.util.error.BadRequestException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * @author Anders Jacobsson
@@ -101,11 +103,23 @@ public class BaseSpecification<T> implements Specification<T> {
         };
     }
 
+    protected Set<String> nestedPaths() {
+        return Set.of();
+    }
+
     private Path<T> getPath(final Root<T> root, final String attributePath) {
+        if (attributePath.contains(".") && !nestedPaths().contains(attributePath)) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(attributePath));
+        }
+
         Path<T> path = root;
 
-        for (final String part : attributePath.split("\\.")) {
-            path = path.get(part);
+        try {
+            for (final String part : attributePath.split("\\.")) {
+                path = path.get(part);
+            }
+        } catch (final IllegalArgumentException | IllegalStateException _) {
+            throw new BadRequestException("Unknown filter attribute %s".formatted(attributePath));
         }
 
         return path;

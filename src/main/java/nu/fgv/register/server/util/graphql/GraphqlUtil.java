@@ -35,6 +35,7 @@ import java.util.Optional;
 public class GraphqlUtil {
 
     private static final int DEFAULT_LIMIT = 10;
+    public static final int MAX_LIMIT = 100;
 
     private GraphqlUtil() {
     }
@@ -46,7 +47,7 @@ public class GraphqlUtil {
     public static ScrollRequest extractScrollRequest(final ScrollSubrange subrange) {
         return new ScrollRequest(
                 subrange.position(),
-                subrange.count().orElse(DEFAULT_LIMIT),
+                Math.min(subrange.count().orElse(DEFAULT_LIMIT), MAX_LIMIT),
                 !subrange.forward() && subrange.position().isEmpty()
         );
     }

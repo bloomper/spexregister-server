@@ -161,14 +161,14 @@ public class GraphService {
 
         final List<GraphNodeDto> nodes = new ArrayList<>();
 
-        nodes.addAll(spexareRepository.findAll(GraphSpecification.spexareMatching(term), BY_ID, BasePermission.READ)
-                .stream().limit(first).map(GraphService::nodeOf).toList());
-        nodes.addAll(spexRepository.findAll(GraphSpecification.spexMatching(term), BY_ID, BasePermission.READ)
-                .stream().limit(first).map(GraphService::nodeOf).toList());
-        nodes.addAll(taskRepository.findAll(GraphSpecification.taskMatching(term), BY_ID, BasePermission.READ)
-                .stream().limit(first).map(GraphService::nodeOf).toList());
-        nodes.addAll(tagRepository.findAll(GraphSpecification.tagMatching(term), BY_ID, BasePermission.READ)
-                .stream().limit(first).map(GraphService::nodeOf).toList());
+        nodes.addAll(spexareRepository.findBy(GraphSpecification.spexareMatching(term), BasePermission.READ,
+                query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
+        nodes.addAll(spexRepository.findBy(GraphSpecification.spexMatching(term), BasePermission.READ,
+                query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
+        nodes.addAll(taskRepository.findBy(GraphSpecification.taskMatching(term), BasePermission.READ,
+                query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
+        nodes.addAll(tagRepository.findBy(GraphSpecification.tagMatching(term), BasePermission.READ,
+                query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
 
         return nodes.stream()
                 .sorted(Comparator.comparing(GraphNodeDto::label, String.CASE_INSENSITIVE_ORDER))
