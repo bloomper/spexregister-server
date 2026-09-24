@@ -20,10 +20,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
+import nu.fgv.register.server.util.filter.FilterCriteria;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
@@ -57,6 +59,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -130,7 +133,7 @@ public class SpexareService {
     public CountedWindow<SpexareDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
-                                SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new) :
+                                SpecificationsBuilder.<Spexare>builder().build(parseFilter(filter), SpexareSpecification::new) :
                                 NO_FILTER,
                         BasePermission.READ, query -> {
                             final long total = query.count();
@@ -147,7 +150,7 @@ public class SpexareService {
     public Page<SpexareDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<Spexare>builder().build(FilterParser.parse(filter), SpexareSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<Spexare>builder().build(parseFilter(filter), SpexareSpecification::new), pageable, BasePermission.READ)
                         .map(SPEXARE_MAPPER::toDto) :
                 repository
                         .findAll(pageable, BasePermission.READ)
@@ -189,7 +192,7 @@ public class SpexareService {
                 spec = hasIds(ids);
             } else if (hasText(filter)) {
                 spec = SpecificationsBuilder.<Spexare>builder()
-                        .build(FilterParser.parse(filter), SpexareSpecification::new);
+                        .build(parseFilter(filter), SpexareSpecification::new);
             } else {
                 spec = null;
             }
@@ -229,7 +232,7 @@ public class SpexareService {
                 .findById0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
-                    SPEXARE_MAPPER.toPartialModel(dto, spexare);
+                    SPEXARE_MAPPER.toPartialModel(SpexareSensitiveData.isReadable(spexare) ? dto : withoutSensitiveData(dto), spexare);
                     return spexare;
                 })
                 .map(repository::save)
@@ -309,6 +312,7 @@ public class SpexareService {
                     .findById0(id)
                     .filter(spexare -> spexare.getPartner() != null)
                     .map(Spexare::getPartner)
+                    .filter(permissionService::hasReadPermission)
                     .map(SPEXARE_MAPPER::toDto);
         } else {
             throw new ResourceNotFoundException(Spexare.class, id);
@@ -340,13 +344,11 @@ public class SpexareService {
             repository.saveAndFlush(partner);
 
             if (spexare.getUser() != null) {
-                final ObjectIdentity oid = toObjectIdentity(Spexare.class, partner.getId());
-                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(spexare.getUser().getExternalId()));
+                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, partner.getId()), new PrincipalSid(spexare.getUser().getExternalId()));
             }
 
             if (partner.getUser() != null) {
-                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(partner.getUser().getExternalId()));
+                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), new PrincipalSid(partner.getUser().getExternalId()));
             }
         } else {
             throw new ResourcesNotFoundException(new String[]{Spexare.class.getSimpleName(), "Partner"}, spexareId, id);
@@ -366,15 +368,11 @@ public class SpexareService {
                         permissionService.checkWritePermission(partner);
 
                         if (spexare.getUser() != null) {
-                            final ObjectIdentity oid = toObjectIdentity(Spexare.class, partner.getId());
-
-                            permissionService.revokePermission(oid, BasePermission.WRITE, new PrincipalSid(spexare.getUser().getExternalId()));
+                            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, partner.getId()), new PrincipalSid(spexare.getUser().getExternalId()));
                         }
 
                         if (partner.getUser() != null) {
-                            final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-
-                            permissionService.revokePermission(oid, BasePermission.WRITE, new PrincipalSid(partner.getUser().getExternalId()));
+                            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), new PrincipalSid(partner.getUser().getExternalId()));
                         }
 
                         partner.setPartner(null);
@@ -386,6 +384,24 @@ public class SpexareService {
         } else {
             throw new ResourceNotFoundException(Spexare.class, id);
         }
+    }
+
+    // A caller who cannot read the full personnummer must not be able to probe it with a filter either.
+    private static Deque<?> parseFilter(final String filter) {
+        final Deque<?> parsed = FilterParser.parse(filter);
+
+        if (!SpexareSensitiveData.isReadableForAll() && parsed.stream()
+                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.getKey()))) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(SpexareSensitiveData.FIELD));
+        }
+
+        return parsed;
+    }
+
+    // The mapper ignores null properties, so a caller who was only shown the birth date leaves the number untouched.
+    private static SpexareUpdateDto withoutSensitiveData(final SpexareUpdateDto dto) {
+        return new SpexareUpdateDto(dto.id(), dto.firstName(), dto.lastName(), dto.nickName(), null,
+                dto.deceased(), dto.published(), dto.graduation(), dto.comment());
     }
 
     private boolean doesSpexareExist(final Long id) {

@@ -64,6 +64,7 @@ public class IndexingService {
         log.info("Starting indexing for {} (existing documents: {}, forced: {})", clazz.getSimpleName(), count, force);
 
         return searchSession.massIndexer()
+                .mergeSegmentsOnFinish(true)
                 .start()
                 .thenApply(ignored -> (Void) null)
                 .whenComplete((ignored, ex) -> {

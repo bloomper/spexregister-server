@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,9 +75,16 @@ public class SecurityUtil {
         return hasRole(SecurityUtil.ROLE_EDITOR);
     }
 
+    public static boolean isAdministratorOrEditor() {
+        return isAdministrator() || isEditor();
+    }
+
     private static boolean hasRole(final String role) {
-        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getAuthorities)
+                .stream()
+                .flatMap(Collection::stream)
+                .anyMatch(grantedAuthority -> role.equals(grantedAuthority.getAuthority()));
     }
 
     public static void runAsSystem(final Runnable runnable) {

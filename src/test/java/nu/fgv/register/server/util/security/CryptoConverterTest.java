@@ -16,11 +16,17 @@
 
 package nu.fgv.register.server.util.security;
 
+import nu.fgv.register.server.util.error.InternalErrorException;
 import org.junit.jupiter.api.Test;
+
+import java.util.Base64;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Anders Jacobsson
@@ -28,15 +34,36 @@ import static org.hamcrest.Matchers.is;
  */
 class CryptoConverterTest {
 
+    private final CryptoConverter converter = new CryptoConverter("Zr4t7w!z%C*F-JaNdRgUkXp2s5v8x/A?");
+
     @Test
     void should_encrypt_and_decrypt() {
-        final CryptoConverter converter = new CryptoConverter("AES/CFB/PKCS5Padding", "Zr4t7w!z%C*F-JaNdRgUkXp2s5v8x/A?", "2546540121759905");
-
-        final String plainValue = "whatever";
+        final String plainValue = "19850101-1234";
         final String encryptedValue = converter.convertToDatabaseColumn(plainValue);
-        final String decryptedValue = converter.convertToEntityAttribute(encryptedValue);
 
-        assertThat(decryptedValue, is(equalTo(plainValue)));
+        assertThat(encryptedValue, is(not(equalTo(plainValue))));
+        assertThat(converter.convertToEntityAttribute(encryptedValue), is(equalTo(plainValue)));
+    }
+
+    @Test
+    void should_use_a_fresh_iv_for_every_value() {
+        assertThat(converter.convertToDatabaseColumn("19850101-1234"), is(not(equalTo(converter.convertToDatabaseColumn("19850101-1234")))));
+    }
+
+    @Test
+    void should_reject_tampered_value() {
+        final String encryptedValue = converter.convertToDatabaseColumn("19850101-1234");
+        final byte[] data = Base64.getDecoder().decode(encryptedValue);
+        data[data.length - 1] ^= 1;
+        final String tampered = Base64.getEncoder().encodeToString(data);
+
+        assertThrows(InternalErrorException.class, () -> converter.convertToEntityAttribute(tampered));
+    }
+
+    @Test
+    void should_pass_empty_values_through_as_null() {
+        assertThat(converter.convertToDatabaseColumn(""), is(nullValue()));
+        assertThat(converter.convertToEntityAttribute(null), is(nullValue()));
     }
 
 }

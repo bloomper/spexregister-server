@@ -125,16 +125,14 @@ public class R__ImportSampleData extends BaseJavaMigration {
                                final Keycloak keycloakAdminClient,
                                final String keycloakClientId,
                                @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
-                               @Value("${spexregister.crypto.algorithm}") final String algorithm,
-                               @Value("${spexregister.crypto.secret-key}") final String secretKey,
-                               @Value("${spexregister.crypto.initialization-vector}") final String iv) {
+                               @Value("${spexregister.crypto.secret-key}") final String secretKey) {
         this.permissionService = permissionService;
         this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
         this.importSampleData = importSampleData;
-        cryptoConverter = new CryptoConverter(algorithm, secretKey, iv);
+        cryptoConverter = new CryptoConverter(secretKey);
     }
 
     @Override
@@ -845,7 +843,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
                             permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
                             permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
-                            permissionService.grantPermission(spexareOid, BasePermission.WRITE, new PrincipalSid(externalId));
+                            permissionService.grantReadAndWrite(spexareOid, new PrincipalSid(externalId));
 
                             emailAddresses.add(userRepresentation.getEmail());
                         }
@@ -859,16 +857,14 @@ public class R__ImportSampleData extends BaseJavaMigration {
         });
 
         jdbcClient
-                .sql("SELECT u.external_id, s.id FROM user u LEFT JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
+                .sql("SELECT u.external_id, s.partner_id FROM user u JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
                 .query()
                 .listOfRows()
                 .forEach(row -> {
                     final String externalId = (String) row.get("external_id");
-                    final Long spexareId = (Long) row.get("id");
+                    final Long partnerId = (Long) row.get("partner_id");
 
-                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
-
-                    permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(externalId));
+                    permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, partnerId), new PrincipalSid(externalId));
                 });
 
         return List.copyOf(emailAddresses);

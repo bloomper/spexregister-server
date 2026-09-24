@@ -51,7 +51,6 @@ The parameters can be found under ``.docker/secrets`` where each file represents
 |KEYCLOAK_ADMIN_PASSWORD|The password of Keycloak's administrative user||password
 |APP_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``src/test/resources/keycloak/fgv.json``, search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
 |APP_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
-|APP_IV|The initialization vector user for encrypting sensitive data|A 16 digit integer|1827491465859186
 
 |===
 

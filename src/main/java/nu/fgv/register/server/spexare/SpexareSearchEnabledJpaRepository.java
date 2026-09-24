@@ -27,7 +27,9 @@ import nu.fgv.register.server.spexare.activity.task.actor.Actor_;
 import nu.fgv.register.server.spexare.address.Address_;
 import nu.fgv.register.server.tag.Tag_;
 import nu.fgv.register.server.task.Task_;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.search.AbstractSearchEnabledJpaRepository;
+import nu.fgv.register.server.util.security.SocialSecurityNumberHasher;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector;
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
@@ -38,6 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,7 +64,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     };
 
     private static final String[] SECONDARY_FUZZY_FIELDS = new String[]{
-            Spexare_.SOCIAL_SECURITY_NUMBER,
             String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, Tag_.NAME),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.TITLE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, Actor_.ROLE),
@@ -75,7 +77,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     };
 
     private static final String[] EXACT_FIELDS = new String[]{
-            Spexare_.SOCIAL_SECURITY_NUMBER, Spexare_.GRADUATION,
+            Spexare_.GRADUATION,
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.POSTAL_CODE),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.COUNTRY),
             String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE),
@@ -181,16 +183,24 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
         final boolean isAdmin = isAdministrator();
+        final boolean sensitiveReadable = SpexareSensitiveData.isReadableForAll();
         var search = searchSession
                 .search(Spexare.class)
                 .where(f -> f.bool().with(b -> {
                             if (hasText(query.freeTextQuery())) {
-                                b.must(f.bool()
-                                        .should(f.match().fields(PRIMARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(10.0f))
-                                        .should(f.match().fields(SECONDARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(5.0f))
-                                        .should(f.match().fields(EXACT_FIELDS).matching(query.freeTextQuery()).boost(5.0f))
-                                        .should(f.match().fields(FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(1.0f))
-                                );
+                                b.must(f.bool().with(sb -> {
+                                    sb.should(f.match().fields(PRIMARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(10.0f));
+                                    sb.should(f.match().fields(SECONDARY_FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(5.0f));
+                                    sb.should(f.match().fields(EXACT_FIELDS).matching(query.freeTextQuery()).boost(5.0f));
+                                    sb.should(f.match().fields(FUZZY_FIELDS).matching(query.freeTextQuery()).fuzzy().boost(1.0f));
+                                    Arrays.stream(query.freeTextQuery().split("\\s+")).forEach(term -> {
+                                        if (SocialSecurityNumberHasher.isBirthDate(term)) {
+                                            sb.should(f.match().field(Spexare.INDEX_BIRTH_DATE).matching(term).boost(5.0f));
+                                        } else if (sensitiveReadable && SocialSecurityNumberHasher.isNumber(term)) {
+                                            sb.should(f.match().field(Spexare.INDEX_SOCIAL_SECURITY_NUMBER_HASH).matching(term).boost(10.0f));
+                                        }
+                                    });
+                                }));
                             } else {
                                 b.must(f.matchAll());
                             }
@@ -208,7 +218,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                         final String fullKey = AGGREGATIONS.stream()
                                                 .filter(key -> key.endsWith(AGGREGATION_COMPOSITE_DELIMITER + a.name()) || key.equals(a.name()))
                                                 .findFirst()
-                                                .orElse(a.name());
+                                                .orElseThrow(() -> new BadRequestException("Unknown facet %s".formatted(a.name())));
 
                                         String fieldPath = fullKey.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
 
@@ -293,7 +303,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
             case NO_CONSENT -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.CONSENTS)));
             case NO_ACTIVITY ->
                     collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR)));
-            case NO_SOCIAL_SECURITY_NUMBER -> collector.mustNot(f.exists().field(Spexare_.SOCIAL_SECURITY_NUMBER));
+            case NO_SOCIAL_SECURITY_NUMBER -> collector.mustNot(f.exists().field(Spexare.INDEX_SOCIAL_SECURITY_NUMBER_HASH));
             case NO_TAG -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.TAGS)));
         }
     }

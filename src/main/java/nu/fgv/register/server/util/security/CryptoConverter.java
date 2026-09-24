@@ -24,10 +24,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import java.security.SecureRandom;
 import java.util.Base64;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -40,57 +41,57 @@ import static org.springframework.util.StringUtils.hasText;
 @Converter
 public class CryptoConverter implements AttributeConverter<String, String> {
 
-    private final byte[] secretKey;
-    private final IvParameterSpec iv;
-    private final Cipher cipher;
+    private static final String ALGORITHM = "AES/GCM/NoPadding";
+    private static final int IV_LENGTH = 12;
+    private static final int TAG_LENGTH = 128;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
-    public CryptoConverter(
-            @Value("${spexregister.crypto.algorithm}") final String algorithm,
-            @Value("${spexregister.crypto.secret-key}") final String secretKey,
-            @Value("${spexregister.crypto.initialization-vector}") final String iv) {
-        this.secretKey = secretKey.getBytes(StandardCharsets.UTF_8);
-        this.iv = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+    private final SecretKeySpec key;
+
+    public CryptoConverter(@Value("${spexregister.crypto.secret-key}") final String secretKey) {
+        this.key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
+    }
+
+    @Override
+    @Nullable
+    public String convertToDatabaseColumn(final String plainValue) {
+        if (!hasText(plainValue)) {
+            return null;
+        }
+
         try {
-            cipher = Cipher.getInstance(algorithm);
+            final byte[] iv = new byte[IV_LENGTH];
+            RANDOM.nextBytes(iv);
+
+            final Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH, iv));
+
+            final byte[] encrypted = cipher.doFinal(plainValue.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(ByteBuffer.allocate(iv.length + encrypted.length).put(iv).put(encrypted).array());
         } catch (final Exception e) {
-            log.error("Error during initialization", e);
-            throw new RuntimeException(e);
+            log.error("Unexpected error during encryption", e);
+            throw new InternalErrorException(e.getMessage());
         }
     }
 
     @Override
     @Nullable
-    public synchronized String convertToDatabaseColumn(final String plainValue) {
-        if (hasText(plainValue)) {
-            final Key key = new SecretKeySpec(secretKey, "AES");
-
-            try {
-                cipher.init(Cipher.ENCRYPT_MODE, key, iv); // NOSONAR
-                return Base64.getEncoder().encodeToString(cipher.doFinal(plainValue.getBytes()));
-            } catch (final Exception e) {
-                log.error("Unexpected error during encryption", e);
-                throw new InternalErrorException(e.getMessage());
-            }
-        } else {
+    public String convertToEntityAttribute(final String encryptedValue) {
+        if (!hasText(encryptedValue)) {
             return null;
         }
-    }
 
-    @Override
-    @Nullable
-    public synchronized String convertToEntityAttribute(final String encryptedValue) {
-        if (hasText(encryptedValue)) {
-            final Key key = new SecretKeySpec(secretKey, "AES");
+        try {
+            final byte[] data = Base64.getDecoder().decode(encryptedValue);
+            final Cipher cipher = Cipher.getInstance(ALGORITHM);
 
-            try {
-                cipher.init(Cipher.DECRYPT_MODE, key, iv);
-                return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedValue)));
-            } catch (final Exception e) {
-                log.error("Unexpected error during decryption", e);
-                throw new InternalErrorException(e.getMessage());
-            }
-        } else {
-            return null;
+            cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH, data, 0, IV_LENGTH));
+
+            return new String(cipher.doFinal(data, IV_LENGTH, data.length - IV_LENGTH), StandardCharsets.UTF_8);
+        } catch (final Exception e) {
+            log.error("Unexpected error during decryption", e);
+            throw new InternalErrorException(e.getMessage());
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
@@ -103,4 +104,11 @@ public interface SpexareMapper {
     SpexareCreateDto toCreateDto(SpexareImpexDto dto);
 
     SpexareUpdateDto toUpdateDto(SpexareImpexDto dto);
+
+    @AfterMapping
+    default void redactSensitiveData(final Spexare model, @MappingTarget final SpexareDto dto) {
+        if (!SpexareSensitiveData.isReadable(model)) {
+            dto.setSocialSecurityNumber(SpexareSensitiveData.birthDateOf(dto.getSocialSecurityNumber()));
+        }
+    }
 }

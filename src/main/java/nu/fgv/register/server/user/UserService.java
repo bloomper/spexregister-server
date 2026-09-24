@@ -278,6 +278,7 @@ public class UserService {
                         return repository.findById0(id);
                     })
                     .ifPresent(user -> {
+                        revokeSpexarePermissions(user);
                         permissionService.deleteAcl(toObjectIdentity(User.class, id));
                         repository.delete(user);
                     });
@@ -453,9 +454,12 @@ public class UserService {
                                 user.setSpexare(spexare);
                                 repository.save(user);
 
-                                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
+                                final PrincipalSid sid = new PrincipalSid(user.getExternalId());
 
-                                permissionService.grantPermission(oid, BasePermission.WRITE, new PrincipalSid(user.getExternalId()));
+                                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), sid);
+                                if (spexare.getPartner() != null) {
+                                    permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getPartner().getId()), sid);
+                                }
                             })
                     );
         } else {
@@ -471,15 +475,28 @@ public class UserService {
                     .map(permissionService::checkWritePermission)
                     .filter(user -> user.getSpexare() != null)
                     .ifPresent(user -> {
-                        final ObjectIdentity oid = toObjectIdentity(Spexare.class, user.getSpexare().getId());
-
-                        permissionService.revokePermission(oid, BasePermission.WRITE, new PrincipalSid(user.getExternalId()));
+                        revokeSpexarePermissions(user);
 
                         user.setSpexare(null);
                         repository.save(user);
                     });
         } else {
             throw new ResourceNotFoundException(User.class, id);
+        }
+    }
+
+    private void revokeSpexarePermissions(final User user) {
+        final Spexare spexare = user.getSpexare();
+
+        if (spexare == null) {
+            return;
+        }
+
+        final PrincipalSid sid = new PrincipalSid(user.getExternalId());
+
+        permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), sid);
+        if (spexare.getPartner() != null) {
+            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getPartner().getId()), sid);
         }
     }
 

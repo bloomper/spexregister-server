@@ -22,6 +22,8 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareSensitiveData;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.graphql.CountedWindow;
@@ -55,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -100,10 +103,6 @@ public class AuditService {
         return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
     }
 
-    /**
-     * The default window, counted back from {@code until} rather than from today, so that asking for
-     * everything up to some past date returns the period before it instead of nothing.
-     */
     private static Instant sinceFrom(final @Nullable LocalDate until, final @Nullable Integer sinceInDays) {
         final int days = sinceInDays == null || sinceInDays == -1 ? DEFAULT_SINCE_IN_DAYS : sinceInDays;
 
@@ -125,7 +124,44 @@ public class AuditService {
 
         descriptor.references().forEach(reference -> revisions.addAll(referenceRevisions(descriptor, id, reference)));
 
-        return mergeByRevision(descriptor, revisions);
+        return redactSensitiveData(descriptor, id, mergeByRevision(descriptor, revisions));
+    }
+
+    private List<RevisionDto> redactSensitiveData(final AuditedEntityDescriptor descriptor, final Object id, final List<RevisionDto> revisions) {
+        if (descriptor.type() != AuditedType.SPEXARE || SpexareSensitiveData.isReadableForAll()) {
+            return revisions;
+        }
+
+        final boolean readable = descriptor.findCurrent().apply(id)
+                .filter(Spexare.class::isInstance)
+                .map(Spexare.class::cast)
+                .map(SpexareSensitiveData::isReadable)
+                .orElse(false);
+
+        if (readable) {
+            return revisions;
+        }
+
+        return revisions.stream()
+                .map(revision -> new RevisionDto(revision.revision(), revision.type(), revision.entityId(), revision.entityLabel(),
+                        revision.revisionType(), revision.modifiedAt(), revision.modifiedBy(),
+                        revision.changes().stream()
+                                .map(change -> isSpexareField(revision, change) && SpexareSensitiveData.FIELD.equals(change.field()) ? redact(change) : change)
+                                .filter(Objects::nonNull)
+                                .toList()))
+                .toList();
+    }
+
+    private static @Nullable FieldChangeDto redact(final FieldChangeDto change) {
+        final String oldValue = SpexareSensitiveData.birthDateOf(change.oldValue());
+        final String newValue = SpexareSensitiveData.birthDateOf(change.newValue());
+
+        return Objects.equals(oldValue, newValue) ? null :
+                new FieldChangeDto(change.field(), oldValue, newValue, change.binary(), change.type(), change.entityId());
+    }
+
+    private static boolean isSpexareField(final RevisionDto revision, final FieldChangeDto change) {
+        return (change.type() == null ? revision.type() : change.type()) == AuditedType.SPEXARE;
     }
 
     private List<RevisionDto> mergeByRevision(final AuditedEntityDescriptor descriptor, final List<RevisionDto> revisions) {

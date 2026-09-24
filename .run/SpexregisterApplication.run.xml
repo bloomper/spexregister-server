@@ -9,11 +9,6 @@
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="APP_IV" />
-        <option name="value" value="FILL_ME_IN" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
         <option name="name" value="APP_SECRET_KEY" />
         <option name="value" value="FILL_ME_IN" />
       </param>

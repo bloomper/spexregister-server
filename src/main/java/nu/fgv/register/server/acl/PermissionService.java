@@ -70,6 +70,16 @@ public class PermissionService {
         }
     }
 
+    public void grantReadAndWrite(final ObjectIdentity oid, final Sid recipient) {
+        grantPermission(oid, recipient, BasePermission.READ);
+        grantPermission(oid, recipient, BasePermission.WRITE);
+    }
+
+    public void revokeReadAndWrite(final ObjectIdentity oid, final Sid recipient) {
+        revokePermission(oid, recipient, BasePermission.READ);
+        revokePermission(oid, recipient, BasePermission.WRITE);
+    }
+
     public void revokePermission(final ObjectIdentity oid, final Permission permission, final Sid... recipients) {
         Arrays.asList(recipients).forEach(r -> revokePermission(oid, r, permission));
     }

@@ -58,6 +58,7 @@ import org.hibernate.search.engine.backend.types.Aggregable;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
@@ -93,6 +94,8 @@ import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysis
 @ToString
 public class Spexare extends AbstractAuditable implements Serializable {
 
+    public static final String INDEX_SOCIAL_SECURITY_NUMBER_HASH = "socialSecurityNumberHash";
+    public static final String INDEX_BIRTH_DATE = "birthDate";
     public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20|21)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
 
     @Serial
@@ -127,8 +130,8 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
     @Column(name = "social_security_number")
     @Convert(converter = CryptoConverter.class)
-    @FullTextField(name = "socialSecurityNumber_", searchable = Searchable.YES)
-    @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @KeywordField(name = INDEX_SOCIAL_SECURITY_NUMBER_HASH, valueBridge = @ValueBridgeRef(type = SocialSecurityNumberHashBridge.class))
+    @KeywordField(name = INDEX_BIRTH_DATE, valueBridge = @ValueBridgeRef(type = SocialSecurityNumberBirthDateBridge.class))
     @Nullable
     private String socialSecurityNumber;
 
