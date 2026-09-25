@@ -49,8 +49,11 @@ input SpexareCreate {
     firstName: String!
     lastName: String!
     nickName: String
+    socialSecurityNumber: SocialSecurityNumber
     deceased: Boolean!
     published: Boolean!
+    graduation: String
+    comment: String
 }
 
 input SpexareUpdate {

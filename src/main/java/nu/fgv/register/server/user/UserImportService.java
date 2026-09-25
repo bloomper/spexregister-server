@@ -28,6 +28,7 @@ import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.user.state.StateService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +56,9 @@ public class UserImportService extends AbstractImportService {
                              final StateService stateService,
                              final AuthorityService authorityService,
                              final SpexareService spexareService,
-                             final MessageSource messageSource) {
-        super(engines, messageSource);
+                             final MessageSource messageSource,
+                             final PlatformTransactionManager transactionManager) {
+        super(engines, messageSource, transactionManager);
         this.service = service;
         this.stateService = stateService;
         this.authorityService = authorityService;

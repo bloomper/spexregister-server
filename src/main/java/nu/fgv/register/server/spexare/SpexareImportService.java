@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.impex.importing.AbstractImportService;
 import nu.fgv.register.server.impex.importing.ImportEngine;
 import nu.fgv.register.server.impex.importing.ImportSpec;
+import nu.fgv.register.server.impex.model.HasImpexAction;
 import nu.fgv.register.server.impex.model.ImpexAction;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.settings.CountryService;
@@ -42,17 +43,23 @@ import nu.fgv.register.server.spexare.toggle.ToggleImpexDto;
 import nu.fgv.register.server.spexare.toggle.ToggleService;
 import nu.fgv.register.server.tag.TagService;
 import nu.fgv.register.server.task.TaskService;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.activity.task.actor.ActorMapper.ACTOR_MAPPER;
@@ -71,6 +78,8 @@ import static org.springframework.util.StringUtils.hasText;
 @Slf4j
 @Service
 public class SpexareImportService extends AbstractImportService {
+
+    private static final String SPEXARE = "spexare.impex.entityName";
 
     private final SpexareService service;
     private final AddressService addressService;
@@ -106,8 +115,9 @@ public class SpexareImportService extends AbstractImportService {
                                 final TypeService typeService,
                                 final CountryService countryService,
                                 final MessageSource messageSource,
+                                final PlatformTransactionManager transactionManager,
                                 @Value("${spexregister.base-url}") final String baseUrl) {
-        super(engines, messageSource);
+        super(engines, messageSource, transactionManager);
         this.service = service;
         this.addressService = addressService;
         this.consentService = consentService;
@@ -192,243 +202,235 @@ public class SpexareImportService extends AbstractImportService {
         );
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
-        final Map<Long, Long> spexareIdMap = new HashMap<>();
-        final List<Pair<Long, Long>> partnerLinks = new ArrayList<>();
         final ImportSummary summary = new ImportSummary(messageSource, locale);
+        final Map<Long, Long> spexareIdMap = new HashMap<>();
+        final List<PartnerLink> partnerLinks = new ArrayList<>();
 
-        handleImport(
-                (List<SpexareImpexDto>) data.get(SpexareImpexDto.class),
-                summary,
-                "spexare.impex.entityName",
-                dto -> {
-                    final SpexareDto spexare = service.create(SPEXARE_MAPPER.toCreateDto(dto));
+        // Everything belonging to one spexare commits or rolls back together; one bad spexare leaves the rest in place.
+        units(data).forEach(unit -> {
+            final ImportSummary unitSummary = new ImportSummary(messageSource, locale);
+            final Map<Long, Long> unitIdMap = new HashMap<>();
+            final List<PartnerLink> unitLinks = new ArrayList<>();
 
-                    spexareIdMap.put(dto.getId(), spexare.getId());
-                    processImage(spexare.getId(), dto.getImageUrl());
+            try {
+                inTransaction(() -> importUnit(unit, unitIdMap, unitLinks, unitSummary));
+                summary.addAll(unitSummary);
+                spexareIdMap.putAll(unitIdMap);
+                partnerLinks.addAll(unitLinks);
+            } catch (final Exception e) {
+                final RowFailure failure = e instanceof final RowFailure f ? f : new RowFailure(unit.firstRowNumber(), SPEXARE, e);
 
-                    if (dto.getPartnerId() != null) {
-                        partnerLinks.add(Pair.of(spexare.getId(), dto.getPartnerId()));
-                    }
-                },
-                dto -> {
-                    final SpexareDto spexare = service.partialUpdate(SPEXARE_MAPPER.toUpdateDto(dto));
-
-                    spexareIdMap.put(dto.getId(), spexare.getId());
-                    processImage(spexare.getId(), dto.getImageUrl());
-
-                    final SpexareDto currentPartner = service.findPartnerBySpexare(spexare.getId()).orElse(null);
-
-                    if (dto.getPartnerId() != null) {
-                        partnerLinks.add(Pair.of(spexare.getId(), dto.getPartnerId()));
-                    } else if (currentPartner != null) {
-                        service.removePartner(spexare.getId());
-                    }
-                },
-                dto -> service.deleteById(dto.getId())
-        );
-
-        partnerLinks.forEach(link -> {
-            final Long spexareId = link.getLeft();
-            final Long partnerId = link.getRight();
-            final Long realPartnerId = spexareIdMap.getOrDefault(partnerId, partnerId);
-            final SpexareDto currentPartner = service.findPartnerBySpexare(spexareId).orElse(null);
-
-            if (currentPartner == null || !currentPartner.getId().equals(realPartnerId)) {
-                service.addPartner(spexareId, realPartnerId);
+                log.error("Failed to import spexare at row {}", failure.rowNumber, failure.getCause());
+                summary.addError(failure.rowNumber, failure.entity,
+                        messageSource.getMessage("spexare.impex.rolledBack", new Object[]{failure.getCause().getMessage()}, locale));
             }
         });
 
-        handleImport(
-                (List<AddressImpexDto>) data.get(AddressImpexDto.class),
-                summary,
-                "spexare.impex.address.entityName",
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    addressService.create(realSpexareId, dto.getTypeId(), ADDRESS_MAPPER.toCreateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    addressService.partialUpdate(realSpexareId, dto.getTypeId(), dto.getId(), ADDRESS_MAPPER.toUpdateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    addressService.deleteById(realSpexareId, dto.getTypeId(), dto.getId());
-                }
-        );
-
-        handleImport(
-                (List<ConsentImpexDto>) data.get(ConsentImpexDto.class),
-                summary,
-                "spexare.impex.consent.entityName",
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    consentService.create(realSpexareId, dto.getTypeId(), CONSENT_MAPPER.toCreateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    consentService.update(realSpexareId, dto.getTypeId(), dto.getId(), CONSENT_MAPPER.toUpdateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    consentService.deleteById(realSpexareId, dto.getTypeId(), dto.getId());
-                }
-        );
-
-        handleImport(
-                (List<MembershipImpexDto>) data.get(MembershipImpexDto.class),
-                summary,
-                "spexare.impex.membership.entityName",
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    membershipService.create(realSpexareId, dto.getTypeId(), MEMBERSHIP_MAPPER.toCreateDto(dto));
-                },
-                dto -> { /* Not applicable */ },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    membershipService.deleteById(realSpexareId, dto.getTypeId(), dto.getId());
-                }
-        );
-
-        handleImport(
-                (List<ToggleImpexDto>) data.get(ToggleImpexDto.class),
-                summary,
-                "spexare.impex.toggle.entityName",
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    toggleService.create(realSpexareId, dto.getTypeId(), TOGGLE_MAPPER.toCreateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    toggleService.update(realSpexareId, dto.getTypeId(), dto.getId(), TOGGLE_MAPPER.toUpdateDto(dto));
-                },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    toggleService.deleteById(realSpexareId, dto.getTypeId(), dto.getId());
-                }
-        );
-
-        handleImport(
-                (List<TaggingImpexDto>) data.get(TaggingImpexDto.class),
-                summary,
-                "spexare.impex.tagging.entityName",
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    taggingService.create(realSpexareId, dto.getTagId());
-                },
-                dto -> { /* Not applicable */ },
-                dto -> {
-                    final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                    taggingService.deleteById(realSpexareId, dto.getTagId());
-                }
-        );
-
-        handleActivities((List<ActivityImpexDto>) data.get(ActivityImpexDto.class), spexareIdMap, summary);
+        // Partners can be any two spexare in the file, so they are linked once every spexare exists.
+        partnerLinks.forEach(link -> {
+            try {
+                inTransaction(() -> linkPartner(link, spexareIdMap));
+            } catch (final Exception e) {
+                log.error("Failed to link partner at row {}", link.rowNumber(), e);
+                summary.addError(link.rowNumber(), SPEXARE, e.getMessage());
+            }
+        });
 
         return summary.toResult();
     }
 
-    private void handleActivities(@Nullable final List<ActivityImpexDto> dtos,
-                                  final Map<Long, Long> spexareIdMap,
-                                  final ImportSummary summary) {
-        if (dtos == null) {
-            return;
-        }
+    @SuppressWarnings("unchecked")
+    private static Collection<SpexareUnit> units(final Map<Class<?>, List<?>> data) {
+        final Map<Long, SpexareUnit> units = new LinkedHashMap<>();
+        final Function<Long, SpexareUnit> unitOf = id -> units.computeIfAbsent(id, _ -> new SpexareUnit());
 
+        rows(data, SpexareImpexDto.class).forEach(dto -> unitOf.apply(dto.getId()).spexare().add(dto));
+        rows(data, AddressImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).addresses().add(dto));
+        rows(data, ConsentImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).consents().add(dto));
+        rows(data, MembershipImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).memberships().add(dto));
+        rows(data, ToggleImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).toggles().add(dto));
+        rows(data, TaggingImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).taggings().add(dto));
+        rows(data, ActivityImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).activities().add(dto));
+
+        return units.values();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> rows(final Map<Class<?>, List<?>> data, final Class<T> type) {
+        return Optional.ofNullable((List<T>) data.get(type)).orElseGet(List::of);
+    }
+
+    private void importUnit(final SpexareUnit unit, final Map<Long, Long> idMap, final List<PartnerLink> partnerLinks, final ImportSummary summary) {
+        final Function<Long, Long> realSpexareId = id -> idMap.getOrDefault(id, id);
+
+        unit.spexare().forEach(dto -> row(dto, SPEXARE, summary, () -> apply(dto,
+                d -> {
+                    final SpexareDto spexare = service.create(SPEXARE_MAPPER.toCreateDto(d));
+
+                    idMap.put(d.getId(), spexare.getId());
+                    processImage(spexare.getId(), d.getImageUrl());
+
+                    if (d.getPartnerId() != null) {
+                        partnerLinks.add(new PartnerLink(spexare.getId(), d.getPartnerId(), d.getRowNumber()));
+                    }
+                },
+                d -> {
+                    final SpexareDto spexare = service.partialUpdate(SPEXARE_MAPPER.toUpdateDto(d));
+
+                    idMap.put(d.getId(), spexare.getId());
+                    processImage(spexare.getId(), d.getImageUrl());
+
+                    if (d.getPartnerId() != null) {
+                        partnerLinks.add(new PartnerLink(spexare.getId(), d.getPartnerId(), d.getRowNumber()));
+                    } else if (service.findPartnerBySpexare(spexare.getId()).isPresent()) {
+                        service.removePartner(spexare.getId());
+                    }
+                },
+                d -> service.deleteById(d.getId())
+        )));
+
+        unit.addresses().forEach(dto -> row(dto, "spexare.impex.address.entityName", summary, () -> apply(dto,
+                d -> addressService.create(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), ADDRESS_MAPPER.toCreateDto(d)),
+                d -> addressService.partialUpdate(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId(), ADDRESS_MAPPER.toUpdateDto(d)),
+                d -> addressService.deleteById(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId())
+        )));
+
+        unit.consents().forEach(dto -> row(dto, "spexare.impex.consent.entityName", summary, () -> apply(dto,
+                d -> consentService.create(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), CONSENT_MAPPER.toCreateDto(d)),
+                d -> consentService.update(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId(), CONSENT_MAPPER.toUpdateDto(d)),
+                d -> consentService.deleteById(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId())
+        )));
+
+        unit.memberships().forEach(dto -> row(dto, "spexare.impex.membership.entityName", summary, () -> apply(dto,
+                d -> membershipService.create(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), MEMBERSHIP_MAPPER.toCreateDto(d)),
+                d -> { /* Not applicable */ },
+                d -> membershipService.deleteById(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId())
+        )));
+
+        unit.toggles().forEach(dto -> row(dto, "spexare.impex.toggle.entityName", summary, () -> apply(dto,
+                d -> toggleService.create(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), TOGGLE_MAPPER.toCreateDto(d)),
+                d -> toggleService.update(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId(), TOGGLE_MAPPER.toUpdateDto(d)),
+                d -> toggleService.deleteById(realSpexareId.apply(d.getSpexareId()), d.getTypeId(), d.getId())
+        )));
+
+        unit.taggings().forEach(dto -> row(dto, "spexare.impex.tagging.entityName", summary, () -> apply(dto,
+                d -> taggingService.create(realSpexareId.apply(d.getSpexareId()), d.getTagId()),
+                d -> { /* Not applicable */ },
+                d -> taggingService.deleteById(realSpexareId.apply(d.getSpexareId()), d.getTagId())
+        )));
+
+        importActivities(unit.activities(), realSpexareId, summary);
+    }
+
+    private static void row(final HasImpexAction dto, final String entity, final ImportSummary summary, final Runnable work) {
+        try {
+            work.run();
+        } catch (final RuntimeException e) {
+            throw new RowFailure(dto.getRowNumber(), entity, e);
+        }
+        summary.increment(dto.getAction(), entity);
+    }
+
+    private void linkPartner(final PartnerLink link, final Map<Long, Long> spexareIdMap) {
+        final Long realPartnerId = spexareIdMap.getOrDefault(link.partnerId(), link.partnerId());
+        final SpexareDto currentPartner = service.findPartnerBySpexare(link.spexareId()).orElse(null);
+
+        if (currentPartner == null || !currentPartner.getId().equals(realPartnerId)) {
+            service.addPartner(link.spexareId(), realPartnerId);
+        }
+    }
+
+    private void importActivities(final List<ActivityImpexDto> dtos,
+                                  final Function<Long, Long> realSpexareIdOf,
+                                  final ImportSummary summary) {
         final Map<Long, Long> activityIdMap = new HashMap<>();
         final Map<Long, Long> spexActivityIdMap = new HashMap<>();
         final Map<Long, Long> taskActivityIdMap = new HashMap<>();
 
         dtos.forEach(dto -> {
             try {
-                final Long realSpexareId = spexareIdMap.getOrDefault(dto.getSpexareId(), dto.getSpexareId());
-
-                Long realActivityId = activityIdMap.get(dto.getId());
-
-                if (realActivityId == null) {
-                    if (dto.getAction() == ImpexAction.CREATE) {
-                        realActivityId = activityService.create(realSpexareId).getId();
-                        summary.incrementCreated("activity.impex.entityName");
-                    } else if (dto.getAction() == ImpexAction.DELETE) {
-                        activityService.deleteById(realSpexareId, dto.getId());
-                        summary.incrementDeleted("activity.impex.entityName");
-                        return;
-                    } else {
-                        realActivityId = dto.getId();
-                    }
-                    activityIdMap.put(dto.getId(), realActivityId);
-                }
-
-                Long realSpexActivityId = spexActivityIdMap.get(dto.getSpexActivityId());
-
-                if (realSpexActivityId == null) {
-                    if (dto.getSpexActivityAction() == ImpexAction.CREATE) {
-                        realSpexActivityId = spexActivityService.create(realSpexareId, realActivityId, dto.getSpexId()).getId();
-                        summary.incrementCreated("activity.impex.spexActivity.entityName");
-                    } else if (dto.getSpexActivityAction() == ImpexAction.UPDATE) {
-                        realSpexActivityId = spexActivityService.update(realSpexareId, realActivityId, dto.getSpexId(), dto.getSpexActivityId()).getId();
-                        summary.incrementUpdated("activity.impex.spexActivity.entityName");
-                    } else if (dto.getSpexActivityAction() == ImpexAction.DELETE) {
-                        spexActivityService.deleteById(realSpexareId, realActivityId, dto.getSpexActivityId());
-                        summary.incrementDeleted("activity.impex.spexActivity.entityName");
-                    } else {
-                        realSpexActivityId = dto.getSpexActivityId();
-                    }
-                    if (realSpexActivityId != null) {
-                        spexActivityIdMap.put(dto.getSpexActivityId(), realSpexActivityId);
-                    }
-                }
-
-                Long realTaskActivityId = taskActivityIdMap.get(dto.getTaskActivityId());
-
-                if (realTaskActivityId == null) {
-                    if (dto.getTaskActivityAction() == ImpexAction.CREATE) {
-                        realTaskActivityId = taskActivityService.create(realSpexareId, realActivityId, dto.getTaskId()).getId();
-                        summary.incrementCreated("activity.impex.taskActivity.entityName");
-                    } else if (dto.getTaskActivityAction() == ImpexAction.DELETE) {
-                        taskActivityService.deleteById(realSpexareId, realActivityId, dto.getTaskActivityId());
-                        summary.incrementDeleted("activity.impex.taskActivity.entityName");
-                        return;
-                    } else {
-                        realTaskActivityId = dto.getTaskActivityId();
-                    }
-                    if (realTaskActivityId != null) {
-                        taskActivityIdMap.put(dto.getTaskActivityId(), realTaskActivityId);
-                    }
-                }
-
-                if (dto.getActorAction() != null) {
-                    if (dto.getActorAction() == ImpexAction.CREATE) {
-                        actorService.create(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), ACTOR_MAPPER.toCreateDto(dto));
-                        summary.incrementCreated("activity.impex.taskActivity.actor.entityName");
-                    } else if (dto.getActorAction() == ImpexAction.UPDATE) {
-                        actorService.partialUpdate(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId(), ACTOR_MAPPER.toUpdateDto(dto));
-                        summary.incrementUpdated("activity.impex.taskActivity.actor.entityName");
-                    } else if (dto.getActorAction() == ImpexAction.DELETE) {
-                        actorService.deleteById(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId());
-                        summary.incrementDeleted("activity.impex.taskActivity.actor.entityName");
-                    }
-                }
-            } catch (final Exception e) {
-                log.error("Error processing activity", e);
-                summary.addError(dto.getRowNumber(), "activity.impex.entityName", e.getMessage());
+                importActivity(dto, realSpexareIdOf.apply(dto.getSpexareId()), activityIdMap, spexActivityIdMap, taskActivityIdMap, summary);
+            } catch (final RuntimeException e) {
+                throw new RowFailure(dto.getRowNumber(), "activity.impex.entityName", e);
             }
         });
+    }
+
+    private void importActivity(final ActivityImpexDto dto,
+                                final Long realSpexareId,
+                                final Map<Long, Long> activityIdMap,
+                                final Map<Long, Long> spexActivityIdMap,
+                                final Map<Long, Long> taskActivityIdMap,
+                                final ImportSummary summary) {
+        Long realActivityId = activityIdMap.get(dto.getId());
+
+        if (realActivityId == null) {
+            if (dto.getAction() == ImpexAction.CREATE) {
+                realActivityId = activityService.create(realSpexareId).getId();
+                summary.incrementCreated("activity.impex.entityName");
+            } else if (dto.getAction() == ImpexAction.DELETE) {
+                activityService.deleteById(realSpexareId, dto.getId());
+                summary.incrementDeleted("activity.impex.entityName");
+                return;
+            } else {
+                realActivityId = dto.getId();
+            }
+            activityIdMap.put(dto.getId(), realActivityId);
+        }
+
+        Long realSpexActivityId = spexActivityIdMap.get(dto.getSpexActivityId());
+
+        if (realSpexActivityId == null) {
+            if (dto.getSpexActivityAction() == ImpexAction.CREATE) {
+                realSpexActivityId = spexActivityService.create(realSpexareId, realActivityId, dto.getSpexId()).getId();
+                summary.incrementCreated("activity.impex.spexActivity.entityName");
+            } else if (dto.getSpexActivityAction() == ImpexAction.UPDATE) {
+                realSpexActivityId = spexActivityService.update(realSpexareId, realActivityId, dto.getSpexId(), dto.getSpexActivityId()).getId();
+                summary.incrementUpdated("activity.impex.spexActivity.entityName");
+            } else if (dto.getSpexActivityAction() == ImpexAction.DELETE) {
+                spexActivityService.deleteById(realSpexareId, realActivityId, dto.getSpexActivityId());
+                summary.incrementDeleted("activity.impex.spexActivity.entityName");
+            } else {
+                realSpexActivityId = dto.getSpexActivityId();
+            }
+            if (realSpexActivityId != null) {
+                spexActivityIdMap.put(dto.getSpexActivityId(), realSpexActivityId);
+            }
+        }
+
+        Long realTaskActivityId = taskActivityIdMap.get(dto.getTaskActivityId());
+
+        if (realTaskActivityId == null) {
+            if (dto.getTaskActivityAction() == ImpexAction.CREATE) {
+                realTaskActivityId = taskActivityService.create(realSpexareId, realActivityId, dto.getTaskId()).getId();
+                summary.incrementCreated("activity.impex.taskActivity.entityName");
+            } else if (dto.getTaskActivityAction() == ImpexAction.DELETE) {
+                taskActivityService.deleteById(realSpexareId, realActivityId, dto.getTaskActivityId());
+                summary.incrementDeleted("activity.impex.taskActivity.entityName");
+                return;
+            } else {
+                realTaskActivityId = dto.getTaskActivityId();
+            }
+            if (realTaskActivityId != null) {
+                taskActivityIdMap.put(dto.getTaskActivityId(), realTaskActivityId);
+            }
+        }
+
+        if (dto.getActorAction() != null) {
+            if (dto.getActorAction() == ImpexAction.CREATE) {
+                actorService.create(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), ACTOR_MAPPER.toCreateDto(dto));
+                summary.incrementCreated("activity.impex.taskActivity.actor.entityName");
+            } else if (dto.getActorAction() == ImpexAction.UPDATE) {
+                actorService.partialUpdate(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId(), ACTOR_MAPPER.toUpdateDto(dto));
+                summary.incrementUpdated("activity.impex.taskActivity.actor.entityName");
+            } else if (dto.getActorAction() == ImpexAction.DELETE) {
+                actorService.deleteById(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId());
+                summary.incrementDeleted("activity.impex.taskActivity.actor.entityName");
+            }
+        }
     }
 
     private void processImage(final Long id, @Nullable final String url) {
@@ -436,6 +438,42 @@ public class SpexareImportService extends AbstractImportService {
             service.saveImage(id, downloadImage(url));
         } else if (!hasText(url)) {
             service.deleteImage(id);
+        }
+    }
+
+    private record PartnerLink(Long spexareId, Long partnerId, @Nullable Integer rowNumber) {
+    }
+
+    private record SpexareUnit(List<SpexareImpexDto> spexare,
+                               List<AddressImpexDto> addresses,
+                               List<ConsentImpexDto> consents,
+                               List<MembershipImpexDto> memberships,
+                               List<ToggleImpexDto> toggles,
+                               List<TaggingImpexDto> taggings,
+                               List<ActivityImpexDto> activities) {
+
+        SpexareUnit() {
+            this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        }
+
+        @Nullable Integer firstRowNumber() {
+            return Stream.of(spexare, addresses, consents, memberships, toggles, taggings, activities)
+                    .flatMap(List::stream)
+                    .map(HasImpexAction::getRowNumber)
+                    .filter(Objects::nonNull)
+                    .min(Integer::compare)
+                    .orElse(null);
+        }
+    }
+
+    private static final class RowFailure extends RuntimeException {
+        private final @Nullable Integer rowNumber;
+        private final String entity;
+
+        RowFailure(final @Nullable Integer rowNumber, final String entity, final Throwable cause) {
+            super(cause.getMessage(), cause);
+            this.rowNumber = rowNumber;
+            this.entity = entity;
         }
     }
 }

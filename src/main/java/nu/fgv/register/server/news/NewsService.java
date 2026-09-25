@@ -44,10 +44,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 import static nu.fgv.register.server.news.NewsSpecification.NO_FILTER;
 import static nu.fgv.register.server.news.NewsSpecification.hasIds;
-import static nu.fgv.register.server.news.NewsSpecification.hasVisibleFromAfterYesterday;
+import static nu.fgv.register.server.news.NewsSpecification.hasVisibleFromTodayOrEarlier;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToAfterToday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToBeforeToday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToToday;
+import static nu.fgv.register.server.news.NewsSpecification.isPublished;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
@@ -201,7 +202,7 @@ public class NewsService {
             final AtomicInteger publishedCount = new AtomicInteger();
 
             repository
-                    .findAll(hasVisibleToBeforeToday())
+                    .findAll(hasVisibleToBeforeToday().and(isPublished(true)))
                     .stream()
                     .peek(news -> news.setPublished(false)) // NOSONAR
                     .map(repository::save)
@@ -213,7 +214,7 @@ public class NewsService {
                     });
 
             repository
-                    .findAll(hasVisibleFromAfterYesterday().and(hasVisibleToToday().or(hasVisibleToAfterToday())))
+                    .findAll(isPublished(false).and(hasVisibleFromTodayOrEarlier()).and(hasVisibleToToday().or(hasVisibleToAfterToday())))
                     .stream()
                     .peek(news -> news.setPublished(true)) // NOSONAR
                     .map(repository::save)

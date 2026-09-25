@@ -44,7 +44,7 @@ public class JobProgressService implements JobExecutionListener {
 
     private void broadcast(final JobExecution jobExecution) {
         final JobStatusDto dto = JobStatusDto.builder()
-                .id(jobExecution.getJobInstance().getInstanceId())
+                .id(jobExecution.getId())
                 .name(jobExecution.getJobInstance().getJobName())
                 .status(jobExecution.getStatus().name())
                 .exitStatus(jobExecution.getExitStatus().getExitCode())

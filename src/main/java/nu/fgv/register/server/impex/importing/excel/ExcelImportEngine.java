@@ -84,7 +84,7 @@ public class ExcelImportEngine implements ImportEngine {
                     final Sheet sheet = workbook.getSheet(sheetNameMap.get(spec.getClazz().getName()));
 
                     if (sheet != null) {
-                        data.put(spec.getClazz(), excelReader.read(sheet, spec.getClazz()));
+                        data.put(spec.getClazz(), excelReader.read(sheet, spec.getClazz(), locale));
                     }
                 }
             }

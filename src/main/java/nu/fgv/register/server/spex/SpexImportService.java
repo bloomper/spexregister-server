@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Locale;
@@ -52,8 +53,9 @@ public class SpexImportService extends AbstractImportService {
                              final SpexService service,
                              final SpexCategoryService categoryService,
                              final MessageSource messageSource,
+                             final PlatformTransactionManager transactionManager,
                              @Value("${spexregister.base-url}") final String baseUrl) {
-        super(engines, messageSource);
+        super(engines, messageSource, transactionManager);
         this.service = service;
         this.categoryService = categoryService;
         this.baseUrl = baseUrl;

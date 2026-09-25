@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.UUID;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -89,6 +90,9 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final UserRepository repository;
+
+    @Autowired
+    private UserService userService;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
@@ -2132,6 +2136,31 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        }
+    }
+
+    @Nested
+    @DisplayName("Keycloak sync")
+    class SyncTests {
+
+        @Test
+        void should_add_new_role_members_remove_users_deleted_in_keycloak_and_keep_the_rest() {
+            final var initialState = randomizeState();
+            initialState.setInitial(true);
+            persistState(initialState);
+
+            final var newMember = persistUserInKeycloak(AUTHORITY_USER);
+            final var withoutRoles = persistUser(randomizeUser(initialState));
+            final var deletedInKeycloak = randomizeUser(initialState);
+            deletedInKeycloak.setId(null);
+            deletedInKeycloak.setExternalId(UUID.randomUUID().toString());
+            repository.save(deletedInKeycloak);
+
+            userService.scheduledSync();
+
+            assertThat(repository.existsByExternalId(newMember.getId())).isTrue();
+            assertThat(repository.existsByExternalId(withoutRoles.getExternalId())).isTrue();
+            assertThat(repository.existsByExternalId(deletedInKeycloak.getExternalId())).isFalse();
         }
     }
 }

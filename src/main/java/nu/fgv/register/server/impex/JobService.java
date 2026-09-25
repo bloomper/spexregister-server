@@ -111,7 +111,7 @@ public class JobService {
                     .toJobParameters();
 
             try {
-                return jobOperator.start(exportJob, jobParameters).getJobInstance().getInstanceId();
+                return jobOperator.start(exportJob, jobParameters).getId();
             } catch (final Exception e) {
                 log.error("Failed to create export job", e);
                 throw new InternalErrorException("Failed to create export job");
@@ -143,7 +143,7 @@ public class JobService {
                         .addLong("timestamp", System.currentTimeMillis())
                         .toJobParameters();
 
-                return jobOperator.start(importJob, jobParameters).getJobInstance().getInstanceId();
+                return jobOperator.start(importJob, jobParameters).getId();
             } catch (final Exception e) {
                 log.error("Failed to create import job", e);
                 throw new InternalErrorException("Failed to create import job");
@@ -258,7 +258,7 @@ public class JobService {
                 && Files.exists(Paths.get(outputFilePath));
 
         final JobDto.JobDtoBuilder builder = JobDto.builder()
-                .id(execution.getJobInstance().getInstanceId())
+                .id(execution.getId())
                 .name(execution.getJobInstance().getJobName())
                 .status(execution.getStatus().name())
                 .exitStatus(execution.getExitStatus().getExitCode())
@@ -282,7 +282,7 @@ public class JobService {
 
     private JobStatusDto mapToJobStatus(final JobExecution execution) {
         return JobStatusDto.builder()
-                .id(execution.getJobInstance().getInstanceId())
+                .id(execution.getId())
                 .name(execution.getJobInstance().getJobName())
                 .status(execution.getStatus().name())
                 .exitStatus(execution.getExitStatus().getExitCode())

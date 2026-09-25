@@ -17,6 +17,7 @@
 package nu.fgv.register.server.user;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RoleResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -62,8 +64,12 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -93,6 +99,8 @@ import static org.springframework.util.StringUtils.hasText;
 @Transactional
 public class UserService {
 
+    private static final int SYNC_PAGE_SIZE = 100;
+
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
@@ -101,6 +109,7 @@ public class UserService {
     private final AuthorityService authorityService;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
+    private final PlatformTransactionManager transactionManager;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
@@ -501,40 +510,99 @@ public class UserService {
     }
 
     @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
+    @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void scheduledSync() {
         log.info("Starting user sync job");
         runAsSystem(() -> {
-            final Set<String> alreadyAdded = new HashSet<>();
-            final AtomicInteger totalProcessed = new AtomicInteger();
+            final Set<String> members = new HashSet<>();
             final AtomicInteger synced = new AtomicInteger();
+            final AtomicInteger removed = new AtomicInteger();
 
-            authorityRepository.findAll()
-                    .forEach(a ->
-                            keycloakAdminClient
-                                    .realm(keycloakRealm)
-                                    .clients()
-                                    .get(keycloakClientId)
-                                    .roles()
-                                    .get(a.getId())
-                                    .getUserMembers()
-                                    .stream()
-                                    .filter(r -> !alreadyAdded.contains(r.getId()))
-                                    .forEach(representation -> {
-                                        totalProcessed.incrementAndGet();
-                                        if (!repository.existsByExternalId(representation.getId())) {
-                                            final User user = repository.save(USER_MAPPER.toModel(representation.getId(), getUserInitialState()));
-                                            final ObjectIdentity oid = toObjectIdentity(User.class, user.getId());
+            // Each user commits on its own, so one failure does not undo the rest of the run.
+            authorityRepository.findAll().forEach(authority -> roleMembers(authority.getId()).forEach(representation -> {
+                if (members.add(representation.getId()) && !repository.existsByExternalId(representation.getId())) {
+                    try {
+                        inTransaction(() -> addSyncedUser(representation.getId()));
+                        synced.incrementAndGet();
+                    } catch (final Exception e) {
+                        log.error("Could not sync user {} from Keycloak", representation.getId(), e);
+                    }
+                }
+            }));
 
-                                            permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(representation.getId()));
-                                            alreadyAdded.add(representation.getId());
-                                            synced.incrementAndGet();
-                                            log.debug("Synced user {} from Keycloak", representation.getId());
-                                        }
-                                    })
-                    );
-            log.info("Finished user sync job (processed: {}, synced: {})", totalProcessed.get(), synced.get());
+            repository.findAll().stream()
+                    .filter(user -> !members.contains(user.getExternalId()))
+                    .filter(user -> isDeletedInKeycloak(user.getExternalId()))
+                    .forEach(user -> {
+                        try {
+                            inTransaction(() -> removeSyncedUser(user.getId()));
+                            removed.incrementAndGet();
+                        } catch (final Exception e) {
+                            log.error("Could not remove user {} deleted in Keycloak", user.getExternalId(), e);
+                        }
+                    });
+
+            log.info("Finished user sync job (members: {}, synced: {}, removed: {})", members.size(), synced.get(), removed.get());
         });
+    }
+
+    // Keycloak returns role members a page at a time; asking once only ever yields the first page.
+    private List<UserRepresentation> roleMembers(final String role) {
+        final RoleResource roleResource = keycloakAdminClient
+                .realm(keycloakRealm)
+                .clients()
+                .get(keycloakClientId)
+                .roles()
+                .get(role);
+        final List<UserRepresentation> members = new ArrayList<>();
+        List<UserRepresentation> page;
+        int first = 0;
+
+        do {
+            page = roleResource.getUserMembers(first, SYNC_PAGE_SIZE);
+            members.addAll(page);
+            first += SYNC_PAGE_SIZE;
+        } while (page.size() == SYNC_PAGE_SIZE);
+
+        return members;
+    }
+
+    private void addSyncedUser(final String externalId) {
+        final User user = repository.save(USER_MAPPER.toModel(externalId, getUserInitialState()));
+        final ObjectIdentity oid = toObjectIdentity(User.class, user.getId());
+
+        permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
+        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
+        log.debug("Synced user {} from Keycloak", externalId);
+    }
+
+    // Only a definite "not found" removes a user; any other failure to ask Keycloak keeps it.
+    private boolean isDeletedInKeycloak(final String externalId) {
+        try {
+            keycloakAdminClient.realm(keycloakRealm).users().get(externalId).toRepresentation();
+            return false;
+        } catch (final NotFoundException _) {
+            return true;
+        } catch (final Exception e) {
+            log.warn("Could not look up user {} in Keycloak, keeping it", externalId, e);
+            return false;
+        }
+    }
+
+    private void removeSyncedUser(final Long id) {
+        repository.findById(id).ifPresent(user -> {
+            revokeSpexarePermissions(user);
+            permissionService.deleteAcl(toObjectIdentity(User.class, user.getId()));
+            repository.delete(user);
+            log.info("Removed user {} that no longer exists in Keycloak", user.getExternalId());
+        });
+    }
+
+    private void inTransaction(final Runnable work) {
+        final TransactionTemplate template = new TransactionTemplate(transactionManager);
+
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        template.executeWithoutResult(_ -> work.run());
     }
 
     private Optional<UserResource> findResourceByExternalId(final String externalId) {

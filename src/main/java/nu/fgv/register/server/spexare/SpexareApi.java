@@ -32,6 +32,7 @@ import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.spexare.tagging.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.search.AggregationFilter;
@@ -318,6 +319,10 @@ public class SpexareApi {
 
     private AggregationFilter parseAggregation(final String aggregation) {
         final String[] parts = aggregation.split(":", 2);
+
+        if (parts.length != 2) {
+            throw new BadRequestException("Invalid aggregation %s, expected name:value".formatted(aggregation));
+        }
 
         return new AggregationFilter(parts[0], parts[1]);
     }

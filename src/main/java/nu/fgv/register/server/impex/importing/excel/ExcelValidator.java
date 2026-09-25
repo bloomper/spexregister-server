@@ -144,7 +144,16 @@ public class ExcelValidator {
                 return;
             }
 
-            final Object dto = excelReader.mapRowToDto(row, spec.getClazz(), fields, maxPosition, fieldColumnMap);
+            final Object dto;
+
+            try {
+                dto = excelReader.mapRowToDto(row, spec.getClazz(), fields, maxPosition, fieldColumnMap);
+            } catch (final CellValueException e) {
+                messages.add(String.format("%s %d: %s", rowTranslation, row.getRowNum() + 1,
+                        messageSource.getMessage(e.getCode(), e.getArguments(), locale)));
+                return;
+            }
+
             final ImpexAction action = (dto instanceof final HasImpexAction impex) ? impex.getAction() : ImpexAction.UPDATE;
             final int rowNum = row.getRowNum() + 1;
 
@@ -181,29 +190,12 @@ public class ExcelValidator {
             return null;
         }
         if (fieldType == String.class) {
-            return getStringifiedCellValue(cell);
+            return ExcelReader.stringValueOf(cell);
         }
         if (fieldType == Long.class || fieldType == long.class) {
-            return getNumericCellValue(cell);
+            return ExcelReader.wholeNumberOf(cell);
         }
         return null;
-    }
-
-    private String getStringifiedCellValue(final Cell cell) {
-        return switch (cell.getCellType()) {
-            case STRING -> cell.getStringCellValue();
-            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
-            default -> "";
-        };
-    }
-
-    private @Nullable Long getNumericCellValue(final Cell cell) {
-        return switch (cell.getCellType()) {
-            case STRING ->
-                    hasText(cell.getStringCellValue()) ? Long.parseLong(cell.getStringCellValue().replaceAll("[^0-9]", "")) : null;
-            case NUMERIC -> (long) cell.getNumericCellValue();
-            default -> null;
-        };
     }
 
     private boolean isRowEmpty(@Nullable final Row row) {
@@ -213,7 +205,7 @@ public class ExcelValidator {
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             final Cell cell = row.getCell(c);
 
-            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(getStringifiedCellValue(cell))) {
+            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(ExcelReader.stringValueOf(cell))) {
                 return false;
             }
         }

@@ -28,7 +28,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -55,8 +54,8 @@ public class ExcelReader {
 
     private final MessageSource messageSource;
 
-    public <T> List<T> read(final Sheet sheet, final Class<T> clazz) {
-        final Map<Field, Integer> fieldColumnMap = buildFieldColumnMap(sheet, clazz);
+    public <T> List<T> read(final Sheet sheet, final Class<T> clazz, final Locale locale) {
+        final Map<Field, Integer> fieldColumnMap = buildFieldColumnMap(sheet, clazz, locale);
         return read(sheet, clazz, fieldColumnMap);
     }
 
@@ -117,13 +116,15 @@ public class ExcelReader {
                 }
             }
             return dto;
+        } catch (final CellValueException e) {
+            throw e;
         } catch (final Exception e) {
             log.error("Failed to map Excel row {} to class {}", row.getRowNum(), clazz.getSimpleName(), e);
             throw new RuntimeException("Mapping error at row " + row.getRowNum(), e);
         }
     }
 
-    private Map<Field, Integer> buildFieldColumnMap(final Sheet sheet, final Class<?> clazz) {
+    private Map<Field, Integer> buildFieldColumnMap(final Sheet sheet, final Class<?> clazz, final Locale locale) {
         final Map<Field, Integer> fieldColumnMap = new HashMap<>();
         final Row headerRow = sheet.getRow(0);
         if (headerRow == null) {
@@ -142,7 +143,6 @@ public class ExcelReader {
                 .peek(field -> field.setAccessible(true))
                 .toList();
 
-        final Locale locale = LocaleContextHolder.getLocale();
         fields.forEach(field -> {
             final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
             final String expectedHeader = hasText(excelCell.header()) ?
@@ -162,63 +162,80 @@ public class ExcelReader {
         final Class<?> type = field.getType();
 
         if (type == String.class) {
-            field.set(dto, getStringifiedCellValue(cell));
+            field.set(dto, stringValueOf(cell));
         } else if (type == Long.class || type == long.class) {
-            field.set(dto, getLongifiedNumericCellValue(cell));
+            setUnlessAbsent(dto, field, wholeNumberOf(cell));
         } else if (type == Boolean.class || type == boolean.class) {
-            field.set(dto, cell.getCellType() == CellType.BOOLEAN ? cell.getBooleanCellValue() : Boolean.parseBoolean(getStringifiedCellValue(cell)));
+            field.set(dto, typeOf(cell) == CellType.BOOLEAN ? cell.getBooleanCellValue() : Boolean.parseBoolean(stringValueOf(cell)));
         } else if (type == Integer.class || type == int.class) {
-            field.set(dto, getIntifiedNumericCellValue(cell));
+            final Long value = wholeNumberOf(cell);
+
+            if (value != null && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
+                throw new CellValueException("impex.import.validation.notWholeNumber", cell, String.valueOf(value));
+            }
+            setUnlessAbsent(dto, field, value == null ? null : value.intValue());
         } else if (type == ImpexAction.class) {
             field.set(dto, parseImpexAction(cell));
         }
     }
 
-    private ImpexAction parseImpexAction(final Cell cell) {
-        final String value = getStringifiedCellValue(cell).trim().toUpperCase();
-
-        if (value.equals("N") || value.equals("C") || value.equals("CREATE") || value.equals("NEW")) {
-            return ImpexAction.CREATE;
-        } else if (value.equals("D") || value.equals("R") || value.equals("DELETE") || value.equals("REMOVE")) {
-            return ImpexAction.DELETE;
+    private static void setUnlessAbsent(final Object dto, final Field field, @Nullable final Object value) throws IllegalAccessException {
+        if (value != null || !field.getType().isPrimitive()) {
+            field.set(dto, value);
         }
-        return ImpexAction.UPDATE;
     }
 
-    private long getLongifiedNumericCellValue(final Cell cell) {
-        return switch (cell.getCellType()) {
-            case NUMERIC -> (long) cell.getNumericCellValue();
-            case STRING -> {
-                try {
-                    yield Long.parseLong(cell.getStringCellValue().replaceAll("[^0-9]", ""));
-                } catch (final NumberFormatException e) {
-                    yield 0L;
+    static CellType typeOf(final Cell cell) {
+        return cell.getCellType() == CellType.FORMULA ? cell.getCachedFormulaResultType() : cell.getCellType();
+    }
+
+    static @Nullable Long wholeNumberOf(final Cell cell) {
+        return switch (typeOf(cell)) {
+            case NUMERIC -> {
+                final double value = cell.getNumericCellValue();
+
+                if (value != Math.rint(value)) {
+                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, String.valueOf(value));
                 }
+                yield (long) value;
             }
-            default -> 0L;
+            case STRING -> {
+                final String text = cell.getStringCellValue().trim();
+
+                if (text.isEmpty()) {
+                    yield null;
+                }
+                if (!text.matches("-?\\d+")) {
+                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, text);
+                }
+                yield Long.parseLong(text);
+            }
+            case BLANK -> null;
+            default -> throw new CellValueException("impex.import.validation.notWholeNumber", cell, stringValueOf(cell));
         };
     }
 
-    private int getIntifiedNumericCellValue(final Cell cell) {
-        return switch (cell.getCellType()) {
-            case NUMERIC -> (int) cell.getNumericCellValue();
-            case STRING -> {
-                try {
-                    yield Integer.parseInt(cell.getStringCellValue().replaceAll("[^0-9]", ""));
-                } catch (final NumberFormatException e) {
-                    yield 0;
-                }
-            }
-            default -> 0;
-        };
-    }
-
-    private String getStringifiedCellValue(final Cell cell) {
-        return switch (cell.getCellType()) {
+    static String stringValueOf(final Cell cell) {
+        return switch (typeOf(cell)) {
             case STRING -> cell.getStringCellValue();
-            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
+            case NUMERIC -> {
+                final double value = cell.getNumericCellValue();
+
+                yield value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+            }
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
             default -> "";
+        };
+    }
+
+    private ImpexAction parseImpexAction(final Cell cell) {
+        final String value = stringValueOf(cell).trim().toUpperCase();
+
+        return switch (value) {
+            case "N", "C", "CREATE", "NEW" -> ImpexAction.CREATE;
+            case "D", "R", "DELETE", "REMOVE" -> ImpexAction.DELETE;
+            case "", "U", "UPDATE" -> ImpexAction.UPDATE;
+            default -> throw new CellValueException("impex.import.validation.unknownAction", cell, value);
         };
     }
 
@@ -228,7 +245,7 @@ public class ExcelReader {
         }
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             final Cell cell = row.getCell(c);
-            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(getStringifiedCellValue(cell))) {
+            if (cell != null && cell.getCellType() != CellType.BLANK && hasText(stringValueOf(cell))) {
                 return false;
             }
         }

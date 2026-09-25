@@ -23,8 +23,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Anders Jacobsson
@@ -41,11 +43,25 @@ public class AuditContextFilter extends OncePerRequestFilter {
         return uri == null ? null : "%s %s".formatted(request.getMethod(), uri);
     }
 
+    private static @Nullable String reasonOf(final HttpServletRequest request) {
+        final String reason = request.getHeader(REASON_HEADER);
+
+        if (reason == null) {
+            return null;
+        }
+
+        try {
+            return UriUtils.decode(reason, StandardCharsets.UTF_8);
+        } catch (final IllegalArgumentException _) {
+            return reason;
+        }
+    }
+
     @Override
     protected void doFilterInternal(final HttpServletRequest request,
                                     final HttpServletResponse response,
                                     final FilterChain chain) throws ServletException, IOException {
-        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, operationOf(request), request.getHeader(REASON_HEADER)));
+        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, operationOf(request), reasonOf(request)));
 
         try {
             chain.doFilter(request, response);

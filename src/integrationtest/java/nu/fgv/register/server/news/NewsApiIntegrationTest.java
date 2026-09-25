@@ -60,6 +60,9 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     private final EasyRandom random;
     private final NewsRepository repository;
 
+    @Autowired
+    private NewsService newsService;
+
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public NewsApiIntegrationTest(final JdbcClient jdbcClient,
@@ -827,4 +830,34 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    @DisplayName("Publishing")
+    class PublishingTests {
+
+        @Test
+        void should_publish_news_once_its_window_has_started_and_unpublish_it_once_it_has_ended() {
+            final LocalDate today = LocalDate.now();
+            final News future = persistNews(windowed(today.plusDays(5), null, false));
+            final News starting = persistNews(windowed(today, null, false));
+            final News running = persistNews(windowed(today.minusDays(2), today.plusDays(3), false));
+            final News ended = persistNews(windowed(today.minusDays(10), today.minusDays(1), true));
+
+            newsService.publishAndUnpublishNews();
+
+            assertThat(repository.findById(future.getId())).get().extracting(News::getPublished).isEqualTo(false);
+            assertThat(repository.findById(starting.getId())).get().extracting(News::getPublished).isEqualTo(true);
+            assertThat(repository.findById(running.getId())).get().extracting(News::getPublished).isEqualTo(true);
+            assertThat(repository.findById(ended.getId())).get().extracting(News::getPublished).isEqualTo(false);
+        }
+
+        private News windowed(final LocalDate visibleFrom, final LocalDate visibleTo, final boolean published) {
+            final News news = randomizeNews();
+
+            news.setVisibleFrom(visibleFrom);
+            news.setVisibleTo(visibleTo);
+            news.setPublished(published);
+
+            return news;
+        }
+    }
 }

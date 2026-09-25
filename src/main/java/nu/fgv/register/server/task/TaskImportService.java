@@ -23,6 +23,7 @@ import nu.fgv.register.server.impex.importing.ImportSpec;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Locale;
@@ -42,8 +43,9 @@ public class TaskImportService extends AbstractImportService {
 
     public TaskImportService(final List<ImportEngine> engines,
                              final TaskService service,
-                             final MessageSource messageSource) {
-        super(engines, messageSource);
+                             final MessageSource messageSource,
+                             final PlatformTransactionManager transactionManager) {
+        super(engines, messageSource, transactionManager);
         this.service = service;
     }
 

@@ -19,8 +19,12 @@ package nu.fgv.register.server.spexare;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+import nu.fgv.register.server.util.validation.Luhn;
+
+import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
 /**
  * @author Anders Jacobsson
@@ -43,10 +47,22 @@ public record SpexareCreateDto(
         @JsonProperty("nickName")
         String nickName,
 
+        @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
+        @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
+        @JsonProperty("socialSecurityNumber")
+        String socialSecurityNumber,
+
         @JsonProperty("deceased")
         Boolean deceased,
 
         @JsonProperty("published")
-        Boolean published
+        Boolean published,
+
+        @Size(max = 255, message = "{spexare.graduation.size}")
+        @JsonProperty("graduation")
+        String graduation,
+
+        @JsonProperty("comment")
+        String comment
 ) {
 }

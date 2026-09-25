@@ -19,11 +19,15 @@ package nu.fgv.register.server.impex.importing;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.impex.model.HasImpexAction;
+import nu.fgv.register.server.impex.model.ImpexAction;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.util.error.ImportException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,11 +46,23 @@ public abstract class AbstractImportService {
 
     protected final List<ImportEngine> engines;
     protected final MessageSource messageSource;
+    private final TransactionTemplate transactionTemplate;
 
     protected AbstractImportService(final List<ImportEngine> engines,
-                                    final MessageSource messageSource) {
+                                    final MessageSource messageSource,
+                                    final PlatformTransactionManager transactionManager) {
         this.engines = engines;
         this.messageSource = messageSource;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
+
+    /**
+     * Commits on its own, whatever surrounds it. The import job runs inside one transaction, so
+     * without this a single failed row would roll back every row before it as well.
+     */
+    protected void inTransaction(final Runnable work) {
+        transactionTemplate.executeWithoutResult(_ -> work.run());
     }
 
     public ImportResultDto doImport(final byte[] file, final ImpexType type, final Locale locale) {
@@ -84,25 +100,24 @@ public abstract class AbstractImportService {
         if (dtos != null) {
             dtos.forEach(dto -> {
                 try {
-                    switch (dto.getAction()) {
-                        case CREATE -> {
-                            creator.accept(dto);
-                            summary.incrementCreated(entity);
-                        }
-                        case UPDATE -> {
-                            updater.accept(dto);
-                            summary.incrementUpdated(entity);
-                        }
-                        case DELETE -> {
-                            deleter.accept(dto);
-                            summary.incrementDeleted(entity);
-                        }
-                    }
+                    inTransaction(() -> apply(dto, creator, updater, deleter));
+                    summary.increment(dto.getAction(), entity);
                 } catch (final Exception e) {
                     log.error("Failed to process {} import for row", entity, e);
                     summary.addError(dto.getRowNumber(), entity, e.getMessage());
                 }
             });
+        }
+    }
+
+    protected static <T extends HasImpexAction> void apply(final T dto,
+                                                           final Consumer<T> creator,
+                                                           final Consumer<T> updater,
+                                                           final Consumer<T> deleter) {
+        switch (dto.getAction()) {
+            case CREATE -> creator.accept(dto);
+            case UPDATE -> updater.accept(dto);
+            case DELETE -> deleter.accept(dto);
         }
     }
 
@@ -118,6 +133,21 @@ public abstract class AbstractImportService {
         public ImportSummary(final MessageSource messageSource, final Locale locale) {
             this.messageSource = messageSource;
             this.locale = locale;
+        }
+
+        public void increment(final ImpexAction action, final String entity) {
+            switch (action) {
+                case CREATE -> incrementCreated(entity);
+                case UPDATE -> incrementUpdated(entity);
+                case DELETE -> incrementDeleted(entity);
+            }
+        }
+
+        public void addAll(final ImportSummary other) {
+            other.createdCounts.forEach((entity, count) -> createdCounts.merge(entity, count, Integer::sum));
+            other.updatedCounts.forEach((entity, count) -> updatedCounts.merge(entity, count, Integer::sum));
+            other.deletedCounts.forEach((entity, count) -> deletedCounts.merge(entity, count, Integer::sum));
+            errors.addAll(other.errors);
         }
 
         public void incrementCreated(final String entity) {

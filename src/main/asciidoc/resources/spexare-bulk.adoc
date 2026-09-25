@@ -12,7 +12,7 @@ xref:../api-guide.adoc[Back to API guide]
 
 A bulk operation applies one change to many spexare at once.
 The whole batch runs in a single transaction, so it is recorded as one revision in the audit trail.
-Supply a reason in the ``X-Audit-Reason`` request header to have it recorded with that revision.
+Supply a reason in the ``X-Audit-Reason`` request header to have it recorded with that revision. Percent-encode it (UTF-8) if it contains characters outside ISO-8859-1.
 
 The target is either ``ids`` or ``filter``, never both, and is limited to 500 spexare.
 

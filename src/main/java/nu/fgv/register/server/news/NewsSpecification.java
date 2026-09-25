@@ -40,29 +40,33 @@ public class NewsSpecification extends BaseSpecification<News> {
         super(criteria);
     }
 
-    public static Specification<News> hasVisibleFromAfterYesterday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get(News_.visibleFrom), LocalDate.now().minusDays(1));
+    public static Specification<News> hasVisibleFromTodayOrEarlier() {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get(News_.visibleFrom), LocalDate.now());
+    }
+
+    public static Specification<News> isPublished(final boolean published) {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(News_.published), published);
     }
 
     public static Specification<News> hasVisibleToBeforeToday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get(News_.visibleTo), LocalDate.now());
+        return (root, _, criteriaBuilder) -> criteriaBuilder.lessThan(root.get(News_.visibleTo), LocalDate.now());
     }
 
     public static Specification<News> hasVisibleToToday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+        return (root, _, criteriaBuilder) -> criteriaBuilder.or(
                 criteriaBuilder.equal(root.get(News_.visibleTo), LocalDate.now()),
                 criteriaBuilder.isNull(root.get(News_.visibleTo))
         );
     }
 
     public static Specification<News> hasVisibleToAfterToday() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+        return (root, _, criteriaBuilder) -> criteriaBuilder.or(
                 criteriaBuilder.greaterThan(root.get(News_.visibleTo), LocalDate.now()),
                 criteriaBuilder.isNull(root.get(News_.visibleTo))
         );
     }
 
     public static Specification<News> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(News_.id).in(ids);
+        return (root, _, _) -> root.get(News_.id).in(ids);
     }
 }

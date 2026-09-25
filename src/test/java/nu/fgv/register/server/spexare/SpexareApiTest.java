@@ -289,8 +289,11 @@ class SpexareApiTest extends AbstractApiTest {
                                         fields.withPath("firstName").description("The first name of the spexare"),
                                         fields.withPath("lastName").description("The last name of the spexare"),
                                         fields.withPath("nickName").description("The nickname of the spexare"),
+                                        fields.withPath("socialSecurityNumber").description("The social security number of the spexare"),
                                         fields.withPath("deceased").description("The deceased status of the spexare"),
-                                        fields.withPath("published").description("The published status of the spexare")
+                                        fields.withPath("published").description("The published status of the spexare"),
+                                        fields.withPath("graduation").description("The graduation of the spexare"),
+                                        fields.withPath("comment").description("The comment of the spexare")
                                 ),
                                 responseFields,
                                 links,

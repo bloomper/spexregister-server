@@ -61,9 +61,6 @@ public interface SpexareMapper {
     List<SpexareDto> toDtos(List<Spexare> models);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "socialSecurityNumber", ignore = true)
-    @Mapping(target = "graduation", ignore = true)
-    @Mapping(target = "comment", ignore = true)
     @Mapping(target = "image", ignore = true)
     @Mapping(target = "imageContentType", ignore = true)
     @Mapping(target = "partner", ignore = true)

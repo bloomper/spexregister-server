@@ -236,7 +236,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                         } else if (BOOLEAN_AGGREGATIONS.contains(fieldPath)) {
                                             fb.must(f.match().field(fieldPath).matching(Boolean.valueOf(a.value())));
                                         } else if (FACET_SPEX_COUNTS.equals(a.name())) {
-                                            fb.must(f.match().field(fieldPath).matching(Integer.valueOf(a.value())));
+                                            fb.must(f.match().field(fieldPath).matching(parseCount(a.value())));
                                         } else {
                                             final Matcher range = YEAR_RANGE_PATTERN.matcher(a.value());
 
@@ -262,7 +262,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
 
         for (final String key : HIERARCHICAL_AGGREGATIONS) {
             final String fieldPrefix = key.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
-            search = search.aggregation(AggregationKey.of(key), f -> f.terms().field(fieldPrefix + LocaleContextHolder.getLocale(), String.class));
+            search = search.aggregation(AggregationKey.of(key), f -> f.terms().field(fieldPrefix + LocaleContextHolder.getLocale().getLanguage(), String.class));
         }
 
         return search.sort(f -> determineSort(Spexare.class, f, sort))
@@ -272,6 +272,14 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final Pageable pageable) {
         return search(searchSession, query, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
+    }
+
+    private static int parseCount(final String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (final NumberFormatException _) {
+            throw new BadRequestException("Invalid %s value %s".formatted(FACET_SPEX_COUNTS, value));
+        }
     }
 
     public long countByDataQualityIssue(final DataQualityIssue issue) {
