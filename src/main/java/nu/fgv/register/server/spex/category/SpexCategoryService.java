@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -180,8 +181,7 @@ public class SpexCategoryService {
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
-                    category.setLogo(logo);
-                    category.setLogoContentType(requireSupportedImageMimeType(logo));
+                    category.setLogo(Image.of(logo, requireSupportedImageMimeType(logo)));
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
@@ -195,7 +195,6 @@ public class SpexCategoryService {
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(null);
-                    category.setLogoContentType(null);
                     repository.save(category);
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
@@ -209,8 +208,8 @@ public class SpexCategoryService {
         }
         return repository
                 .findById0(id)
-                .filter(category -> category.getLogo() != null && hasText(category.getLogoContentType()))
-                .map(category -> Pair.of(category.getLogo(), category.getLogoContentType()))
+                .map(SpexCategory::getLogo)
+                .map(logo -> Pair.of(logo.getData(), logo.getContentType()))
                 .orElseThrow(() -> new ResourceNoValueException(SpexCategory.class, SpexCategory_.LOGO, id));
     }
 

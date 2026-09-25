@@ -63,9 +63,10 @@ public class AuditDataSeeder {
                     .withHistory("name = LEFT(CONCAT('Preliminär ', name), 255)", "name = LEFT(CONCAT(name, ' (utkast)'), 255)"),
             AuditedTable.of("nu.fgv.register.server.news.News", "news", "id, visible_from, visible_to, subject, text, published")
                     .withHistory("subject = LEFT(CONCAT('Utkast: ', subject), 255)", "published = 1 - COALESCE(published, 0)"),
-            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, name, first_year, logo, logo_content_type")
+            AuditedTable.of("nu.fgv.register.server.image.Image", "image", "id, data, content_type"),
+            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, name, first_year, logo_id")
                     .withHistory("name = LEFT(CONCAT(name, ' (arbetsnamn)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, title, poster, poster_content_type, category_id")
+            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, title, poster_id, category_id")
                     .withHistory("title = LEFT(CONCAT(title, ' (arbetstitel)'), 255)"),
             AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, year, parent_id, details_id")
                     .withHistory("year = CAST(CAST(year AS UNSIGNED) - 1 AS CHAR)"),
@@ -74,7 +75,7 @@ public class AuditDataSeeder {
             AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, name, category_id")
                     .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
             AuditedTable.of("nu.fgv.register.server.spexare.Spexare", "spexare",
-                            "id, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image, image_content_type, partner_id")
+                            "id, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
                     .withHistory("comment = CONCAT('(tidigare) ', COALESCE(comment, ''))", "graduation = LEFT(CONCAT('(tidigare) ', COALESCE(graduation, '')), 255)", "nick_name = LEFT(CONCAT('(tidigare) ', COALESCE(nick_name, '')), 255)"),
             AuditedTable.of("nu.fgv.register.server.spexare.toggle.Toggle", "toggle", "id, value, type_id, spexare_id")
                     .withHistory("value = 1 - COALESCE(value, 0)"),

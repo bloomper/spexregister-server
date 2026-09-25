@@ -17,6 +17,7 @@
 package nu.fgv.register.server.audit;
 
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -28,6 +29,7 @@ import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jspecify.annotations.NonNull;
@@ -86,7 +88,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         this.spexDetailsRepository = spexDetailsRepository;
         this.spexCategoryRepository = spexCategoryRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)));
@@ -143,8 +145,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         details.setId(null);
         details.setTitle(title);
         details.setCategory(category);
-        details.setPoster(new byte[]{1, 2, 3});
-        details.setPosterContentType(MediaType.IMAGE_PNG_VALUE);
+        details.setPoster(Image.of(new byte[]{1, 2, 3}, MediaType.IMAGE_PNG_VALUE));
 
         return spexDetailsRepository.save(details);
     }
@@ -285,7 +286,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var spex = persistSpex(details, "2024");
             grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
-            details.setPoster(new byte[]{4, 5, 6});
+            details.setPoster(Image.of(new byte[]{4, 5, 6}, MediaType.IMAGE_PNG_VALUE));
             spexDetailsRepository.save(details);
 
             final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());

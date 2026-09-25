@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -89,7 +90,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

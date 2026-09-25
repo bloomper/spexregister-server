@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.graphql.CustomErrorType;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -83,7 +84,7 @@ class ConsentGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

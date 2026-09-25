@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
@@ -238,8 +239,7 @@ public class SpexService {
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
-                    spex.getDetails().setPoster(poster);
-                    spex.getDetails().setPosterContentType(requireSupportedImageMimeType(poster));
+                    spex.getDetails().setPoster(Image.of(poster, requireSupportedImageMimeType(poster)));
                     detailsRepository.save(spex.getDetails());
                     touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);
@@ -254,7 +254,6 @@ public class SpexService {
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(null);
-                    spex.getDetails().setPosterContentType(null);
                     detailsRepository.save(spex.getDetails());
                     touchSpexByDetails(spex.getDetails());
                     return SPEX_MAPPER.toDto(spex);
@@ -270,8 +269,8 @@ public class SpexService {
         return repository
                 .findById0(id)
                 .map(Spex::getDetails)
-                .filter(details -> details.getPoster() != null && hasText(details.getPosterContentType()))
-                .map(details -> Pair.of(details.getPoster(), details.getPosterContentType()))
+                .map(SpexDetails::getPoster)
+                .map(poster -> Pair.of(poster.getData(), poster.getContentType()))
                 .orElseThrow(() -> new ResourceNoValueException(Spex.class, SpexDetails_.POSTER, id));
     }
 

@@ -26,6 +26,7 @@ import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.graphql.CustomErrorType;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -81,7 +82,7 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

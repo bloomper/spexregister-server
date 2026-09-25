@@ -30,6 +30,7 @@ import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -118,7 +119,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         this.stateRepository = stateRepository;
         this.spexareRepository = spexareRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

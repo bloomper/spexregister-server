@@ -39,6 +39,7 @@ import nu.fgv.register.server.user.state.State;
 import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -115,7 +116,7 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.userRepository = userRepository;
         this.stateRepository = stateRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(named("year"), new YearRandomizer())

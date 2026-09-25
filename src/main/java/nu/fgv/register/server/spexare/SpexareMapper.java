@@ -62,7 +62,6 @@ public interface SpexareMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "image", ignore = true)
-    @Mapping(target = "imageContentType", ignore = true)
     @Mapping(target = "partner", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "activities", ignore = true)
@@ -79,7 +78,6 @@ public interface SpexareMapper {
     Spexare toModel(SpexareCreateDto dto);
 
     @Mapping(target = "image", ignore = true)
-    @Mapping(target = "imageContentType", ignore = true)
     @Mapping(target = "partner", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "activities", ignore = true)

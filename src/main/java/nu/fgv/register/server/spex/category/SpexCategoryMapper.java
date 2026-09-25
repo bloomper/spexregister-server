@@ -45,11 +45,11 @@ public interface SpexCategoryMapper {
 
     SpexCategoryMapper SPEX_CATEGORY_MAPPER = Mappers.getMapper(SpexCategoryMapper.class);
 
-    @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
+    @BeanMapping(ignoreUnmappedSourceProperties = {"logo"})
     @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
     SpexCategoryDto toDto(SpexCategory model);
 
-    @BeanMapping(ignoreUnmappedSourceProperties = {"logo", "logoContentType"})
+    @BeanMapping(ignoreUnmappedSourceProperties = {"logo"})
     @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
@@ -57,7 +57,6 @@ public interface SpexCategoryMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "logo", ignore = true)
-    @Mapping(target = "logoContentType", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
@@ -66,7 +65,6 @@ public interface SpexCategoryMapper {
     SpexCategory toModel(SpexCategoryCreateDto dto);
 
     @Mapping(target = "logo", ignore = true)
-    @Mapping(target = "logoContentType", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)

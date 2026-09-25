@@ -98,8 +98,9 @@ public class PermissionService {
             }
             if (acl.getEntries().isEmpty()) {
                 mutableAclService.deleteAcl(oid, true);
+            } else {
+                mutableAclService.updateAcl(acl);
             }
-            mutableAclService.updateAcl(acl);
         } catch (final NotFoundException _) {
             // Ignore
         }
@@ -119,8 +120,9 @@ public class PermissionService {
             }
             if (acl.getEntries().isEmpty()) {
                 mutableAclService.deleteAcl(oid, true);
+            } else {
+                mutableAclService.updateAcl(acl);
             }
-            mutableAclService.updateAcl(acl);
         } catch (final NotFoundException _) {
             // Ignore
         }

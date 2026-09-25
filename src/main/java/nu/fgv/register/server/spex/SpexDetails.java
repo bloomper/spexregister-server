@@ -16,15 +16,16 @@
 
 package nu.fgv.register.server.spex;
 
-import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -32,6 +33,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.audit.AuditedBinary;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
@@ -83,16 +86,12 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String title;
 
-    @Lob
-    @Column(name = "poster", columnDefinition = "MEDIUMBLOB")
-    @Basic(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "poster_id")
+    @AuditedBinary
     @ToString.Exclude
     @Nullable
-    private byte[] poster;
-
-    @Column(name = "poster_content_type")
-    @Nullable
-    private String posterContentType;
+    private Image poster;
 
     @ManyToOne
     @IndexedEmbedded

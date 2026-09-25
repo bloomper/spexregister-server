@@ -24,6 +24,7 @@ import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
 import nu.fgv.register.server.util.filter.FilterOperation;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -94,7 +95,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
         this.categoryRepository = categoryRepository;
         this.resourceLoader = resourceLoader;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

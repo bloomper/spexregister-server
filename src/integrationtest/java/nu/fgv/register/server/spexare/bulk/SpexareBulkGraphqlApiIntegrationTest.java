@@ -40,6 +40,7 @@ import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -122,7 +123,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         this.activityRepository = activityRepository;
         this.taskActivityRepository = taskActivityRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

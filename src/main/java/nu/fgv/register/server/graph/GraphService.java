@@ -18,6 +18,7 @@ package nu.fgv.register.server.graph;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.SpexRepository;
@@ -147,8 +148,8 @@ public class GraphService {
                 tag.getName(), null, null, false, tag.getId());
     }
 
-    private static @Nullable String imageUrl(final byte @Nullable [] data, final Supplier<Object> endpoint) {
-        return data == null ? null : linkTo(endpoint.get()).toUri().toString();
+    private static @Nullable String imageUrl(final @Nullable Image image, final Supplier<Object> endpoint) {
+        return image == null ? null : linkTo(endpoint.get()).toUri().toString();
     }
 
     @RequiresAdminOrEditorOrUser

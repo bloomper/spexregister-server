@@ -18,10 +18,12 @@ package nu.fgv.register.server.audit;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareSensitiveData;
 import nu.fgv.register.server.util.error.BadRequestException;
@@ -40,7 +42,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Window;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -327,15 +328,13 @@ public class AuditService {
                                     final String field,
                                     final AuditedEntityDescriptor descriptor,
                                     final Object id) {
-        final Object content = differ.readProperty(entityClass, field, snapshot);
+        final BinaryValueDto value = differ.binaryValueOf(entityClass, field, snapshot);
 
-        if (!(content instanceof final byte[] bytes) || bytes.length == 0) {
+        if (value == null) {
             throw new ResourceNotFoundException(descriptor.entityClass(), id);
         }
 
-        final Object contentType = differ.readProperty(entityClass, field + "ContentType", snapshot);
-
-        return new BinaryValueDto(bytes, contentType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : String.valueOf(contentType));
+        return value;
     }
 
     @RequiresAdmin
@@ -770,6 +769,11 @@ public class AuditService {
         for (final SingularAttribute<?, ?> attribute : differ.attributesOf(entityClass)) {
             Object value = differ.read(attribute, snapshot);
 
+            if (AuditDiffer.isAuditedBinary(entityClass, attribute)) {
+                restoreImage(unwrapped, attribute, value);
+                continue;
+            }
+
             if (value != null && attribute.isAssociation()) {
                 final Object referenceId = entityManagerFactory.getPersistenceUnitUtil().getIdentifier(value);
                 final Object reference = referenceId == null ? null : entityManager.find(attribute.getJavaType(), referenceId);
@@ -787,6 +791,24 @@ public class AuditService {
 
             writeField(unwrapped, attribute.getName(), value);
         }
+    }
+
+    private void restoreImage(final Object target, final SingularAttribute<?, ?> attribute, final @Nullable Object snapshotValue) {
+        final PersistenceUnitUtil util = entityManagerFactory.getPersistenceUnitUtil();
+        final Object current = differ.read(attribute, target);
+
+        if (snapshotValue == null) {
+            writeField(target, attribute.getName(), null);
+            return;
+        }
+
+        if (current != null && Objects.equals(util.getIdentifier(current), util.getIdentifier(snapshotValue))) {
+            return;
+        }
+
+        final Image image = (Image) Hibernate.unproxy(snapshotValue);
+
+        writeField(target, attribute.getName(), Image.of(image.getData().clone(), image.getContentType()));
     }
 
     private Object instantiate(final Class<?> entityClass) {

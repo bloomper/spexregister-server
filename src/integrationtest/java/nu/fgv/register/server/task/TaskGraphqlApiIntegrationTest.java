@@ -21,6 +21,7 @@ import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jspecify.annotations.Nullable;
@@ -75,7 +76,7 @@ class TaskGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)));

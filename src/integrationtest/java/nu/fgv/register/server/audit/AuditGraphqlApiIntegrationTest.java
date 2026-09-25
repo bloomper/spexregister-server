@@ -21,6 +21,7 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)));

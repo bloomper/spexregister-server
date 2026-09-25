@@ -76,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -206,6 +207,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 "spex",
                 "spex_details",
                 "spex_category",
+                "image",
                 "news",
                 "tag",
                 "user",
@@ -282,8 +284,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
         final String categorySql = """
                 UPDATE spex_category
                 SET
-                    logo = :logo,
-                    logo_content_type = :logoContentType
+                    logo_id = :imageId
                 WHERE
                     id = :id
                 """;
@@ -300,8 +301,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
 
                     jdbcClient
                             .sql(categorySql)
-                            .param("logo", imageToByteArray(faker.image().base64SVG()))
-                            .param("logoContentType", "image/svg+xml")
+                            .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
                             .param("id", id)
                             .update();
                 });
@@ -309,8 +309,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
         final String detailsSql = """
                 UPDATE spex_details
                 SET
-                    poster = :poster,
-                    poster_content_type = :posterContentType
+                    poster_id = :imageId
                 WHERE
                     id = :id
                 """;
@@ -321,8 +320,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .forEach(row ->
                         jdbcClient
                                 .sql(detailsSql)
-                                .param("poster", imageToByteArray(faker.image().base64SVG()))
-                                .param("posterContentType", "image/svg+xml")
+                                .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
                                 .param("id", row.get("id"))
                                 .update()
                 );
@@ -511,16 +509,14 @@ public class R__ImportSampleData extends BaseJavaMigration {
         final String sql = """
                 UPDATE spexare
                 SET
-                    image = :image,
-                    image_content_type = :imageContentType
+                    image_id = :imageId
                 WHERE
                     id = :id
                 """;
 
         jdbcClient
                 .sql(sql)
-                .param("image", imageUrlToByteArray(faker.avatar().image()))
-                .param("imageContentType", "image/png")
+                .param("imageId", insertImage(jdbcClient, imageUrlToByteArray(faker.avatar().image()), "image/png"))
                 .param("id", spexareId)
                 .update();
     }
@@ -966,6 +962,18 @@ public class R__ImportSampleData extends BaseJavaMigration {
                     return vocal;
                 })
                 .list();
+    }
+
+    private static long insertImage(final JdbcClient jdbcClient, final byte[] data, final String contentType) {
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcClient
+                .sql("INSERT INTO image (data, content_type) VALUES (:data, :contentType)")
+                .param("data", data)
+                .param("contentType", contentType)
+                .update(keyHolder);
+
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 
     private byte[] imageToByteArray(final String base64EncodedImage) {

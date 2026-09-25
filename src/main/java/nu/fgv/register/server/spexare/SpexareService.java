@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
@@ -272,8 +273,7 @@ public class SpexareService {
                 .findById0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
-                    spexare.setImage(image);
-                    spexare.setImageContentType(requireSupportedImageMimeType(image));
+                    spexare.setImage(Image.of(image, requireSupportedImageMimeType(image)));
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
                 })
@@ -287,7 +287,6 @@ public class SpexareService {
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     spexare.setImage(null);
-                    spexare.setImageContentType(null);
                     repository.save(spexare);
                     return SPEXARE_MAPPER.toDto(spexare);
                 })
@@ -301,8 +300,8 @@ public class SpexareService {
         }
         return repository
                 .findById0(id)
-                .filter(spexare -> spexare.getImage() != null && hasText(spexare.getImageContentType()))
-                .map(spexare -> Pair.of(spexare.getImage(), spexare.getImageContentType()))
+                .map(Spexare::getImage)
+                .map(image -> Pair.of(image.getData(), image.getContentType()))
                 .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.IMAGE, id));
     }
 

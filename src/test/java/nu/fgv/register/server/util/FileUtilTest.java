@@ -18,6 +18,8 @@ package nu.fgv.register.server.util;
 
 import nu.fgv.register.server.util.error.BadRequestException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.util.ResourceUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -57,5 +59,27 @@ class FileUtilTest {
     @Test
     void should_reject_empty_content() {
         assertThrows(BadRequestException.class, () -> FileUtil.requireSupportedImageMimeType(new byte[0]));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "file:///etc/passwd",
+            "ftp://93.184.216.34/image.png",
+            "http://127.0.0.1/image.png",
+            "http://10.0.0.5/image.png",
+            "http://192.168.1.1/image.png",
+            "http://169.254.169.254/latest/meta-data",
+            "http://[::1]/image.png",
+            "http://[fd00::1]/image.png",
+            "http://0.0.0.0/image.png",
+            "not a url"
+    })
+    void should_refuse_to_download_from_anything_but_a_public_http_host(final String url) {
+        assertThrows(BadRequestException.class, () -> FileUtil.requirePublicHttpUri(url));
+    }
+
+    @Test
+    void should_allow_a_public_http_host() {
+        assertThat(FileUtil.requirePublicHttpUri("https://93.184.216.34/image.png").getHost(), is("93.184.216.34"));
     }
 }

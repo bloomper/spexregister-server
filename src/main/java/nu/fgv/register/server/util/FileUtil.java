@@ -25,7 +25,15 @@ import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 
 import java.io.InputStream;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,6 +44,13 @@ import java.util.Set;
 public class FileUtil {
 
     private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = Set.of("image/png", "image/jpeg", "image/gif");
+
+    private static final int MAX_DOWNLOAD_BYTES = 15 * 1024 * 1024;
+    private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .build();
 
     private FileUtil() {
     }
@@ -61,11 +76,65 @@ public class FileUtil {
     }
 
     public static byte[] downloadImage(final String url) {
-        try (final InputStream in = new URI(url).toURL().openStream()) {
-            return in.readAllBytes();
+        final URI uri = requirePublicHttpUri(url);
+
+        try {
+            final HttpResponse<InputStream> response = HTTP_CLIENT.send(
+                    HttpRequest.newBuilder(uri).timeout(DOWNLOAD_TIMEOUT).GET().build(),
+                    HttpResponse.BodyHandlers.ofInputStream());
+
+            try (final InputStream in = response.body()) {
+                if (response.statusCode() != 200) {
+                    throw new BadRequestException("Could not download image from %s: HTTP %d".formatted(url, response.statusCode()));
+                }
+
+                final byte[] content = in.readNBytes(MAX_DOWNLOAD_BYTES + 1);
+
+                if (content.length > MAX_DOWNLOAD_BYTES) {
+                    throw new BadRequestException("Image at %s is larger than %d bytes".formatted(url, MAX_DOWNLOAD_BYTES));
+                }
+
+                return content;
+            }
+        } catch (final BadRequestException e) {
+            throw e;
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InternalErrorException("Interrupted while downloading image from: " + url);
         } catch (final Exception e) {
             throw new InternalErrorException("Could not download image from: " + url);
         }
+    }
+
+    static URI requirePublicHttpUri(final String url) {
+        final URI uri;
+
+        try {
+            uri = new URI(url.trim());
+        } catch (final URISyntaxException _) {
+            throw new BadRequestException("Invalid image URL: " + url);
+        }
+
+        if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
+            throw new BadRequestException("Image URL must be http or https: " + url);
+        }
+
+        try {
+            for (final InetAddress address : InetAddress.getAllByName(uri.getHost())) {
+                if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                        || address.isSiteLocalAddress() || address.isMulticastAddress() || isUniqueLocal(address)) {
+                    throw new BadRequestException("Image URL must not point at an internal address: " + url);
+                }
+            }
+        } catch (final UnknownHostException _) {
+            throw new BadRequestException("Unknown host in image URL: " + url);
+        }
+
+        return uri;
+    }
+
+    private static boolean isUniqueLocal(final InetAddress address) {
+        return address instanceof Inet6Address && (address.getAddress()[0] & 0xfe) == 0xfc;
     }
 
     public static boolean isLocalUrl(final String url, final String baseUrl) {

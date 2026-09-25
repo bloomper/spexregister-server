@@ -23,6 +23,7 @@ import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -75,7 +76,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
         this.spexareRepository = spexareRepository;
         this.tagRepository = tagRepository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(

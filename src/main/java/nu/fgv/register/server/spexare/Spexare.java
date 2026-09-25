@@ -20,6 +20,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,6 +39,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nu.fgv.register.server.audit.AuditedBinary;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
@@ -157,15 +160,12 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Nullable
     private String comment;
 
-    @Lob
-    @Column(name = "image", columnDefinition = "MEDIUMBLOB")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "image_id")
+    @AuditedBinary
     @ToString.Exclude
     @Nullable
-    private byte[] image;
-
-    @Column(name = "image_content_type")
-    @Nullable
-    private String imageContentType;
+    private Image image;
 
     @ManyToOne
     @Nullable
@@ -225,7 +225,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @GenericField(name = "hasImage", aggregable = Aggregable.YES, searchable = Searchable.YES)
     @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "image")))
     public boolean isImagePresent() {
-        return image != null && image.length > 0;
+        return image != null;
     }
 
     @GenericField(name = "debutYear", aggregable = Aggregable.YES, searchable = Searchable.YES)

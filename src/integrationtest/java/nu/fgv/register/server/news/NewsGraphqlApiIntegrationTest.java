@@ -19,6 +19,7 @@ package nu.fgv.register.server.news;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.AfterEach;
@@ -69,7 +70,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.repository = repository;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .excludeField(named("version").and(ofType(Long.class)).and(inClass(AbstractAuditable.class)));

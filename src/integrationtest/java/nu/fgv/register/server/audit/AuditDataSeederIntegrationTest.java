@@ -38,6 +38,7 @@ import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.data.AuditDataSeeder;
 import nu.fgv.register.server.util.randomizer.CountryCodeRandomizer;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
+import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.SocialSecurityNumberRandomizer;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -119,7 +120,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         this.spexCategoryRepository = spexCategoryRepository;
         this.auditService = auditService;
 
-        final EasyRandomParameters parameters = new EasyRandomParameters();
+        final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
         parameters
                 .randomize(named("labels"), new LabelsRandomizer())

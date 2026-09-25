@@ -22,6 +22,8 @@ import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.SingularAttribute;
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.image.Image;
+import org.hibernate.Hibernate;
 import org.hibernate.envers.NotAudited;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.MediaType;
@@ -59,8 +61,14 @@ public class AuditDiffer {
         return field == null || field.isAnnotationPresent(NotAudited.class);
     }
 
-    private static boolean isBinary(final SingularAttribute<?, ?> attribute) {
-        return byte[].class.equals(attribute.getJavaType());
+    private static boolean isBinary(final Class<?> entityClass, final SingularAttribute<?, ?> attribute) {
+        return byte[].class.equals(attribute.getJavaType()) || isAuditedBinary(entityClass, attribute);
+    }
+
+    public static boolean isAuditedBinary(final Class<?> entityClass, final SingularAttribute<?, ?> attribute) {
+        final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
+
+        return field != null && field.isAnnotationPresent(AuditedBinary.class);
     }
 
     private static byte @Nullable [] asBytes(final @Nullable Object value) {
@@ -93,7 +101,19 @@ public class AuditDiffer {
             final Object oldValue = read(attribute, before);
             final Object newValue = read(attribute, after);
 
-            if (isBinary(attribute)) {
+            if (isAuditedBinary(entityClass, attribute)) {
+                if (!Objects.equals(identityOf(attribute, oldValue, util), identityOf(attribute, newValue, util))) {
+                    changes.add(FieldChangeDto.builder()
+                            .field(attribute.getName())
+                            .oldValue(oldValue == null ? null : imageOf(oldValue).getContentType())
+                            .newValue(newValue == null ? null : imageOf(newValue).getContentType())
+                            .binary(true)
+                            .build());
+                }
+                continue;
+            }
+
+            if (isBinary(entityClass, attribute)) {
                 if (!java.util.Arrays.equals(asBytes(oldValue), asBytes(newValue))) {
                     changes.add(FieldChangeDto.builder()
                             .field(attribute.getName())
@@ -139,7 +159,38 @@ public class AuditDiffer {
     public boolean isBinaryProperty(final Class<?> entityClass, final String name) {
         return attributesOf(entityClass).stream()
                 .filter(a -> a.getName().equals(name))
-                .anyMatch(AuditDiffer::isBinary);
+                .anyMatch(attribute -> isBinary(entityClass, attribute));
+    }
+
+    public @Nullable BinaryValueDto binaryValueOf(final Class<?> entityClass, final String name, final @Nullable Object entity) {
+        final SingularAttribute<?, ?> attribute = attributesOf(entityClass).stream()
+                .filter(a -> a.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+
+        if (attribute == null || entity == null) {
+            return null;
+        }
+
+        final Object value = read(attribute, entity);
+
+        if (value == null) {
+            return null;
+        }
+
+        if (isAuditedBinary(entityClass, attribute)) {
+            final Image image = imageOf(value);
+
+            return new BinaryValueDto(image.getData(), image.getContentType());
+        }
+
+        final byte[] bytes = asBytes(value);
+
+        return bytes == null || bytes.length == 0 ? null : new BinaryValueDto(bytes, contentTypeOf(entityClass, attribute, entity));
+    }
+
+    private static Image imageOf(final Object value) {
+        return (Image) Hibernate.unproxy(value);
     }
 
     private @Nullable String contentTypeOf(final Class<?> entityClass,
