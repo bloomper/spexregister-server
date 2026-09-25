@@ -4,17 +4,11 @@ schema {
     subscription: Subscription
 }
 
-type Query {
-    noOp: Void
-}
+type Query
 
-type Mutation {
-    noOp: Void
-}
+type Mutation
 
-type Subscription {
-    noOp: Void
-}
+type Subscription
 
 type Facet {
     id: String!

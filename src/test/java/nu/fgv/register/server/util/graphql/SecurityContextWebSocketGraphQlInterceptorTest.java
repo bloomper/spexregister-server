@@ -105,7 +105,7 @@ class SecurityContextWebSocketGraphQlInterceptorTest {
     }
 
     private static WebSocketGraphQlRequest request(final Map<String, Object> attributes) {
-        return new WebSocketGraphQlRequest(URI.create("ws://localhost/api/graphql"), new HttpHeaders(), new LinkedMultiValueMap<>(),
+        return new WebSocketGraphQlRequest(URI.create("ws://localhost/api/graphql"), new HttpHeaders(), new LinkedMultiValueMap<>(), null,
                 Map.of(), Map.of("query", "subscription { jobProgress(id: 1) { id } }"), "1", Locale.ENGLISH, sessionOf(attributes));
     }
 

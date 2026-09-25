@@ -20,8 +20,10 @@ import graphql.schema.DataFetchingFieldSelectionSet;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,26 @@ public class AnalyticsGraphqlApi {
                 selection.getImmediateFields().stream()
                         .map(graphql.schema.SelectedField::getName)
                         .collect(Collectors.toSet())));
+    }
+
+    @SchemaMapping(typeName = "Analytics", field = "totals")
+    public AnalyticsDto.TotalsDto getTotals(final AnalyticsDto analytics) {
+        return Objects.requireNonNull(analytics.totals());
+    }
+
+    @SchemaMapping(typeName = "Analytics", field = "participation")
+    public AnalyticsDto.ParticipationDto getParticipation(final AnalyticsDto analytics) {
+        return Objects.requireNonNull(analytics.participation());
+    }
+
+    @SchemaMapping(typeName = "Analytics", field = "demographics")
+    public AnalyticsDto.DemographicsDto getDemographics(final AnalyticsDto analytics) {
+        return Objects.requireNonNull(analytics.demographics());
+    }
+
+    @SchemaMapping(typeName = "Analytics", field = "lifecycle")
+    public AnalyticsDto.LifecycleDto getLifecycle(final AnalyticsDto analytics) {
+        return Objects.requireNonNull(analytics.lifecycle());
     }
 
 }
