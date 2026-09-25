@@ -261,6 +261,10 @@ asciidoctor {
         'static-snippets': file('src/main/asciidoc/static-snippets')
 }
 
+tasks.named('compileKeycloakJava', JavaCompile) {
+    options.release = 21
+}
+
 rootProject.tasks.named("processKeycloakResources") {
     duplicatesStrategy = 'include'
 }
