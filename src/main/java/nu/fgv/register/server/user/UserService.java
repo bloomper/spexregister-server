@@ -47,6 +47,7 @@ import org.jspecify.annotations.Nullable;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RoleResource;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.passay.data.CharacterData;
@@ -75,6 +76,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
@@ -110,8 +112,11 @@ public class UserService {
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
     private final PlatformTransactionManager transactionManager;
+    private final UserApprovalNotifier userApprovalNotifier;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
+    @Value("${spexregister.keycloak.pending-approval-group}")
+    private String pendingApprovalGroup;
 
     @RequiresAdmin
     public CountedWindow<UserDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
@@ -517,6 +522,7 @@ public class UserService {
             final Set<String> members = new HashSet<>();
             final AtomicInteger synced = new AtomicInteger();
             final AtomicInteger removed = new AtomicInteger();
+            final AtomicInteger approved = new AtomicInteger();
 
             // Each user commits on its own, so one failure does not undo the rest of the run.
             authorityRepository.findAll().forEach(authority -> roleMembers(authority.getId()).forEach(representation -> {
@@ -542,7 +548,16 @@ public class UserService {
                         }
                     });
 
-            log.info("Finished user sync job (members: {}, synced: {}, removed: {})", members.size(), synced.get(), removed.get());
+            pendingApprovalGroup().ifPresent(group -> groupMembers(group.getId()).stream()
+                    .filter(representation -> members.contains(representation.getId()))
+                    .filter(representation -> repository.existsByExternalId(representation.getId()))
+                    .forEach(representation -> {
+                        if (notifyApproved(representation, group.getId())) {
+                            approved.incrementAndGet();
+                        }
+                    }));
+
+            log.info("Finished user sync job (members: {}, synced: {}, removed: {}, approved: {})", members.size(), synced.get(), removed.get(), approved.get());
         });
     }
 
@@ -554,17 +569,56 @@ public class UserService {
                 .get(keycloakClientId)
                 .roles()
                 .get(role);
-        final List<UserRepresentation> members = new ArrayList<>();
+
+        return allPages(roleResource::getUserMembers);
+    }
+
+    private Optional<GroupRepresentation> pendingApprovalGroup() {
+        try {
+            return Optional.of(keycloakAdminClient.realm(keycloakRealm).getGroupByPath("/" + pendingApprovalGroup));
+        } catch (final NotFoundException e) {
+            log.warn("Group {} does not exist in Keycloak, no users will be notified about approval", pendingApprovalGroup);
+            return Optional.empty();
+        }
+    }
+
+    private List<UserRepresentation> groupMembers(final String groupId) {
+        return allPages((first, max) -> keycloakAdminClient
+                .realm(keycloakRealm)
+                .groups()
+                .group(groupId)
+                .members(first, max));
+    }
+
+    private boolean notifyApproved(final UserRepresentation representation, final String groupId) {
+        try {
+            if (userApprovalNotifier.notifyApproved(representation.getEmail())) {
+                keycloakAdminClient
+                        .realm(keycloakRealm)
+                        .users()
+                        .get(representation.getId())
+                        .leaveGroup(groupId);
+                return true;
+            }
+        } catch (final Exception e) {
+            log.error("Could not finish approval of user {}", representation.getId(), e);
+        }
+
+        return false;
+    }
+
+    private static List<UserRepresentation> allPages(final BiFunction<Integer, Integer, List<UserRepresentation>> fetch) {
+        final List<UserRepresentation> all = new ArrayList<>();
         List<UserRepresentation> page;
         int first = 0;
 
         do {
-            page = roleResource.getUserMembers(first, SYNC_PAGE_SIZE);
-            members.addAll(page);
+            page = fetch.apply(first, SYNC_PAGE_SIZE);
+            all.addAll(page);
             first += SYNC_PAGE_SIZE;
         } while (page.size() == SYNC_PAGE_SIZE);
 
-        return members;
+        return all;
     }
 
     private void addSyncedUser(final String externalId) {

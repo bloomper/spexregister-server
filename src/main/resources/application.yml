@@ -85,6 +85,7 @@ logging:
 
 spexregister:
   base-url: ${APP_BASE_URL}
+  frontend-url: ${APP_FRONTEND_URL:}
   default-language: sv
   languages:
     - en
@@ -110,6 +111,9 @@ spexregister:
     client:
       client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       client-secret: ${APP_KEYCLOAK_CLIENT_CLIENT_SECRET}
+    pending-approval-group: pending-approval
+  mail:
+    from: ${APP_MAIL_FROM:}
   impex:
     storage-path: ./data/impex_data
   data:

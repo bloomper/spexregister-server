@@ -51,6 +51,7 @@ import org.passay.data.EnglishCharacterData;
 import org.passay.generate.PasswordGenerator;
 import org.passay.rule.AllowedCharacterRule;
 import org.passay.rule.CharacterRule;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -58,6 +59,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -77,6 +81,10 @@ import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
@@ -94,6 +102,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private JavaMailSender mailSender;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
@@ -2162,6 +2172,70 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.existsByExternalId(newMember.getId())).isTrue();
             assertThat(repository.existsByExternalId(withoutRoles.getExternalId())).isTrue();
             assertThat(repository.existsByExternalId(deletedInKeycloak.getExternalId())).isFalse();
+        }
+
+        @Test
+        void should_notify_approved_pending_users_and_remove_them_from_the_pending_group() {
+            final var initialState = randomizeState();
+            initialState.setInitial(true);
+            persistState(initialState);
+            reset(mailSender);
+
+            final var approved = persistUserInKeycloak(AUTHORITY_USER);
+            final var notApproved = persistUserInKeycloak();
+            joinPendingApprovalGroup(approved.getId());
+            joinPendingApprovalGroup(notApproved.getId());
+
+            userService.scheduledSync();
+
+            final ArgumentCaptor<SimpleMailMessage> message = ArgumentCaptor.forClass(SimpleMailMessage.class);
+            verify(mailSender).send(message.capture());
+            assertThat(message.getValue().getTo()).containsExactly(approved.getEmail());
+            assertThat(message.getValue().getText()).contains("https://register.example.com");
+            assertThat(isInPendingApprovalGroup(approved.getId())).isFalse();
+            assertThat(isInPendingApprovalGroup(notApproved.getId())).isTrue();
+        }
+
+        @Test
+        void should_keep_approved_user_in_the_pending_group_when_notification_fails() {
+            final var initialState = randomizeState();
+            initialState.setInitial(true);
+            persistState(initialState);
+            reset(mailSender);
+            doThrow(new MailSendException("Mail server unavailable")).when(mailSender).send(any(SimpleMailMessage.class));
+
+            final var approved = persistUserInKeycloak(AUTHORITY_USER);
+            joinPendingApprovalGroup(approved.getId());
+
+            userService.scheduledSync();
+
+            assertThat(repository.existsByExternalId(approved.getId())).isTrue();
+            assertThat(isInPendingApprovalGroup(approved.getId())).isTrue();
+        }
+
+        private void joinPendingApprovalGroup(final String userId) {
+            keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .users()
+                    .get(userId)
+                    .joinGroup(pendingApprovalGroupId());
+        }
+
+        private boolean isInPendingApprovalGroup(final String userId) {
+            return keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .users()
+                    .get(userId)
+                    .groups()
+                    .stream()
+                    .anyMatch(group -> group.getId().equals(pendingApprovalGroupId()));
+        }
+
+        private String pendingApprovalGroupId() {
+            return keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .getGroupByPath("/pending-approval")
+                    .getId();
         }
     }
 }
