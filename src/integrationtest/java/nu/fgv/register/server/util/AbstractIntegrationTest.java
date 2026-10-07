@@ -43,6 +43,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.domain.BasePermission;
@@ -83,6 +84,7 @@ import java.util.concurrent.TimeUnit;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Anders Jacobsson
@@ -340,6 +342,11 @@ public abstract class AbstractIntegrationTest {
         @Bean
         public AuditorAware<String> auditorAware() {
             return () -> Optional.of("dummy");
+        }
+
+        @Bean
+        public JavaMailSender javaMailSender() {
+            return mock(JavaMailSender.class);
         }
     }
 }

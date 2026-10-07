@@ -65,6 +65,7 @@ services:
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
       KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
+      KC_SPI_EVENTS_LISTENER__SPEXREGISTER_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-}
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: keycloak.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
@@ -129,7 +130,6 @@ services:
       - APP_KEYCLOAK_ADMIN_CLIENT_SECRET
       - APP_KEYCLOAK_CLIENT_CLIENT_SECRET
       - APP_SECRET_KEY
-      - APP_IV
 
   caddy:
     image: caddy:latest
@@ -232,5 +232,3 @@ secrets:
     file: .docker/secrets/APP_KEYCLOAK_CLIENT_CLIENT_SECRET
   APP_SECRET_KEY:
     file: .docker/secrets/APP_SECRET_KEY
-  APP_IV:
-    file: .docker/secrets/APP_IV

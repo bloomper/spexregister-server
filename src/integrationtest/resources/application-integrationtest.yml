@@ -26,6 +26,7 @@ logging:
 
 spexregister:
   base-url: http://localhost:8080/api
+  frontend-url: https://register.example.com
   jobs:
     full-index:
       cron-expression: '-'

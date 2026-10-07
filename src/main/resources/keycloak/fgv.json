@@ -434,7 +434,16 @@
       ]
     }
   },
-  "groups": [],
+  "groups": [
+    {
+      "name": "pending-approval",
+      "path": "/pending-approval",
+      "subGroups": [],
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {}
+    }
+  ],
   "defaultRole": {
     "id": "244839a3-73a8-4567-938f-70c12b1c5e42",
     "name": "default-roles-fgv",
@@ -458,7 +467,14 @@
     "totpAppGoogleName",
     "totpAppMicrosoftAuthenticatorName"
   ],
-  "localizationTexts": {},
+  "localizationTexts": {
+    "sv": {
+      "spexregisterApprovalPending": "Ditt konto väntar på godkännande. Du får ett e-postmeddelande när en administratör har godkänt det."
+    },
+    "en": {
+      "spexregisterApprovalPending": "Your account is awaiting approval. You will receive an email once an administrator has approved it."
+    }
+  },
   "webAuthnPolicyRpEntityName": "keycloak",
   "webAuthnPolicySignatureAlgorithms": [
     "ES256"
@@ -1629,7 +1645,8 @@
   "smtpServer": {},
   "eventsEnabled": false,
   "eventsListeners": [
-    "jboss-logging"
+    "jboss-logging",
+    "spexregister-admin-notification"
   ],
   "enabledEventTypes": [],
   "adminEventsEnabled": false,
@@ -2442,6 +2459,15 @@
       "enabled": true,
       "defaultAction": false,
       "priority": 1000,
+      "config": {}
+    },
+    {
+      "alias": "spexregister-approval",
+      "name": "Spexregister approval",
+      "providerId": "spexregister-approval",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 1010,
       "config": {}
     }
   ],
