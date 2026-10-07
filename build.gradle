@@ -75,9 +75,9 @@ ext {
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.7.4'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.7.4'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.7.4'
+    developmentOnly 'org.keycloak:keycloak-core:26.8.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi:26.8.0'
+    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.8.0'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -106,14 +106,14 @@ dependencies {
             exclude group: it
         }
     }
-    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation 'org.apache.commons:commons-lang3:3.21.0'
     implementation 'org.apache.poi:poi:5.5.1'
     implementation 'org.apache.poi:poi-ooxml:5.5.1'
     implementation 'com.github.librepdf:openpdf:3.0.5'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-73:3.16.0'
-    implementation 'com.google.guava:guava:33.7.1-jre'
+    implementation 'com.google.guava:guava:33.7.2-jre'
     implementation 'org.keycloak:keycloak-admin-client:26.0.12'
     implementation 'org.passay:passay:2.0.0'
     implementation 'org.hibernate.search:hibernate-search-mapper-orm'
@@ -149,7 +149,7 @@ dependencies {
     integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
-    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.3.1'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.4.0'
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
     integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
