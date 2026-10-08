@@ -469,10 +469,14 @@
   ],
   "localizationTexts": {
     "sv": {
-      "spexregisterApprovalPending": "Ditt konto väntar på godkännande. Du får ett e-postmeddelande när en administratör har godkänt det."
+      "spexregisterApprovalPendingHeader": "Väntar på godkännande",
+      "spexregisterApprovalPending": "Du får ett e-postmeddelande när en administratör har godkänt ditt konto.",
+      "registrationMessage": "Meddelande till administratören"
     },
     "en": {
-      "spexregisterApprovalPending": "Your account is awaiting approval. You will receive an email once an administrator has approved it."
+      "spexregisterApprovalPendingHeader": "Awaiting approval",
+      "spexregisterApprovalPending": "You will receive an email once an administrator has approved your account.",
+      "registrationMessage": "Message to the administrator"
     }
   },
   "webAuthnPolicyRpEntityName": "keycloak",
@@ -1070,7 +1074,8 @@
         "acr",
         "profile",
         "roles",
-        "email"
+        "email",
+        "registration-message"
       ],
       "optionalClientScopes": [
         "address",
@@ -1616,6 +1621,17 @@
           }
         }
       ]
+    },
+    {
+      "id": "09282b43-1052-4f36-b6e2-4278890119bc",
+      "name": "registration-message",
+      "description": "Enables the registration message attribute in the user profile",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false",
+        "include.in.openid.provider.metadata": "false"
+      }
     }
   ],
   "defaultDefaultClientScopes": [
@@ -1843,6 +1859,18 @@
           ],
           "algorithm": [
             "HS256"
+          ]
+        }
+      }
+    ],
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "id": "65cef874-5b7e-4ab5-b99a-24f28b4d16c3",
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"registrationMessage\",\"displayName\":\"${registrationMessage}\",\"validations\":{\"length\":{\"max\":500}},\"annotations\":{\"inputType\":\"textarea\",\"inputTypeRows\":\"4\"},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"selector\":{\"scopes\":[\"registration-message\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}"
           ]
         }
       }

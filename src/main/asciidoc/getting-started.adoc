@@ -207,7 +207,7 @@ These are the emails sent during self-registration:
 
 |Email verification|Keycloak|The registering user
 |New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
-|Account approved|Spexregister Server, when the user sync job has run (every hour)|The approved user
+|Account approved|Spexregister Server, when the user sync job has run (every 5 minutes)|The approved user
 
 |===
 

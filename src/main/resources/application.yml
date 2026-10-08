@@ -98,7 +98,7 @@ spexregister:
     publish-unpublish-news:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
     sync-users:
-      cron-expression: 0 30 * * * ? # Every hour
+      cron-expression: 0 */5 * * * ? # Every 5 minutes
     job-cleanup:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7

@@ -38,6 +38,7 @@ import java.util.Map;
 public class AdminNotificationEventListenerProvider implements EventListenerProvider {
 
     private static final Logger log = Logger.getLogger(AdminNotificationEventListenerProvider.class);
+    private static final String REGISTRATION_MESSAGE = "registrationMessage";
 
     private final KeycloakSession session;
     private final List<String> recipients;
@@ -64,9 +65,27 @@ public class AdminNotificationEventListenerProvider implements EventListenerProv
 
         if (event.getType() == EventType.REGISTER) {
             markPending(realm, user);
-        } else if (!recipients.isEmpty() && !policy.isApproved(realm, user)) {
-            notifyAdministrators(realm, user);
         }
+
+        if (isNotifiable(event, realm)) {
+            final String message = takeRegistrationMessage(user);
+
+            if (!recipients.isEmpty() && !policy.isApproved(realm, user)) {
+                notifyAdministrators(realm, user, message);
+            }
+        }
+    }
+
+    private String takeRegistrationMessage(final UserModel user) {
+        final String message = user.getFirstAttribute(REGISTRATION_MESSAGE);
+
+        user.removeAttribute(REGISTRATION_MESSAGE);
+
+        return message;
+    }
+
+    private boolean isNotifiable(final Event event, final RealmModel realm) {
+        return event.getType() == (realm.isVerifyEmail() ? EventType.VERIFY_EMAIL : EventType.REGISTER);
     }
 
     private void markPending(final RealmModel realm, final UserModel user) {
@@ -75,15 +94,21 @@ public class AdminNotificationEventListenerProvider implements EventListenerProv
         }
     }
 
-    private void notifyAdministrators(final RealmModel realm, final UserModel user) {
+    private void notifyAdministrators(final RealmModel realm, final UserModel user, final String message) {
         final Map<String, String> smtpConfig = realm.getSmtpConfig();
         final String subject = "Ny användare i spexregistret väntar på godkännande";
         final String body = """
-                %s (%s) har registrerat sig och verifierat sin e-postadress.
-
+                %s (%s) har registrerat sig%s.
+                %s
                 Godkänn användaren genom att tilldela roller i Keycloak:
                 %s
-                """.formatted(fullName(user), user.getEmail(), adminConsoleUrl(realm, user));
+                """.formatted(
+                fullName(user),
+                user.getEmail(),
+                user.isEmailVerified() ? " och verifierat sin e-postadress" : "",
+                messageSection(message),
+                adminConsoleUrl(realm, user)
+        );
 
         session.getTransactionManager().enlistAfterCompletion(new AbstractKeycloakTransaction() {
             @Override
@@ -111,6 +136,10 @@ public class AdminNotificationEventListenerProvider implements EventListenerProv
 
     @Override
     public void close() {
+    }
+
+    private String messageSection(final String message) {
+        return message == null || message.isBlank() ? "" : "\nMeddelande från användaren:\n%s\n".formatted(message.strip());
     }
 
     private String fullName(final UserModel user) {

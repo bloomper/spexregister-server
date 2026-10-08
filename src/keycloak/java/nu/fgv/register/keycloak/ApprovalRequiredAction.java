@@ -26,6 +26,7 @@ import org.keycloak.authentication.RequiredActionProvider;
 public class ApprovalRequiredAction implements RequiredActionProvider {
 
     public static final String ID = "spexregister-approval";
+    private static final String HEADER_KEY = "spexregisterApprovalPendingHeader";
     private static final String MESSAGE_KEY = "spexregisterApprovalPending";
 
     private final ApprovalPolicy policy;
@@ -46,7 +47,10 @@ public class ApprovalRequiredAction implements RequiredActionProvider {
         if (isApproved(context)) {
             context.success();
         } else {
-            context.challenge(context.form().setInfo(MESSAGE_KEY).createInfoPage());
+            context.challenge(context.form()
+                    .setAttribute("messageHeader", HEADER_KEY)
+                    .setInfo(MESSAGE_KEY)
+                    .createInfoPage());
         }
     }
 
