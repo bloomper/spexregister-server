@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.user;
 
+import ch.martinelli.oss.testcontainers.mailpit.Message;
+import ch.martinelli.oss.testcontainers.mailpit.assertions.MailpitAssertions;
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
@@ -51,7 +53,6 @@ import org.passay.data.EnglishCharacterData;
 import org.passay.generate.PasswordGenerator;
 import org.passay.rule.AllowedCharacterRule;
 import org.passay.rule.CharacterRule;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -59,9 +60,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -81,10 +79,6 @@ import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
@@ -102,8 +96,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private JavaMailSender mailSender;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
@@ -2179,19 +2171,25 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var initialState = randomizeState();
             initialState.setInitial(true);
             persistState(initialState);
-            reset(mailSender);
 
-            final var approved = persistUserInKeycloak(AUTHORITY_USER);
+            final var approved = persistUserInKeycloak(AUTHORITY_EDITOR);
             final var notApproved = persistUserInKeycloak();
             joinPendingApprovalGroup(approved.getId());
             joinPendingApprovalGroup(notApproved.getId());
 
             userService.scheduledSync();
 
-            final ArgumentCaptor<SimpleMailMessage> message = ArgumentCaptor.forClass(SimpleMailMessage.class);
-            verify(mailSender).send(message.capture());
-            assertThat(message.getValue().getTo()).containsExactly(approved.getEmail());
-            assertThat(message.getValue().getText()).contains("https://register.example.com");
+            final List<Message> messages = mailpit.getClient().getAllMessages();
+            MailpitAssertions.assertThat(messages)
+                    .filteredOnRecipient(approved.getEmail())
+                    .hasSize(1)
+                    .first()
+                    .hasSubject("Ditt konto för Spexregistret är godkänt")
+                    .satisfies(message -> assertThat(mailpit.getClient().getMessagePlain(message.id()))
+                            .contains("Logga in här: https://register.example.com"));
+            MailpitAssertions.assertThat(messages)
+                    .filteredOnRecipient(notApproved.getEmail())
+                    .isEmpty();
             assertThat(isInPendingApprovalGroup(approved.getId())).isFalse();
             assertThat(isInPendingApprovalGroup(notApproved.getId())).isTrue();
         }
@@ -2201,18 +2199,23 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final var initialState = randomizeState();
             initialState.setInitial(true);
             persistState(initialState);
-            reset(mailSender);
-            doThrow(new MailSendException("Mail server unavailable")).when(mailSender).send(any(SimpleMailMessage.class));
 
             final var approved = persistUserInKeycloak(AUTHORITY_USER);
             joinPendingApprovalGroup(approved.getId());
 
-            userService.scheduledSync();
+            rejectAllMail();
+            try {
+                userService.scheduledSync();
+            } finally {
+                acceptAllMail();
+            }
 
             assertThat(repository.existsByExternalId(approved.getId())).isTrue();
             assertThat(isInPendingApprovalGroup(approved.getId())).isTrue();
+            MailpitAssertions.assertThat(mailpit.getClient().getAllMessages())
+                    .filteredOnRecipient(approved.getEmail())
+                    .isEmpty();
         }
-
         private void joinPendingApprovalGroup(final String userId) {
             keycloakAdminClient
                     .realm(keycloakRealm)

@@ -13,3 +13,8 @@ api.register.fgv.local.nu:8443 {
     tls internal
     reverse_proxy app:8080
 }
+
+mail.fgv.local.nu:8443 {
+    tls internal
+    reverse_proxy mailpit:8025
+}

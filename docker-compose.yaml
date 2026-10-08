@@ -65,10 +65,13 @@ services:
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
       KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
-      KC_SPI_EVENTS_LISTENER__SPEXREGISTER_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-}
+      KC_SPI_EVENTS_LISTENER__SPEXREGISTER_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-admin@fgv.local.nu}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: noreply@fgv.local.nu
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: keycloak.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: keycloak.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,12 +103,16 @@ services:
       LOGGING_FILE_PATH: /data/log_data
       SERVER_FORWARD_HEADERS_STRATEGY: native
       APP_BASE_URL: https://api.register.fgv.local.nu:8443/api
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:3000}
       APP_KEYCLOAK_URL: http://keycloak:8081/auth
       APP_KEYCLOAK_REALM: ${APP_KEYCLOAK_REALM}
       APP_KEYCLOAK_ADMIN_CLIENT_ID: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
       APP_KEYCLOAK_CLIENT_CLIENT_ID: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       APP_SEED_AUDIT_DATA: ${APP_SEED_AUDIT_DATA}
       APP_IMPORT_SAMPLE_DATA: ${APP_IMPORT_SAMPLE_DATA}
+      APP_MAIL_FROM: noreply@fgv.local.nu
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: 1025
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8081/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://keycloak.fgv.local.nu:8443/auth/realms/fgv
     restart: on-failure
@@ -131,6 +138,16 @@ services:
       - APP_KEYCLOAK_CLIENT_CLIENT_SECRET
       - APP_SECRET_KEY
 
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports:
+      - "8025:8025"
+    labels:
+      org.springframework.boot.ignore: true
+    networks:
+      - app_network
+      - keycloak_network
+
   caddy:
     image: caddy:latest
     restart: unless-stopped
@@ -144,8 +161,8 @@ services:
     networks:
       app_network:
         aliases:
-        - keycloak.fgv.local.nu
-        - api.register.fgv.local.nu
+          - keycloak.fgv.local.nu
+          - api.register.fgv.local.nu
 
 volumes:
   mysql_app_db_data:

@@ -84,6 +84,7 @@ Add the following to `/etc/hosts` (or the Windows equivalent):
 127.0.0.1 keycloak.fgv.local.nu
 127.0.0.1 api.register.fgv.local.nu
 127.0.0.1 register.fgv.local.nu
+127.0.0.1 mail.fgv.local.nu
 ----
 
 [[run]]
@@ -190,6 +191,27 @@ It is therefore needed to import the root certificate to avoid browsers complain
 
 The root certificate can be found in ``.docker/caddy/data/caddy/pki/authorities/local/root.crt``.
 Import it into your OS's trust manager.
+
+[[mailpit]]
+== Mailpit
+
+Mailpit (https://mailpit.axllent.org/) acts as the SMTP server when running locally.
+It catches all emails sent by Keycloak and Spexregister Server, nothing is delivered to real recipients.
+
+The caught emails can be viewed at https://mail.fgv.local.nu:8443 (or http://localhost:8025).
+
+These are the emails sent during self-registration:
+
+|===
+|Email|Sent by|Recipient
+
+|Email verification|Keycloak|The registering user
+|New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
+|Account approved|Spexregister Server, when the user sync job has run (every hour)|The approved user
+
+|===
+
+The integration tests start their own Mailpit container, so no setup is needed for them.
 
 [[tests]]
 == Tests

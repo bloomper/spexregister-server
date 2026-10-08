@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util;
 
+import ch.martinelli.oss.testcontainers.mailpit.MailpitContainer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -43,7 +44,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.domain.BasePermission;
@@ -62,6 +62,7 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.lifecycle.Startables;
@@ -84,7 +85,6 @@ import java.util.concurrent.TimeUnit;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Anders Jacobsson
@@ -120,6 +120,9 @@ public abstract class AbstractIntegrationTest {
                     "--skip-log-bin",
                     "--performance-schema=OFF");
     private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
+    @ServiceConnection
+    protected static final MailpitContainer mailpit = new MailpitContainer("axllent/mailpit:v1.31.4")
+            .withCommand("--enable-chaos");
     private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
     private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
     private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
@@ -133,7 +136,7 @@ public abstract class AbstractIntegrationTest {
     private static URI authorizationURI;
 
     static {
-        Startables.deepStart(mysql, keycloak).join();
+        Startables.deepStart(mysql, keycloak, mailpit).join();
     }
 
     protected final JdbcClient jdbcClient;
@@ -337,6 +340,30 @@ public abstract class AbstractIntegrationTest {
         revokePermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
     }
 
+    protected void rejectAllMail() {
+        mailpitClient()
+                .put()
+                .uri("/api/v1/chaos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("Recipient", Map.of("ErrorCode", 451, "Probability", 100)))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    protected void acceptAllMail() {
+        mailpitClient()
+                .put()
+                .uri("/api/v1/chaos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of())
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    private static RestClient mailpitClient() {
+        return RestClient.create(mailpit.getHttpUrl());
+    }
+
     @TestConfiguration
     static class TestConfig {
         @Bean
@@ -344,9 +371,5 @@ public abstract class AbstractIntegrationTest {
             return () -> Optional.of("dummy");
         }
 
-        @Bean
-        public JavaMailSender javaMailSender() {
-            return mock(JavaMailSender.class);
-        }
     }
 }

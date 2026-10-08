@@ -32,7 +32,7 @@
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "rememberMe": false,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -1642,7 +1642,11 @@
     "xXSSProtection": "1; mode=block",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "host": "${SMTP_HOST:}",
+    "port": "${SMTP_PORT:25}",
+    "from": "${SMTP_FROM:noreply@localhost}"
+  },
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging",
