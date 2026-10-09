@@ -56,7 +56,7 @@ public class TaskMcpTools {
     private final McpToolSupport support;
 
     @McpTool(name = "list_tasks", description = "List tasks (roles a person can have in a spex, e.g. director or musician). Filterable fields: name.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTask> listTasks(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                          @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                          @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
@@ -64,7 +64,7 @@ public class TaskMcpTools {
     }
 
     @McpTool(name = "get_task", description = "Get a task, including its category",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpTaskDetails getTask(@McpToolParam(description = "Task id") final Long id) {
         return new McpTaskDetails(McpTask.of(taskService.findById(id)), categoryOf(id));
     }
@@ -117,7 +117,7 @@ public class TaskMcpTools {
     }
 
     @McpTool(name = "list_task_categories", description = "List task categories. Filterable fields: name, actorPresent.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTaskCategory> listTaskCategories(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                                           @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                                           @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
@@ -125,7 +125,7 @@ public class TaskMcpTools {
     }
 
     @McpTool(name = "get_task_category", description = "Get a task category",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpTaskCategory getTaskCategory(@McpToolParam(description = "Task category id") final Long id) {
         return McpTaskCategory.of(categoryService.findById(id));
     }

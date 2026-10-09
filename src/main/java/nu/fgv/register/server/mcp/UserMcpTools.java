@@ -37,7 +37,7 @@ public class UserMcpTools {
             Get aggregated user counts: number of users per state and number of self-registered accounts \
             waiting for approval. Individual users cannot be viewed or managed through this server; \
             approvals and access changes are done in the web application. Requires the ADMIN role.""",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public UserStatisticsDto getUserStatistics() {
         return service.getStatistics();
     }

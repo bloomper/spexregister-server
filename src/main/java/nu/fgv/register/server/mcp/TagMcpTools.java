@@ -48,7 +48,7 @@ public class TagMcpTools {
     private final McpToolSupport support;
 
     @McpTool(name = "list_tags", description = "List tags. Filterable fields: name.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTag> listTags(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                        @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                        @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
@@ -56,7 +56,7 @@ public class TagMcpTools {
     }
 
     @McpTool(name = "get_tag", description = "Get a tag",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpTag getTag(@McpToolParam(description = "Tag id") final Long id) {
         return McpTag.of(service.findById(id));
     }

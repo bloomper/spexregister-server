@@ -54,7 +54,7 @@ public class NewsMcpTools {
     private final McpToolSupport support;
 
     @McpTool(name = "list_news", description = "List news, newest first. Users with only the USER role see published news only. Filterable fields: subject, text, visibleFrom, visibleTo, published.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpNews> listNews(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                         @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                         @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
@@ -62,7 +62,7 @@ public class NewsMcpTools {
     }
 
     @McpTool(name = "get_news", description = "Get a news item",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpNews getNews(@McpToolParam(description = "News id") final Long id) {
         return McpNews.of(service.findById(id));
     }

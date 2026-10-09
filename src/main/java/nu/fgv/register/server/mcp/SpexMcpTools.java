@@ -63,7 +63,7 @@ public class SpexMcpTools {
     private final McpToolSupport support;
 
     @McpTool(name = "list_spex", description = "List spex (original productions, excluding revivals unless includeRevivals is true). Filterable fields: year, details.title, details.category.id, details.category.name.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpSpex> listSpex(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                         @McpToolParam(required = false, description = "Also include revivals, defaults to false") final @Nullable Boolean includeRevivals,
                                         @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
@@ -81,7 +81,7 @@ public class SpexMcpTools {
     }
 
     @McpTool(name = "get_spex", description = "Get a spex, including its category and revivals",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpSpexDetails getSpex(@McpToolParam(description = "Spex id") final Long id) {
         final SpexDto spex = spexService.findById(id);
         final List<McpSpex> revivals = Boolean.TRUE.equals(spex.getRevival()) ?
@@ -169,7 +169,7 @@ public class SpexMcpTools {
     }
 
     @McpTool(name = "list_spex_categories", description = "List spex categories (e.g. the different spex ensembles). Filterable fields: name, firstYear.",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpSpexCategory> listSpexCategories(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                                           @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                                           @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
@@ -177,7 +177,7 @@ public class SpexMcpTools {
     }
 
     @McpTool(name = "get_spex_category", description = "Get a spex category",
-            annotations = @McpAnnotations(readOnlyHint = true, openWorldHint = false))
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpSpexCategory getSpexCategory(@McpToolParam(description = "Spex category id") final Long id) {
         return McpSpexCategory.of(categoryService.findById(id));
     }
