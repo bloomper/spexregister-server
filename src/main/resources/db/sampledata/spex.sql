@@ -1,8 +1,8 @@
 -- Spex categories
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
-VALUES ('Chalmersspexet', '1948', 'system', CURRENT_TIME, 0);
+VALUES ('Gamla Chalmersspexet', '1948', 'system', CURRENT_TIME, 0);
 SET
-    @spex_category_chalmersspexet = LAST_INSERT_ID();
+    @spex_category_gamla_chalmersspexet = LAST_INSERT_ID();
 
 INSERT INTO spex_category (name, first_year, created_by, created_at, version)
 VALUES ('Bobspexet', '2003', 'system', CURRENT_TIME, 0);
@@ -19,67 +19,67 @@ VALUES ('Jubileumsspex', '1948', 'system', CURRENT_TIME, 0);
 SET
     @spex_category_jubileumsspex = LAST_INSERT_ID();
 
+INSERT INTO spex_category (name, first_year, created_by, created_at, version)
+VALUES ('Nya Chalmersspexet', '2020', 'system', CURRENT_TIME, 0);
+SET
+    @spex_category_nya_chalmersspexet = LAST_INSERT_ID();
+
 -- Spex details
 INSERT INTO spex_details (title, category_id, created_by, created_at, version)
-VALUES ('Bojan', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Erik XIV', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Cæsarion', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Scheherazade', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Anna', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Henrik 8', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Gustav E:son Vasa', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Napoleon', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Statyerna', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Lucrezia', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Katarina II', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Starke August', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Klodvig', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Don Pedro', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Charles II', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Nebukadnessar', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Sven Duva', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Montezuma', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Alexander', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Richard III', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Margareta', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('George Washington', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Noak', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Turandot', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Fredrik den Store', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Sherlock Holmes', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Lionardo da Vinci', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Ludvig XIV', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Nils Dacke', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Dr Livingstone', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Nero', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Tutankhamon', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Ludwig van Beethoven', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('John Ericsson', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Filip II', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Lasse-Maja', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Olof Skötkonung', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Victoria', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Montgomery', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Svartskägg', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Christina', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Klondike', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Gutenberg', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Krösus', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Stradivarius', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Ivan den förskräcklige', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Snorre', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Nobel', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Ali Baba', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Sköna Hélena', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Nostradamus', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Mose', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Marco Polo', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Dracula', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Carl von Linné', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Aristoteles', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('H. C. Andersen', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Elisabeth I', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
-       ('Gauss', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
+VALUES ('Bojan', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Erik XIV', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Cæsarion', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Scheherazade', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Anna', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Henrik 8', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Gustav E:son Vasa', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Napoleon', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Statyerna', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Lucrezia', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Katarina II', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Starke August', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Klodvig', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Don Pedro', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Charles II', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Nebukadnessar', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Sven Duva', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Montezuma', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Alexander', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Richard III', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Margareta', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('George Washington', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Noak', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Turandot', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Fredrik den Store', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Sherlock Holmes', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Lionardo da Vinci', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Ludvig XIV', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Nils Dacke', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Dr Livingstone', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Nero', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Tutankhamon', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Ludwig van Beethoven', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('John Ericsson', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Filip II', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Lasse-Maja', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Olof Skötkonung', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Victoria', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Montgomery', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Svartskägg', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Christina', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Klondike', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Gutenberg', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Krösus', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Stradivarius', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Ivan den förskräcklige', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Snorre', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Nobel', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Ali Baba', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Sköna Helena', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Nostradamus', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Mose', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Marco Polo', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Dracula', @spex_category_gamla_chalmersspexet, 'system', CURRENT_TIME, 0),
 
        ('Gagarin', @spex_category_bobspexet, 'system', CURRENT_TIME, 0),
        ('Heliga Birgitta', @spex_category_bobspexet, 'system', CURRENT_TIME, 0),
@@ -104,7 +104,7 @@ VALUES ('Bojan', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
        ('Arthur', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Amelia Earhart', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Frankenstein', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
-       ('Wyatt Earp & Doc Holiday', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
+       ('Wyatt Earp & Doc Holliday', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Taj Mahal', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Lucia', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Karl XII', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
@@ -116,6 +116,14 @@ VALUES ('Bojan', @spex_category_chalmersspexet, 'system', CURRENT_TIME, 0),
        ('Michelangelo', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Ada Lovelace', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
        ('Karin Månsdotter', @spex_category_veraspexet, 'system', CURRENT_TIME, 0),
+
+       ('Carl von Linné', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Aristoteles', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('H. C. Andersen', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Elisabeth I', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Gauss', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Ask och Embla', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
+       ('Abraham Lincoln', @spex_category_nya_chalmersspexet, 'system', CURRENT_TIME, 0),
 
        ('25-årsjubileet', @spex_category_jubileumsspex, 'system', CURRENT_TIME, 0),
        ('Knappt ett Chalmersspex', @spex_category_jubileumsspex, 'system', CURRENT_TIME, 0),
@@ -175,16 +183,11 @@ VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', C
        ('1995', (SELECT id FROM spex_details WHERE title = 'Snorre'), 'system', CURRENT_TIME, 0),
        ('1996', (SELECT id FROM spex_details WHERE title = 'Nobel'), 'system', CURRENT_TIME, 0),
        ('1997', (SELECT id FROM spex_details WHERE title = 'Ali Baba'), 'system', CURRENT_TIME, 0),
-       ('1998', (SELECT id FROM spex_details WHERE title = 'Sköna Hélena'), 'system', CURRENT_TIME, 0),
+       ('1998', (SELECT id FROM spex_details WHERE title = 'Sköna Helena'), 'system', CURRENT_TIME, 0),
        ('1999', (SELECT id FROM spex_details WHERE title = 'Nostradamus'), 'system', CURRENT_TIME, 0),
        ('2000', (SELECT id FROM spex_details WHERE title = 'Mose'), 'system', CURRENT_TIME, 0),
        ('2001', (SELECT id FROM spex_details WHERE title = 'Marco Polo'), 'system', CURRENT_TIME, 0),
        ('2002', (SELECT id FROM spex_details WHERE title = 'Dracula'), 'system', CURRENT_TIME, 0),
-       ('2020', (SELECT id FROM spex_details WHERE title = 'Carl von Linné'), 'system', CURRENT_TIME, 0),
-       ('2021', (SELECT id FROM spex_details WHERE title = 'Aristoteles'), 'system', CURRENT_TIME, 0),
-       ('2022', (SELECT id FROM spex_details WHERE title = 'H. C. Andersen'), 'system', CURRENT_TIME, 0),
-       ('2023', (SELECT id FROM spex_details WHERE title = 'Elisabeth I'), 'system', CURRENT_TIME, 0),
-       ('2024', (SELECT id FROM spex_details WHERE title = 'Gauss'), 'system', CURRENT_TIME, 0),
 
        ('2003', (SELECT id FROM spex_details WHERE title = 'Gagarin'), 'system', CURRENT_TIME, 0),
        ('2004', (SELECT id FROM spex_details WHERE title = 'Heliga Birgitta'), 'system', CURRENT_TIME, 0),
@@ -209,7 +212,7 @@ VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', C
        ('2005', (SELECT id FROM spex_details WHERE title = 'Arthur'), 'system', CURRENT_TIME, 0),
        ('2006', (SELECT id FROM spex_details WHERE title = 'Amelia Earhart'), 'system', CURRENT_TIME, 0),
        ('2007', (SELECT id FROM spex_details WHERE title = 'Frankenstein'), 'system', CURRENT_TIME, 0),
-       ('2008', (SELECT id FROM spex_details WHERE title = 'Wyatt Earp & Doc Holiday'), 'system', CURRENT_TIME, 0),
+       ('2008', (SELECT id FROM spex_details WHERE title = 'Wyatt Earp & Doc Holliday'), 'system', CURRENT_TIME, 0),
        ('2009', (SELECT id FROM spex_details WHERE title = 'Taj Mahal'), 'system', CURRENT_TIME, 0),
        ('2010', (SELECT id FROM spex_details WHERE title = 'Lucia'), 'system', CURRENT_TIME, 0),
        ('2011', (SELECT id FROM spex_details WHERE title = 'Karl XII'), 'system', CURRENT_TIME, 0),
@@ -221,6 +224,14 @@ VALUES ('1948', (SELECT id FROM spex_details WHERE title = 'Bojan'), 'system', C
        ('2017', (SELECT id FROM spex_details WHERE title = 'Michelangelo'), 'system', CURRENT_TIME, 0),
        ('2018', (SELECT id FROM spex_details WHERE title = 'Ada Lovelace'), 'system', CURRENT_TIME, 0),
        ('2019', (SELECT id FROM spex_details WHERE title = 'Karin Månsdotter'), 'system', CURRENT_TIME, 0),
+
+       ('2020', (SELECT id FROM spex_details WHERE title = 'Carl von Linné'), 'system', CURRENT_TIME, 0),
+       ('2021', (SELECT id FROM spex_details WHERE title = 'Aristoteles'), 'system', CURRENT_TIME, 0),
+       ('2022', (SELECT id FROM spex_details WHERE title = 'H. C. Andersen'), 'system', CURRENT_TIME, 0),
+       ('2023', (SELECT id FROM spex_details WHERE title = 'Elisabeth I'), 'system', CURRENT_TIME, 0),
+       ('2024', (SELECT id FROM spex_details WHERE title = 'Gauss'), 'system', CURRENT_TIME, 0),
+       ('2025', (SELECT id FROM spex_details WHERE title = 'Ask och Embla'), 'system', CURRENT_TIME, 0),
+       ('2026', (SELECT id FROM spex_details WHERE title = 'Abraham Lincoln'), 'system', CURRENT_TIME, 0),
 
        ('1973', (SELECT id FROM spex_details WHERE title = '25-årsjubileet'), 'system', CURRENT_TIME, 0),
        ('1979', (SELECT id FROM spex_details WHERE title = 'Knappt ett Chalmersspex'), 'system', CURRENT_TIME, 0),
@@ -292,11 +303,11 @@ VALUES ('1977', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
-VALUES ('1978', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
+VALUES ('1978', (SELECT id FROM spex_details WHERE title = 'Cæsarion'),
         (SELECT id
          FROM temp_spex
          WHERE year = '1950'
-           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Cæsarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1980', (SELECT id FROM spex_details WHERE title = 'George Washington'),
@@ -365,13 +376,6 @@ VALUES ('1989', (SELECT id FROM spex_details WHERE title = 'Turandot'),
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Turandot')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
-VALUES ('1989', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
-        (SELECT id
-         FROM temp_spex
-         WHERE year = '1959'
-           AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
-
-INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1990', (SELECT id FROM spex_details WHERE title = 'Nils Dacke'),
         (SELECT id
          FROM temp_spex
@@ -415,11 +419,11 @@ VALUES ('1995', (SELECT id FROM spex_details WHERE title = 'Dr Livingstone'),
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Dr Livingstone')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
-VALUES ('1996', (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung'),
+VALUES ('1996', (SELECT id FROM spex_details WHERE title = 'Victoria'),
         (SELECT id
          FROM temp_spex
-         WHERE year = '1985'
-           AND details_id = (SELECT id FROM spex_details WHERE title = 'Olof Skötkonung')), 'system', CURRENT_TIME, 0);
+         WHERE year = '1986'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Victoria')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('1997', (SELECT id FROM spex_details WHERE title = 'Tutankhamon'),
@@ -508,11 +512,11 @@ VALUES ('2007', (SELECT id FROM spex_details WHERE title = 'Filip II'),
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Filip II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
-VALUES ('2008', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
+VALUES ('2008', (SELECT id FROM spex_details WHERE title = 'Cæsarion'),
         (SELECT id
          FROM temp_spex
          WHERE year = '1950'
-           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Cæsarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2009', (SELECT id FROM spex_details WHERE title = 'Svartskägg'),
@@ -522,11 +526,11 @@ VALUES ('2009', (SELECT id FROM spex_details WHERE title = 'Svartskägg'),
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Svartskägg')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
-VALUES ('2010', (SELECT id FROM spex_details WHERE title = 'Caesarion'),
+VALUES ('2010', (SELECT id FROM spex_details WHERE title = 'Cæsarion'),
         (SELECT id
          FROM temp_spex
          WHERE year = '1950'
-           AND details_id = (SELECT id FROM spex_details WHERE title = 'Caesarion')), 'system', CURRENT_TIME, 0);
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Cæsarion')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2012', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
@@ -534,6 +538,13 @@ VALUES ('2012', (SELECT id FROM spex_details WHERE title = 'Katarina II'),
          FROM temp_spex
          WHERE year = '1959'
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Katarina II')), 'system', CURRENT_TIME, 0);
+
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Charles II'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1963'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Charles II')), 'system', CURRENT_TIME, 0);
 
 INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
 VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Gagarin'),
@@ -555,6 +566,20 @@ VALUES ('2013', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'),
          FROM temp_spex
          WHERE year = '1984'
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
+
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2014', (SELECT id FROM spex_details WHERE title = 'Lasse-Maja'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1984'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Lasse-Maja')), 'system', CURRENT_TIME, 0);
+
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2015', (SELECT id FROM spex_details WHERE title = 'Victoria'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1986'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Victoria')), 'system', CURRENT_TIME, 0);
 
 DROP
     TEMPORARY TABLE temp_spex;
