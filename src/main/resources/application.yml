@@ -62,6 +62,24 @@ spring:
     web:
       pageable:
         max-page-size: 100
+  ai:
+    mcp:
+      server:
+        name: spexregister
+        version: 2.0.0
+        type: SYNC
+        protocol: STATELESS
+        streamable-http:
+          mcp-endpoint: /api/mcp
+        capabilities:
+          resource: false
+          prompt: false
+          completion: false
+        instructions: >-
+          Spexregister is a register of spex productions and the people taking part in them.
+          These tools manage reference data only: spex and their revivals, spex categories, tasks,
+          task categories, news and tags. Data about individual people (spexare) and user accounts
+          is intentionally not available. Every call runs with the permissions of the signed-in user.
   batch:
     jdbc:
       initialize-schema: never
@@ -78,6 +96,7 @@ management:
 
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 logging:
   file:
@@ -112,6 +131,8 @@ spexregister:
       client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       client-secret: ${APP_KEYCLOAK_CLIENT_CLIENT_SECRET}
     pending-approval-group: pending-approval
+  mcp:
+    authorized-parties: ${APP_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
   mail:
     from: ${APP_MAIL_FROM:}
   impex:

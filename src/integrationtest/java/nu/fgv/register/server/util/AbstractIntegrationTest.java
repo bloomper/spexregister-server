@@ -111,6 +111,7 @@ public abstract class AbstractIntegrationTest {
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
     private static final String TEST_PASSWORD = "s3cr3t";
+    private static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
@@ -258,13 +259,17 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected String obtainAccessToken(final String username, final String password) {
+        return obtainAccessToken(username, password, keycloakClientClientId);
+    }
+
+    protected String obtainAccessToken(final String username, final String password, final String clientId) {
         try {
-            return accessTokenCache.get(username, () -> {
+            return accessTokenCache.get("%s:%s".formatted(clientId, username), () -> {
                 final WebClient webClient = WebClient.builder().build();
                 final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 
                 formData.put("grant_type", Collections.singletonList(TEST_GRANT_TYPE));
-                formData.put("client_id", Collections.singletonList(keycloakClientClientId));
+                formData.put("client_id", Collections.singletonList(clientId));
                 formData.put("client_secret", Collections.singletonList(keycloakClientClientSecret));
                 formData.put("username", Collections.singletonList(username));
                 formData.put("password", Collections.singletonList(password));
@@ -297,6 +302,10 @@ public abstract class AbstractIntegrationTest {
 
     protected String obtainAdminAccessToken() {
         return obtainAccessToken(TEST_ADMIN, TEST_PASSWORD);
+    }
+
+    protected String obtainMcpAccessToken(final String username) {
+        return obtainAccessToken(username, TEST_PASSWORD, TEST_MCP_CLIENT_ID);
     }
 
     protected void grantPermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {

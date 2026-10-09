@@ -14,17 +14,5 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.audit;
-
-/**
- * @author Anders Jacobsson
- * @since 2.0
- */
-public enum AuditSource {
-
-    WEB,
-    IMPORT,
-    RESTORE,
-    SYSTEM,
-    MCP
-}
+@org.jspecify.annotations.NullMarked
+package nu.fgv.register.server.mcp;

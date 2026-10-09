@@ -18,6 +18,7 @@ package nu.fgv.register.server.config;
 
 import nu.fgv.register.server.util.security.KeycloakJwtRolesConverter;
 import org.keycloak.OAuth2Constants;
+import org.springaicommunity.mcp.security.server.config.McpServerOAuth2Configurer;
 import org.keycloak.admin.client.JacksonProvider;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -25,6 +26,7 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
@@ -32,13 +34,20 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.DelegatingJwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.StringUtils;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
@@ -77,6 +86,42 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain mcpSecurityFilterChain(final HttpSecurity http,
+                                                      @Value("${spring.ai.mcp.server.streamable-http.mcp-endpoint}") final String mcpEndpoint,
+                                                      @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") final String issuerUri,
+                                                      @Value("${spexregister.mcp.authorized-parties}") final List<String> authorizedParties) {
+        final JwtDecoder jwtDecoder = new SupplierJwtDecoder(() -> {
+            final NimbusJwtDecoder decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
+            decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                    JwtValidators.createDefaultWithIssuer(issuerUri),
+                    new JwtClaimValidator<String>("azp", authorizedParties::contains),
+                    new JwtClaimValidator<String>(JwtClaimNames.SUB, StringUtils::hasText),
+                    new JwtClaimValidator<String>("email", StringUtils::hasText)
+            ));
+            return decoder;
+        });
+
+        http
+                .securityMatcher(mcpEndpoint, "/.well-known/oauth-protected-resource/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                .requestMatchers(HttpMethod.GET, "/.well-known/oauth-protected-resource/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .securityContext(context -> context.requireExplicitSave(false))
+                .with(McpServerOAuth2Configurer.mcpServerOAuth2(), mcp -> mcp
+                        .authorizationServer(issuerUri)
+                        .resourcePath(mcpEndpoint)
+                        .resourceName("Spexregister")
+                        .validateAudienceClaim(false)
+                        .jwtDecoder(jwtDecoder));
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)

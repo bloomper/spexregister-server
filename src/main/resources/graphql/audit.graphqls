@@ -122,6 +122,7 @@ enum AuditSource {
     IMPORT
     RESTORE
     SYSTEM
+    MCP
 }
 
 enum AuditedType {

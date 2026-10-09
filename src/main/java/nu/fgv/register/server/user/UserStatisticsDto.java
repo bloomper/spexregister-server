@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package nu.fgv.register.server.audit;
+package nu.fgv.register.server.user;
+
+import java.util.Map;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-public enum AuditSource {
-
-    WEB,
-    IMPORT,
-    RESTORE,
-    SYSTEM,
-    MCP
+public record UserStatisticsDto(Map<String, Long> usersByState, long pendingApproval) {
 }

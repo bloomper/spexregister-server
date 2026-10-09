@@ -18,9 +18,11 @@ package nu.fgv.register.server.user;
 
 import nu.fgv.register.server.acl.AclJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,4 +42,13 @@ public interface UserRepository extends AclJpaRepository<User, Long>, JpaSpecifi
     Optional<User> findByExternalId(final String externalId);
 
     boolean existsByExternalId(String externalId);
+
+    @Query("SELECT u.state.id AS stateId, COUNT(u) AS count FROM User u GROUP BY u.state.id")
+    List<StateCount> countByState();
+
+    interface StateCount {
+        String getStateId();
+
+        long getCount();
+    }
 }

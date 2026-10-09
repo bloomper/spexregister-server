@@ -69,6 +69,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |APP_KEYCLOAK_REALM|The Keycloak realm of Spexregister Server|fgv
 |APP_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
 |APP_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
+|APP_KEYCLOAK_MCP_CLIENT_ID|The Keycloak client id(s), comma separated, that MCP clients authenticate with|spexregister-mcp
 |APP_SEED_AUDIT_DATA|A flag determining whether to seed audit data or not|false
 |APP_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
 
@@ -296,5 +297,26 @@ $ brauzie login
 
 Use any of the test credentials to login after which the access token should show in the console.
 Use the obtained access token when invoking the API endpoints.
+
+[[mcp_server]]
+== MCP server
+
+Spexregister Server exposes an MCP (Model Context Protocol) server at ``/api/mcp`` (stateless streamable HTTP),
+letting AI assistants manage spex, spex revivals, spex categories, tasks, task categories, news and tags.
+Spexare and individual users are intentionally not exposed; the only user-related tool returns aggregated counts
+(users per state and accounts pending approval) and requires the admin role.
+
+Every tool call runs with the permissions of the signed-in user, and changes are recorded in the audit history
+with source ``MCP``.
+
+Authentication uses OAuth 2.0 against Keycloak with the public client ``spexregister-mcp`` (authorization code with PKCE,
+redirect URIs ``http://localhost:*`` and ``http://127.0.0.1:*``). Only tokens issued to that client are accepted
+by the MCP endpoint, and they are not accepted by the rest of the API.
+MCP clients discover Keycloak through the protected resource metadata at
+``/.well-known/oauth-protected-resource/api/mcp``. Keycloak does not allow dynamic client registration by default,
+so configure the MCP client with the client id ``spexregister-mcp``.
+
+Locally, the MCP server is available at ``https://api.register.fgv.local.nu:8443/api/mcp``.
+It can for instance be explored with the MCP Inspector (https://github.com/modelcontextprotocol/inspector).
 
 xref:index.adoc[Back to start page]
