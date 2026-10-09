@@ -73,8 +73,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -299,6 +301,19 @@ public class UserService {
         } else {
             throw new ResourceNotFoundException(User.class, id);
         }
+    }
+
+    @RequiresAdmin
+    public UserStatisticsDto getStatistics() {
+        final Map<String, Long> usersByState = repository.countByState().stream()
+                .collect(Collectors.toMap(UserRepository.StateCount::getStateId, UserRepository.StateCount::getCount, Long::sum, TreeMap::new));
+        final long pendingApproval = pendingApprovalGroup()
+                .map(group -> groupMembers(group.getId()).stream()
+                        .filter(representation -> !repository.existsByExternalId(representation.getId()))
+                        .count())
+                .orElse(0L);
+
+        return new UserStatisticsDto(usersByState, pendingApproval);
     }
 
     @RequiresAdmin
