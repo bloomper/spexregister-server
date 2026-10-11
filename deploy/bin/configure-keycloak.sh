@@ -27,6 +27,11 @@ kcadm update "clients/$(client_uuid "$APP_KEYCLOAK_CLIENT_CLIENT_ID")" -r "$APP_
   -s 'attributes."post.logout.redirect.uris"=+'
 echo "updated $APP_KEYCLOAK_CLIENT_CLIENT_ID URLs (https://$WEB_HOST)"
 
+if [[ -n "${KEYCLOAK_THEME:-}" ]]; then
+  kcadm update "realms/$APP_KEYCLOAK_REALM" -s "loginTheme=$KEYCLOAK_THEME" -s "accountTheme=$KEYCLOAK_THEME"
+  echo "updated login and account theme to $KEYCLOAK_THEME"
+fi
+
 for user in ${SAMPLE_USERS:-}; do
   kcadm set-password -r "$APP_KEYCLOAK_REALM" --username "$user" --new-password "$(cat secrets/SAMPLE_USER_PASSWORD)"
   echo "updated password for $user"

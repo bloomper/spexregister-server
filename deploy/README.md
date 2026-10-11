@@ -26,6 +26,7 @@ hostname is needed only for MCP clients and `/docs`.
 | `compose.staging.yaml`        | Staging additions: Mailpit catches all outgoing mail                       |
 | `staging.env.example`         | Template for `.env` on the staging host                                    |
 | `bin/init-secrets.sh`         | Generates random secrets into `secrets/` (never overwrites existing ones)  |
+| `bin/build-keycloak-providers.sh` | Builds the Keycloak SPI and theme jars into `keycloak/providers/`      |
 | `bin/configure-keycloak.sh`   | Sets client secrets, frontend URL and sample user passwords in Keycloak   |
 | `keycloak/providers/`         | Keycloak SPI and theme jars (not committed)                                |
 
@@ -98,23 +99,23 @@ Testers then go through two logins: the Access PIN for `WEB_HOST`, then their Ke
 mkdir -p ~/spexregister && cd ~/spexregister
 git clone https://github.com/bloomper/spexregister-server.git
 git clone https://github.com/bloomper/spexregister-web.git
+git clone https://github.com/bloomper/fgv-keycloakify.git
 cd spexregister-server/deploy
 
 cp staging.env.example .env               # set the hostnames and email addresses
 bin/init-secrets.sh
 nano secrets/cloudflared.env              # TUNNEL_TOKEN=<token from step 2>
+bin/build-keycloak-providers.sh
 ```
 
-Copy the Keycloak provider jars into `keycloak/providers/`. These are the SPI jar from this repo and the theme
-jar from `fgv-keycloakify`. You can build the SPI jar on the host without installing a JDK:
+`build-keycloak-providers.sh` builds the Keycloak jars in throwaway containers, so the host needs no JDK, Node
+or Maven:
 
-```shell
-docker run --rm -v "$PWD/..:/src" -w /src eclipse-temurin:25-jdk ./gradlew keycloakJar
-cp ../build/keycloak-providers/*.jar keycloak/providers/
-```
+- the SPI jar from this repo, with Gradle
+- the theme jar from `fgv-keycloakify`, with Keycloakify, which needs Node, Java and Maven
 
-You can also run `scp build/keycloak-providers/*.jar <host>:~/spexregister/spexregister-server/deploy/keycloak/providers/`
-from a development machine.
+It copies both into `keycloak/providers/`. Set `THEME_SOURCE_DIR` if `fgv-keycloakify` is checked out somewhere
+other than next to this repo.
 
 ## 4. First start
 
@@ -131,6 +132,7 @@ changes:
 
 - sets the `fgv-admin` client secret to `secrets/APP_KEYCLOAK_ADMIN_CLIENT_SECRET`
 - points the `spexregister` client at `https://WEB_HOST`
+- selects `KEYCLOAK_THEME` as the realm's login and account theme
 - replaces the passwords of `SAMPLE_USERS`, which are public in `fgv.json`, with `secrets/SAMPLE_USER_PASSWORD`
 
 You can run it again safely.
@@ -141,10 +143,13 @@ Keycloak admin console: `https://AUTH_HOST/auth/admin`, user `KEYCLOAK_ADMIN`, p
 ## Updating
 
 ```shell
-git -C .. pull && git -C ../../spexregister-web pull
+git -C .. pull && git -C ../../spexregister-web pull && git -C ../../fgv-keycloakify pull
 docker compose pull
 docker compose up -d --build
 ```
+
+If the Keycloak SPI or theme changed, also run `bin/build-keycloak-providers.sh` and then
+`docker compose restart keycloak`.
 
 ## Resetting staging data
 
