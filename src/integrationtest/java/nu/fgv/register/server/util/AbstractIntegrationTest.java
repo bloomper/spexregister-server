@@ -113,7 +113,7 @@ public abstract class AbstractIntegrationTest {
     private static final String TEST_PASSWORD = "s3cr3t";
     private static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
     @ServiceConnection
-    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.0.46")
+    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
             .withCommand("mysqld",
                     "--innodb-flush-log-at-trx-commit=0",

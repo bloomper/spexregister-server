@@ -2,7 +2,7 @@ name: spexregister-server
 
 services:
   mysql-app:
-    image: 'mysql:8.0'
+    image: 'mysql:8.4'
     command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_HOST: localhost
@@ -25,7 +25,7 @@ services:
       - MYSQL_APP_USER_PASSWORD
 
   mysql-keycloak:
-    image: 'mysql:8.0'
+    image: 'mysql:8.4'
     command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_HOST: localhost
