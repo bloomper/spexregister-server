@@ -3,7 +3,6 @@ name: spexregister-${DEPLOY_ENV:?DEPLOY_ENV must be set in .env}
 services:
   mysql-app:
     image: ${MYSQL_IMAGE:-mysql:8.4}
-    command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_DATABASE: ${MYSQL_APP_DATABASE}
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_APP_ROOT_PASSWORD
@@ -18,7 +17,6 @@ services:
       start_period: 30s
     volumes:
       - mysql_app_db_data:/var/lib/mysql
-      - mysql_app_log_data:/var/log/mysql
     networks:
       - app_network
     secrets:
@@ -27,7 +25,6 @@ services:
 
   mysql-keycloak:
     image: ${MYSQL_IMAGE:-mysql:8.4}
-    command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_DATABASE: ${MYSQL_KEYCLOAK_DATABASE}
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_KEYCLOAK_ROOT_PASSWORD
@@ -42,7 +39,6 @@ services:
       start_period: 30s
     volumes:
       - mysql_keycloak_db_data:/var/lib/mysql
-      - mysql_keycloak_log_data:/var/log/mysql
     networks:
       - keycloak_network
     secrets:
@@ -68,8 +64,6 @@ services:
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
-      KC_LOG: console,file
-      KC_LOG_FILE: /opt/keycloak/data/log/keycloak.log
       KC_LOG_LEVEL: info
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
@@ -91,7 +85,6 @@ services:
     volumes:
       - ./keycloak/providers:/opt/keycloak/providers:ro
       - ../src/main/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
-      - keycloak_log_data:/opt/keycloak/data/log
     networks:
       - app_network
       - keycloak_network
@@ -184,10 +177,7 @@ services:
 
 volumes:
   mysql_app_db_data:
-  mysql_app_log_data:
   mysql_keycloak_db_data:
-  mysql_keycloak_log_data:
-  keycloak_log_data:
   app_log_data:
   app_index_data:
   app_impex_data:
