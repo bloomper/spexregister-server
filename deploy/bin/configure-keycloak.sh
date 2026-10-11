@@ -32,7 +32,8 @@ if [[ -n "${KEYCLOAK_THEME:-}" ]]; then
   echo "updated login and account theme to $KEYCLOAK_THEME"
 fi
 
-for user in ${SAMPLE_USERS:-}; do
+sample_users=${SAMPLE_USERS:-}
+for user in ${sample_users//,/ }; do
   kcadm set-password -r "$APP_KEYCLOAK_REALM" --username "$user" --new-password "$(cat secrets/SAMPLE_USER_PASSWORD)"
   echo "updated password for $user"
 done
