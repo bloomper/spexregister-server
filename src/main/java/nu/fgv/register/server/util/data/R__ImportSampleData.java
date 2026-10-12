@@ -230,7 +230,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .users()
                 .list()
                 .stream()
-                .filter(r -> !r.getEmail().endsWith("@spexregister.com"))
+                .filter(r -> !r.getEmail().endsWith("@fgv.nu"))
                 .forEach(representation -> {
                     try (final Response response = keycloakAdminClient
                             .realm(keycloakRealm)

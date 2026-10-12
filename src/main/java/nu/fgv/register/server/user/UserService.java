@@ -114,7 +114,6 @@ public class UserService {
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
     private final PlatformTransactionManager transactionManager;
-    private final UserApprovalNotifier userApprovalNotifier;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
     @Value("${spexregister.keycloak.pending-approval-group}")
@@ -537,7 +536,6 @@ public class UserService {
             final Set<String> members = new HashSet<>();
             final AtomicInteger synced = new AtomicInteger();
             final AtomicInteger removed = new AtomicInteger();
-            final AtomicInteger approved = new AtomicInteger();
 
             // Each user commits on its own, so one failure does not undo the rest of the run.
             authorityRepository.findAll().forEach(authority -> roleMembers(authority.getId()).forEach(representation -> {
@@ -563,16 +561,7 @@ public class UserService {
                         }
                     });
 
-            pendingApprovalGroup().ifPresent(group -> groupMembers(group.getId()).stream()
-                    .filter(representation -> members.contains(representation.getId()))
-                    .filter(representation -> repository.existsByExternalId(representation.getId()))
-                    .forEach(representation -> {
-                        if (notifyApproved(representation, group.getId())) {
-                            approved.incrementAndGet();
-                        }
-                    }));
-
-            log.info("Finished user sync job (members: {}, synced: {}, removed: {}, approved: {})", members.size(), synced.get(), removed.get(), approved.get());
+            log.info("Finished user sync job (members: {}, synced: {}, removed: {})", members.size(), synced.get(), removed.get());
         });
     }
 
@@ -592,7 +581,7 @@ public class UserService {
         try {
             return Optional.of(keycloakAdminClient.realm(keycloakRealm).getGroupByPath("/" + pendingApprovalGroup));
         } catch (final NotFoundException e) {
-            log.warn("Group {} does not exist in Keycloak, no users will be notified about approval", pendingApprovalGroup);
+            log.warn("Group {} does not exist in Keycloak, users pending approval cannot be counted", pendingApprovalGroup);
             return Optional.empty();
         }
     }
@@ -603,23 +592,6 @@ public class UserService {
                 .groups()
                 .group(groupId)
                 .members(first, max));
-    }
-
-    private boolean notifyApproved(final UserRepresentation representation, final String groupId) {
-        try {
-            if (userApprovalNotifier.notifyApproved(representation.getEmail())) {
-                keycloakAdminClient
-                        .realm(keycloakRealm)
-                        .users()
-                        .get(representation.getId())
-                        .leaveGroup(groupId);
-                return true;
-            }
-        } catch (final Exception e) {
-            log.error("Could not finish approval of user {}", representation.getId(), e);
-        }
-
-        return false;
     }
 
     private static List<UserRepresentation> allPages(final BiFunction<Integer, Integer, List<UserRepresentation>> fetch) {

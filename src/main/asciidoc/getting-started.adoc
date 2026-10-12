@@ -49,7 +49,7 @@ The parameters can be found under ``.docker/secrets`` where each file represents
 |MYSQL_KEYCLOAK_ROOT_PASSWORD|The password for the root user of Keycloak's database||verysecret
 |MYSQL_KEYCLOAK_USER_PASSWORD|The password for the user of Keycloak's database||secret
 |KEYCLOAK_ADMIN_PASSWORD|The password of Keycloak's administrative user||password
-|APP_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``src/test/resources/keycloak/fgv.json``, search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
+|APP_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
 |APP_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
 
 |===
@@ -119,8 +119,8 @@ Any existing data will be wiped out.
 In order to support passwords from the previous Spexregister generation, a custom password hashing provider has been implemented.
 At first login, the password is re-hashed using the default password hashing provider.
 
-The JAR file ``spexregister-server-2.0.0-keycloak.jar`` found in ``build/keycloak-providers`` need to be installed into Keycloak.
-This is done by copying the file into ``/opt/keycloak/providers`` in the Docker image.
+The provider lives in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], together with the other Keycloak providers, the realm and the theme.
+That repository publishes the Docker image ``bloomper/fgv-keycloak``, which ``docker-compose.yaml`` uses.
 
 [[keycloak_administration]]
 === Administration UI
@@ -166,17 +166,17 @@ These are the steps to create a realm in Keycloak:
 *** view-users
 *** view-clients
 
-To also create test users and export the realm, i.e. ``src/test/resources/keycloak/fgv.json``, do the following:
+To also create test users and export the realm, i.e. ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], do the following:
 
 * Start Keycloak by ``./bin/kc.sh start-dev``
 * Follow the steps outlined above
 * Create the following users
-** user@spexregister.com
+** user@fgv.nu
 *** Assign client role USER
-** editor@spexregister.com
+** editor@fgv.nu
 *** Assign client role USER
 *** Assign client role EDITOR
-** admin@spexregister.com
+** admin@fgv.nu
 *** Assign client role USER
 *** Assign client role EDITOR
 *** Assign client role ADMIN
@@ -197,7 +197,7 @@ Import it into your OS's trust manager.
 == Mailpit
 
 Mailpit (https://mailpit.axllent.org/) acts as the SMTP server when running locally.
-It catches all emails sent by Keycloak and Spexregister Server, nothing is delivered to real recipients.
+It catches all emails sent by Keycloak, nothing is delivered to real recipients. Spexregister Server sends no emails itself.
 
 The caught emails can be viewed at https://mail.fgv.local.nu:8443 (or http://localhost:8025).
 
@@ -208,11 +208,9 @@ These are the emails sent during self-registration:
 
 |Email verification|Keycloak|The registering user
 |New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
-|Account approved|Spexregister Server, when the user sync job has run (every 5 minutes)|The approved user
+|Account approved|Keycloak, when an administrator assigns the user a role|The approved user
 
 |===
-
-The integration tests start their own Mailpit container, so no setup is needed for them.
 
 [[tests]]
 == Tests
@@ -237,9 +235,9 @@ The following test users have been pre-created:
 
 |Username|Password|Comment
 
-|admin@spexregister.com|s3cr3t|Has admin privileges
-|editor@spexregister.com|s3cr3t|Has editor privileges
-|user@spexregister.com|s3cr3t|Has user privileges
+|admin@fgv.nu|s3cr3t|Has admin privileges
+|editor@fgv.nu|s3cr3t|Has editor privileges
+|user@fgv.nu|s3cr3t|Has user privileges
 
 !===
 

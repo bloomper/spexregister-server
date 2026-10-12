@@ -104,7 +104,6 @@ logging:
 
 spexregister:
   base-url: ${APP_BASE_URL}
-  frontend-url: ${APP_FRONTEND_URL:}
   default-language: sv
   languages:
     - en
@@ -133,8 +132,6 @@ spexregister:
     pending-approval-group: pending-approval
   mcp:
     authorized-parties: ${APP_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
-  mail:
-    from: ${APP_MAIL_FROM:}
   impex:
     storage-path: ./data/impex_data
   data:

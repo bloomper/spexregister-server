@@ -2,6 +2,8 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - 'v*'
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -42,6 +44,34 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+      - name: Determine image tags
+        id: image
+        if: github.ref_type == 'tag' || github.ref_name == 'develop'
+        run: |
+          repo=bloomper/spexregister-server
+          sha=sha-${GITHUB_SHA::7}
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "image=$repo:${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "tags=latest,$sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=$repo:develop" >> "$GITHUB_OUTPUT"
+            echo "tags=$sha" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify release image does not exist
+        if: github.ref_type == 'tag'
+        run: |
+          if docker manifest inspect "${{ steps.image.outputs.image }}" > /dev/null 2>&1; then
+            echo "::error::${{ steps.image.outputs.image }} already exists on Docker Hub"
+            exit 1
+          fi
+      - name: Verify release tag matches project version
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(./gradlew -q properties --property version | awk '/^version:/ {print $2}')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match project version $version"
+            exit 1
+          fi
       - name: Run unit tests
         if: github.event_name == 'pull_request'
         run: ./gradlew test
@@ -59,8 +89,8 @@ jobs:
             build/test-results/integrationTest/*.xml
             build/test-results/test/*.xml
       - name: Publish image to Docker Hub
-        if: github.event_name != 'pull_request'
-        run: ./gradlew jib -Djib.to.auth.username=$DOCKERHUB_USERNAME -Djib.to.auth.password=$DOCKERHUB_TOKEN
+        if: steps.image.outputs.image
+        run: ./gradlew jib -Djib.to.image=${{ steps.image.outputs.image }} -Djib.to.tags=${{ steps.image.outputs.tags }} -Djib.to.auth.username=$DOCKERHUB_USERNAME -Djib.to.auth.password=$DOCKERHUB_TOKEN
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

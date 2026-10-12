@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util;
 
-import ch.martinelli.oss.testcontainers.mailpit.MailpitContainer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -62,7 +61,6 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.lifecycle.Startables;
@@ -103,7 +101,7 @@ public abstract class AbstractIntegrationTest {
     protected static final List<String> AUTHORITIES = List.of(AUTHORITY_ADMIN, AUTHORITY_EDITOR, AUTHORITY_USER);
     private static final String TEST_REALM = "fgv";
     private static final String TEST_GRANT_TYPE = "password";
-    private static final String TEST_DOMAIN = "@spexregister.com";
+    private static final String TEST_DOMAIN = "@fgv.nu";
     protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
     protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
     protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
@@ -121,9 +119,6 @@ public abstract class AbstractIntegrationTest {
                     "--skip-log-bin",
                     "--performance-schema=OFF");
     private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
-    @ServiceConnection
-    protected static final MailpitContainer mailpit = new MailpitContainer("axllent/mailpit:v1.31.4")
-            .withCommand("--enable-chaos");
     private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
     private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
     private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
@@ -137,7 +132,7 @@ public abstract class AbstractIntegrationTest {
     private static URI authorizationURI;
 
     static {
-        Startables.deepStart(mysql, keycloak, mailpit).join();
+        Startables.deepStart(mysql, keycloak).join();
     }
 
     protected final JdbcClient jdbcClient;
@@ -347,30 +342,6 @@ public abstract class AbstractIntegrationTest {
 
     protected void revokeWritePermissionFromRoleAdmin(final ObjectIdentity oid) {
         revokePermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
-    }
-
-    protected void rejectAllMail() {
-        mailpitClient()
-                .put()
-                .uri("/api/v1/chaos")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("Recipient", Map.of("ErrorCode", 451, "Probability", 100)))
-                .retrieve()
-                .toBodilessEntity();
-    }
-
-    protected void acceptAllMail() {
-        mailpitClient()
-                .put()
-                .uri("/api/v1/chaos")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of())
-                .retrieve()
-                .toBodilessEntity();
-    }
-
-    private static RestClient mailpitClient() {
-        return RestClient.create(mailpit.getHttpUrl());
     }
 
     @TestConfiguration
