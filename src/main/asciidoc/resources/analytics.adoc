@@ -14,8 +14,9 @@ The whole dashboard, in sections that stack by role: `totals`, `participation`, 
 `lifecycle` are returned to any caller, `dataQuality` only to editors and administrators, and
 `operations` only to administrators. A section the caller may not read is `null` rather than empty.
 
-`totals` is the register's headline counts with three years of monthly growth — what the separate
-`statistics` resource used to return before the two were merged.
+`totals` is the register's headline counts, each with how it is spread over the years or, for tasks,
+over the task categories — what the separate `statistics` resource used to return before the two were
+merged.
 
 Over GraphQL only the selected sections are computed; REST has no field selection and always
 returns all of them.

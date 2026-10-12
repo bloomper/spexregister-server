@@ -57,19 +57,19 @@ class AnalyticsApiTest extends AbstractApiTest {
     private static final String BUCKET_DESCRIPTION = "A breakdown slice: `key` and `facet` name the spexare search filter that opens the records behind it (`f.<facet>=<key>`), and `facet` is null when the slice has no list";
 
     private final ResponseFieldsSnippet responseFields = responseFields(
-            subsectionWithPath("totals").description("The register's headline counts, each with three years of monthly growth"),
+            subsectionWithPath("totals").description("The register's headline counts, each with its distribution over the years or categories"),
             fieldWithPath("totals.spexareCount").description("The total number of published spexare"),
-            fieldWithPath("totals.spexareCountHistory").description("History of the number of spexare per month"),
-            fieldWithPath("totals.spexareCountHistory[].label").description("The month and year (YYYY-MM)"),
-            fieldWithPath("totals.spexareCountHistory[].count").description("The count for that month"),
+            fieldWithPath("totals.spexareCountHistory").description("The number of spexare per year of their first spex"),
+            fieldWithPath("totals.spexareCountHistory[].label").description("The year (YYYY)"),
+            fieldWithPath("totals.spexareCountHistory[].count").description("The count for that year"),
             fieldWithPath("totals.userCount").description("The total number of users"),
-            subsectionWithPath("totals.userCountHistory").description("History of the number of users per month"),
+            subsectionWithPath("totals.userCountHistory").description("The number of users per year they were created"),
             fieldWithPath("totals.spexCount").description("The total number of spex"),
-            subsectionWithPath("totals.spexCountHistory").description("History of the number of spex per month"),
+            subsectionWithPath("totals.spexCountHistory").description("The number of spex per production year"),
             fieldWithPath("totals.spexRevivalCount").description("The total number of spex revivals"),
-            subsectionWithPath("totals.spexRevivalCountHistory").description("History of the number of spex revivals per month"),
+            subsectionWithPath("totals.spexRevivalCountHistory").description("The number of spex revivals per production year"),
             fieldWithPath("totals.taskCount").description("The total number of tasks"),
-            subsectionWithPath("totals.taskCountHistory").description("History of the number of tasks per month"),
+            subsectionWithPath("totals.taskCountByCategory").description("The number of tasks per task category, largest first"),
             subsectionWithPath("participation").description("Who took part in what"),
             fieldWithPath("participation.bySpexYear").description("Spexare per spex year. " + BUCKET_DESCRIPTION),
             fieldWithPath("participation.bySpexYear[].key").description("The bucket's filter value"),
@@ -172,15 +172,15 @@ class AnalyticsApiTest extends AbstractApiTest {
         return AnalyticsDto.builder()
                 .totals(TotalsDto.builder()
                         .spexareCount(10L)
-                        .spexareCountHistory(List.of(new HistoryDto("2026-01", 2L)))
+                        .spexareCountHistory(List.of(new HistoryDto("2024", 2L)))
                         .userCount(5L)
-                        .userCountHistory(List.of(new HistoryDto("2026-01", 1L)))
+                        .userCountHistory(List.of(new HistoryDto("2026", 1L)))
                         .spexCount(3L)
-                        .spexCountHistory(List.of(new HistoryDto("2026-01", 1L)))
+                        .spexCountHistory(List.of(new HistoryDto("2024", 1L)))
                         .spexRevivalCount(1L)
-                        .spexRevivalCountHistory(List.of(new HistoryDto("2026-01", 0L)))
+                        .spexRevivalCountHistory(List.of(new HistoryDto("2025", 1L)))
                         .taskCount(20L)
-                        .taskCountHistory(List.of(new HistoryDto("2026-01", 5L)))
+                        .taskCountByCategory(List.of(BucketDto.of("1", "Scen", 5L)))
                         .build())
                 .participation(ParticipationDto.builder()
                         .bySpexYear(List.of(BucketDto.of("2024", "2024", 7L, "spexYears")))

@@ -17,12 +17,6 @@
 package nu.fgv.register.server.analytics;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.analytics.AnalyticsDto.DataQualityDto;
@@ -31,15 +25,11 @@ import nu.fgv.register.server.analytics.AnalyticsDto.LifecycleDto;
 import nu.fgv.register.server.analytics.AnalyticsDto.OperationsDto;
 import nu.fgv.register.server.analytics.AnalyticsDto.ParticipationDto;
 import nu.fgv.register.server.analytics.AnalyticsDto.TotalsDto;
-import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spexare.DataQualityIssue;
-import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.SpexareService;
-import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.TaskRepository;
-import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.user.UserRepository;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
@@ -60,7 +50,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -119,7 +108,7 @@ public class AnalyticsService {
         final boolean isEditorOrAdmin = isEditor() || isAdministrator();
 
         return AnalyticsDto.builder()
-                .totals(sections.contains(AnalyticsSection.TOTALS) ? totals() : null)
+                .totals(sections.contains(AnalyticsSection.TOTALS) ? totals(facets) : null)
                 .participation(sections.contains(AnalyticsSection.PARTICIPATION) ? participation(facets) : null)
                 .demographics(sections.contains(AnalyticsSection.DEMOGRAPHICS) ? demographics(facets, total) : null)
                 .lifecycle(sections.contains(AnalyticsSection.LIFECYCLE) ? lifecycle(facets, total) : null)
@@ -128,47 +117,40 @@ public class AnalyticsService {
                 .build();
     }
 
-    private TotalsDto totals() {
+    private TotalsDto totals(final Map<String, Facet> facets) {
         return TotalsDto.builder()
                 .spexareCount(spexareRepository.countByPublishedTrue())
-                .spexareCountHistory(history(Spexare.class, (cb, root) -> cb.isTrue(root.get("published"))))
+                .spexareCountHistory(byKey(facets, FACET_DEBUT_YEARS).stream()
+                        .map(bucket -> new HistoryDto(bucket.key(), bucket.count()))
+                        .toList())
                 .userCount(userRepository.count())
-                .userCountHistory(history(User.class, null))
+                .userCountHistory(history("SELECT FUNCTION('year', u.createdAt), COUNT(u) FROM User u GROUP BY FUNCTION('year', u.createdAt)"))
                 .spexCount(spexRepository.countByParentIsNull())
-                .spexCountHistory(history(Spex.class, (cb, root) -> cb.isNull(root.get("parent"))))
+                .spexCountHistory(history("SELECT s.year, COUNT(s) FROM Spex s WHERE s.parent IS NULL GROUP BY s.year"))
                 .spexRevivalCount(spexRepository.countByParentIsNotNull())
-                .spexRevivalCountHistory(history(Spex.class, (cb, root) -> cb.isNotNull(root.get("parent"))))
+                .spexRevivalCountHistory(history("SELECT s.year, COUNT(s) FROM Spex s WHERE s.parent IS NOT NULL GROUP BY s.year"))
                 .taskCount(taskRepository.count())
-                .taskCountHistory(history(Task.class, null))
+                .taskCountByCategory(taskCountByCategory())
                 .build();
     }
 
-    private <T> List<HistoryDto> history(final Class<T> clazz, @Nullable final BiFunction<CriteriaBuilder, Root<T>, Predicate> filter) {
-        final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        final CriteriaQuery<Tuple> criteriaQuery = criteriaBuilder.createTupleQuery();
-        final Root<T> root = criteriaQuery.from(clazz);
-
-        final Expression<Integer> year = criteriaBuilder.function("year", Integer.class, root.get("createdAt"));
-        final Expression<Integer> month = criteriaBuilder.function("month", Integer.class, root.get("createdAt"));
-
-        criteriaQuery.select(criteriaBuilder.tuple(year, month, criteriaBuilder.count(root)));
-
-        final Instant threeYearsAgo = Instant.now().minus(3L * 365, ChronoUnit.DAYS);
-        final Predicate historyPredicate = criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), threeYearsAgo);
-
-        criteriaQuery.where(filter == null ?
-                historyPredicate :
-                criteriaBuilder.and(historyPredicate, filter.apply(criteriaBuilder, root)));
-        criteriaQuery.groupBy(year, month);
-        criteriaQuery.orderBy(criteriaBuilder.asc(year), criteriaBuilder.asc(month));
-
-        return entityManager.createQuery(criteriaQuery)
+    private List<HistoryDto> history(final String jpql) {
+        return entityManager
+                .createQuery(jpql, Object[].class)
                 .getResultList()
                 .stream()
-                .map(tuple -> new HistoryDto(
-                        "%s-%02d".formatted(tuple.get(0), (Integer) tuple.get(1)),
-                        (Long) tuple.get(2)
-                ))
+                .map(row -> new HistoryDto(String.valueOf(row[0]), (Long) row[1]))
+                .sorted(Comparator.comparing(HistoryDto::label))
+                .toList();
+    }
+
+    private List<BucketDto> taskCountByCategory() {
+        return entityManager
+                .createQuery("SELECT c.id, c.name, COUNT(t) FROM Task t JOIN t.category c GROUP BY c.id, c.name", Object[].class)
+                .getResultList()
+                .stream()
+                .map(row -> BucketDto.of(String.valueOf(row[0]), String.valueOf(row[1]), (Long) row[2]))
+                .sorted(Comparator.comparingLong(BucketDto::count).reversed().thenComparing(BucketDto::label))
                 .toList();
     }
 

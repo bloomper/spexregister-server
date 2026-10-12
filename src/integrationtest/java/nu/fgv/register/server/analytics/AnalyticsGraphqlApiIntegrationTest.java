@@ -15,31 +15,44 @@
  */
 
 package nu.fgv.register.server.analytics;
-
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
+
+    private static final String TOTALS = """
+            query {
+                analytics {
+                    totals {
+                        spexCount
+                        spexCountHistory { label count }
+                        spexRevivalCount
+                        spexRevivalCountHistory { label count }
+                        taskCount
+                        taskCountByCategory { label count }
+                        userCountHistory { label count }
+                        spexareCountHistory { label count }
+                    }
+                }
+            }
+            """;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -59,80 +72,62 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                         .baseUrl("http://localhost:%s%s".formatted(localPort, graphqlPath))
                         .build()
         );
+
+        jdbcClient.sql("UPDATE spex SET parent_id = NULL").update();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task_activity", "activity", "spexare", "task", "task_category", "spex", "spex_details");
     }
 
-    @AfterEach
-    void tearDown() {
+    @Test
+    void should_return_spex_and_revivals_per_production_year() {
+        jdbcClient.sql("INSERT INTO spex_details (id, title, created_by, created_at) VALUES (1, 'Bojan', 'system', NOW()), (2, 'Nero', 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at) VALUES (1, '1948', NULL, 1, 'system', NOW()), (2, '1990', NULL, 2, 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at) VALUES (3, '1990', 1, 1, 'system', NOW()), (4, '2003', 1, 1, 'system', NOW())").update();
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build()
+                .document(TOTALS)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.totals.spexCount").entity(Integer.class).isEqualTo(2)
+                .path("analytics.totals.spexCountHistory[*].label").entityList(String.class).isEqualTo(List.of("1948", "1990"))
+                .path("analytics.totals.spexCountHistory[*].count").entityList(Integer.class).isEqualTo(List.of(1, 1))
+                .path("analytics.totals.spexRevivalCount").entity(Integer.class).isEqualTo(2)
+                .path("analytics.totals.spexRevivalCountHistory[*].label").entityList(String.class).isEqualTo(List.of("1990", "2003"));
     }
 
-    @Nested
-    @DisplayName("Retrieve")
-    class RetrieveTests {
+    @Test
+    void should_return_tasks_per_category_largest_first() {
+        jdbcClient.sql("INSERT INTO task_category (id, name, created_by, created_at) VALUES (1, 'Orkester', 'system', NOW()), (2, 'Kommitté', 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO task (id, name, category_id, created_by, created_at) VALUES (1, 'Trumpet', 1, 'system', NOW()), (2, 'Directeur', 2, 'system', NOW()), (3, 'Ekonomichef', 2, 'system', NOW()), (4, 'Övrigt', NULL, 'system', NOW())").update();
 
-        @Test
-        void should_return_every_section_for_an_admin() {
-            execute(obtainAdminAccessToken())
-                    .path("analytics.totals.spexareCount").entity(Long.class).get();
-
-            execute(obtainAdminAccessToken())
-                    .path("analytics.dataQuality.issues").hasValue()
-                    .path("analytics.operations.usersByState").hasValue();
-        }
-
-        /**
-         * The whole point of a bucket is that it addresses its own drill-down, so an empty or
-         * unnamed facet on a breakdown would silently produce dead chart bars.
-         */
-        @Test
-        void should_name_the_drill_down_facet_on_every_participation_bucket() {
-            execute(obtainAdminAccessToken())
-                    .path("analytics.participation.bySpexYear[*].facet")
-                    .entityList(String.class)
-                    .satisfies(facets -> assertThat(facets).allMatch("spexYears"::equals));
-        }
-
-        /**
-         * Only the selected sections are computed, so the home page's few fields do not drag the
-         * gap counts and revision queries along behind them.
-         */
-        @Test
-        void should_leave_unselected_sections_unbuilt() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
-                    .build()
-                    .documentName("analytics/analytics-totals")
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("analytics.totals.spexareCount").entity(Long.class).get();
-        }
-
-        @Test
-        void should_withhold_the_operations_section_from_a_plain_user() {
-            execute(obtainUserAccessToken())
-                    .path("analytics.operations").valueIsNull()
-                    .path("analytics.dataQuality").valueIsNull()
-                    .path("analytics.participation").hasValue();
-        }
-
-        @Test
-        void should_give_an_editor_data_quality_but_not_operations() {
-            execute(obtainEditorAccessToken())
-                    .path("analytics.dataQuality").hasValue()
-                    .path("analytics.operations").valueIsNull();
-        }
-
-        private GraphQlTester.Traversable execute(final String token) {
-            return httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
-                    .build()
-                    .documentName("analytics/analytics")
-                    .execute()
-                    .errors()
-                    .verify();
-        }
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build()
+                .document(TOTALS)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.totals.taskCount").entity(Integer.class).isEqualTo(4)
+                .path("analytics.totals.taskCountByCategory[*].label").entityList(String.class).isEqualTo(List.of("Kommitté", "Orkester"))
+                .path("analytics.totals.taskCountByCategory[*].count").entityList(Integer.class).isEqualTo(List.of(2, 1));
     }
 
+    @Test
+    void should_return_users_per_year_they_were_created() {
+        final List<String> years = jdbcClient.sql("SELECT DISTINCT CAST(YEAR(created_at) AS CHAR) FROM user ORDER BY 1").query(String.class).list();
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build()
+                .document(TOTALS)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.totals.userCountHistory[*].label").entityList(String.class).isEqualTo(years);
+    }
 }

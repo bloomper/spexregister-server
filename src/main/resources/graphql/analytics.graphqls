@@ -21,7 +21,7 @@ type Totals {
     spexRevivalCount: Long!
     spexRevivalCountHistory: [History!]!
     taskCount: Long!
-    taskCountHistory: [History!]!
+    taskCountByCategory: [Bucket!]!
 }
 
 type History {

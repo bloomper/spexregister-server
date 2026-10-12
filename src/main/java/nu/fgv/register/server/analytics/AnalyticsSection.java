@@ -39,7 +39,7 @@ public enum AnalyticsSection {
     public static final Set<AnalyticsSection> ALL = EnumSet.allOf(AnalyticsSection.class);
 
     public static final Set<AnalyticsSection> FACET_BACKED =
-            EnumSet.of(PARTICIPATION, DEMOGRAPHICS, LIFECYCLE, DATA_QUALITY);
+            EnumSet.of(TOTALS, PARTICIPATION, DEMOGRAPHICS, LIFECYCLE, DATA_QUALITY);
 
     private final String field;
 

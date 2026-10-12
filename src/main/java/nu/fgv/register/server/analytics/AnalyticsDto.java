@@ -51,7 +51,7 @@ public record AnalyticsDto(
             Long spexRevivalCount,
             List<HistoryDto> spexRevivalCountHistory,
             Long taskCount,
-            List<HistoryDto> taskCountHistory
+            List<BucketDto> taskCountByCategory
     ) {
     }
 
