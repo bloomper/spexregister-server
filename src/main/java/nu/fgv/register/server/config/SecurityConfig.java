@@ -24,6 +24,8 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -127,6 +129,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
+                                .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/docs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "%s".formatted(graphqlBaseUrl)).permitAll()
