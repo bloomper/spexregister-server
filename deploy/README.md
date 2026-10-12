@@ -168,7 +168,27 @@ sits behind its own reverse proxy instead. A production host would differ in the
 - `production.env.example` with `DEPLOY_ENV=production`, `APP_IMPORT_SAMPLE_DATA=false`,
   `APP_SEED_AUDIT_DATA=false`, a real SMTP relay instead of Mailpit and `SAMPLE_USERS` left empty
 - `compose.production.yaml` for production-only services, such as scheduled database dumps to off-host storage
-- A pinned `APP_IMAGE` tag instead of `latest`
+- `APP_IMAGE` pinned to a release version, e.g. `bloomper/spexregister-server:2.0.0`, with this repo,
+  `spexregister-web` and `fgv-keycloakify` checked out at release tags instead of following a branch. The web
+  image and the Keycloak providers are built from those checkouts.
+
+### Image tags
+
+CI publishes `bloomper/spexregister-server` with these tags:
+
+| Trigger              | Tags                                   |
+|----------------------|----------------------------------------|
+| push to `develop`    | `develop`, `sha-<commit>`              |
+| push of tag `vX.Y.Z` | `X.Y.Z`, `latest`, `sha-<commit>`      |
+
+To release, set `version` in `build.gradle` to `X.Y.Z`, merge to `main`, then tag and push:
+
+```shell
+git tag vX.Y.Z && git push origin vX.Y.Z
+```
+
+The build fails if the tag doesn't match `version` or if `X.Y.Z` is already on Docker Hub, so release tags
+are never overwritten.
 
 Running both databases in one MySQL server would mean pointing `KC_DB_URL` at `mysql-app` and creating the
 Keycloak database and user with an init script. Two servers keep the realm and application data independently

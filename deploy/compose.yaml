@@ -93,7 +93,7 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD
 
   app:
-    image: ${APP_IMAGE:-bloomper/spexregister-server:latest}
+    image: ${APP_IMAGE:?APP_IMAGE must be set in .env}
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-app/${MYSQL_APP_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${MYSQL_APP_USER}

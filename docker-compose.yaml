@@ -92,7 +92,7 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD
 
   app:
-    image: 'bloomper/spexregister-server:latest'
+    image: 'bloomper/spexregister-server:develop'
     #platform: linux/arm64
     container_name: app
     environment:

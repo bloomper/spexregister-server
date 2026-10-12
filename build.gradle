@@ -317,8 +317,7 @@ jib {
         }
     }
     to {
-        image = "bloomper/${project.name}"
-        tags = ['latest', "${version}"]
+        image = "bloomper/${project.name}:${version}"
     }
     pluginExtensions {
         pluginExtension {
