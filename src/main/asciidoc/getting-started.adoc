@@ -98,6 +98,16 @@ You are now ready to get Spexregister Server up and running:
 $ docker compose up -d
 ----
 
+To log in from a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, its address must be allowed as a redirect URI in Keycloak:
+
+[source,bash]
+----
+$ ./scripts/configure-keycloak.sh
+----
+
+The address defaults to ``http://localhost:3000`` and can be changed by setting ``WEB_URL``.
+The script needs to be run again whenever Keycloak's database has been recreated.
+
 [[sample_data]]
 == Sample data
 
