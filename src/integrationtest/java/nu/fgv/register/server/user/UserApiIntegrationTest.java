@@ -16,8 +16,6 @@
 
 package nu.fgv.register.server.user;
 
-import ch.martinelli.oss.testcontainers.mailpit.Message;
-import ch.martinelli.oss.testcontainers.mailpit.assertions.MailpitAssertions;
 import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
@@ -2164,81 +2162,6 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.existsByExternalId(newMember.getId())).isTrue();
             assertThat(repository.existsByExternalId(withoutRoles.getExternalId())).isTrue();
             assertThat(repository.existsByExternalId(deletedInKeycloak.getExternalId())).isFalse();
-        }
-
-        @Test
-        void should_notify_approved_pending_users_and_remove_them_from_the_pending_group() {
-            final var initialState = randomizeState();
-            initialState.setInitial(true);
-            persistState(initialState);
-
-            final var approved = persistUserInKeycloak(AUTHORITY_EDITOR);
-            final var notApproved = persistUserInKeycloak();
-            joinPendingApprovalGroup(approved.getId());
-            joinPendingApprovalGroup(notApproved.getId());
-
-            userService.scheduledSync();
-
-            final List<Message> messages = mailpit.getClient().getAllMessages();
-            MailpitAssertions.assertThat(messages)
-                    .filteredOnRecipient(approved.getEmail())
-                    .hasSize(1)
-                    .first()
-                    .hasSubject("Ditt konto för Spexregistret är godkänt")
-                    .satisfies(message -> assertThat(mailpit.getClient().getMessagePlain(message.id()))
-                            .contains("Logga in här: https://register.example.com"));
-            MailpitAssertions.assertThat(messages)
-                    .filteredOnRecipient(notApproved.getEmail())
-                    .isEmpty();
-            assertThat(isInPendingApprovalGroup(approved.getId())).isFalse();
-            assertThat(isInPendingApprovalGroup(notApproved.getId())).isTrue();
-        }
-
-        @Test
-        void should_keep_approved_user_in_the_pending_group_when_notification_fails() {
-            final var initialState = randomizeState();
-            initialState.setInitial(true);
-            persistState(initialState);
-
-            final var approved = persistUserInKeycloak(AUTHORITY_USER);
-            joinPendingApprovalGroup(approved.getId());
-
-            rejectAllMail();
-            try {
-                userService.scheduledSync();
-            } finally {
-                acceptAllMail();
-            }
-
-            assertThat(repository.existsByExternalId(approved.getId())).isTrue();
-            assertThat(isInPendingApprovalGroup(approved.getId())).isTrue();
-            MailpitAssertions.assertThat(mailpit.getClient().getAllMessages())
-                    .filteredOnRecipient(approved.getEmail())
-                    .isEmpty();
-        }
-        private void joinPendingApprovalGroup(final String userId) {
-            keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .get(userId)
-                    .joinGroup(pendingApprovalGroupId());
-        }
-
-        private boolean isInPendingApprovalGroup(final String userId) {
-            return keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .get(userId)
-                    .groups()
-                    .stream()
-                    .anyMatch(group -> group.getId().equals(pendingApprovalGroupId()));
-        }
-
-        private String pendingApprovalGroupId() {
-            return keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .getGroupByPath("/pending-approval")
-                    .getId();
         }
     }
 }

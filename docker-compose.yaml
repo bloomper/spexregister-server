@@ -46,7 +46,7 @@ services:
       - MYSQL_KEYCLOAK_USER_PASSWORD
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7
+    image: bloomper/fgv-keycloak:develop
     entrypoint:
       - /bin/bash
       - -c
@@ -65,7 +65,7 @@ services:
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
       KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
-      KC_SPI_EVENTS_LISTENER__SPEXREGISTER_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-admin@fgv.local.nu}
+      KC_SPI_EVENTS_LISTENER__FGV_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-admin@fgv.local.nu}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       SMTP_FROM: noreply@fgv.local.nu
@@ -81,9 +81,7 @@ services:
       mysql-keycloak:
         condition: service_started
     volumes:
-      - ./build/keycloak-providers:/opt/keycloak/providers
       - keycloak_log_data:/opt/keycloak/data/log
-      - ./src/main/resources/keycloak/fgv.json:/opt/keycloak/data/import/fgv.json:ro
     networks:
       - app_network
       - keycloak_network
@@ -103,16 +101,12 @@ services:
       LOGGING_FILE_PATH: /data/log_data
       SERVER_FORWARD_HEADERS_STRATEGY: native
       APP_BASE_URL: https://api.register.fgv.local.nu:8443/api
-      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:3000}
       APP_KEYCLOAK_URL: http://keycloak:8081/auth
       APP_KEYCLOAK_REALM: ${APP_KEYCLOAK_REALM}
       APP_KEYCLOAK_ADMIN_CLIENT_ID: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
       APP_KEYCLOAK_CLIENT_CLIENT_ID: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
       APP_SEED_AUDIT_DATA: ${APP_SEED_AUDIT_DATA}
       APP_IMPORT_SAMPLE_DATA: ${APP_IMPORT_SAMPLE_DATA}
-      APP_MAIL_FROM: noreply@fgv.local.nu
-      SPRING_MAIL_HOST: mailpit
-      SPRING_MAIL_PORT: 1025
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8081/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://keycloak.fgv.local.nu:8443/auth/realms/fgv
     restart: on-failure

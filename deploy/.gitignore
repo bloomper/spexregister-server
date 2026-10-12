@@ -1,4 +1,0 @@
-/.env
-/secrets/
-/keycloak/providers/*
-!/keycloak/providers/.gitkeep

@@ -32,7 +32,7 @@
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "rememberMe": false,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -434,7 +434,16 @@
       ]
     }
   },
-  "groups": [],
+  "groups": [
+    {
+      "name": "pending-approval",
+      "path": "/pending-approval",
+      "subGroups": [],
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {}
+    }
+  ],
   "defaultRole": {
     "id": "244839a3-73a8-4567-938f-70c12b1c5e42",
     "name": "default-roles-fgv",
@@ -458,7 +467,18 @@
     "totpAppGoogleName",
     "totpAppMicrosoftAuthenticatorName"
   ],
-  "localizationTexts": {},
+  "localizationTexts": {
+    "sv": {
+      "fgvApprovalPendingHeader": "Väntar på godkännande",
+      "fgvApprovalPending": "Du får ett e-postmeddelande när en administratör har godkänt ditt konto.",
+      "registrationMessage": "Meddelande till administratören"
+    },
+    "en": {
+      "fgvApprovalPendingHeader": "Awaiting approval",
+      "fgvApprovalPending": "You will receive an email once an administrator has approved your account.",
+      "registrationMessage": "Message to the administrator"
+    }
+  },
   "webAuthnPolicyRpEntityName": "keycloak",
   "webAuthnPolicySignatureAlgorithms": [
     "ES256"
@@ -489,11 +509,11 @@
     {
       "id": "6c4f7d1a-0b4b-4081-abf2-132092b8f872",
       "createdTimestamp": 1705744114960,
-      "username": "admin@spexregister.com",
+      "username": "admin@fgv.nu",
       "enabled": true,
       "totp": false,
       "emailVerified": true,
-      "email": "admin@spexregister.com",
+      "email": "admin@fgv.nu",
       "credentials": [
         {
           "id": "7c4b1912-d3e7-4e3d-b89b-da0157103357",
@@ -522,11 +542,11 @@
     {
       "id": "56656735-bcf5-4d33-bfb7-9a6e79947ab1",
       "createdTimestamp": 1705744042845,
-      "username": "editor@spexregister.com",
+      "username": "editor@fgv.nu",
       "enabled": true,
       "totp": false,
       "emailVerified": true,
-      "email": "editor@spexregister.com",
+      "email": "editor@fgv.nu",
       "credentials": [
         {
           "id": "352d32ab-2dd2-460d-8e9b-1f75c94faa36",
@@ -579,12 +599,12 @@
     {
       "id": "281a329a-8ef2-402a-acd6-eaaf07fa6ca5",
       "createdTimestamp": 1705222055768,
-      "username": "user@spexregister.com",
+      "username": "user@fgv.nu",
       "enabled": true,
       "totp": false,
       "emailVerified": true,
       "firstName": "User",
-      "email": "user@spexregister.com",
+      "email": "user@fgv.nu",
       "credentials": [
         {
           "id": "c105d82e-bc96-4be5-9919-be3416f1a483",
@@ -1064,7 +1084,8 @@
         "acr",
         "profile",
         "roles",
-        "email"
+        "email",
+        "registration-message"
       ],
       "optionalClientScopes": [
         "address",
@@ -1074,7 +1095,7 @@
       ]
     },
     {
-      "id": "9268a23d-e1d7-4988-bf5c-3ad3dea1cb84",
+      "id": "d883acad-6e98-46e6-a8de-af0e0704f282",
       "clientId": "spexregister-mcp",
       "name": "Spexregister MCP",
       "description": "MCP clients acting on behalf of a signed-in user",
@@ -1658,6 +1679,17 @@
           }
         }
       ]
+    },
+    {
+      "id": "09282b43-1052-4f36-b6e2-4278890119bc",
+      "name": "registration-message",
+      "description": "Enables the registration message attribute in the user profile",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false",
+        "include.in.openid.provider.metadata": "false"
+      }
     }
   ],
   "defaultDefaultClientScopes": [
@@ -1684,10 +1716,15 @@
     "xXSSProtection": "1; mode=block",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "host": "${SMTP_HOST:}",
+    "port": "${SMTP_PORT:25}",
+    "from": "${SMTP_FROM:noreply@localhost}"
+  },
   "eventsEnabled": false,
   "eventsListeners": [
-    "jboss-logging"
+    "jboss-logging",
+    "fgv-admin-notification"
   ],
   "enabledEventTypes": [],
   "adminEventsEnabled": false,
@@ -1880,6 +1917,18 @@
           ],
           "algorithm": [
             "HS256"
+          ]
+        }
+      }
+    ],
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "id": "65cef874-5b7e-4ab5-b99a-24f28b4d16c3",
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"registrationMessage\",\"displayName\":\"${registrationMessage}\",\"validations\":{\"length\":{\"max\":500}},\"annotations\":{\"inputType\":\"textarea\",\"inputTypeRows\":\"4\"},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"user\"]},\"selector\":{\"scopes\":[\"registration-message\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}"
           ]
         }
       }
@@ -2500,6 +2549,15 @@
       "enabled": true,
       "defaultAction": false,
       "priority": 1000,
+      "config": {}
+    },
+    {
+      "alias": "fgv-approval",
+      "name": "FGV approval",
+      "providerId": "fgv-approval",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 1010,
       "config": {}
     }
   ],

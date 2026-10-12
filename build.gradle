@@ -34,22 +34,12 @@ sourceSets {
         resources.srcDir file('src/integrationtest/resources')
         resources.srcDir file('src/main/resources')
     }
-    keycloak {
-        java {
-            compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-            runtimeClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-            srcDir file('src/keycloak/java')
-        }
-        resources.srcDir file('src/keycloak/resources')
-    }
 }
 
 configurations {
     compileOnly.extendsFrom annotationProcessor
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-    keycloakImplementation.extendsFrom developmentOnly
-    keycloakRuntimeOnly.extendsFrom runtimeOnly
     asciidoctorExtensions
     mockitoAgent {
         transitive = false
@@ -70,15 +60,11 @@ repositories {
 ext {
     set('springAiVersion', '2.0.1')
     set('snippetsDir', file('build/generated-snippets'))
-    set('keycloakProvidersDir', file('build/keycloak-providers'))
 }
 
 dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.keycloak:keycloak-core:26.8.0'
-    developmentOnly 'org.keycloak:keycloak-server-spi:26.8.0'
-    developmentOnly 'org.keycloak:keycloak-server-spi-private:26.8.0'
 
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
@@ -90,7 +76,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.springframework.boot:spring-boot-starter-graphql'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
@@ -139,7 +124,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-cache-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-graphql-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-mail-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-rest-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test'
@@ -153,7 +137,6 @@ dependencies {
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
     integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.4.0'
-    integrationTestImplementation 'ch.martinelli.oss:testcontainers-mailpit:1.3.2'
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
     integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
@@ -197,12 +180,6 @@ javadoc {
 tasks.register('createSnippetsDir') {
     doLast {
         project.mkdir snippetsDir
-    }
-}
-
-tasks.register('createKeycloakProvidersDir') {
-    doLast {
-        project.mkdir keycloakProvidersDir
     }
 }
 
@@ -266,23 +243,6 @@ asciidoctor {
          'static-snippets': file('src/main/asciidoc/static-snippets')
 }
 
-tasks.named('compileKeycloakJava', JavaCompile) {
-    options.release = 21
-}
-
-rootProject.tasks.named("processKeycloakResources") {
-    duplicatesStrategy = 'include'
-}
-
-tasks.register('keycloakJar', Jar) {
-    archiveClassifier = 'keycloak'
-    from sourceSets.keycloak.output
-    dependsOn configurations.keycloakRuntimeClasspath
-    destinationDirectory = file(keycloakProvidersDir)
-}
-
-assemble.dependsOn keycloakJar
-
 bootJar {
     dependsOn asciidoctor, javadoc
     from("${asciidoctor.outputDir}") {
@@ -317,7 +277,7 @@ jib {
         }
     }
     to {
-        image = "bloomper/${project.name}:${version}"
+        image = "bloomper/${project.name}:develop"
     }
     pluginExtensions {
         pluginExtension {

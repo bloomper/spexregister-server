@@ -74,12 +74,12 @@ import static org.jeasy.random.FieldPredicates.ofType;
 class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
     private static final List<String> EDITORS = List.of(
-            "anna@spexregister.com",
-            "erik@spexregister.com",
-            "karin@spexregister.com",
-            "lars@spexregister.com",
-            "maria@spexregister.com",
-            "olof@spexregister.com"
+            "anna@fgv.nu",
+            "erik@fgv.nu",
+            "karin@fgv.nu",
+            "lars@fgv.nu",
+            "maria@fgv.nu",
+            "olof@fgv.nu"
     );
     private final EasyRandom random;
     private final AuditDataSeeder seeder;
