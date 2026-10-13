@@ -25,6 +25,7 @@ import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
+import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
@@ -194,7 +195,7 @@ public class SpexCategoryApi {
                 .body(new ByteArrayResource(logo.getFirst()));
     }
 
-    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdmin
     public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexCategoryId, @RequestBody final byte[] file) {
         service.saveLogo(spexCategoryId, file);

@@ -50,10 +50,23 @@ class FileUtilTest {
     }
 
     @Test
-    void should_reject_svg_content() {
-        final byte[] svg = "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>".getBytes(StandardCharsets.UTF_8);
+    void should_detect_svg_content() {
+        final byte[] svg = "<?xml version=\"1.0\"?>\n<!-- logo -->\n<svg xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"1\" height=\"1\" style=\"fill:red\"/></svg>".getBytes(StandardCharsets.UTF_8);
 
-        assertThrows(BadRequestException.class, () -> FileUtil.requireSupportedImageMimeType(svg));
+        assertThat(FileUtil.requireSupportedImageMimeType(svg), is("image/svg+xml"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><a href=\"javascript:alert(1)\"><rect/></a></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><foreignObject><body/></foreignObject></svg>"
+    })
+    void should_reject_svg_with_active_content(final String svg) {
+        final byte[] content = svg.getBytes(StandardCharsets.UTF_8);
+
+        assertThrows(BadRequestException.class, () -> FileUtil.requireSupportedImageMimeType(content));
     }
 
     @Test

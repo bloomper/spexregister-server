@@ -32,6 +32,7 @@ import nu.fgv.register.server.spexare.consent.ConsentApi;
 import nu.fgv.register.server.spexare.membership.MembershipApi;
 import nu.fgv.register.server.spexare.tagging.TaggingApi;
 import nu.fgv.register.server.spexare.toggle.ToggleApi;
+import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
@@ -236,7 +237,7 @@ public class SpexareApi {
                 .body(new ByteArrayResource(image.getFirst()));
     }
 
-    @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestBody final byte[] file) {
         service.saveImage(spexareId, file);

@@ -27,6 +27,7 @@ import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
+import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.security.RequiresAdmin;
@@ -199,7 +200,7 @@ public class SpexApi {
                 .body(new ByteArrayResource(poster.getFirst()));
     }
 
-    @RequestMapping(value = "/{spexId}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    @RequestMapping(value = "/{spexId}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdminOrEditor
     public ResponseEntity<Object> uploadPoster(@PathVariable final Long spexId, @RequestBody final byte[] file) {
         service.savePoster(spexId, file);

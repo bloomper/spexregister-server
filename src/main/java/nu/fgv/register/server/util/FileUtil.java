@@ -33,9 +33,11 @@ import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +45,17 @@ import java.util.Set;
  */
 public class FileUtil {
 
-    private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = Set.of("image/png", "image/jpeg", "image/gif");
+    public static final String IMAGE_SVG_VALUE = "image/svg+xml";
+
+    private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = Set.of("image/png", "image/jpeg", "image/gif", IMAGE_SVG_VALUE);
+
+    private static final int SVG_SNIFF_BYTES = 4096;
+    private static final Pattern SVG_ROOT = Pattern.compile(
+            "^\\uFEFF?\\s*(<\\?xml[^>]*\\?>\\s*)?((<!--.*?-->|<!DOCTYPE[^>]*>)\\s*)*<svg[\\s>/]",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern SVG_ACTIVE_CONTENT = Pattern.compile(
+            "<\\s*(script|foreignObject|iframe|embed|object)\\b|\\son\\w+\\s*=|javascript\\s*:|<!ENTITY",
+            Pattern.CASE_INSENSITIVE);
 
     private static final int MAX_DOWNLOAD_BYTES = 15 * 1024 * 1024;
     private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
@@ -56,6 +68,10 @@ public class FileUtil {
     }
 
     public static String detectMimeType(final byte[] file) {
+        if (isSvg(file)) {
+            return IMAGE_SVG_VALUE;
+        }
+
         try {
             return Optional.ofNullable(Magic.getMagicMatch(file, false))
                     .map(MagicMatch::getMimeType)
@@ -72,7 +88,15 @@ public class FileUtil {
             throw new BadRequestException("Unsupported image type, expected one of %s".formatted(SUPPORTED_IMAGE_MIME_TYPES));
         }
 
+        if (IMAGE_SVG_VALUE.equals(mimeType) && SVG_ACTIVE_CONTENT.matcher(new String(file, StandardCharsets.UTF_8)).find()) {
+            throw new BadRequestException("SVG images with scripts, event handlers or embedded content are not supported");
+        }
+
         return mimeType;
+    }
+
+    private static boolean isSvg(final byte[] file) {
+        return SVG_ROOT.matcher(new String(file, 0, Math.min(file.length, SVG_SNIFF_BYTES), StandardCharsets.UTF_8)).find();
     }
 
     public static byte[] downloadImage(final String url) {
