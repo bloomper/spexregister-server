@@ -73,7 +73,7 @@ public class StringTypeBinder<T> extends AbstractHierarchicalTypeBinder {
 
                 if (fieldReference != null) {
                     final String displayValue = includeGroupLabel ?
-                            "%s: %s".formatted(typeLabel, value) :
+                            typeLabel + AGGREGATION_COMPOSITE_DELIMITER + value :
                             value;
 
                     target.addValue(fieldReference, id + AGGREGATION_COMPOSITE_DELIMITER + displayValue);

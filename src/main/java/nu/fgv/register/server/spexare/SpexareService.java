@@ -496,20 +496,17 @@ public class SpexareService {
             if (rawValue.contains(AGGREGATION_COMPOSITE_DELIMITER)) {
                 final String[] parts = rawValue.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER));
                 final String technicalValueId = parts[0];
-                final String displayPart = parts[1];
 
-                if (displayPart.contains(":")) {
-                    final String groupId = technicalValueId.contains(":") ? technicalValueId.split(":")[0] : technicalValueId;
-                    final String groupLabel = displayPart.split(":")[0].trim();
-                    final String valueLabel = displayPart.split(":")[1].trim();
+                if (parts.length > 2) {
+                    final String groupId = technicalValueId.split(":", 2)[0];
 
-                    groupLabelLookup.put(groupId, groupLabel);
+                    groupLabelLookup.put(groupId, parts[1]);
                     groups.computeIfAbsent(groupId, _ -> new ArrayList<>())
-                            .add(new FacetValue(technicalValueId, valueLabel, count));
+                            .add(new FacetValue(technicalValueId, parts[2], count));
                 } else {
                     groupLabelLookup.put(technicalValueId, "");
                     groups.computeIfAbsent(technicalValueId, _ -> new ArrayList<>())
-                            .add(new FacetValue(technicalValueId, displayPart, count));
+                            .add(new FacetValue(technicalValueId, parts[1], count));
                 }
             }
         });

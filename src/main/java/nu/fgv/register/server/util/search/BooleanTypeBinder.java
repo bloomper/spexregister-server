@@ -78,7 +78,7 @@ public class BooleanTypeBinder<T> extends AbstractHierarchicalTypeBinder {
                     final String booleanLabel = messageSource.getMessage("boolean.%s".formatted(value), null, String.valueOf(value), locale);
 
                     final String displayValue = includeGroupLabel ?
-                            "%s: %s".formatted(typeLabel, booleanLabel) :
+                            typeLabel + AGGREGATION_COMPOSITE_DELIMITER + booleanLabel :
                             booleanLabel;
 
                     target.addValue(fieldReference, id + AGGREGATION_COMPOSITE_DELIMITER + displayValue);
