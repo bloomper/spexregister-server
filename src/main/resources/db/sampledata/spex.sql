@@ -581,5 +581,26 @@ VALUES ('2015', (SELECT id FROM spex_details WHERE title = 'Victoria'),
          WHERE year = '1986'
            AND details_id = (SELECT id FROM spex_details WHERE title = 'Victoria')), 'system', CURRENT_TIME, 0);
 
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2018', (SELECT id FROM spex_details WHERE title = 'Richard III'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1968'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Richard III')), 'system', CURRENT_TIME, 0);
+
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2018', (SELECT id FROM spex_details WHERE title = 'Christina'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '1989'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Christina')), 'system', CURRENT_TIME, 0);
+
+INSERT INTO spex (year, details_id, parent_id, created_by, created_at, version)
+VALUES ('2024', (SELECT id FROM spex_details WHERE title = 'Jeanne d''Arc'),
+        (SELECT id
+         FROM temp_spex
+         WHERE year = '2014'
+           AND details_id = (SELECT id FROM spex_details WHERE title = 'Jeanne d''Arc')), 'system', CURRENT_TIME, 0);
+
 DROP
     TEMPORARY TABLE temp_spex;
