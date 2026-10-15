@@ -645,6 +645,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_")
                     .postalCode(before.getPostalCode()).city(before.getCity()).country(before.getCountry())
                     .phone(before.getPhone()).phoneMobile(dto.phoneMobile()).emailAddress(before.getEmailAddress()).build();
@@ -862,6 +864,8 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(AddressDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final var updateDto = AddressUpdateDto.builder().id(before.getId()).streetAddress(before.getStreetAddress() + "_").build();
 

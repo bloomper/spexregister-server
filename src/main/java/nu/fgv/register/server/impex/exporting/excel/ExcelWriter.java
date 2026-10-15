@@ -45,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.StreamSupport;
 
 import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
@@ -85,10 +86,10 @@ public class ExcelWriter {
     private void setSheetName(final MessageSource messageSource, final Locale locale, final Workbook workbook, final Sheet sheet, final Class<?> clazz, @Nullable final String overrideSheetName) {
         final String sheetName;
         if (hasText(overrideSheetName)) {
-            sheetName = messageSource.getMessage(overrideSheetName, null, overrideSheetName, locale);
+            sheetName = Objects.requireNonNullElse(messageSource.getMessage(overrideSheetName, null, overrideSheetName, locale), overrideSheetName);
         } else if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             final String name = clazz.getAnnotation(ExcelSheet.class).name();
-            sheetName = messageSource.getMessage(name, null, name, locale);
+            sheetName = Objects.requireNonNullElse(messageSource.getMessage(name, null, name, locale), name);
         } else {
             sheetName = parseCamelCase(clazz.getSimpleName());
         }
@@ -104,7 +105,7 @@ public class ExcelWriter {
             final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
 
             String header = excelCell.header();
-            header = hasText(header) ? messageSource.getMessage(header, null, header, locale) : parseCamelCase(field.getName());
+            header = hasText(header) ? Objects.requireNonNullElse(messageSource.getMessage(header, null, header, locale), header) : parseCamelCase(field.getName());
 
             final Cell cell = row.createCell(position);
             cell.setCellValue(header);

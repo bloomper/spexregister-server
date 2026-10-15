@@ -71,9 +71,7 @@ public class StateApi {
     }
 
     private void addLinks(final EntityModel<StateDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     void addLinks(final StateDto dto) {

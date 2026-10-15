@@ -53,8 +53,8 @@ public record AuditedChildDescriptor(
                 entityClass,
                 parentProperty,
                 (Function<Object, Collection<Object>>) (Function<?, ?>) childrenOf,
-                (BiConsumer<Object, Object>) (BiConsumer<?, ?>) attachToParent,
-                (BiConsumer<Object, Object>) (BiConsumer<?, ?>) detachFromParent,
+                (BiConsumer<Object, Object>) attachToParent,
+                (BiConsumer<Object, Object>) detachFromParent,
                 children
         );
     }

@@ -37,6 +37,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -90,8 +91,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         e.getBindingResult().getAllErrors().forEach(error -> {
             final String fieldName = ((FieldError) error).getField();
-            final String message = error.getDefaultMessage();
-            errors.put(fieldName, message);
+            errors.put(fieldName, Objects.requireNonNullElse(error.getDefaultMessage(), ""));
         });
 
         final ProblemDetail problemDetail = createProblemDetail(e, HttpStatus.BAD_REQUEST, "Invalid input", "problemDetail.%s".formatted(e.getClass().getName()), null, request);

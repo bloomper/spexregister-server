@@ -45,9 +45,7 @@ public class TotalCountTypeVisitor extends GraphQLTypeVisitorStub {
                 && parent.getName().endsWith("Connection")) {
             final GraphQLCodeRegistry.Builder codeRegistry = context.getVarFromParents(GraphQLCodeRegistry.Builder.class);
 
-            if (codeRegistry != null) {
-                codeRegistry.dataFetcher(FieldCoordinates.coordinates(parent, fieldDefinition), DATA_FETCHER);
-            }
+            codeRegistry.dataFetcher(FieldCoordinates.coordinates(parent, fieldDefinition), DATA_FETCHER);
         }
 
         return TraversalControl.CONTINUE;

@@ -368,7 +368,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() {
             final SpexCreateDto dto = random.nextObject(SpexCreateDto.class);
 
             final SpexDto result = restTestClient
@@ -489,7 +489,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -508,6 +508,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexUpdateDto dto = SpexUpdateDto.builder()
                     .id(before.getId())
@@ -615,6 +617,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final SpexUpdateDto dto = SpexUpdateDto.builder()
                     .id(before.getId())
                     .title(before.getTitle() + "_")
@@ -667,7 +671,7 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
@@ -686,6 +690,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexUpdateDto dto = SpexUpdateDto.builder()
                     .id(before.getId())
@@ -767,6 +773,8 @@ class SpexApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexUpdateDto dto = SpexUpdateDto.builder()
                     .id(before.getId())

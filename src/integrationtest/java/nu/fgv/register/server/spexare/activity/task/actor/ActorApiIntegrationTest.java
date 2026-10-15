@@ -1175,6 +1175,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 
             restTestClient
@@ -1578,6 +1580,8 @@ class ActorApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(ActorDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final var updateDto = ActorUpdateDto.builder().id(before.getId()).role(before.getRole() + "_").build();
 

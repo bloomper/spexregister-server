@@ -424,6 +424,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -525,6 +527,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -593,6 +597,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexCategoryDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -670,6 +676,8 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexCategoryDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexCategoryUpdateDto dto = SpexCategoryUpdateDto.builder()
                     .id(before.getId())

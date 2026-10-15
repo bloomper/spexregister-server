@@ -46,9 +46,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -80,7 +82,6 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
     @Override
     protected GraphQLError resolveToSingleError(final Throwable ex, final DataFetchingEnvironment environment) {
         return switch (ex) {
-            case final AuthorizationDeniedException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final AccessDeniedException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final AuthenticationException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final BadRequestException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
@@ -94,8 +95,6 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
             case final ResourceNoValueException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final ResourcesNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final SubresourceAlreadyExistsException e ->
-                    buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
-            case final ObjectOptimisticLockingFailureException e ->
                     buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
             case final OptimisticLockingFailureException e ->
                     buildGraphqlError(CustomErrorType.CONFLICT, e, environment);
@@ -115,7 +114,7 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
                     .path(environment.getExecutionStepInfo().getPath())
                     .location(environment.getField().getSourceLocation())
                     .extensions(Map.of(
-                            "type", problemDetail.getType(),
+                            "type", Objects.requireNonNullElse(problemDetail.getType(), URI.create("about:blank")),
                             "title", problemDetail.getTitle() != null ? problemDetail.getTitle() : "",
                             "status", problemDetail.getStatus(),
                             "detail", message != null ? message : "",

@@ -105,7 +105,6 @@ public class SecurityUtil {
 
     private static Optional<Object> getCurrentUserClaim(final String claim) {
         return getJwtToken()
-                .filter(token -> token.getClaims() != null)
                 .map(token -> token.getClaims()
                         .entrySet()
                         .stream()
@@ -118,7 +117,7 @@ public class SecurityUtil {
     }
 
     private static Optional<Jwt> getJwtToken() {
-        return Optional.ofNullable(SecurityContextHolder.getContext())
+        return Optional.of(SecurityContextHolder.getContext())
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)

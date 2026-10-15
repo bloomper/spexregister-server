@@ -181,9 +181,7 @@ public class TaskCategoryApi {
     }
 
     private void addLinks(final EntityModel<TaskCategoryDto> entity) {
-        if (entity.getContent() != null) {
-            addLinks(entity.getContent());
-        }
+        addLinks(entity.getContent());
     }
 
     void addLinks(final TaskCategoryDto dto) {

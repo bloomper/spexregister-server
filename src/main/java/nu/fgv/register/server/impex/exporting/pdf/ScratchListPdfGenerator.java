@@ -37,6 +37,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -78,7 +79,7 @@ public class ScratchListPdfGenerator implements PdfGenerator {
             final Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
             final Color lightGray = new Color(204, 204, 204);
 
-            final String fullNameHeader = messageSource.getMessage("impex.export.pdf.scratchList.fullName", null, "impex.export.pdf.scratchList.fullName", locale);
+            final String fullNameHeader = Objects.requireNonNullElse(messageSource.getMessage("impex.export.pdf.scratchList.fullName", null, "impex.export.pdf.scratchList.fullName", locale), "impex.export.pdf.scratchList.fullName");
             final PdfPCell headerSpan = new PdfPCell(new Phrase(""));
 
             headerSpan.setColspan(4);

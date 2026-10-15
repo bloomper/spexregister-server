@@ -385,7 +385,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var news = persistNews(randomizeNews());
             grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
@@ -401,6 +401,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(NewsDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -494,6 +496,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
                     .subject(before.getSubject() + "_")
@@ -552,6 +556,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(NewsDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -625,6 +631,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(NewsDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final NewsUpdateDto dto = NewsUpdateDto.builder()
                     .id(before.getId())
@@ -738,7 +746,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     class PermissionTests {
 
         @Test
-        void should_create_non_published() throws Exception {
+        void should_create_non_published() {
             final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
             final var dto = randDto.toBuilder()
                     .visibleFrom(LocalDate.now().plusDays(1))
@@ -756,6 +764,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(NewsDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(created).isNotNull();
 
             restTestClient
                     .get()
@@ -785,7 +795,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        void should_create_published() throws Exception {
+        void should_create_published() {
             final NewsCreateDto randDto = random.nextObject(NewsCreateDto.class);
             final var dto = randDto.toBuilder()
                     .visibleFrom(LocalDate.now().minusDays(1))
@@ -803,6 +813,8 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(NewsDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(created).isNotNull();
 
             restTestClient
                     .get()

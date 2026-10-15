@@ -174,6 +174,7 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         userRepresentation.setEnabled(false);
 
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
         credentialRepresentation.setValue(generateTemporaryPassword());
         credentialRepresentation.setTemporary(true);

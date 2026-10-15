@@ -70,9 +70,7 @@ public class AuthorityApi {
     }
 
     private void addLinks(final EntityModel<AuthorityDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     void addLinks(final AuthorityDto dto) {

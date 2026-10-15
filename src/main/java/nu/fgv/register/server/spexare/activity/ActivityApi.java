@@ -94,9 +94,7 @@ public class ActivityApi {
     }
 
     private void addLinks(final EntityModel<ActivityDto> entity, final Long spexareId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
     void addLinks(final ActivityDto dto, final Long spexareId) {

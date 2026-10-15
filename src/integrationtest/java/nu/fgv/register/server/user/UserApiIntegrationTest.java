@@ -180,6 +180,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         userRepresentation.setEnabled(false);
 
         final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
         credentialRepresentation.setValue(generateTemporaryPassword());
         credentialRepresentation.setTemporary(true);
@@ -674,6 +675,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())
                     .email("a" + before.getEmail())
@@ -774,6 +777,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())
                     .email("a" + before.getEmail())
@@ -842,6 +847,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(UserDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())
@@ -921,6 +928,8 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(UserDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final UserUpdateDto dto = UserUpdateDto.builder()
                     .id(before.getId())

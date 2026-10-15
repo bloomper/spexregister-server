@@ -22,7 +22,7 @@ query analytics {
                 count
             }
             taskCount
-            taskCountHistory {
+            taskCountByCategory {
                 label
                 count
             }

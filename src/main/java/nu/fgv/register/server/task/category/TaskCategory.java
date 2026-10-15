@@ -37,6 +37,7 @@ import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.PropertyBinderRef;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyBinding;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -76,7 +77,7 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
     private Boolean actorPresent;
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

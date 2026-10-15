@@ -27,6 +27,7 @@ import org.springframework.context.MessageSource;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
@@ -75,7 +76,7 @@ public class BooleanTypeBinder<T> extends AbstractHierarchicalTypeBinder {
 
                 if (fieldReference != null) {
                     final Locale locale = Locale.forLanguageTag(lang);
-                    final String booleanLabel = messageSource.getMessage("boolean.%s".formatted(value), null, String.valueOf(value), locale);
+                    final String booleanLabel = Objects.requireNonNullElse(messageSource.getMessage("boolean.%s".formatted(value), null, String.valueOf(value), locale), String.valueOf(value));
 
                     final String displayValue = includeGroupLabel ?
                             typeLabel + AGGREGATION_COMPOSITE_DELIMITER + booleanLabel :

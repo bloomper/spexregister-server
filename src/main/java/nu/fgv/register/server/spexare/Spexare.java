@@ -99,7 +99,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
 
     public static final String INDEX_SOCIAL_SECURITY_NUMBER_HASH = "socialSecurityNumberHash";
     public static final String INDEX_BIRTH_DATE = "birthDate";
-    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20|21)([0-9]{2})((0[1-9])|(10|11|12))(([0][1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
+    public static final String SOCIAL_SECURITY_NUMBER_PATTERN = "(19|20|21)([0-9]{2})((0[1-9])|(10|11|12))((0[1-9])|([1-2][0-9])|(3[0-1]))(-(\\d{3})(\\d))?"; // NOSONAR
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -259,9 +259,7 @@ public class Spexare extends AbstractAuditable implements Serializable {
     public int getSpexCount() {
         return Math.toIntExact(spexActivities()
                 .map(SpexActivity::getSpex)
-                .filter(Objects::nonNull)
                 .map(Spex::getId)
-                .filter(Objects::nonNull)
                 .distinct()
                 .count());
     }
@@ -277,13 +275,11 @@ public class Spexare extends AbstractAuditable implements Serializable {
     private Stream<String> spexYears() {
         return spexActivities()
                 .map(SpexActivity::getSpex)
-                .filter(Objects::nonNull)
-                .map(Spex::getYear)
-                .filter(Objects::nonNull);
+                .map(Spex::getYear);
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

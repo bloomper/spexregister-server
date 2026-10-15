@@ -23,6 +23,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import nu.fgv.register.server.util.validation.Luhn;
+import org.jspecify.annotations.Nullable;
 
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
@@ -53,7 +54,7 @@ public record SpexareUpdateDto(
         @Pattern(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, message = "{spexare.socialSecurityNumber.regexp}")
         @Luhn(regexp = SOCIAL_SECURITY_NUMBER_PATTERN, existenceGroup = 10, inputGroups = {2, 3, 6, 11}, controlGroup = 12, message = "{spexare.socialSecurityNumber.luhn}")
         @JsonProperty("socialSecurityNumber")
-        String socialSecurityNumber,
+        @Nullable String socialSecurityNumber,
 
         @JsonProperty("deceased")
         Boolean deceased,

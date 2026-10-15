@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
@@ -90,13 +91,13 @@ public class ExcelReader {
                     .filter(f -> f.getType() == ImpexAction.class)
                     .findFirst()
                     .ifPresent(field -> {
-                        final Integer position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
-                        if (position != null && position >= 0) {
+                        final int position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
+                        if (position >= 0) {
                             final Cell cell = row.getCell(position);
                             if (cell != null) {
                                 try {
                                     setCellValueToField(dto, field, cell);
-                                } catch (IllegalAccessException e) {
+                                } catch (final IllegalAccessException e) {
                                     log.warn("Could not set action field", e);
                                 }
                             }
@@ -104,8 +105,8 @@ public class ExcelReader {
                     });
 
             for (final Field field : fields) {
-                final Integer position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
-                if (position == null || position < 0) {
+                final int position = fieldColumnMap.getOrDefault(field, determinePosition(field, maxPosition, false));
+                if (position < 0) {
                     continue;
                 }
 
@@ -146,7 +147,7 @@ public class ExcelReader {
         fields.forEach(field -> {
             final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
             final String expectedHeader = hasText(excelCell.header()) ?
-                    messageSource.getMessage(excelCell.header(), null, excelCell.header(), locale) :
+                    Objects.requireNonNullElse(messageSource.getMessage(excelCell.header(), null, excelCell.header(), locale), excelCell.header()) :
                     parseCamelCase(field.getName());
 
             if (headerToIndexMap.containsKey(expectedHeader)) {

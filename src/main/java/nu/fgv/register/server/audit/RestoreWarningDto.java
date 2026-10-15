@@ -34,7 +34,7 @@ public record RestoreWarningDto(
 ) {
     public static final String ID_REASSIGNED = "ID_REASSIGNED";
 
-    public static RestoreWarningDto idReassigned(final AuditedType type, final Long previousId, final Long newId) {
+    public static RestoreWarningDto idReassigned(final AuditedType type, final @Nullable Long previousId, final @Nullable Long newId) {
         return RestoreWarningDto.builder()
                 .code(ID_REASSIGNED)
                 .message("%s %d was re-created as %d".formatted(type, previousId, newId))

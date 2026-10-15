@@ -29,6 +29,7 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -196,7 +197,9 @@ public class PermissionService {
     }
 
     public <T> boolean hasPermission(final T object, final Permission permission) {
-        return permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(), object, permission);
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null && permissionEvaluator.hasPermission(authentication, object, permission);
     }
 
 }

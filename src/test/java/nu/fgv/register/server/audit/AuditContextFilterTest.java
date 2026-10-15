@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,7 +48,7 @@ class AuditContextFilterTest {
         final AtomicReference<String> recorded = new AtomicReference<>();
 
         request.addHeader(AuditContextFilter.REASON_HEADER, header);
-        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(AuditContext.current().comment()));
+        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(Objects.requireNonNull(AuditContext.current()).comment()));
 
         return recorded.get();
     }

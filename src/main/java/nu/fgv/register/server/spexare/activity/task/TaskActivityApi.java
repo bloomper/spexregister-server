@@ -115,9 +115,7 @@ public class TaskActivityApi {
     }
 
     private void addLinks(final EntityModel<TaskActivityDto> entity, final Long spexareId, final Long activityId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId));
     }
 
     void addLinks(final TaskActivityDto dto, final Long spexareId, final Long activityId) {

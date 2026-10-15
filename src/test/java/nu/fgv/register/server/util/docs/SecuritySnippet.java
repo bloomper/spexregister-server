@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.docs;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.restdocs.operation.Operation;
 import org.springframework.restdocs.snippet.TemplatedSnippet;
 
@@ -26,6 +27,7 @@ import java.util.Map;
  * @author Anders Jacobsson
  * @since 2.0
  */
+@NullMarked
 public class SecuritySnippet extends TemplatedSnippet {
 
     public SecuritySnippet(final boolean authenticationRequired, final List<String> roles) {

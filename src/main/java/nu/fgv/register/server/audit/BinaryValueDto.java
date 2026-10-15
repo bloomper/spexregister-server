@@ -16,11 +16,13 @@
 
 package nu.fgv.register.server.audit;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * The bytes of an audited binary property as they were at a given revision.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
-public record BinaryValueDto(byte[] content, String contentType) {
+public record BinaryValueDto(byte[] content, @Nullable String contentType) {
 }

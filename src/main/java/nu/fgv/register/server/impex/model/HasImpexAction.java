@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.impex.model;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -25,7 +27,7 @@ public interface HasImpexAction {
 
     void setAction(ImpexAction action);
 
-    Integer getRowNumber();
+    @Nullable Integer getRowNumber();
 
     void setRowNumber(Integer rowNumber);
 }

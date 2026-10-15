@@ -185,9 +185,7 @@ public class NewsApi {
     }
 
     private void addLinks(final EntityModel<NewsDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     List<Link> getLinks(final NewsDto dto) {

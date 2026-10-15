@@ -38,6 +38,7 @@ import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.PropertyBinder
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyBinding;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -73,7 +74,7 @@ public class Tag extends AbstractAuditable implements Serializable {
     private String name;
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

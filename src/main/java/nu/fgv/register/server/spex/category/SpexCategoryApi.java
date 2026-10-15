@@ -222,9 +222,7 @@ public class SpexCategoryApi {
     }
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
-        if (entity.getContent() != null) {
-            addLinks(entity.getContent());
-        }
+        addLinks(entity.getContent());
     }
 
     void addLinks(final SpexCategoryDto dto) {

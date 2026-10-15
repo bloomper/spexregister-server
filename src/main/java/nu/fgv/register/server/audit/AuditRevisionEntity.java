@@ -39,6 +39,7 @@ import org.hibernate.envers.ModifiedEntityNames;
 import org.hibernate.envers.RevisionEntity;
 import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -77,9 +78,11 @@ public class AuditRevisionEntity {
     private AuditSource source;
 
     @Column(name = "operation")
+    @Nullable
     private String operation;
 
     @Column(name = "comment", length = 512)
+    @Nullable
     private String comment;
 
     @ElementCollection(
@@ -104,7 +107,7 @@ public class AuditRevisionEntity {
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(final @Nullable Object obj) {
         if (this == obj) {
             return true;
         }

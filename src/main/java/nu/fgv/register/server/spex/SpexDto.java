@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -51,6 +52,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private String title;
 
     @JsonProperty("revival")
+    @Nullable
     private Boolean revival;
 
     @JsonProperty("posterUrl")
@@ -61,7 +63,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
             final Long id,
             final String year,
             final String title,
-            final Boolean revival,
+            final @Nullable Boolean revival,
             final String posterUrl,
             final String createdBy,
             final Instant createdAt,

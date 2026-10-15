@@ -108,9 +108,7 @@ public class ToggleApi {
     }
 
     private void addLinks(final EntityModel<ToggleDto> entity, final Long spexareId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
     void addLinks(final ToggleDto dto, final Long spexareId) {

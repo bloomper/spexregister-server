@@ -130,7 +130,7 @@ public class UserApi {
 
     @GetMapping(value = "/me", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<EntityModel<UserDto>> retrieve(@AuthenticationPrincipal final Jwt jwt) {
-        final UserDto dto = service.findByExternalId(jwt.getSubject());
+        final UserDto dto = service.findByExternalId(Objects.requireNonNull(jwt.getSubject()));
 
         if (dto == null) {
             return ResponseEntity.notFound().build();
@@ -292,9 +292,7 @@ public class UserApi {
     }
 
     private void addLinks(final EntityModel<UserDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     void addLinks(final UserDto dto) {

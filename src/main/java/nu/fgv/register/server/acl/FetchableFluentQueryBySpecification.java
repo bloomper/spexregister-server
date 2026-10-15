@@ -19,6 +19,7 @@ package nu.fgv.register.server.acl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -110,7 +111,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
         return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
     }
 
-    public R oneValue() {
+    public @Nullable R oneValue() {
         final List<?> results = createSortedAndProjectedQuery().setMaxResults(2).getResultList();
 
         if (results.size() > 1) {
@@ -120,7 +121,7 @@ public class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySuppor
         }
     }
 
-    public R firstValue() {
+    public @Nullable R firstValue() {
         final List<?> results = createSortedAndProjectedQuery().setMaxResults(1).getResultList();
 
         return results.isEmpty() ? null : getConversionFunction().apply(results.getFirst());

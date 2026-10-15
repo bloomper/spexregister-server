@@ -208,46 +208,44 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                 b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
                             }
                             if (query.aggregationFilters() != null && !query.aggregationFilters().isEmpty()) {
-                                b.must(f.bool().with(fb -> {
-                                    query.aggregationFilters().forEach(a -> {
-                                        if (AGGREGATION_DATA_QUALITY.equals(a.name())) {
-                                            DataQualityIssue.fromKey(a.value())
-                                                    .ifPresent(issue -> applyDataQualityIssue(f, fb, issue));
-                                            return;
-                                        }
-                                        final String fullKey = AGGREGATIONS.stream()
-                                                .filter(key -> key.endsWith(AGGREGATION_COMPOSITE_DELIMITER + a.name()) || key.equals(a.name()))
-                                                .findFirst()
-                                                .orElseThrow(() -> new BadRequestException("Unknown facet %s".formatted(a.name())));
+                                b.must(f.bool().with(fb -> query.aggregationFilters().forEach(a -> {
+                                    if (AGGREGATION_DATA_QUALITY.equals(a.name())) {
+                                        DataQualityIssue.fromKey(a.value())
+                                                .ifPresent(issue -> applyDataQualityIssue(f, fb, issue));
+                                        return;
+                                    }
+                                    final String fullKey = AGGREGATIONS.stream()
+                                            .filter(key -> key.endsWith(AGGREGATION_COMPOSITE_DELIMITER + a.name()) || key.equals(a.name()))
+                                            .findFirst()
+                                            .orElseThrow(() -> new BadRequestException("Unknown facet %s".formatted(a.name())));
 
-                                        String fieldPath = fullKey.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
+                                    String fieldPath = fullKey.split(Pattern.quote(AGGREGATION_COMPOSITE_DELIMITER))[0];
 
-                                        if (fieldPath.endsWith(AGGREGATION_HIERARCHICAL_MARKER)) {
-                                            fieldPath = fieldPath.substring(0, fieldPath.length() - AGGREGATION_HIERARCHICAL_MARKER.length() - 1);
-                                            final String localizedField = fieldPath + ATTRIBUTE_DELIMITER + AGGREGATION_HIERARCHICAL_MARKER + LocaleContextHolder.getLocale().getLanguage();
-                                            final String filterValue = a.value().toLowerCase();
+                                    if (fieldPath.endsWith(AGGREGATION_HIERARCHICAL_MARKER)) {
+                                        fieldPath = fieldPath.substring(0, fieldPath.length() - AGGREGATION_HIERARCHICAL_MARKER.length() - 1);
+                                        final String localizedField = fieldPath + ATTRIBUTE_DELIMITER + AGGREGATION_HIERARCHICAL_MARKER + LocaleContextHolder.getLocale().getLanguage();
+                                        final String filterValue = a.value().toLowerCase();
 
-                                            fb.must(f.wildcard().field(localizedField).matching(filterValue + AGGREGATION_COMPOSITE_DELIMITER + "*"));
-                                        } else if (fieldPath.endsWith("_")) {
-                                            final String localizedField = fieldPath + LocaleContextHolder.getLocale().getLanguage();
-                                            final String filterValue = a.value().toLowerCase();
+                                        fb.must(f.wildcard().field(localizedField).matching(filterValue + AGGREGATION_COMPOSITE_DELIMITER + "*"));
+                                    } else if (fieldPath.endsWith("_")) {
+                                        final String localizedField = fieldPath + LocaleContextHolder.getLocale().getLanguage();
+                                        final String filterValue = a.value().toLowerCase();
 
-                                            fb.must(f.wildcard().field(localizedField).matching(filterValue + AGGREGATION_COMPOSITE_DELIMITER + "*"));
-                                        } else if (BOOLEAN_AGGREGATIONS.contains(fieldPath)) {
-                                            fb.must(f.match().field(fieldPath).matching(Boolean.valueOf(a.value())));
-                                        } else if (FACET_SPEX_COUNTS.equals(a.name())) {
-                                            fb.must(f.match().field(fieldPath).matching(parseCount(a.value())));
+                                        fb.must(f.wildcard().field(localizedField).matching(filterValue + AGGREGATION_COMPOSITE_DELIMITER + "*"));
+                                    } else if (BOOLEAN_AGGREGATIONS.contains(fieldPath)) {
+                                        fb.must(f.match().field(fieldPath).matching(Boolean.valueOf(a.value())));
+                                    } else if (FACET_SPEX_COUNTS.equals(a.name())) {
+                                        fb.must(f.match().field(fieldPath).matching(parseCount(a.value())));
+                                    } else {
+                                        final Matcher range = YEAR_RANGE_PATTERN.matcher(a.value());
+
+                                        if (range.matches() && YEAR_RANGE_FACETS.contains(a.name())) {
+                                            fb.must(f.range().field(fieldPath).between(range.group(1), range.group(2)));
                                         } else {
-                                            final Matcher range = YEAR_RANGE_PATTERN.matcher(a.value());
-
-                                            if (range.matches() && YEAR_RANGE_FACETS.contains(a.name())) {
-                                                fb.must(f.range().field(fieldPath).between(range.group(1), range.group(2)));
-                                            } else {
-                                                fb.must(f.match().field(fieldPath).matching(a.value()));
-                                            }
+                                            fb.must(f.match().field(fieldPath).matching(a.value()));
                                         }
-                                    });
-                                }));
+                                    }
+                                })));
                             }
                         })
                 )

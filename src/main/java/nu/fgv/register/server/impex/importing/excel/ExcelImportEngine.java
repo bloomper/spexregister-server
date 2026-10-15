@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -108,11 +109,11 @@ public class ExcelImportEngine implements ImportEngine {
 
     private String getSheetName(final Class<?> clazz, final Locale locale, @Nullable final String override) {
         if (hasText(override)) {
-            return messageSource.getMessage(override, null, override, locale);
+            return Objects.requireNonNullElse(messageSource.getMessage(override, null, override, locale), override);
         }
         if (clazz.isAnnotationPresent(ExcelSheet.class)) {
             final String key = clazz.getAnnotation(ExcelSheet.class).name();
-            return messageSource.getMessage(key, null, key, locale);
+            return Objects.requireNonNullElse(messageSource.getMessage(key, null, key, locale), key);
         }
         return clazz.getSimpleName();
     }

@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditQuery;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -74,7 +75,7 @@ public class EnversAuditSupport {
         return auditReader().getRevisions(entityType, id);
     }
 
-    public <E, ID> E findAtRevision(final Class<E> entityType, final ID id, final Number revision) {
+    public <E, ID> @Nullable E findAtRevision(final Class<E> entityType, final ID id, final Number revision) {
         return auditReader().find(entityType, id, revision);
     }
 }

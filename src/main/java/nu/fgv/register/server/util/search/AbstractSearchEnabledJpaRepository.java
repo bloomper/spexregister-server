@@ -28,6 +28,7 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -59,12 +60,12 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
     }
 
     @Override
-    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
+    public SearchResult<T> search(final String query, final @Nullable List<AggregationFilter> aggregationFilters, final Pageable pageable) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), pageable);
     }
 
     @Override
-    public SearchResult<T> search(final String query, final List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
+    public SearchResult<T> search(final String query, final @Nullable List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), offset, limit, sort);
     }
 
@@ -72,7 +73,7 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         return Search.session(entityManager);
     }
 
-    SearchQuery parseQuery(final String query, final List<AggregationFilter> aggregationFilters) {
+    SearchQuery parseQuery(final String query, final @Nullable List<AggregationFilter> aggregationFilters) {
         final String freeTextQuery = hasText(query) ? query.strip() : "";
 
         return new SearchQuery(freeTextQuery, aggregationFilters);

@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.validation;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 import nu.fgv.register.server.spexare.Spexare;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +65,7 @@ class LuhnValidatorTest {
         assertThat(validator.isValid("20120606", constraintValidatorContext), is(true));
     }
 
+    @NullMarked
     private static class SocialSecurityNumberTestClass implements Luhn {
 
         @Override

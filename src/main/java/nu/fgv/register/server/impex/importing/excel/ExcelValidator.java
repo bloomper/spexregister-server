@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
@@ -116,7 +117,7 @@ public class ExcelValidator {
         fields.forEach(field -> {
             final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
             final String expectedHeader = hasText(excelCell.header()) ?
-                    messageSource.getMessage(excelCell.header(), null, excelCell.header(), locale) :
+                    Objects.requireNonNullElse(messageSource.getMessage(excelCell.header(), null, excelCell.header(), locale), excelCell.header()) :
                     parseCamelCase(field.getName());
 
             if (headerToIndexMap.containsKey(expectedHeader)) {
@@ -137,7 +138,7 @@ public class ExcelValidator {
                               final Map<Field, Integer> fieldColumnMap,
                               final Validator validator,
                               final List<String> messages) {
-        final String rowTranslation = messageSource.getMessage("impex.import.validation.row", null, "Row", locale);
+        final String rowTranslation = Objects.requireNonNullElse(messageSource.getMessage("impex.import.validation.row", null, "Row", locale), "Row");
 
         sheet.rowIterator().forEachRemaining(row -> {
             if (row.getRowNum() == 0 || isRowEmpty(row)) {

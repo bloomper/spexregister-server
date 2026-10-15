@@ -160,7 +160,7 @@ public class JobService {
                         return Mono.error(new InternalErrorException("Job is not finished or failed"));
                     }
 
-                    final String path = execution.getExecutionContext().getString("outputFilePath", null);
+                    final String path = contextString(execution, "outputFilePath");
 
                     if (path == null) {
                         return Mono.error(new ResourceNoValueException("Job", "outputFilePath", jobId));
@@ -186,7 +186,7 @@ public class JobService {
                 .map(Authentication::getName)
                 .map(currentUser -> {
                     final String sql = "SELECT JOB_EXECUTION_ID FROM BATCH_JOB_EXECUTION_PARAMS WHERE PARAMETER_NAME = 'requestor' AND PARAMETER_VALUE = ?";
-                    final List<Long> ids = jdbcTemplate.queryForList(sql, Long.class, currentUser);
+                    final List<Long> ids = jdbcTemplate.query(sql, (rs, _) -> rs.getLong(1), currentUser);
 
                     return ids.stream()
                             .map(jobRepository::getJobExecution)
@@ -221,8 +221,8 @@ public class JobService {
         final Long jobExecutionId = execution.getId();
         final Long jobInstanceId = execution.getJobInstance().getId();
 
-        final String outputFilePath = execution.getExecutionContext().getString("outputFilePath", null);
-        final String importFilePath = execution.getJobParameters().getString("filePath", null);
+        final String outputFilePath = contextString(execution, "outputFilePath");
+        final String importFilePath = execution.getJobParameters().getString("filePath");
 
         deleteFileIfPresent(outputFilePath);
         deleteFileIfPresent(importFilePath);
@@ -248,11 +248,11 @@ public class JobService {
         return ReactiveSecurityContextHolder.getContext()
                 .mapNotNull(SecurityContext::getAuthentication)
                 .switchIfEmpty(Mono.fromSupplier(() -> SecurityContextHolder.getContext().getAuthentication()))
-                .filter(auth -> auth != null && auth.isAuthenticated());
+                .filter(Authentication::isAuthenticated);
     }
 
     private JobDto mapToJob(final JobExecution execution) {
-        final String outputFilePath = execution.getExecutionContext().getString("outputFilePath", null);
+        final String outputFilePath = contextString(execution, "outputFilePath");
         final boolean hasDownload = execution.getStatus() == BatchStatus.COMPLETED
                 && outputFilePath != null
                 && Files.exists(Paths.get(outputFilePath));
@@ -267,7 +267,7 @@ public class JobService {
                 .finishedAt(execution.getEndTime() != null ? execution.getEndTime().toInstant(ZoneOffset.UTC) : null)
                 .hasDownload(hasDownload);
 
-        final String importResult = execution.getExecutionContext().getString("importResult", null);
+        final String importResult = contextString(execution, "importResult");
 
         if (importResult != null) {
             try {
@@ -306,7 +306,11 @@ public class JobService {
                 );
     }
 
-    private void deleteFileIfPresent(final String path) {
+    private static @Nullable String contextString(final JobExecution execution, final String key) {
+        return execution.getExecutionContext().get(key) instanceof final String value ? value : null;
+    }
+
+    private void deleteFileIfPresent(final @Nullable String path) {
         if (path == null || path.isBlank()) {
             return;
         }

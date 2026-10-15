@@ -340,32 +340,30 @@ public class UserService {
             repository.findById0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresentOrElse(
-                            user -> {
-                                findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
-                                    final List<RoleRepresentation> currentRoles = resource
+                            user -> findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
+                                final List<RoleRepresentation> currentRoles = resource
+                                        .roles()
+                                        .clientLevel(keycloakClientId)
+                                        .listAll();
+
+                                final List<String> currentRoleNames = currentRoles.stream()
+                                        .map(RoleRepresentation::getName)
+                                        .toList();
+
+                                final List<RoleRepresentation> rolesToAdd = ids.stream()
+                                        .filter(id -> !currentRoleNames.contains(id))
+                                        .map(authorityService::getRoleRepresentationById)
+                                        .toList();
+
+                                if (!rolesToAdd.isEmpty()) {
+                                    resource
                                             .roles()
                                             .clientLevel(keycloakClientId)
-                                            .listAll();
-
-                                    final List<String> currentRoleNames = currentRoles.stream()
-                                            .map(RoleRepresentation::getName)
-                                            .toList();
-
-                                    final List<RoleRepresentation> rolesToAdd = ids.stream()
-                                            .filter(id -> !currentRoleNames.contains(id))
-                                            .map(authorityService::getRoleRepresentationById)
-                                            .toList();
-
-                                    if (!rolesToAdd.isEmpty()) {
-                                        resource
-                                                .roles()
-                                                .clientLevel(keycloakClientId)
-                                                .add(rolesToAdd);
-                                        user.setLastModifiedAt(Instant.now());
-                                        repository.save(user);
-                                    }
-                                });
-                            },
+                                            .add(rolesToAdd);
+                                    user.setLastModifiedAt(Instant.now());
+                                    repository.save(user);
+                                }
+                            }),
                             () -> {
                                 throw new ExternalResourceNotFoundException(User.class, userId);
                             });
@@ -385,27 +383,25 @@ public class UserService {
             repository.findById0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresentOrElse(
-                            user -> {
-                                findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
-                                    final List<RoleRepresentation> currentRoles = resource
+                            user -> findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
+                                final List<RoleRepresentation> currentRoles = resource
+                                        .roles()
+                                        .clientLevel(keycloakClientId)
+                                        .listAll();
+
+                                final List<RoleRepresentation> rolesToRemove = currentRoles.stream()
+                                        .filter(r -> ids.contains(r.getName()))
+                                        .toList();
+
+                                if (!rolesToRemove.isEmpty()) {
+                                    resource
                                             .roles()
                                             .clientLevel(keycloakClientId)
-                                            .listAll();
-
-                                    final List<RoleRepresentation> rolesToRemove = currentRoles.stream()
-                                            .filter(r -> ids.contains(r.getName()))
-                                            .toList();
-
-                                    if (!rolesToRemove.isEmpty()) {
-                                        resource
-                                                .roles()
-                                                .clientLevel(keycloakClientId)
-                                                .remove(rolesToRemove);
-                                        user.setLastModifiedAt(Instant.now());
-                                        repository.save(user);
-                                    }
-                                });
-                            },
+                                            .remove(rolesToRemove);
+                                    user.setLastModifiedAt(Instant.now());
+                                    repository.save(user);
+                                }
+                            }),
                             () -> {
                                 throw new ResourceNotFoundException(String.format("User %s does not exist in Keycloak", userId));
                             });

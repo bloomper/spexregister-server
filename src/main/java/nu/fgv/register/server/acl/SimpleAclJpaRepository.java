@@ -80,7 +80,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
     private static long executeCountQuery(final TypedQuery<Long> query) {
         Assert.notNull(query, "TypedQuery must not be null!");
-        final List<Long> totals = query.getResultList();
+        final List<@Nullable Long> totals = query.getResultList();
 
         return totals.stream().mapToLong(total -> null == total ? 0 : total).sum();
     }
@@ -353,7 +353,7 @@ public class SimpleAclJpaRepository<T, ID extends Serializable> extends SimpleJp
 
     private List<GrantedAuthoritySid> getRelevantAuthorities(final Authentication authentication) {
         return authentication.getAuthorities().stream()
-                .filter(g -> g.getAuthority().startsWith("ROLE_spexregister_"))
+                .filter(g -> g.getAuthority() != null && g.getAuthority().startsWith("ROLE_spexregister_"))
                 .map(GrantedAuthoritySid::new)
                 .toList();
     }

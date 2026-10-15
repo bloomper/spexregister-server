@@ -20,6 +20,7 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -42,7 +43,7 @@ class CryptoConverterTest {
         final String encryptedValue = converter.convertToDatabaseColumn(plainValue);
 
         assertThat(encryptedValue, is(not(equalTo(plainValue))));
-        assertThat(converter.convertToEntityAttribute(encryptedValue), is(equalTo(plainValue)));
+        assertThat(converter.convertToEntityAttribute(Objects.requireNonNull(encryptedValue)), is(equalTo(plainValue)));
     }
 
     @Test

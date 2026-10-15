@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 
@@ -41,9 +42,9 @@ public record NewsCreateDto(
         String text,
 
         @JsonProperty("visibleFrom")
-        LocalDate visibleFrom,
+        @Nullable LocalDate visibleFrom,
 
         @JsonProperty("visibleTo")
-        LocalDate visibleTo
+        @Nullable LocalDate visibleTo
 ) {
 }

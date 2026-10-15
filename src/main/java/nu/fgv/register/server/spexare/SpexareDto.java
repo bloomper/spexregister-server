@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditableDto;
+import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
@@ -54,6 +55,7 @@ public class SpexareDto extends AbstractAuditableDto<SpexareDto> {
     private String nickName;
 
     @JsonProperty("socialSecurityNumber")
+    @Nullable
     private String socialSecurityNumber;
 
     @JsonProperty("deceased")

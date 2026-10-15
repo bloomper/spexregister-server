@@ -22,6 +22,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Anders Jacobsson
@@ -37,6 +38,11 @@ public class TaskSpecification extends BaseSpecification<Task> {
 
     public TaskSpecification(final FilterCriteria criteria) {
         super(criteria);
+    }
+
+    @Override
+    protected Set<String> nestedPaths() {
+        return Set.of("category.id", "category.name");
     }
 
     public static Specification<Task> hasIds(final List<Long> ids) {

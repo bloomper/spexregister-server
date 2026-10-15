@@ -80,9 +80,5 @@ class CellTypedWriter {
         cell.setCellValue(value);
     };
 
-    public final BiConsumer<Cell, Object> stringWriter = (Cell cell, Object obj) -> {
-        if (obj != null) {
-            cell.setCellValue(obj.toString());
-        }
-    };
+    public final BiConsumer<Cell, Object> stringWriter = (Cell cell, Object obj) -> cell.setCellValue(obj.toString());
 }

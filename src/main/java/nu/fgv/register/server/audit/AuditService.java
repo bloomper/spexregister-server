@@ -94,9 +94,8 @@ public class AuditService {
 
     private static @Nullable Long asLong(final @Nullable Object id) {
         return switch (id) {
-            case null -> null;
             case final Number number -> number.longValue();
-            default -> null;
+            case null, default -> null;
         };
     }
 
@@ -424,7 +423,7 @@ public class AuditService {
 
         criteria.parameters().forEach(query::setParameter);
 
-        return Optional.ofNullable(query.getSingleResult()).orElse(0L);
+        return query.getSingleResult();
     }
 
     private List<AuditRevisionEntity> queryFeed(final FeedCriteria criteria, final int offset, final int limit) {
@@ -515,7 +514,7 @@ public class AuditService {
      * addresses and actors is the spexare they hang off. Deleted entities have nothing to open.
      */
     private @Nullable RevisionTargetDto targetOf(final AuditedEntityDescriptor descriptor, final Object id) {
-        final Function<Object, Object> aclRoot = descriptor.aclRoot();
+        final Function<Object, @Nullable Object> aclRoot = descriptor.aclRoot();
 
         if (aclRoot == null) {
             return null;

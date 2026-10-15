@@ -406,6 +406,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -507,6 +509,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -575,6 +579,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TaskCategoryDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())
@@ -652,6 +658,8 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TaskCategoryDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TaskCategoryUpdateDto dto = TaskCategoryUpdateDto.builder()
                     .id(before.getId())

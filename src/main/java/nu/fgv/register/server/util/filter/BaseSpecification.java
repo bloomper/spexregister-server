@@ -53,53 +53,53 @@ public class BaseSpecification<T> implements Specification<T> {
         if (criteria == null) {
             return null;
         }
-        final Path<T> path = getPath(root, criteria.getKey());
+        final Path<T> path = getPath(root, criteria.key());
 
-        return switch (criteria.getOperation()) {
+        return switch (criteria.operation()) {
             case EQUALITY -> {
-                if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
+                if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isNull(path);
-                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
+                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isTrue(path.as(Boolean.class));
-                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
+                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isFalse(path.as(Boolean.class));
                 } else if (path.getJavaType().equals(LocalDate.class)) {
-                    yield builder.equal(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                    yield builder.equal(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
                 } else {
-                    yield builder.equal(path, criteria.getValue());
+                    yield builder.equal(path, criteria.value());
                 }
             }
             case NEGATION -> {
-                if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.getValue())) {
+                if (FilterOperation.NULL.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isNotNull(path);
-                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.getValue())) {
+                } else if (FilterOperation.TRUE.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isFalse(path.as(Boolean.class));
-                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.getValue())) {
+                } else if (FilterOperation.FALSE.equalsIgnoreCase((String) criteria.value())) {
                     yield builder.isTrue(path.as(Boolean.class));
                 } else if (path.getJavaType().equals(LocalDate.class)) {
-                    yield builder.notEqual(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                    yield builder.notEqual(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
                 } else {
-                    yield builder.notEqual(path, criteria.getValue());
+                    yield builder.notEqual(path, criteria.value());
                 }
             }
             case GREATER_THAN -> {
                 if (path.getJavaType().equals(LocalDate.class)) {
-                    yield builder.greaterThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                    yield builder.greaterThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
                 } else {
-                    yield builder.greaterThan(path.as(String.class), criteria.getValue().toString());
+                    yield builder.greaterThan(path.as(String.class), criteria.value().toString());
                 }
             }
             case LESS_THAN -> {
                 if (path.getJavaType().equals(LocalDate.class)) {
-                    yield builder.lessThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.getValue()));
+                    yield builder.lessThan(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
                 } else {
-                    yield builder.lessThan(path.as(String.class), criteria.getValue().toString());
+                    yield builder.lessThan(path.as(String.class), criteria.value().toString());
                 }
             }
-            case LIKE -> builder.like(path.as(String.class), criteria.getValue().toString());
-            case STARTS_WITH -> builder.like(path.as(String.class), criteria.getValue() + "%");
-            case ENDS_WITH -> builder.like(path.as(String.class), "%" + criteria.getValue());
-            case CONTAINS -> builder.like(path.as(String.class), "%" + criteria.getValue() + "%");
+            case LIKE -> builder.like(path.as(String.class), criteria.value().toString());
+            case STARTS_WITH -> builder.like(path.as(String.class), criteria.value() + "%");
+            case ENDS_WITH -> builder.like(path.as(String.class), "%" + criteria.value());
+            case CONTAINS -> builder.like(path.as(String.class), "%" + criteria.value() + "%");
         };
     }
 

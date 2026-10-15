@@ -45,6 +45,7 @@ import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.acls.domain.BasePermission;
@@ -95,7 +96,7 @@ public class SpexareBulkService {
     private final TaskActivityRepository taskActivityRepository;
     private final PermissionService permissionService;
 
-    private static BulkEntryDto entry(final Spexare spexare, final BulkOutcome outcome, final String detail) {
+    private static BulkEntryDto entry(final Spexare spexare, final BulkOutcome outcome, final @Nullable String detail) {
         return BulkEntryDto.builder()
                 .id(spexare.getId())
                 .label(labelOf(spexare))
@@ -225,7 +226,7 @@ public class SpexareBulkService {
             if (add) {
                 current.addAll(affected);
             } else {
-                current.removeAll(affected);
+                affected.forEach(current::remove);
             }
             touch(spexare);
         }
@@ -482,7 +483,7 @@ public class SpexareBulkService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, input.spexId()));
     }
 
-    private <T> List<T> resolve(final List<Long> ids,
+    private <T> List<T> resolve(final @Nullable List<Long> ids,
                                 final Function<Long, Optional<T>> lookup,
                                 final Class<T> type,
                                 final String field) {
@@ -495,7 +496,7 @@ public class SpexareBulkService {
                 .toList();
     }
 
-    private List<TypedValue> resolveTypedValues(final List<TypeValueDto> values, final TypeType expected) {
+    private List<TypedValue> resolveTypedValues(final @Nullable List<TypeValueDto> values, final TypeType expected) {
         if (values == null || values.isEmpty()) {
             throw new BadRequestException("A bulk operation needs at least one entry in 'values'");
         }

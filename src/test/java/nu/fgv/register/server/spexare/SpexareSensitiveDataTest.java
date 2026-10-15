@@ -96,11 +96,11 @@ class SpexareSensitiveDataTest {
 
     @Test
     void should_index_the_birth_date_part() {
-        final SocialSecurityNumberBirthDateBridge bridge = new SocialSecurityNumberBirthDateBridge();
-
-        assertThat(bridge.toIndexedValue("19850101-1234", null), is(equalTo("19850101")));
-        assertThat(bridge.toIndexedValue("1985-01-01", null), is(equalTo("19850101")));
-        assertThat(bridge.toIndexedValue(null, null), is(nullValue()));
+        try (final SocialSecurityNumberBirthDateBridge bridge = new SocialSecurityNumberBirthDateBridge()) {
+            assertThat(bridge.toIndexedValue("19850101-1234", null), is(equalTo("19850101")));
+            assertThat(bridge.toIndexedValue("1985-01-01", null), is(equalTo("19850101")));
+            assertThat(bridge.toIndexedValue(null, null), is(nullValue()));
+        }
     }
 
     @Test

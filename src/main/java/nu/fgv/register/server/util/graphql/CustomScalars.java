@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -66,7 +67,7 @@ public class CustomScalars {
                 public Instant parseLiteral(final Value input, final CoercedVariables variables, final GraphQLContext graphQLContext, final Locale locale) throws CoercingParseLiteralException {
                     try {
                         final StringValue stringValue = (StringValue) input;
-                        final LocalDate date = LocalDate.parse(stringValue.getValue());
+                        final LocalDate date = LocalDate.parse(Objects.requireNonNull(stringValue.getValue()));
 
                         return date.atStartOfDay(ZoneId.of("UTC")).toInstant();
                     } catch (final RuntimeException e) {

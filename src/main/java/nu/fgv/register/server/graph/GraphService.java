@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -98,17 +99,15 @@ public class GraphService {
                 materialised.stream().map(toEdge).toList());
     }
 
-    private static String yearOf(final Activity activity) {
-        return Optional.ofNullable(activity.getSpexActivity())
-                .map(spexActivity -> spexActivity.getSpex().getYear())
-                .orElse("");
+    private static <T> Collection<T> orEmpty(final @Nullable Collection<T> collection) {
+        return collection == null ? List.of() : collection;
     }
 
     private static String rolesOf(final TaskActivity taskActivity) {
-        return taskActivity.getActors().stream()
+        return orEmpty(taskActivity.getActors()).stream()
                 .map(Actor::getRole)
                 .filter(role -> role != null && !role.isBlank())
-                .reduce((a, b) -> "%s, %s".formatted(a, b))
+                .reduce("%s, %s"::formatted)
                 .orElse("");
     }
 
@@ -258,13 +257,18 @@ public class GraphService {
         final String origin = idOf(GraphNodeType.SPEXARE, spexare.getId());
         final List<GraphGroupDto> groups = new ArrayList<>();
 
-        final List<Activity> activities = spexare.getActivities().stream()
-                .filter(activity -> activity.getSpexActivity() != null)
-                .sorted(Comparator.comparing(GraphService::yearOf).reversed())
+        record Participation(Activity activity, Spex spex) {
+        }
+
+        final List<Participation> participations = orEmpty(spexare.getActivities()).stream()
+                .flatMap(activity -> Optional.ofNullable(activity.getSpexActivity())
+                        .map(spexActivity -> new Participation(activity, spexActivity.getSpex()))
+                        .stream())
+                .sorted(Comparator.comparing((Participation participation) -> participation.spex().getYear()).reversed())
                 .toList();
 
-        final List<Spex> spexList = activities.stream()
-                .map(activity -> activity.getSpexActivity().getSpex())
+        final List<Spex> spexList = participations.stream()
+                .map(Participation::spex)
                 .distinct()
                 .limit(first)
                 .toList();
@@ -276,10 +280,9 @@ public class GraphService {
         record Held(Task task, Spex spex, String roles) {
         }
 
-        final List<Held> held = activities.stream()
-                .flatMap(activity -> activity.getTaskActivities().stream()
-                        .map(taskActivity -> new Held(taskActivity.getTask(),
-                                activity.getSpexActivity().getSpex(), rolesOf(taskActivity))))
+        final List<Held> held = participations.stream()
+                .flatMap(participation -> orEmpty(participation.activity().getTaskActivities()).stream()
+                        .map(taskActivity -> new Held(taskActivity.getTask(), participation.spex(), rolesOf(taskActivity))))
                 .limit(first)
                 .toList();
 
@@ -288,7 +291,7 @@ public class GraphService {
                 item -> GraphEdgeDto.of(idOf(GraphNodeType.TASK, item.task().getId()),
                         idOf(GraphNodeType.SPEX, item.spex().getId()), GraphEdgeType.FUNCTION, item.roles())));
 
-        final List<Tag> tags = List.copyOf(spexare.getTags());
+        final List<Tag> tags = List.copyOf(orEmpty(spexare.getTags()));
 
         groups.add(group(GraphEdgeType.TAG, tags.size(), tags.stream().limit(first),
                 GraphService::nodeOf, tag -> GraphEdgeDto.of(origin, idOf(GraphNodeType.TAG, tag.getId()),

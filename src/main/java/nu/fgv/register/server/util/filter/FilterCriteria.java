@@ -16,26 +16,13 @@
 
 package nu.fgv.register.server.util.filter;
 
-import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Getter
-public class FilterCriteria {
-
-    private final String key;
-    private final FilterOperation operation;
-    private final Object value;
-
-    public FilterCriteria(final String key, final FilterOperation operation, final Object value) {
-        super();
-        this.key = key;
-        this.operation = operation;
-        this.value = value;
-    }
+public record FilterCriteria(String key, FilterOperation operation, Object value) {
 
     public FilterCriteria(final String key, final String operation, @Nullable final String prefix, final String value, @Nullable final String suffix) {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
@@ -52,9 +39,7 @@ public class FilterCriteria {
                 op = FilterOperation.STARTS_WITH;
             }
         }
-        this.key = key;
-        this.operation = op;
-        this.value = value;
+        this(key, op, value);
     }
 
 }

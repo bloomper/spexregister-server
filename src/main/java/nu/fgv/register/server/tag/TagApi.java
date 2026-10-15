@@ -181,9 +181,7 @@ public class TagApi {
     }
 
     private void addLinks(final EntityModel<TagDto> entity) {
-        if (entity.getContent() != null) {
-            addLinks(entity.getContent());
-        }
+        addLinks(entity.getContent());
     }
 
     void addLinks(final TagDto dto) {

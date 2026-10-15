@@ -40,7 +40,7 @@ public class SocialSecurityNumberRandomizer implements Randomizer<String> {
         if (socialSecurityNumber.length() == 8) {
             return socialSecurityNumber;
         } else {
-            return socialSecurityNumber.substring(0, 12) + recalculateControlNumber(socialSecurityNumber.substring(2, 12).replaceAll("-", ""));
+            return socialSecurityNumber.substring(0, 12) + recalculateControlNumber(socialSecurityNumber.substring(2, 12).replace("-", ""));
         }
     }
 

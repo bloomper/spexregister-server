@@ -123,9 +123,7 @@ public class AddressApi {
     }
 
     private void addLinks(final EntityModel<AddressDto> entity, final Long spexareId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
     void addLinks(final AddressDto dto, final Long spexareId) {

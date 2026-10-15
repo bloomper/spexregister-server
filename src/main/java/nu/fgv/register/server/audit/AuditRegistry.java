@@ -62,11 +62,13 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -104,52 +106,31 @@ public class AuditRegistry {
 
     private static List<AuditedChildDescriptor> spexareChildren() {
         return List.of(
-                collectionChild(AuditedType.ADDRESS, Address.class, "spexare", Spexare::getAddresses, Address::setSpexare),
-                collectionChild(AuditedType.CONSENT, Consent.class, "spexare", Spexare::getConsents, Consent::setSpexare),
-                collectionChild(AuditedType.MEMBERSHIP, Membership.class, "spexare", Spexare::getMemberships, Membership::setSpexare),
-                collectionChild(AuditedType.TOGGLE, Toggle.class, "spexare", Spexare::getToggles, Toggle::setSpexare),
-                AuditedChildDescriptor.of(AuditedType.ACTIVITY, Activity.class, "spexare",
-                        (Spexare s) -> (Collection<Activity>) s.getActivities(),
-                        (Activity c, Spexare p) -> {
-                            c.setSpexare(p);
-                            p.getActivities().add(c);
-                        },
-                        (Activity c, Spexare p) -> p.getActivities().remove(c),
-                        activityChildren())
+                collectionChild(AuditedType.ADDRESS, Address.class, "spexare", Spexare::getAddresses, Spexare::setAddresses, Address::setSpexare, List.of()),
+                collectionChild(AuditedType.CONSENT, Consent.class, "spexare", Spexare::getConsents, Spexare::setConsents, Consent::setSpexare, List.of()),
+                collectionChild(AuditedType.MEMBERSHIP, Membership.class, "spexare", Spexare::getMemberships, Spexare::setMemberships, Membership::setSpexare, List.of()),
+                collectionChild(AuditedType.TOGGLE, Toggle.class, "spexare", Spexare::getToggles, Spexare::setToggles, Toggle::setSpexare, List.of()),
+                collectionChild(AuditedType.ACTIVITY, Activity.class, "spexare", Spexare::getActivities, Spexare::setActivities, Activity::setSpexare, activityChildren())
         );
     }
 
     private static List<AuditedChildDescriptor> activityChildren() {
         return List.of(
                 AuditedChildDescriptor.of(AuditedType.SPEX_ACTIVITY, SpexActivity.class, "activity",
-                        (Activity a) -> a.getSpexActivity() == null ? List.of() : List.of(a.getSpexActivity()),
-                        (SpexActivity c, Activity p) -> {
+                        (final Activity a) -> a.getSpexActivity() == null ? List.of() : List.of(a.getSpexActivity()),
+                        (final SpexActivity c, final Activity p) -> {
                             c.setActivity(p);
                             p.setSpexActivity(c);
                         },
-                        (SpexActivity c, Activity p) -> p.setSpexActivity(null),
+                        (final SpexActivity c, final Activity p) -> p.setSpexActivity(null),
                         List.of()),
-                AuditedChildDescriptor.of(AuditedType.TASK_ACTIVITY, TaskActivity.class, "activity",
-                        (Activity a) -> (Collection<TaskActivity>) a.getTaskActivities(),
-                        (TaskActivity c, Activity p) -> {
-                            c.setActivity(p);
-                            p.getTaskActivities().add(c);
-                        },
-                        (TaskActivity c, Activity p) -> p.getTaskActivities().remove(c),
-                        taskActivityChildren())
+                collectionChild(AuditedType.TASK_ACTIVITY, TaskActivity.class, "activity", Activity::getTaskActivities, Activity::setTaskActivities, TaskActivity::setActivity, taskActivityChildren())
         );
     }
 
     private static List<AuditedChildDescriptor> taskActivityChildren() {
         return List.of(
-                AuditedChildDescriptor.of(AuditedType.ACTOR, Actor.class, "taskActivity",
-                        (TaskActivity t) -> (Collection<Actor>) t.getActors(),
-                        (Actor c, TaskActivity p) -> {
-                            c.setTaskActivity(p);
-                            p.getActors().add(c);
-                        },
-                        (Actor c, TaskActivity p) -> p.getActors().remove(c),
-                        List.of())
+                collectionChild(AuditedType.ACTOR, Actor.class, "taskActivity", TaskActivity::getActors, TaskActivity::setActors, Actor::setTaskActivity, List.of())
         );
     }
 
@@ -157,23 +138,43 @@ public class AuditRegistry {
             final AuditedType type,
             final Class<C> entityClass,
             final String parentProperty,
-            final Function<P, Collection<C>> childrenOf,
-            final java.util.function.BiConsumer<C, P> setParent
+            final Function<P, @Nullable Set<C>> getChildren,
+            final BiConsumer<P, Set<C>> setChildren,
+            final BiConsumer<C, P> setParent,
+            final List<AuditedChildDescriptor> children
     ) {
-        return AuditedChildDescriptor.of(type, entityClass, parentProperty, childrenOf,
-                (C c, P p) -> {
-                    setParent.accept(c, p);
-                    childrenOf.apply(p).add(c);
+        return AuditedChildDescriptor.of(type, entityClass, parentProperty,
+                (final P p) -> {
+                    final Set<C> current = getChildren.apply(p);
+
+                    return current == null ? Set.of() : current;
                 },
-                (C c, P p) -> childrenOf.apply(p).remove(c),
-                List.of());
+                (final C c, final P p) -> {
+                    setParent.accept(c, p);
+
+                    Set<C> current = getChildren.apply(p);
+
+                    if (current == null) {
+                        current = new HashSet<>();
+                        setChildren.accept(p, current);
+                    }
+                    current.add(c);
+                },
+                (final C c, final P p) -> {
+                    final Set<C> current = getChildren.apply(p);
+
+                    if (current != null) {
+                        current.remove(c);
+                    }
+                },
+                children);
     }
 
-    private static <E> Function<E, Object> self() {
+    private static <E> Function<E, @Nullable Object> self() {
         return e -> e;
     }
 
-    private static @Nullable String localized(final @Nullable Map<String, String> labels, final String fallback) {
+    private static String localized(final @Nullable Map<String, String> labels, final String fallback) {
         if (labels == null) {
             return fallback;
         }
@@ -187,29 +188,29 @@ public class AuditRegistry {
 
     @PostConstruct
     void initialize() {
-        register(AuditedEntityDescriptor.of(AuditedType.NEWS, News.class, Long::valueOf, newsRepository::findById, self(), List.of()).withLabel((News n) -> n.getSubject()));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX, Spex.class, Long::valueOf, spexRepository::findById, self(), List.of()).withLabel((Spex x) -> x.getYear()).withReferences(new AuditedReferenceDescriptor(AuditedType.SPEX_DETAILS, SpexDetails.class, "details")));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, self(), List.of()).withLabel((SpexDetails d) -> d.getTitle()));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_CATEGORY, SpexCategory.class, Long::valueOf, spexCategoryRepository::findById, self(), List.of()).withLabel((SpexCategory c) -> c.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TAG, Tag.class, Long::valueOf, tagRepository::findById, self(), List.of()).withLabel((Tag t) -> t.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TASK, Task.class, Long::valueOf, taskRepository::findById, self(), List.of()).withLabel((Task t) -> t.getName()));
-        register(AuditedEntityDescriptor.of(AuditedType.TASK_CATEGORY, TaskCategory.class, Long::valueOf, taskCategoryRepository::findById, self(), List.of()).withLabel((TaskCategory c) -> c.getName()));
+        register(AuditedEntityDescriptor.of(AuditedType.NEWS, News.class, Long::valueOf, newsRepository::findById, self(), List.of()).withLabel(News::getSubject));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX, Spex.class, Long::valueOf, spexRepository::findById, self(), List.of()).withLabel(Spex::getYear).withReferences(new AuditedReferenceDescriptor(AuditedType.SPEX_DETAILS, SpexDetails.class, "details")));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, self(), List.of()).withLabel(SpexDetails::getTitle));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_CATEGORY, SpexCategory.class, Long::valueOf, spexCategoryRepository::findById, self(), List.of()).withLabel(SpexCategory::getName));
+        register(AuditedEntityDescriptor.of(AuditedType.TAG, Tag.class, Long::valueOf, tagRepository::findById, self(), List.of()).withLabel(Tag::getName));
+        register(AuditedEntityDescriptor.of(AuditedType.TASK, Task.class, Long::valueOf, taskRepository::findById, self(), List.of()).withLabel(Task::getName));
+        register(AuditedEntityDescriptor.of(AuditedType.TASK_CATEGORY, TaskCategory.class, Long::valueOf, taskCategoryRepository::findById, self(), List.of()).withLabel(TaskCategory::getName));
         register(AuditedEntityDescriptor.of(AuditedType.USER, User.class, Long::valueOf, userRepository::findById, self(), List.of()).withLabel((User u) -> u.getSpexare() == null ? u.getExternalId() : fullName(u.getSpexare().getFirstName(), u.getSpexare().getLastName())));
         register(AuditedEntityDescriptor.of(AuditedType.STATE, State.class, Function.identity(), stateRepository::findById, null, List.of()).withLabel((State st) -> localized(st.getLabels(), st.getId())));
         register(AuditedEntityDescriptor.of(AuditedType.TYPE, Type.class, Function.identity(), typeRepository::findById, null, List.of()).withLabel((Type ty) -> localized(ty.getLabels(), ty.getId())));
 
         register(AuditedEntityDescriptor.of(AuditedType.SPEXARE, Spexare.class, Long::valueOf, spexareRepository::findById, self(), spexareChildren()).withLabel((Spexare sp) -> fullName(sp.getFirstName(), sp.getLastName())));
-        register(AuditedEntityDescriptor.of(AuditedType.ADDRESS, Address.class, Long::valueOf, addressRepository::findById, Address::getSpexare, List.of()).withLabel((Address a) -> a.getStreetAddress()));
-        register(AuditedEntityDescriptor.of(AuditedType.CONSENT, Consent.class, Long::valueOf, consentRepository::findById, Consent::getSpexare, List.of()).withLabel((Consent c) -> c.getType() == null ? null : localized(c.getType().getLabels(), c.getType().getId())));
-        register(AuditedEntityDescriptor.of(AuditedType.MEMBERSHIP, Membership.class, Long::valueOf, membershipRepository::findById, Membership::getSpexare, List.of()).withLabel((Membership m) -> m.getYear()));
-        register(AuditedEntityDescriptor.of(AuditedType.TOGGLE, Toggle.class, Long::valueOf, toggleRepository::findById, Toggle::getSpexare, List.of()).withLabel((Toggle t) -> t.getType() == null ? null : localized(t.getType().getLabels(), t.getType().getId())));
-        register(AuditedEntityDescriptor.of(AuditedType.ACTIVITY, Activity.class, Long::valueOf, activityRepository::findById, Activity::getSpexare, activityChildren()).withLabel((Activity a) -> a.getSpexare() == null ? null : fullName(a.getSpexare().getFirstName(), a.getSpexare().getLastName())));
+        register(AuditedEntityDescriptor.of(AuditedType.ADDRESS, Address.class, Long::valueOf, addressRepository::findById, Address::getSpexare, List.of()).withLabel(Address::getStreetAddress));
+        register(AuditedEntityDescriptor.of(AuditedType.CONSENT, Consent.class, Long::valueOf, consentRepository::findById, Consent::getSpexare, List.of()).withLabel((Consent c) -> localized(c.getType().getLabels(), c.getType().getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.MEMBERSHIP, Membership.class, Long::valueOf, membershipRepository::findById, Membership::getSpexare, List.of()).withLabel(Membership::getYear));
+        register(AuditedEntityDescriptor.of(AuditedType.TOGGLE, Toggle.class, Long::valueOf, toggleRepository::findById, Toggle::getSpexare, List.of()).withLabel((Toggle t) -> localized(t.getType().getLabels(), t.getType().getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.ACTIVITY, Activity.class, Long::valueOf, activityRepository::findById, Activity::getSpexare, activityChildren()).withLabel((Activity a) -> fullName(a.getSpexare().getFirstName(), a.getSpexare().getLastName())));
         register(AuditedEntityDescriptor.of(AuditedType.SPEX_ACTIVITY, SpexActivity.class, Long::valueOf, spexActivityRepository::findById,
-                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), List.of()).withLabel((SpexActivity sa) -> sa.getSpex() == null ? null : sa.getSpex().getYear()));
+                a -> a.getActivity().getSpexare(), List.of()).withLabel((SpexActivity sa) -> sa.getSpex().getYear()));
         register(AuditedEntityDescriptor.of(AuditedType.TASK_ACTIVITY, TaskActivity.class, Long::valueOf, taskActivityRepository::findById,
-                a -> a.getActivity() == null ? null : a.getActivity().getSpexare(), taskActivityChildren()).withLabel((TaskActivity ta) -> ta.getTask() == null ? null : ta.getTask().getName()));
+                a -> a.getActivity().getSpexare(), taskActivityChildren()).withLabel((TaskActivity ta) -> ta.getTask().getName()));
         register(AuditedEntityDescriptor.of(AuditedType.ACTOR, Actor.class, Long::valueOf, actorRepository::findById,
-                a -> a.getTaskActivity() == null || a.getTaskActivity().getActivity() == null ? null : a.getTaskActivity().getActivity().getSpexare(), List.of()).withLabel((Actor a) -> a.getRole()));
+                a -> a.getTaskActivity().getActivity().getSpexare(), List.of()).withLabel(Actor::getRole));
     }
 
     private void register(final AuditedEntityDescriptor descriptor) {

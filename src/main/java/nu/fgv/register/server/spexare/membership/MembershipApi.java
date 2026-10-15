@@ -96,9 +96,7 @@ public class MembershipApi {
     }
 
     private void addLinks(final EntityModel<MembershipDto> entity, final Long spexareId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
     void addLinks(final MembershipDto dto, final Long spexareId) {

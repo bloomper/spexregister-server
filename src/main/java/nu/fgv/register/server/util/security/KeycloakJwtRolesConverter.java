@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.security;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -54,7 +55,7 @@ public class KeycloakJwtRolesConverter implements Converter<Jwt, Collection<Gran
             }
         }
 
-        final Map<String, Map<String, Collection<String>>> resourceAccess = jwt.getClaim(CLAIM_RESOURCE_ACCESS);
+        final Map<String, @Nullable Map<String, Collection<String>>> resourceAccess = jwt.getClaim(CLAIM_RESOURCE_ACCESS);
 
         if (resourceAccess != null && !resourceAccess.isEmpty()) {
             resourceAccess.forEach((resource, resourceClaims) -> {

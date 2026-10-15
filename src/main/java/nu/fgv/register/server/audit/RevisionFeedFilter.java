@@ -35,8 +35,8 @@ public record RevisionFeedFilter(
 ) {
 
     public RevisionFeedFilter {
-        modifiedBy = modifiedBy == null ? List.of() : List.copyOf(modifiedBy);
-        sources = sources == null ? List.of() : List.copyOf(sources);
+        modifiedBy = List.copyOf(modifiedBy);
+        sources = List.copyOf(sources);
     }
 
     public static RevisionFeedFilter of(final @Nullable AuditedType type,
@@ -45,6 +45,6 @@ public record RevisionFeedFilter(
                                         final @Nullable LocalDate from,
                                         final @Nullable LocalDate to,
                                         final @Nullable Integer sinceInDays) {
-        return new RevisionFeedFilter(type, modifiedBy, sources, from, to, sinceInDays);
+        return new RevisionFeedFilter(type, modifiedBy == null ? List.of() : modifiedBy, sources == null ? List.of() : sources, from, to, sinceInDays);
     }
 }

@@ -127,9 +127,7 @@ public class ActorApi {
     }
 
     private void addLinks(final EntityModel<ActorDto> entity, final Long spexareId, final Long activityId, final Long taskActivityId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId, taskActivityId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId, taskActivityId));
     }
 
     void addLinks(final ActorDto dto, final Long spexareId, final Long activityId, final Long taskActivityId) {

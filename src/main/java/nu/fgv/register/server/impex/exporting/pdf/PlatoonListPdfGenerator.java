@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -85,7 +86,7 @@ public class PlatoonListPdfGenerator implements PdfGenerator {
         });
 
         final Map<Long, String> roleMap = new HashMap<>();
-        activityReport.data().forEach(activity -> roleMap.put(activity.getSpexareId(), activity.getTaskName()));
+        activityReport.data().forEach(activity -> roleMap.put(activity.getSpexareId(), Objects.requireNonNullElse(activity.getTaskName(), "")));
 
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             final Document document = new Document(PageSize.A4, 10, 10, 10, 10);
@@ -96,7 +97,7 @@ public class PlatoonListPdfGenerator implements PdfGenerator {
             final Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
             final Font subTitleFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
-            addHeaderLine(document, messageSource.getMessage("impex.export.pdf.platoonList.title", null, "impex.export.pdf.platoonList.title", locale), titleFont);
+            addHeaderLine(document, Objects.requireNonNullElse(messageSource.getMessage("impex.export.pdf.platoonList.title", null, "impex.export.pdf.platoonList.title", locale), "impex.export.pdf.platoonList.title"), titleFont);
             addHeaderLine(document, " ", subTitleFont);
 
             final float[] columnWidths = {65f, 100f, 60f, 140f, 145f, 65f};
@@ -155,7 +156,7 @@ public class PlatoonListPdfGenerator implements PdfGenerator {
     }
 
     private PdfPCell createCell(final String text, final Font font, final Color bgColor, final float height, final int alignment) {
-        final PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
+        final PdfPCell cell = new PdfPCell(new Phrase(text, font));
 
         cell.setBackgroundColor(bgColor);
         cell.setMinimumHeight(height);

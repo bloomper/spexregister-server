@@ -239,7 +239,7 @@ public class SampleDataImporter {
                 .query()
                 .listOfRows()
                 .forEach(row -> {
-                    final Long id = (Long) row.get("id");
+                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
                     final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -253,7 +253,7 @@ public class SampleDataImporter {
                 .query()
                 .listOfRows()
                 .forEach(row -> {
-                    final Long id = (Long) row.get("id");
+                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
                     final ObjectIdentity oid = toObjectIdentity(Task.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -282,7 +282,7 @@ public class SampleDataImporter {
                 .query()
                 .listOfRows()
                 .forEach(row -> {
-                    final Long id = (Long) row.get("id");
+                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
                     final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -320,7 +320,7 @@ public class SampleDataImporter {
                 .query()
                 .listOfRows()
                 .forEach(row -> {
-                    final Long id = (Long) row.get("id");
+                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
                     final ObjectIdentity oid = toObjectIdentity(Spex.class, id);
 
                     permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
@@ -794,7 +794,7 @@ public class SampleDataImporter {
         jdbcClient.sql("SELECT id FROM authority")
                 .query()
                 .listOfRows()
-                .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) row.get("id"))));
+                .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) Objects.requireNonNull(row.get("id")))));
 
         final List<Pair<String, Boolean>> states = new ArrayList<>();
 
@@ -808,7 +808,7 @@ public class SampleDataImporter {
         jdbcClient.sql("SELECT id FROM spexare")
                 .query()
                 .listOfRows()
-                .forEach(row -> spexare.add((Long) row.get("id")));
+                .forEach(row -> spexare.add((Long) Objects.requireNonNull(row.get("id"))));
 
         final String sql = """
                 INSERT INTO user
@@ -887,8 +887,8 @@ public class SampleDataImporter {
                 .query()
                 .listOfRows()
                 .forEach(row -> {
-                    final String externalId = (String) row.get("external_id");
-                    final Long partnerId = (Long) row.get("partner_id");
+                    final String externalId = (String) Objects.requireNonNull(row.get("external_id"));
+                    final Long partnerId = (Long) Objects.requireNonNull(row.get("partner_id"));
 
                     permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, partnerId), new PrincipalSid(externalId));
                 });

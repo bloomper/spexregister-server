@@ -35,7 +35,7 @@ import java.util.List;
 public record RevisionDto(
         Long revision,
         AuditedType type,
-        Long entityId,
+        @Nullable Long entityId,
         @Nullable String entityLabel,
         RevisionType revisionType,
         Instant modifiedAt,

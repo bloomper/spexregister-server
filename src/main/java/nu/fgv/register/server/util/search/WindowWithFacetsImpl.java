@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.util.search;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -104,7 +105,7 @@ public class WindowWithFacetsImpl<T> implements WindowWithFacets<T> {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         } else if (o != null && getClass() == o.getClass()) {

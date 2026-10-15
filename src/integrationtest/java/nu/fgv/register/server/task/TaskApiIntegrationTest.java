@@ -442,6 +442,8 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TaskUpdateDto dto = TaskUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -540,6 +542,8 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TaskUpdateDto dto = TaskUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -610,6 +614,8 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TaskDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TaskUpdateDto dto = TaskUpdateDto.builder()
                     .id(before.getId())
@@ -688,6 +694,8 @@ class TaskApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TaskDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TaskUpdateDto dto = TaskUpdateDto.builder()
                     .id(before.getId())

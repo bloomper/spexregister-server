@@ -41,6 +41,7 @@ import org.springframework.stereotype.Controller;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -81,7 +82,7 @@ public class UserGraphqlApi {
     @QueryMapping
     @Nullable
     public UserDto me(@AuthenticationPrincipal final Jwt jwt) {
-        return service.findByExternalId(jwt.getSubject());
+        return service.findByExternalId(Objects.requireNonNull(jwt.getSubject()));
     }
 
     @QueryMapping("user")

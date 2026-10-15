@@ -149,7 +149,7 @@ public class AuditDataSeeder {
         TABLES.stream().filter(AuditedTable::hasHistory).forEach(table -> {
             final List<Long> allIds = jdbcClient
                     .sql("SELECT id FROM %s".formatted(table.table()))
-                    .query(Long.class)
+                    .query((rs, _) -> rs.getLong(1))
                     .list();
 
             if (allIds.isEmpty()) {
@@ -313,14 +313,14 @@ public class AuditDataSeeder {
             query = query.param(id);
         }
 
-        return query.query(Long.class).list();
+        return query.query((rs, _) -> rs.getLong(1)).list();
     }
 
     private void seedDeletedAddresses(final JdbcClient jdbcClient, final List<Revision> revisions) {
         final List<Long> sources = jdbcClient
                 .sql("SELECT id FROM address ORDER BY RAND() LIMIT ?")
                 .param(NUMBER_OF_DELETED_ADDRESSES)
-                .query(Long.class)
+                .query((rs, _) -> rs.getLong(1))
                 .list();
 
         if (sources.isEmpty()) {

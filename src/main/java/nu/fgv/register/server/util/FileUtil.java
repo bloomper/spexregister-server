@@ -23,6 +23,7 @@ import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.net.Inet6Address;
@@ -161,7 +162,7 @@ public class FileUtil {
         return address instanceof Inet6Address && (address.getAddress()[0] & 0xfe) == 0xfc;
     }
 
-    public static boolean isLocalUrl(final String url, final String baseUrl) {
+    public static boolean isLocalUrl(final @Nullable String url, final String baseUrl) {
         return url != null && url.startsWith(baseUrl);
     }
 }

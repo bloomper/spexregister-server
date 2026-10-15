@@ -16,9 +16,12 @@
 
 package nu.fgv.register.server.util;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -27,10 +30,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationContextHolder implements ApplicationContextAware {
 
-    private static ApplicationContext context;
+    private static @Nullable ApplicationContext context;
 
     public static <T> T getBean(final Class<T> beanClass) {
-        return context.getBean(beanClass);
+        return Objects.requireNonNull(context, "Application context is not initialized").getBean(beanClass);
     }
 
     @Override

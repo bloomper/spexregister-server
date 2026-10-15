@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -128,7 +129,7 @@ public class AddressLabelsPdfGenerator implements PdfGenerator {
             }
 
             if (labelsAdded == 0) {
-                final String noAddressesFound = messageSource.getMessage("impex.export.pdf.addressLabels.noHomeAddressesFound", null, "impex.export.pdf.addressLabels.noHomeAddressesFound", locale);
+                final String noAddressesFound = Objects.requireNonNullElse(messageSource.getMessage("impex.export.pdf.addressLabels.noHomeAddressesFound", null, "impex.export.pdf.addressLabels.noHomeAddressesFound", locale), "impex.export.pdf.addressLabels.noHomeAddressesFound");
 
                 document.add(new Paragraph(noAddressesFound));
             } else {

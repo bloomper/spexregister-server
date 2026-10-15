@@ -289,9 +289,7 @@ public class SpexareApi {
     }
 
     private void addLinks(final EntityModel<SpexareDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     void addLinks(final SpexareDto dto) {

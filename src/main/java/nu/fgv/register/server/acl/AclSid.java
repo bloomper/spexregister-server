@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Immutable;
 
 import java.util.Objects;
@@ -57,7 +58,7 @@ public final class AclSid {
     private String sid;
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

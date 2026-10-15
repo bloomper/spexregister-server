@@ -66,6 +66,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -322,7 +323,7 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public Map<Long, SpexareDto> findPartnersBySpexare(final Collection<Long> ids) {
         return repository.findWithPartnerByIdIn(ids).stream()
-                .filter(spexare -> permissionService.hasReadPermission(spexare.getPartner()))
+                .filter(spexare -> spexare.getPartner() != null && permissionService.hasReadPermission(spexare.getPartner()))
                 .collect(Collectors.toMap(Spexare::getId, spexare -> SPEXARE_MAPPER.toDto(spexare.getPartner())));
     }
 
@@ -397,7 +398,7 @@ public class SpexareService {
         final Deque<?> parsed = FilterParser.parse(filter);
 
         if (!SpexareSensitiveData.isReadableForAll() && parsed.stream()
-                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.getKey()))) {
+                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.key()))) {
             throw new BadRequestException("Filtering on %s is not permitted".formatted(SpexareSensitiveData.FIELD));
         }
 
@@ -443,7 +444,7 @@ public class SpexareService {
                     }
 
                     final Map<Object, Long> values = searchResult.aggregation(AggregationKey.of(a));
-                    final String facetLabel = messageSource.getMessage("facet." + logicalKey, null, logicalKey, LocaleContextHolder.getLocale());
+                    final String facetLabel = Objects.requireNonNullElse(messageSource.getMessage("facet." + logicalKey, null, logicalKey, LocaleContextHolder.getLocale()), logicalKey);
 
                     if (baseFieldName.contains(AGGREGATION_HIERARCHICAL_MARKER)) {
                         return Facet.builder()
@@ -515,7 +516,7 @@ public class SpexareService {
                 .map(entry -> FacetGroup.builder()
                         .id(entry.getKey())
                         .label(entry.getValue())
-                        .values(groups.get(entry.getKey()))
+                        .values(groups.getOrDefault(entry.getKey(), List.of()))
                         .build())
                 .toList();
     }

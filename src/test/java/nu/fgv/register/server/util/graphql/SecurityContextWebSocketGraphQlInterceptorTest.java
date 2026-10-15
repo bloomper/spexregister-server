@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -82,7 +83,7 @@ class SecurityContextWebSocketGraphQlInterceptorTest {
         final Map<String, Object> attributes = new HashMap<>();
         final WebGraphQlResponse response = connect(expiresAt, attributes).intercept(request(attributes), chainOf(events)).block();
 
-        return Flux.from((Publisher<?>) response.getData());
+        return Flux.from((Publisher<?>) Objects.requireNonNull(Objects.requireNonNull(response).getData()));
     }
 
     private static SecurityContextWebSocketGraphQlInterceptor connect(final Instant expiresAt, final Map<String, Object> attributes) {

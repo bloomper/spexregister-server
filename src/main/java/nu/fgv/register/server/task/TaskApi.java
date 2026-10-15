@@ -208,9 +208,7 @@ public class TaskApi {
     }
 
     private void addLinks(final EntityModel<TaskDto> entity) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent()));
-        }
+        entity.getContent().add(getLinks(entity.getContent()));
     }
 
     void addLinks(final TaskDto dto) {

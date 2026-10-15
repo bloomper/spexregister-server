@@ -49,6 +49,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -190,7 +191,7 @@ public class AnalyticsService {
     private List<ConsentCompletionDto> consentCompletion(final Map<String, Facet> facets, final long total) {
         final Facet facet = facets.get(FACET_CONSENTS);
 
-        if (facet == null || facet.getGroups() == null) {
+        if (facet == null) {
             return List.of();
         }
 
@@ -324,9 +325,9 @@ public class AnalyticsService {
                 .stream()
                 .map(row -> {
                     final String id = String.valueOf(row[0]);
-                    @SuppressWarnings("unchecked") final Map<String, String> labels = (Map<String, String>) row[1];
+                    final String label = row[1] instanceof final Map<?, ?> labels && labels.get(language()) instanceof final String localized ? localized : id;
 
-                    return BucketDto.of(id, labels == null ? id : labels.getOrDefault(language(), id), (Long) row[2]);
+                    return BucketDto.of(id, label, (Long) row[2]);
                 })
                 .sorted(Comparator.comparingLong(BucketDto::count).reversed())
                 .toList();
@@ -360,7 +361,7 @@ public class AnalyticsService {
                 .getResultList()
                 .stream()
                 .map(row -> {
-                    final String source = row[0] == null ? "UNKNOWN" : String.valueOf(row[0]);
+                    final String source = Objects.toString(row[0], "UNKNOWN");
 
                     return BucketDto.of(source, message("analytics.source." + source, source), (Long) row[1]);
                 })
@@ -405,19 +406,17 @@ public class AnalyticsService {
     private Stream<BucketDto> buckets(final Map<String, Facet> facets, final String facetId) {
         final Facet facet = facets.get(facetId);
 
-        if (facet == null || facet.getGroups() == null) {
+        if (facet == null) {
             return Stream.empty();
         }
 
         return facet.getGroups().stream()
-                .flatMap(group -> group.getValues() == null ?
-                        Stream.empty() :
-                        group.getValues().stream()
-                                .map(value -> BucketDto.of(value.getId(), label(group, value), value.getCount(), facetId)));
+                .flatMap(group -> group.getValues().stream()
+                        .map(value -> BucketDto.of(value.getId(), label(group, value), value.getCount(), facetId)));
     }
 
     private String label(final FacetGroup group, final FacetValue value) {
-        return group.getLabel() == null || group.getLabel().isBlank() ?
+        return group.getLabel().isBlank() ?
                 value.getLabel() :
                 "%s: %s".formatted(group.getLabel(), value.getLabel());
     }
@@ -425,26 +424,24 @@ public class AnalyticsService {
     private List<FacetValue> values(final Map<String, Facet> facets, final String facetId) {
         final Facet facet = facets.get(facetId);
 
-        if (facet == null || facet.getGroups() == null) {
+        if (facet == null) {
             return List.of();
         }
 
         return facet.getGroups().stream()
-                .flatMap(group -> group.getValues() == null ? Stream.empty() : group.getValues().stream())
+                .flatMap(group -> group.getValues().stream())
                 .toList();
     }
 
     private long countEndingWith(final FacetGroup group, final String suffix) {
-        return group.getValues() == null ?
-                0L :
-                group.getValues().stream()
-                        .filter(value -> value.getId() != null && value.getId().endsWith(suffix))
-                        .mapToLong(FacetValue::getCount)
-                        .sum();
+        return group.getValues().stream()
+                .filter(value -> value.getId().endsWith(suffix))
+                .mapToLong(FacetValue::getCount)
+                .sum();
     }
 
     private String message(final String key, final String fallback) {
-        return messageSource.getMessage(key, null, fallback, LocaleContextHolder.getLocale());
+        return Objects.requireNonNullElse(messageSource.getMessage(key, null, fallback, LocaleContextHolder.getLocale()), fallback);
     }
 
     private String language() {

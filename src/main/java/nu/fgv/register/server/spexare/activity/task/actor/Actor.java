@@ -93,7 +93,7 @@ public class Actor extends AbstractAuditable implements Serializable {
     private TaskActivity taskActivity;
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

@@ -74,7 +74,7 @@ public class UserImportService extends AbstractImportService {
                                 "id", v -> service.exists((Long) v),
                                 "stateId", v -> stateService.exists((String) v),
                                 "spexareId", v -> {
-                                    if (v != null && hasText(v.toString())) {
+                                    if (hasText(v.toString())) {
                                         return spexareService.exists((Long) v);
                                     } else {
                                         return true;

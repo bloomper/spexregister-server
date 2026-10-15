@@ -85,7 +85,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
@@ -294,11 +293,7 @@ public abstract class AbstractIntegrationTest {
                 .list()
                 .stream()
                 .filter(u -> !u.getEmail().contains(TEST_DOMAIN))
-                .forEach(u -> {
-                    try (final Response ignored = keycloakAdminClient.realm(keycloakRealm).users().delete(u.getId())) {
-                        // Ignored
-                    }
-                });
+                .forEach(u -> keycloakAdminClient.realm(keycloakRealm).users().delete(u.getId()).close());
     }
 
     protected String obtainAccessToken(final String username, final String password) {

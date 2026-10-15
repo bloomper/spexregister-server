@@ -495,7 +495,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class CreateTests {
 
         @Test
-        void should_create_and_return_201() throws Exception {
+        void should_create_and_return_201() {
             final SpexareCreateDto dto = random.nextObject(SpexareCreateDto.class);
 
             final SpexareDto result = restTestClient
@@ -611,7 +611,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class UpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -628,6 +628,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexareDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexareUpdateDto dto = SpexareUpdateDto.builder()
                     .id(before.getId())
@@ -757,6 +759,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final SpexareUpdateDto dto = SpexareUpdateDto.builder()
                     .id(before.getId())
                     .firstName(before.getFirstName() + "_")
@@ -806,7 +810,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     class PartialUpdateTests {
 
         @Test
-        void should_update_and_return_200() throws Exception {
+        void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
             grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
@@ -823,6 +827,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexareDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexareUpdateDto dto = SpexareUpdateDto.builder()
                     .id(before.getId())
@@ -901,6 +907,8 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexareDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final SpexareUpdateDto dto = SpexareUpdateDto.builder()
                     .id(before.getId())

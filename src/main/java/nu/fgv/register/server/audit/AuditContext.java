@@ -29,7 +29,7 @@ public final class AuditContext {
     static final int MAX_OPERATION_LENGTH = 255;
     static final int MAX_COMMENT_LENGTH = 512;
 
-    private static final ThreadLocal<Origin> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<@Nullable Origin> CURRENT = new ThreadLocal<>();
 
     private AuditContext() {
     }

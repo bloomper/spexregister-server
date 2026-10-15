@@ -108,9 +108,7 @@ public class ConsentApi {
     }
 
     private void addLinks(final EntityModel<ConsentDto> entity, final Long spexareId) {
-        if (entity.getContent() != null) {
-            entity.getContent().add(getLinks(entity.getContent(), spexareId));
-        }
+        entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
     void addLinks(final ConsentDto dto, final Long spexareId) {

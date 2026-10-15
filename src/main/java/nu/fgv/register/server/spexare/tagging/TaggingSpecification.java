@@ -53,7 +53,6 @@ public class TaggingSpecification {
 
     public static Specification<Tag> hasSpexareId(final Long spexareId) {
         return (root, query, criteriaBuilder) -> {
-            assert query != null;
             query.distinct(true);
 
             final Subquery<Spexare> spexareSubQuery = query.subquery(Spexare.class);

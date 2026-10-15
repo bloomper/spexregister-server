@@ -34,9 +34,9 @@ public record AuditedEntityDescriptor(
         Class<?> entityClass,
         Function<String, Object> idParser,
         Function<Object, Optional<Object>> findCurrent,
-        @Nullable Function<Object, Object> aclRoot,
+        @Nullable Function<Object, @Nullable Object> aclRoot,
         List<AuditedChildDescriptor> children,
-        @Nullable Function<Object, String> label,
+        @Nullable Function<Object, @Nullable String> label,
         List<AuditedReferenceDescriptor> references
 ) {
 
@@ -46,7 +46,7 @@ public record AuditedEntityDescriptor(
             final Class<E> entityClass,
             final Function<String, ID> idParser,
             final Function<ID, Optional<E>> findCurrent,
-            final @Nullable Function<E, Object> aclRoot,
+            final @Nullable Function<E, @Nullable Object> aclRoot,
             final List<AuditedChildDescriptor> children
     ) {
         return new AuditedEntityDescriptor(
@@ -54,7 +54,7 @@ public record AuditedEntityDescriptor(
                 entityClass,
                 (Function<String, Object>) idParser,
                 (Function<Object, Optional<Object>>) (Function<?, ?>) findCurrent,
-                (Function<Object, Object>) aclRoot,
+                (Function<Object, @Nullable Object>) aclRoot,
                 children,
                 null,
                 List.of()
@@ -66,7 +66,7 @@ public record AuditedEntityDescriptor(
     }
 
     @SuppressWarnings("unchecked")
-    public <E> AuditedEntityDescriptor withLabel(final Function<E, String> label) {
+    public <E> AuditedEntityDescriptor withLabel(final Function<E, @Nullable String> label) {
         return new AuditedEntityDescriptor(
                 type,
                 entityClass,
@@ -74,7 +74,7 @@ public record AuditedEntityDescriptor(
                 findCurrent,
                 aclRoot,
                 children,
-                (Function<Object, String>) label,
+                (Function<Object, @Nullable String>) label,
                 references
         );
     }

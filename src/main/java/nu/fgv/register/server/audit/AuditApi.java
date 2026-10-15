@@ -127,7 +127,7 @@ public class AuditApi {
         final BinaryValueDto binary = service.findBinary(type, id, revision, field);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(binary.contentType()))
+                .contentType(binary.contentType() == null ? MediaType.APPLICATION_OCTET_STREAM : MediaType.valueOf(binary.contentType()))
                 .body(new ByteArrayResource(binary.content()));
     }
 

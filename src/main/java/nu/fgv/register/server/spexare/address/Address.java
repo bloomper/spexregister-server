@@ -52,6 +52,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -101,6 +102,7 @@ public class Address extends AbstractAuditable implements Serializable {
     @Size(max = 2, message = "{address.country.size}")
     @Column(name = "country")
     @KeywordField(searchable = Searchable.YES, aggregable = Aggregable.YES, normalizer = NORMALIZER_LOWERCASE)
+    @Nullable
     private String country;
 
     @Size(max = 255, message = "{address.phone.size}")
@@ -134,7 +136,7 @@ public class Address extends AbstractAuditable implements Serializable {
 
     @FullTextField(name = "countryName", searchable = Searchable.YES)
     @IndexingDependency(derivedFrom = {@ObjectPath(@PropertyValue(propertyName = "country"))})
-    public String getCountryName() {
+    public @Nullable String getCountryName() {
         if (country == null || country.isBlank()) {
             return null;
         }
@@ -148,7 +150,7 @@ public class Address extends AbstractAuditable implements Serializable {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         if (this == o) {
             return true;
         }

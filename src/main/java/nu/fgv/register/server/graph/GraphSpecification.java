@@ -44,7 +44,6 @@ public class GraphSpecification {
 
     public static Specification<Spexare> spexareInSpex(final Long spexId) {
         return (root, query, criteriaBuilder) -> {
-            assert query != null;
             query.distinct(true);
 
             final Join<?, ?> activity = root.join(Spexare_.ACTIVITIES);
@@ -56,7 +55,6 @@ public class GraphSpecification {
 
     public static Specification<Spexare> spexareWithTask(final Long taskId) {
         return (root, query, criteriaBuilder) -> {
-            assert query != null;
             query.distinct(true);
 
             final Join<?, ?> activity = root.join(Spexare_.ACTIVITIES);
@@ -76,7 +74,6 @@ public class GraphSpecification {
 
     public static Specification<Spexare> spexareWithTag(final Long tagId) {
         return (root, query, criteriaBuilder) -> {
-            assert query != null;
             query.distinct(true);
 
             final Join<?, Tag> tag = root.join(Spexare_.TAGS);

@@ -52,7 +52,7 @@ public final class SpexareSensitiveData {
     }
 
     public static boolean isSensitivePath(final String path) {
-        return Arrays.stream(path.split("\\.")).anyMatch(FIELD::equals);
+        return Arrays.asList(path.split("\\.")).contains(FIELD);
     }
 
     private static boolean isOwnRecord(final Spexare spexare) {

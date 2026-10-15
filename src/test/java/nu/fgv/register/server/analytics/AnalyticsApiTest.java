@@ -104,7 +104,7 @@ class AnalyticsApiTest extends AbstractApiTest {
             fieldWithPath("lifecycle.veterans").description("The number of spexare who took part in five spex or more"),
             fieldWithPath("lifecycle.neverActive").description("The number of spexare with no recorded spex activity"),
             subsectionWithPath("dataQuality").description("The gaps worth chasing; null unless the caller is an editor or an administrator").optional(),
-            fieldWithPath("dataQuality.total").description("The number of spexare the caller may read \u2014 the denominator the gap counts are a share of").optional().type("Number"),
+            fieldWithPath("dataQuality.total").description("The number of spexare the caller may read — the denominator the gap counts are a share of").optional().type("Number"),
             subsectionWithPath("dataQuality.issues").description("One bucket per gap, drilling into the records that have it").optional(),
             fieldWithPath("dataQuality.complete").description("An upper bound on the number of records free of every gap").optional().type("Number"),
             subsectionWithPath("operations").description("How the register is being run; null unless the caller is an administrator").optional()

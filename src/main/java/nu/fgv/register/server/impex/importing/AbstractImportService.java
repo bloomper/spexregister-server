@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -189,7 +190,7 @@ public abstract class AbstractImportService {
         private String translateEntity(final String entity, final int count) {
             final String suffix = (count == 1) ? "" : ".plural";
 
-            return messageSource.getMessage(entity + suffix, null, entity, locale);
+            return Objects.requireNonNullElse(messageSource.getMessage(entity + suffix, null, entity, locale), entity);
         }
 
         public ImportResultDto toResult() {

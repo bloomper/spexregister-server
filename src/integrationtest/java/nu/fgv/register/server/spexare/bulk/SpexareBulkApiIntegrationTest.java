@@ -40,6 +40,7 @@ import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
+import org.springframework.web.util.UriBuilder;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -176,7 +177,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build())
+                    .uri(UriBuilder::build)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -197,7 +198,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build())
+                    .uri(UriBuilder::build)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .header("X-Audit-Reason", reason)
@@ -227,7 +228,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build())
+                    .uri(UriBuilder::build)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -248,7 +249,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build())
+                    .uri(UriBuilder::build)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")

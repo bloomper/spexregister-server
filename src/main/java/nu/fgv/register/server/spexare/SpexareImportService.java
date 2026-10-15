@@ -203,7 +203,6 @@ public class SpexareImportService extends AbstractImportService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
         final ImportSummary summary = new ImportSummary(messageSource, locale);
         final Map<Long, Long> spexareIdMap = new HashMap<>();
@@ -242,7 +241,6 @@ public class SpexareImportService extends AbstractImportService {
         return summary.toResult();
     }
 
-    @SuppressWarnings("unchecked")
     private static Collection<SpexareUnit> units(final Map<Class<?>, List<?>> data) {
         final Map<Long, SpexareUnit> units = new LinkedHashMap<>();
         final Function<Long, SpexareUnit> unitOf = id -> units.computeIfAbsent(id, _ -> new SpexareUnit());
@@ -421,13 +419,13 @@ public class SpexareImportService extends AbstractImportService {
 
         if (dto.getActorAction() != null) {
             if (dto.getActorAction() == ImpexAction.CREATE) {
-                actorService.create(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), ACTOR_MAPPER.toCreateDto(dto));
+                actorService.create(realSpexareId, realActivityId, realTaskActivityId, Objects.requireNonNull(dto.getTypeId()), ACTOR_MAPPER.toCreateDto(dto));
                 summary.incrementCreated("activity.impex.taskActivity.actor.entityName");
             } else if (dto.getActorAction() == ImpexAction.UPDATE) {
-                actorService.partialUpdate(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId(), ACTOR_MAPPER.toUpdateDto(dto));
+                actorService.partialUpdate(realSpexareId, realActivityId, realTaskActivityId, Objects.requireNonNull(dto.getTypeId()), Objects.requireNonNull(dto.getActorId()), ACTOR_MAPPER.toUpdateDto(dto));
                 summary.incrementUpdated("activity.impex.taskActivity.actor.entityName");
             } else if (dto.getActorAction() == ImpexAction.DELETE) {
-                actorService.deleteById(realSpexareId, realActivityId, realTaskActivityId, dto.getTypeId(), dto.getActorId());
+                actorService.deleteById(realSpexareId, realActivityId, realTaskActivityId, Objects.requireNonNull(dto.getTypeId()), Objects.requireNonNull(dto.getActorId()));
                 summary.incrementDeleted("activity.impex.taskActivity.actor.entityName");
             }
         }

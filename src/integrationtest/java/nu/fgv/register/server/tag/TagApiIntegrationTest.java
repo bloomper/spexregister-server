@@ -407,6 +407,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -503,6 +505,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            assertThat(before).isNotNull();
+
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
                     .name(before.getName() + "_")
@@ -571,6 +575,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TagDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())
@@ -648,6 +654,8 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(TagDto.class)
                     .returnResult()
                     .getResponseBody();
+
+            assertThat(before).isNotNull();
 
             final TagUpdateDto dto = TagUpdateDto.builder()
                     .id(before.getId())

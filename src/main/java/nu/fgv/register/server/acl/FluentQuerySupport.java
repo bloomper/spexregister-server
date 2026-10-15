@@ -26,6 +26,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -72,7 +73,7 @@ abstract class FluentQuerySupport<S, R> {
         if (targetType.isAssignableFrom(inputType)) {
             return (Function<Object, R>) Function.identity();
         } else {
-            return targetType.isInterface() ? o -> projectionFactory.createProjection(targetType, o) : o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
+            return targetType.isInterface() ? o -> projectionFactory.createProjection(targetType, o) : o -> Objects.requireNonNull(DefaultConversionService.getSharedInstance().convert(o, targetType));
         }
     }
 
