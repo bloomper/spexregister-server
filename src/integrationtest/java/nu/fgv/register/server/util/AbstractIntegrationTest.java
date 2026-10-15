@@ -29,6 +29,7 @@ import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.migration.JavaMigration;
 import org.hibernate.search.mapper.orm.Search;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.keycloak.admin.client.Keycloak;
@@ -114,9 +115,10 @@ public abstract class AbstractIntegrationTest {
     protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
-    private static final String TEST_PASSWORD = "s3cr3t";
+    private static final String TEST_PASSWORD = "s3cr3t-s3cr3t";
     private static final String TEST_CLIENT_ID = "spexregister";
-    private static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
+    protected static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
+    private static final String TEST_UNBOUND_MCP_CLIENT_ID = "spexregister-mcp-unbound";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
@@ -206,10 +208,20 @@ public abstract class AbstractIntegrationTest {
         try (final Keycloak admin = keycloak.getKeycloakAdminClient()) {
             final RealmResource realm = admin.realm(TEST_REALM);
             final ClientRepresentation mcpClient = realm.clients().findByClientId(TEST_MCP_CLIENT_ID).getFirst();
-            final ClientResource client = realm.clients().get(realm.clients().findByClientId(TEST_CLIENT_ID).getFirst().getId());
+            final ClientRepresentation webClient = realm.clients().findByClientId(TEST_CLIENT_ID).getFirst();
+            final ClientResource client = realm.clients().get(webClient.getId());
 
             mcpClient.setDirectAccessGrantsEnabled(true);
+            mcpClient.setConsentRequired(false);
             realm.clients().get(mcpClient.getId()).update(mcpClient);
+            webClient.setDirectAccessGrantsEnabled(true);
+            client.update(webClient);
+
+            final ClientRepresentation unboundMcpClient = new ClientRepresentation();
+            unboundMcpClient.setClientId(TEST_UNBOUND_MCP_CLIENT_ID);
+            unboundMcpClient.setPublicClient(true);
+            unboundMcpClient.setDirectAccessGrantsEnabled(true);
+            realm.clients().create(unboundMcpClient).close();
 
             createTestUser(realm, client, TEST_ADMIN, List.of(AUTHORITY_USER, AUTHORITY_EDITOR, AUTHORITY_ADMIN));
             createTestUser(realm, client, TEST_EDITOR, List.of(AUTHORITY_USER, AUTHORITY_EDITOR));
@@ -302,32 +314,41 @@ public abstract class AbstractIntegrationTest {
 
     protected String obtainAccessToken(final String username, final String password, final String clientId) {
         try {
-            return accessTokenCache.get("%s:%s".formatted(clientId, username), () -> {
-                final WebClient webClient = WebClient.builder().build();
-                final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-
-                formData.put("grant_type", Collections.singletonList(TEST_GRANT_TYPE));
-                formData.put("client_id", Collections.singletonList(clientId));
-                formData.put("client_secret", Collections.singletonList(keycloakClientClientSecret));
-                formData.put("username", Collections.singletonList(username));
-                formData.put("password", Collections.singletonList(password));
-
-                final String response = webClient
-                        .post()
-                        .uri(authorizationURI)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .body(BodyInserters.fromFormData(formData))
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .block();
-
-                return "Bearer " + jsonParser.parseMap(response)
-                        .get("access_token")
-                        .toString();
-            });
+            return accessTokenCache.get("%s:%s".formatted(clientId, username), () -> requestToken(username, password, clientId, null, "access_token"));
         } catch (final Exception e) {
             throw new RuntimeException("Could not obtain access token for username " + username, e);
         }
+    }
+
+    protected String obtainIdToken(final String username, final String clientId) {
+        return requestToken(username, TEST_PASSWORD, clientId, "openid", "id_token");
+    }
+
+    private String requestToken(final String username, final String password, final String clientId, final @Nullable String scope, final String tokenField) {
+        final WebClient webClient = WebClient.builder().build();
+        final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+
+        formData.put("grant_type", Collections.singletonList(TEST_GRANT_TYPE));
+        formData.put("client_id", Collections.singletonList(clientId));
+        formData.put("client_secret", Collections.singletonList(keycloakClientClientSecret));
+        formData.put("username", Collections.singletonList(username));
+        formData.put("password", Collections.singletonList(password));
+        if (scope != null) {
+            formData.put("scope", Collections.singletonList(scope));
+        }
+
+        final String response = webClient
+                .post()
+                .uri(authorizationURI)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        return "Bearer " + jsonParser.parseMap(response)
+                .get(tokenField)
+                .toString();
     }
 
     protected String obtainUserAccessToken() {
@@ -344,6 +365,10 @@ public abstract class AbstractIntegrationTest {
 
     protected String obtainMcpAccessToken(final String username) {
         return obtainAccessToken(username, TEST_PASSWORD, TEST_MCP_CLIENT_ID);
+    }
+
+    protected String obtainUnboundMcpAccessToken(final String username) {
+        return obtainAccessToken(username, TEST_PASSWORD, TEST_UNBOUND_MCP_CLIENT_ID);
     }
 
     protected void grantPermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {

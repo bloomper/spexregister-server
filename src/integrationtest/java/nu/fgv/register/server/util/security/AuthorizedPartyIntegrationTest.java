@@ -89,6 +89,16 @@ class AuthorizedPartyIntegrationTest extends AbstractIntegrationTest {
                 .expectStatus().isUnauthorized();
     }
 
+    @Test
+    void should_reject_an_id_token() {
+        restTestClient
+                .get()
+                .header(HttpHeaders.AUTHORIZATION, obtainIdToken(TEST_USER, keycloakClientClientId))
+                .apiVersion("1.0")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
     private String obtainOtherClientAccessToken() {
         final MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 

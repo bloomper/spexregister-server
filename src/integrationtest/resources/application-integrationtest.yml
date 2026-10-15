@@ -46,6 +46,8 @@ spexregister:
     client:
       client-id: spexregister
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
+  mcp:
+    authorized-parties: spexregister-mcp,spexregister-mcp-unbound
   impex:
     storage-path: ./integrationtest-data/impex_data
   data:

@@ -177,6 +177,32 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        void should_reject_token_without_mcp_audience() {
+            restTestClient
+                    .post()
+                    .uri(MCP_PATH)
+                    .header(HttpHeaders.AUTHORIZATION, obtainUnboundMcpAccessToken(TEST_ADMIN))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_EVENT_STREAM)
+                    .body(Map.of("jsonrpc", "2.0", "id", 1, "method", "tools/list"))
+                    .exchange()
+                    .expectStatus().isUnauthorized();
+        }
+
+        @Test
+        void should_reject_id_token() {
+            restTestClient
+                    .post()
+                    .uri(MCP_PATH)
+                    .header(HttpHeaders.AUTHORIZATION, obtainIdToken(TEST_ADMIN, TEST_MCP_CLIENT_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_EVENT_STREAM)
+                    .body(Map.of("jsonrpc", "2.0", "id", 1, "method", "tools/list"))
+                    .exchange()
+                    .expectStatus().isUnauthorized();
+        }
+
+        @Test
         void should_reject_mcp_token_on_regular_api() {
             restTestClient
                     .get()

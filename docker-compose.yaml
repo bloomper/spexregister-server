@@ -66,6 +66,8 @@ services:
       KC_DB_URL: jdbc:mysql://mysql-keycloak/${MYSQL_KEYCLOAK_DATABASE}
       KC_DB_USERNAME: ${MYSQL_KEYCLOAK_USER}
       KC_SPI_EVENTS_LISTENER__FGV_ADMIN_NOTIFICATION__RECIPIENTS: ${KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS:-admin@fgv.local.nu}
+      SPEXREGISTER_URL: ${WEB_URL:-http://localhost:3000}
+      SPEXREGISTER_MCP_URL: https://api.register.fgv.local.nu:8443/api/mcp
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       SMTP_FROM: noreply@fgv.local.nu
@@ -133,7 +135,6 @@ services:
     secrets:
       - MYSQL_APP_USER_PASSWORD
       - APP_KEYCLOAK_ADMIN_CLIENT_SECRET
-      - APP_KEYCLOAK_CLIENT_CLIENT_SECRET
       - APP_SECRET_KEY
 
   mailpit:
@@ -243,7 +244,5 @@ secrets:
     file: .docker/secrets/KEYCLOAK_ADMIN_PASSWORD
   APP_KEYCLOAK_ADMIN_CLIENT_SECRET:
     file: .docker/secrets/APP_KEYCLOAK_ADMIN_CLIENT_SECRET
-  APP_KEYCLOAK_CLIENT_CLIENT_SECRET:
-    file: .docker/secrets/APP_KEYCLOAK_CLIENT_CLIENT_SECRET
   APP_SECRET_KEY:
     file: .docker/secrets/APP_SECRET_KEY

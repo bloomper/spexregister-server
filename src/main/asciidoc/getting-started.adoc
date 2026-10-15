@@ -106,7 +106,7 @@ $ ./scripts/configure-keycloak.sh
 ----
 
 The address defaults to ``http://localhost:3000`` and can be changed by setting ``WEB_URL``.
-The script needs to be run again whenever Keycloak's database has been recreated.
+A newly created realm already allows ``WEB_URL``. The script is needed when ``WEB_URL`` changes after the realm was created, for Postman (see <<testing_the_api>>) and to add the MCP audience to a realm created before it existed.
 
 [[sample_data]]
 == Sample data
@@ -237,20 +237,21 @@ The following test users are created when sample data is imported (see <<sample_
 
 |Username|Password|Comment
 
-|admin@fgv.nu|s3cr3t|Has admin privileges
-|editor@fgv.nu|s3cr3t|Has editor privileges
-|user@fgv.nu|s3cr3t|Has user privileges
+|admin@fgv.nu|s3cr3t-s3cr3t|Has admin privileges
+|editor@fgv.nu|s3cr3t-s3cr3t|Has editor privileges
+|user@fgv.nu|s3cr3t-s3cr3t|Has user privileges
 
 !===
 
 [[testing_the_api]]
 == Testing the API
 
-There are many tools out there that can be used for manual testing of the APIs.
-Two examples are Postman (https://www.postman.com/) and Brauzie (https://github.com/maslick/brauzie).
+There are many tools out there that can be used for manual testing of the APIs, e.g. Postman (https://www.postman.com/).
+The Keycloak client requires PKCE, so the tool must support it.
 
-To use Postman, select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`` tab and then select
-``Authorization Code`` as ``Grant type``.
+To use Postman, first run ``./scripts/configure-keycloak.sh``, which allows Postman's callback URL in Keycloak.
+Then select ``OAuth 2.0`` as ``Auth Type`` under the ``Authorization`` tab and then select
+``Authorization Code (With PKCE)`` as ``Grant type`` and ``SHA-256`` as ``Code Challenge Method``.
 Enter values as follows (leave other fields empty).
 
 |===
@@ -261,7 +262,7 @@ Enter values as follows (leave other fields empty).
 |Auth URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Access Token URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Client ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
-|Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
+|Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If the secret of the client has been changed in Keycloak, the value must be changed accordingly
 |Scope|offline_access|
 |Client Authentication|Send as Basic Auth header|
 
@@ -269,34 +270,6 @@ Request an access token by clicking ``Get New Access Token`` and use any of the 
 Use the obtained access token when invoking the API endpoints.
 
 |===
-
-To use Brauzie, set the following environment variables by running:
-
-[source,bash]
-----
-$ export <environment variable>=<value>
-----
-
-!===
-
-|Environment variable|Value|Comment
-
-|``BRAUZIE_KC_URL``|https://keycloak.fgv.local.nu:8443|
-|``BRAUZIE_REALM``|fgv|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|``BRAUZIE_CLIENT_ID``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
-|``BRAUZIE_CLIENT_SECRET``|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_SECRET`` in ``.env`` has been changed, the value must be changed accordingly
-
-!===
-
-Then run:
-
-[source,bash]
-----
-$ brauzie login
-----
-
-Use any of the test credentials to login after which the access token should show in the console.
-Use the obtained access token when invoking the API endpoints.
 
 [[mcp_server]]
 == MCP server
@@ -312,6 +285,9 @@ with source ``MCP``.
 Authentication uses OAuth 2.0 against Keycloak with the public client ``spexregister-mcp`` (authorization code with PKCE,
 redirect URIs ``http://localhost:*`` and ``http://127.0.0.1:*``). Only tokens issued to that client are accepted
 by the MCP endpoint, and they are not accepted by the rest of the API.
+The tokens must also have the MCP endpoint's address, i.e. ``APP_BASE_URL`` with the path ``/api/mcp``, as audience.
+Keycloak adds it through the client's audience mapper, which ``fgv.json`` sets from ``SPEXREGISTER_MCP_URL``.
+Users confirm the access once, on Keycloak's consent page.
 MCP clients discover Keycloak through the protected resource metadata at
 ``/.well-known/oauth-protected-resource/api/mcp``. Keycloak does not allow dynamic client registration by default,
 so configure the MCP client with the client id ``spexregister-mcp``.
