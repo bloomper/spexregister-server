@@ -40,14 +40,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.membership.MembershipMapper.MEMBERSHIP_MAPPER;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasId;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasSpexare;
+import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasSpexareIn;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasType;
 import static nu.fgv.register.server.spexare.membership.MembershipSpecification.hasYear;
 import static org.springframework.util.StringUtils.hasText;
@@ -67,6 +71,22 @@ public class MembershipService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
     private final PermissionService permissionService;
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<MembershipDto>> findBySpexareIds(final Collection<Long> ids) {
+        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
+
+        if (spexare.isEmpty()) {
+            return Map.of();
+        }
+
+        return repository
+                .findAll(hasSpexareIn(spexare), Sort.by(Membership_.TYPE))
+                .stream()
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(MEMBERSHIP_MAPPER::toDto, Collectors.toList())));
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<MembershipDto> findBySpexare(final Long id) {

@@ -45,6 +45,9 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
     @Query("SELECT s FROM Spexare s JOIN FETCH s.partner WHERE s.id IN :ids")
     List<Spexare> findWithPartnerByIdIn(Collection<Long> ids);
 
+    @Query("SELECT DISTINCT s FROM Spexare s LEFT JOIN FETCH s.tags WHERE s.id IN :ids")
+    List<Spexare> findWithTagsByIdIn(Collection<Long> ids);
+
     long countByPublishedTrue();
 
     long countByDataQualityIssue(DataQualityIssue issue);

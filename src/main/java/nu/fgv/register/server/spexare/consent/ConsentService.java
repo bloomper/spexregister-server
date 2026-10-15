@@ -38,14 +38,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.consent.ConsentMapper.CONSENT_MAPPER;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasId;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasSpexare;
+import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasSpexareIn;
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasType;
 
 /**
@@ -63,6 +67,22 @@ public class ConsentService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
     private final PermissionService permissionService;
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<ConsentDto>> findBySpexareIds(final Collection<Long> ids) {
+        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
+
+        if (spexare.isEmpty()) {
+            return Map.of();
+        }
+
+        return repository
+                .findAll(hasSpexareIn(spexare), Sort.by(Consent_.TYPE))
+                .stream()
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(CONSENT_MAPPER::toDto, Collectors.toList())));
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<ConsentDto> findBySpexare(final Long id) {

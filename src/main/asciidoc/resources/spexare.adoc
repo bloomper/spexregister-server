@@ -58,6 +58,20 @@ operation::spexare-get-all-search[snippets='request-headers,query-parameters,htt
 
 operation::spexare-get-export[snippets='security,query-parameters,http-request,response-fields,http-response']
 
+[[get_export_me]]
+== Get (export me)
+
+Exports the spexare of the current user.
+
+operation::spexare-get-export-me[snippets='security,query-parameters,http-request,response-fields,http-response']
+
+[[removal_request]]
+== Request removal (me)
+
+Asks the administrators, by email, to remove the current user and their spexare from the register.
+
+operation::spexare-removal-request[snippets='security,request-headers,request-fields,http-request,http-response']
+
 [[get]]
 == Get
 
@@ -122,7 +136,7 @@ a|
 * ADMIN
 !===
 
-operation::spexare-delete[snippets='request-headers,path-parameters,http-request,http-response']
+operation::spexare-delete[snippets='request-headers,path-parameters,query-parameters,http-request,http-response']
 
 [[image]]
 == Image

@@ -22,6 +22,8 @@ import nu.fgv.register.server.settings.Type_;
 import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -39,6 +41,10 @@ public class ToggleSpecification {
 
     public static Specification<Toggle> hasSpexare(final Spexare spexare) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Toggle_.spexare), spexare);
+    }
+
+    public static Specification<Toggle> hasSpexareIn(final Collection<Spexare> spexare) {
+        return (root, query, criteriaBuilder) -> root.get(Toggle_.spexare).in(spexare);
     }
 
     public static Specification<Toggle> hasType(final Type type) {

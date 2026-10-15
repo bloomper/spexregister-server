@@ -19,10 +19,12 @@ package nu.fgv.register.server.spexare;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.audit.AuditPurgeService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.impex.model.ReportType;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
@@ -59,6 +61,8 @@ public class SpexareGraphqlApi {
 
     private final SpexareService service;
     private final JobService jobService;
+    private final AuditPurgeService auditPurgeService;
+    private final SpexareRemovalRequestService removalRequestService;
 
     @QueryMapping("spexarePaged")
     @RequiresAdminOrEditorOrUser
@@ -77,6 +81,18 @@ public class SpexareGraphqlApi {
     public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, @Nullable @Argument final ReportType reportType, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, reportType, locale))
+                .build();
+    }
+
+    @QueryMapping("spexareMeExport")
+    @RequiresAdminOrEditorOrUser
+    public JobReferenceDto exportMe(@Argument final ImpexType type, final Locale locale) {
+        final Long id = service.findByCurrentUser()
+                .map(SpexareDto::getId)
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, "me"));
+
+        return JobReferenceDto.builder()
+                .id(jobService.createExportJob(SpexareExportService.class, List.of(id), "", type, null, locale))
                 .build();
     }
 
@@ -107,14 +123,23 @@ public class SpexareGraphqlApi {
 
     @MutationMapping("spexareDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final Long id, @Argument final boolean purge) {
         service.deleteById(id);
+        if (purge) {
+            auditPurgeService.purgeSpexare(id);
+        }
     }
 
     @MutationMapping("spexareImageDelete")
     @RequiresAdminOrEditorOrUser
     public void deleteImage(@Argument final Long id) {
         service.deleteImage(id);
+    }
+
+    @MutationMapping("spexareMeRemovalRequest")
+    @RequiresAdminOrEditorOrUser
+    public void requestRemoval(@Nullable @Argument final String reason) {
+        removalRequestService.request(reason);
     }
 
     @BatchMapping(typeName = "Spexare", field = "partner")

@@ -18,6 +18,7 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
@@ -163,6 +164,13 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         spexare.setId(null);
 
         return repository.save(spexare);
+    }
+
+    private long auditRowCount(final Long id) {
+        return jdbcClient.sql("SELECT COUNT(*) FROM spexare_audit WHERE id = :id")
+                .param("id", id)
+                .query(Long.class)
+                .single();
     }
 
     private void syncIndex() {
@@ -960,6 +968,29 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Export me")
+    class ExportMeTests {
+
+        @Test
+        void should_return_NOT_FOUND_when_user_has_no_spexare() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareMeExport")
+                    .variable("type", "EXCEL")
+                    .execute()
+                    .errors()
+                    .satisfy((errors) -> assertThat(errors)
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
+                    )
+                    .path("spexareMeExport")
+                    .valueIsNull();
+        }
+
+    }
+
+    @Nested
     @DisplayName("Delete")
     class DeleteTests {
 
@@ -982,6 +1013,43 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .valueIsNull();
 
             assertThat(repository.count()).isZero();
+            assertThat(auditRowCount(spexare.getId())).isPositive();
+        }
+
+        @Test
+        void should_delete_and_purge_history() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            spexare.setFirstName("Renamed");
+            spexare.setImage(Image.of(new byte[]{1, 2, 3}, MediaType.IMAGE_PNG_VALUE));
+            final Long imageId = repository.save(spexare).getImage().getId();
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            final var other = persistSpexare(randomizeSpexare());
+            final List<Long> revisions = jdbcClient.sql("SELECT rev FROM spexare_audit WHERE id = :id")
+                    .param("id", spexare.getId())
+                    .query(Long.class)
+                    .list();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("spexare/spexareDelete")
+                    .variable("id", spexare.getId())
+                    .variable("purge", true)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareDelete")
+                    .valueIsNull();
+
+            assertThat(repository.count()).isOne();
+            assertThat(revisions).hasSize(2);
+            assertThat(auditRowCount(spexare.getId())).isZero();
+            assertThat(auditRowCount(other.getId())).isPositive();
+            assertThat(jdbcClient.sql("SELECT COUNT(*) FROM image_audit WHERE id = :id").param("id", imageId).query(Long.class).single()).isZero();
+            assertThat(jdbcClient.sql("SELECT COUNT(*) FROM revinfo WHERE id IN (:revisions)").param("revisions", revisions).query(Long.class).single()).isZero();
+            assertThat(jdbcClient.sql("SELECT COUNT(*) FROM revchanges WHERE rev IN (:revisions)").param("revisions", revisions).query(Long.class).single()).isZero();
         }
 
         @Test

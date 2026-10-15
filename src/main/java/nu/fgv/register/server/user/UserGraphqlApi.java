@@ -30,6 +30,7 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
@@ -41,9 +42,12 @@ import org.springframework.stereotype.Controller;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -133,10 +137,14 @@ public class UserGraphqlApi {
         service.removeAuthorities(userId, ids);
     }
 
-    @SchemaMapping(typeName = "User", field = "state")
+    @BatchMapping(typeName = "User", field = "state")
     @RequiresAdmin
-    public StateDto retrieveState(final UserDto dto) {
-        return service.getStateByUser(dto.getId());
+    public Map<UserDto, StateDto> retrieveStates(final List<UserDto> dtos) {
+        final Map<Long, StateDto> states = service.getStatesByUsers(ids(dtos));
+
+        return dtos.stream()
+                .filter(dto -> states.containsKey(dto.getId()))
+                .collect(Collectors.toMap(Function.identity(), dto -> states.get(dto.getId()), (a, _) -> a));
     }
 
     @MutationMapping("userStateSet")
@@ -145,11 +153,14 @@ public class UserGraphqlApi {
         service.setState(userId, id);
     }
 
-    @SchemaMapping(typeName = "User", field = "spexare")
+    @BatchMapping(typeName = "User", field = "spexare")
     @RequiresAdmin
-    public @Nullable SpexareDto retrieveSpexare(final UserDto dto) {
-        return service.findSpexareByUser(dto.getId())
-                .orElse(null);
+    public Map<UserDto, SpexareDto> retrieveSpexare(final List<UserDto> dtos) {
+        final Map<Long, SpexareDto> spexare = service.findSpexareByUsers(ids(dtos));
+
+        return dtos.stream()
+                .filter(dto -> spexare.containsKey(dto.getId()))
+                .collect(Collectors.toMap(Function.identity(), dto -> spexare.get(dto.getId()), (a, _) -> a));
     }
 
     @MutationMapping("userSpexareAdd")
@@ -164,4 +175,7 @@ public class UserGraphqlApi {
         service.removeSpexare(userId);
     }
 
+    private static List<Long> ids(final List<UserDto> dtos) {
+        return dtos.stream().map(UserDto::getId).distinct().toList();
+    }
 }
