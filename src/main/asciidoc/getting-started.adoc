@@ -98,15 +98,29 @@ You are now ready to get Spexregister Server up and running:
 $ docker compose up -d
 ----
 
-To log in from a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, its address must be allowed as a redirect URI in Keycloak:
+Keycloak creates the realm from ``fgv.json`` the first time it starts.
+The realm lets a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, log in from ``WEB_URL`` in ``.env``, which defaults to ``http://localhost:3000``.
+Registration requires a Cloudflare Turnstile challenge.
+Locally, Keycloak uses Cloudflare's test keys, which always pass.
+To see a failed challenge, set ``TURNSTILE_SECRET_KEY=2x0000000000000000000000000000000AA`` in ``.env`` and run ``docker compose up -d keycloak``.
+
+``./scripts/configure-keycloak.sh`` allows Postman's callback URL in Keycloak (see <<testing_the_api>>).
+
+[[keycloak_migrations]]
+=== Keycloak migrations
+
+A change to ``fgv.json`` reaches only realms created after it.
+For a realm that already exists, the change comes with a script in ``scripts/migrations/``, named after the date it was added.
+Run every script that is newer than the realm, in date order, while Keycloak is running:
 
 [source,bash]
 ----
-$ ./scripts/configure-keycloak.sh
+$ ./scripts/migrations/2026-10-15-security-passkeys-turnstile.sh
 ----
 
-The address defaults to ``http://localhost:3000`` and can be changed by setting ``WEB_URL``.
-A newly created realm already allows ``WEB_URL``. The script is needed when ``WEB_URL`` changes after the realm was created, for Postman (see <<testing_the_api>>) and to add the MCP audience to a realm created before it existed.
+The scripts can be run again safely.
+Once every environment has run a script, delete it; git history keeps it.
+The same scripts for staging and production are in https://github.com/bloomper/spexregister-deploy[spexregister-deploy].
 
 [[sample_data]]
 == Sample data
