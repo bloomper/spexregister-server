@@ -114,7 +114,7 @@ public class NewsMcpTools {
     public record McpNews(Long id, String subject, String text, @Nullable LocalDate visibleFrom, @Nullable LocalDate visibleTo, boolean published) {
 
         static McpNews of(final NewsDto dto) {
-            return new McpNews(dto.getId(), dto.getSubject(), dto.getText(), dto.getVisibleFrom(), dto.getVisibleTo(), Boolean.TRUE.equals(dto.getPublished()));
+            return new McpNews(dto.getId(), dto.getSubject(), dto.getText(), dto.getVisibleFrom(), dto.getVisibleTo(), dto.getPublished());
         }
     }
 }

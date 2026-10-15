@@ -55,23 +55,23 @@ public class TaskMcpTools {
     private final TaskCategoryService categoryService;
     private final McpToolSupport support;
 
-    @McpTool(name = "list_tasks", description = "List tasks (roles a person can have in a spex, e.g. director or musician). Filterable fields: name.",
+    @McpTool(name = "list_tasks", description = "List tasks (roles a person can have in a spex, e.g. director or musician), including their categories. Filterable fields: name, category.id, category.name.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTask> listTasks(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                          @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
                                          @McpToolParam(required = false, description = SIZE_DESCRIPTION) final @Nullable Integer size) {
-        return PageResult.of(taskService.find(filter(filter), pageable(page, size, Sort.by(Task_.NAME))), McpTask::of);
+        return PageResult.of(taskService.find(filter(filter), pageable(page, size, Sort.by(Task_.NAME))), this::toMcpTask);
     }
 
     @McpTool(name = "get_task", description = "Get a task, including its category",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpTaskDetails getTask(@McpToolParam(description = "Task id") final Long id) {
-        return new McpTaskDetails(McpTask.of(taskService.findById(id)), categoryOf(id));
+    public McpTask getTask(@McpToolParam(description = "Task id") final Long id) {
+        return toMcpTask(taskService.findById(id));
     }
 
     @McpTool(name = "create_task", description = "Create a task, optionally in a task category. Requires the ADMIN role.",
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpTaskDetails createTask(@McpToolParam(description = "Task name") final String name,
+    public McpTask createTask(@McpToolParam(description = "Task name") final String name,
                                      @McpToolParam(required = false, description = "Id of the task category to put the task in") final @Nullable Long categoryId) {
         support.audit("create_task");
         final TaskDto task = taskService.create(support.validate(TaskCreateDto.builder().name(name).build()));
@@ -89,12 +89,12 @@ public class TaskMcpTools {
                               @McpToolParam(description = "New task name") final String name) {
         support.audit("update_task");
 
-        return McpTask.of(taskService.update(support.validate(new TaskUpdateDto(id, name))));
+        return toMcpTask(taskService.update(support.validate(new TaskUpdateDto(id, name))));
     }
 
     @McpTool(name = "set_task_category", description = "Set or clear the category of a task. Requires the ADMIN role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTaskDetails setTaskCategory(@McpToolParam(description = "Task id") final Long id,
+    public McpTask setTaskCategory(@McpToolParam(description = "Task id") final Long id,
                                           @McpToolParam(required = false, description = "Task category id, omit to remove the category") final @Nullable Long categoryId) {
         support.audit("set_task_category");
 
@@ -150,7 +150,7 @@ public class TaskMcpTools {
         return McpTaskCategory.of(categoryService.update(support.validate(new TaskCategoryUpdateDto(
                 id,
                 orElse(name, current.getName()),
-                orElse(actorPresent, Boolean.TRUE.equals(current.getActorPresent()))
+                orElse(actorPresent, current.getActorPresent())
         ))));
     }
 
@@ -163,6 +163,10 @@ public class TaskMcpTools {
         return "Deleted task category %d".formatted(id);
     }
 
+    private McpTask toMcpTask(final TaskDto dto) {
+        return new McpTask(dto.getId(), dto.getName(), categoryOf(dto.getId()));
+    }
+
     private @Nullable McpTaskCategory categoryOf(final Long taskId) {
         try {
             return McpTaskCategory.of(taskService.findCategoryByTask(taskId));
@@ -171,20 +175,13 @@ public class TaskMcpTools {
         }
     }
 
-    public record McpTask(Long id, String name) {
-
-        static McpTask of(final TaskDto dto) {
-            return new McpTask(dto.getId(), dto.getName());
-        }
-    }
-
-    public record McpTaskDetails(McpTask task, @Nullable McpTaskCategory category) {
+    public record McpTask(Long id, String name, @Nullable McpTaskCategory category) {
     }
 
     public record McpTaskCategory(Long id, String name, boolean actorPresent) {
 
         static McpTaskCategory of(final TaskCategoryDto dto) {
-            return new McpTaskCategory(dto.getId(), dto.getName(), Boolean.TRUE.equals(dto.getActorPresent()));
+            return new McpTaskCategory(dto.getId(), dto.getName(), dto.getActorPresent());
         }
     }
 }

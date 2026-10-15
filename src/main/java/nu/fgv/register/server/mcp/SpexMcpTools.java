@@ -62,7 +62,7 @@ public class SpexMcpTools {
     private final SpexCategoryService categoryService;
     private final McpToolSupport support;
 
-    @McpTool(name = "list_spex", description = "List spex (original productions, excluding revivals unless includeRevivals is true). Filterable fields: year, details.title, details.category.id, details.category.name.",
+    @McpTool(name = "list_spex", description = "List spex (original productions, excluding revivals unless includeRevivals is true). Includes each spex's category. Filterable fields: year, details.title, details.category.id, details.category.name.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpSpex> listSpex(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                         @McpToolParam(required = false, description = "Also include revivals, defaults to false") final @Nullable Boolean includeRevivals,
@@ -77,7 +77,7 @@ public class SpexMcpTools {
             effectiveFilter = hasText(userFilter) ? "%s AND ( %s )".formatted(NOT_REVIVAL_FILTER, userFilter) : NOT_REVIVAL_FILTER;
         }
 
-        return PageResult.of(spexService.find(effectiveFilter, pageable(page, size, Sort.by(Spex_.YEAR))), McpSpex::of);
+        return PageResult.of(spexService.find(effectiveFilter, pageable(page, size, Sort.by(Spex_.YEAR))), this::toMcpSpex);
     }
 
     @McpTool(name = "get_spex", description = "Get a spex, including its category and revivals",
@@ -86,9 +86,9 @@ public class SpexMcpTools {
         final SpexDto spex = spexService.findById(id);
         final List<McpSpex> revivals = Boolean.TRUE.equals(spex.getRevival()) ?
                 List.of() :
-                spexService.findRevivalsByParent(id).stream().map(McpSpex::of).toList();
+                spexService.findRevivalsByParent(id).stream().map(this::toMcpSpex).toList();
 
-        return new McpSpexDetails(McpSpex.of(spex), categoryOf(id), revivals);
+        return new McpSpexDetails(spex.getId(), spex.getYear(), spex.getTitle(), Boolean.TRUE.equals(spex.getRevival()), categoryOf(id), revivals);
     }
 
     @McpTool(name = "create_spex", description = "Create a spex, optionally in a spex category. Requires the ADMIN role.",
@@ -114,7 +114,7 @@ public class SpexMcpTools {
         support.audit("update_spex");
         final SpexDto current = spexService.findById(id);
 
-        return McpSpex.of(spexService.update(support.validate(new SpexUpdateDto(
+        return toMcpSpex(spexService.update(support.validate(new SpexUpdateDto(
                 id,
                 orElse(year, current.getYear()),
                 orElse(title, current.getTitle())
@@ -155,7 +155,7 @@ public class SpexMcpTools {
         }
 
 
-        return McpSpex.of(spexService.addRevival(spexId, year));
+        return toMcpSpex(spexService.addRevival(spexId, year));
     }
 
     @McpTool(name = "delete_spex_revival", description = "Permanently delete a single revival of a spex. Requires the ADMIN or EDITOR role.",
@@ -215,6 +215,10 @@ public class SpexMcpTools {
         return "Deleted spex category %d".formatted(id);
     }
 
+    private McpSpex toMcpSpex(final SpexDto dto) {
+        return new McpSpex(dto.getId(), dto.getYear(), dto.getTitle(), Boolean.TRUE.equals(dto.getRevival()), categoryOf(dto.getId()));
+    }
+
     private @Nullable McpSpexCategory categoryOf(final Long spexId) {
         try {
             return McpSpexCategory.of(spexService.findCategoryBySpex(spexId));
@@ -223,14 +227,10 @@ public class SpexMcpTools {
         }
     }
 
-    public record McpSpex(Long id, String year, String title, boolean revival) {
-
-        static McpSpex of(final SpexDto dto) {
-            return new McpSpex(dto.getId(), dto.getYear(), dto.getTitle(), Boolean.TRUE.equals(dto.getRevival()));
-        }
+    public record McpSpex(Long id, String year, String title, boolean revival, @Nullable McpSpexCategory category) {
     }
 
-    public record McpSpexDetails(McpSpex spex, @Nullable McpSpexCategory category, List<McpSpex> revivals) {
+    public record McpSpexDetails(Long id, String year, String title, boolean revival, @Nullable McpSpexCategory category, List<McpSpex> revivals) {
     }
 
     public record McpSpexCategory(Long id, String name, String firstYear) {
