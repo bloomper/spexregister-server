@@ -33,8 +33,6 @@ import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -55,6 +53,7 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -92,7 +91,7 @@ import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity
  * @since 2.0
  */
 @Component
-public class R__ImportSampleData extends BaseJavaMigration {
+public class SampleDataImporter {
     private static final int NUMBER_OF_SAMPLES_NEWS = 20;
     private static final int NUMBER_OF_SAMPLES_TAGS = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE = 500;
@@ -105,12 +104,11 @@ public class R__ImportSampleData extends BaseJavaMigration {
     private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
-    private static final String SAMPLE_PASSWORD = "s3cr3t";
+    private static final String SAMPLE_USER_DOMAIN = "@fgv.nu";
     private final PermissionService permissionService;
     private final AuthorityService authorityService;
     private final AuditDataSeeder auditDataSeeder;
-    @Value("${spexregister.data.import-sample-data:false}")
-    private final boolean importSampleData;
+    private final String sampleUserPassword;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
     private final Random rnd = new SecureRandom();
@@ -120,46 +118,39 @@ public class R__ImportSampleData extends BaseJavaMigration {
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
-    public R__ImportSampleData(final PermissionService permissionService,
+    public SampleDataImporter(final PermissionService permissionService,
                                final AuthorityService authorityService,
                                final AuditDataSeeder auditDataSeeder,
                                final Keycloak keycloakAdminClient,
                                final String keycloakClientId,
-                               @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
+                               @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
                                @Value("${spexregister.crypto.secret-key}") final String secretKey) {
         this.permissionService = permissionService;
         this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
-        this.importSampleData = importSampleData;
+        this.sampleUserPassword = sampleUserPassword;
         cryptoConverter = new CryptoConverter(secretKey);
     }
 
-    @Override
-    public Integer getChecksum() {
-        return rnd.nextInt();
-    }
+    public void importSampleData(final Connection connection) {
+        final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(connection, true));
 
-    @Override
-    public void migrate(final Context context) {
-        if (importSampleData) {
-            final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(context.getConnection(), true));
+        purgeAllRelevantTables(jdbcClient);
+        purgeKeycloak();
+        SecurityContextHolder.getContext().setAuthentication(AUTH);
 
-            purgeAllRelevantTables(jdbcClient);
-            purgeKeycloak();
-            SecurityContextHolder.getContext().setAuthentication(AUTH);
+        createSampleTaskCategoriesAndTasks(connection, jdbcClient);
+        createSampleSpexCategoriesAndSpex(connection, jdbcClient);
+        createSampleNews(jdbcClient);
+        createSampleTags(jdbcClient);
+        createSampleSpexare(jdbcClient);
+        createFixedSampleUsers();
 
-            createSampleTaskCategoriesAndTasks(context.getConnection(), jdbcClient);
-            createSampleSpexCategoriesAndSpex(context.getConnection(), jdbcClient);
-            createSampleNews(jdbcClient);
-            createSampleTags(jdbcClient);
-            createSampleSpexare(jdbcClient);
+        auditDataSeeder.seedSampleHistory(jdbcClient, createSampleUsers(jdbcClient));
 
-            auditDataSeeder.seedSampleHistory(jdbcClient, createSampleUsers(jdbcClient));
-
-            SecurityContextHolder.clearContext();
-        }
+        SecurityContextHolder.clearContext();
     }
 
     private void purgeAllRelevantTables(final JdbcClient jdbcClient) {
@@ -229,8 +220,6 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 .realm(keycloakRealm)
                 .users()
                 .list()
-                .stream()
-                .filter(r -> !r.getEmail().endsWith("@fgv.nu"))
                 .forEach(representation -> {
                     try (final Response response = keycloakAdminClient
                             .realm(keycloakRealm)
@@ -753,6 +742,52 @@ public class R__ImportSampleData extends BaseJavaMigration {
         });
     }
 
+    private void createFixedSampleUsers() {
+        createFixedSampleUser("admin", List.of("USER", "EDITOR", "ADMIN"));
+        createFixedSampleUser("editor", List.of("USER", "EDITOR"));
+        createFixedSampleUser("user", List.of("USER"));
+    }
+
+    private void createFixedSampleUser(final String name, final List<String> authorityIds) {
+        final UserRepresentation userRepresentation = new UserRepresentation();
+
+        userRepresentation.setEmail(name + SAMPLE_USER_DOMAIN);
+        userRepresentation.setFirstName(StringUtils.capitalize(name));
+        userRepresentation.setEnabled(true);
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setCredentials(List.of(sampleUserCredential()));
+
+        try (final Response response = keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .create(userRepresentation)
+        ) {
+            if (response.getStatus() != HttpStatus.CREATED.value()) {
+                throw new IllegalStateException("Could not create user " + userRepresentation.getEmail() + " in Keycloak");
+            }
+
+            final String locationPath = response.getLocation().getPath();
+
+            keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .users()
+                    .get(locationPath.substring(locationPath.lastIndexOf('/') + 1))
+                    .roles()
+                    .clientLevel(keycloakClientId)
+                    .add(authorityIds.stream().map(authorityService::getRoleRepresentationById).toList());
+        }
+    }
+
+    private CredentialRepresentation sampleUserCredential() {
+        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(sampleUserPassword);
+        credentialRepresentation.setTemporary(false);
+
+        return credentialRepresentation;
+    }
+
     private List<String> createSampleUsers(final JdbcClient jdbcClient) {
         final List<RoleRepresentation> authorities = new ArrayList<>();
 
@@ -781,12 +816,7 @@ public class R__ImportSampleData extends BaseJavaMigration {
                 VALUES
                     (:externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
                 """;
-        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-
-        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
-        credentialRepresentation.setValue(SAMPLE_PASSWORD);
-        credentialRepresentation.setTemporary(false);
-
+        final CredentialRepresentation credentialRepresentation = sampleUserCredential();
         final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
         final List<String> emailAddresses = new ArrayList<>();
 

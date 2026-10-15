@@ -102,6 +102,10 @@ public class AuditDataSeeder {
         return String.join(", ", ids.stream().map(_ -> "?").toList());
     }
 
+    public boolean hasRevisions(final JdbcClient jdbcClient) {
+        return jdbcClient.sql("SELECT COUNT(*) FROM revinfo").query(Long.class).single() > 0;
+    }
+
     public void seedBaseline(final JdbcClient jdbcClient) {
         purge(jdbcClient);
 

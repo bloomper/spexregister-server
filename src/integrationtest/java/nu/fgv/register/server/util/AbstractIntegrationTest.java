@@ -25,12 +25,18 @@ import jakarta.ws.rs.core.Response;
 import nu.fgv.register.server.acl.PermissionService;
 import org.apache.http.client.utils.URIBuilder;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.migration.JavaMigration;
 import org.hibernate.search.mapper.orm.Search;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
@@ -71,6 +77,7 @@ import javax.sql.DataSource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +116,7 @@ public abstract class AbstractIntegrationTest {
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
     protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
     private static final String TEST_PASSWORD = "s3cr3t";
+    private static final String TEST_CLIENT_ID = "spexregister";
     private static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
@@ -118,11 +126,11 @@ public abstract class AbstractIntegrationTest {
                     "--innodb-doublewrite=0",
                     "--skip-log-bin",
                     "--performance-schema=OFF");
-    private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.6").withRealmImportFile("/keycloak/fgv.json");
+    private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.8").withRealmImportFile("/keycloak/fgv.json");
     private static final Set<String> RESET_TEST_CLASSES = ConcurrentHashMap.newKeySet();
     private static final JacksonJsonParser jsonParser = new JacksonJsonParser();
     private static final LoadingCache<String, String> accessTokenCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(2, TimeUnit.MINUTES)
+            .expireAfterWrite(Duration.ofMinutes(2))
             .build(new CacheLoader<>() {
                 @Override
                 public @NotNull String load(@NotNull final String key) {
@@ -133,6 +141,7 @@ public abstract class AbstractIntegrationTest {
 
     static {
         Startables.deepStart(mysql, keycloak).join();
+        prepareKeycloak();
     }
 
     protected final JdbcClient jdbcClient;
@@ -194,6 +203,44 @@ public abstract class AbstractIntegrationTest {
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
     }
 
+    private static void prepareKeycloak() {
+        try (final Keycloak admin = keycloak.getKeycloakAdminClient()) {
+            final RealmResource realm = admin.realm(TEST_REALM);
+            final ClientRepresentation mcpClient = realm.clients().findByClientId(TEST_MCP_CLIENT_ID).getFirst();
+            final ClientResource client = realm.clients().get(realm.clients().findByClientId(TEST_CLIENT_ID).getFirst().getId());
+
+            mcpClient.setDirectAccessGrantsEnabled(true);
+            realm.clients().get(mcpClient.getId()).update(mcpClient);
+
+            createTestUser(realm, client, TEST_ADMIN, List.of(AUTHORITY_USER, AUTHORITY_EDITOR, AUTHORITY_ADMIN));
+            createTestUser(realm, client, TEST_EDITOR, List.of(AUTHORITY_USER, AUTHORITY_EDITOR));
+            createTestUser(realm, client, TEST_USER, List.of(AUTHORITY_USER));
+        }
+    }
+
+    private static void createTestUser(final RealmResource realm, final ClientResource client, final String email, final List<String> authorities) {
+        final CredentialRepresentation credential = new CredentialRepresentation();
+        final UserRepresentation user = new UserRepresentation();
+
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(TEST_PASSWORD);
+        credential.setTemporary(false);
+        user.setEmail(email);
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        user.setCredentials(List.of(credential));
+
+        try (final Response response = realm.users().create(user)) {
+            final String locationPath = response.getLocation().getPath();
+
+            realm.users()
+                    .get(locationPath.substring(locationPath.lastIndexOf('/') + 1))
+                    .roles()
+                    .clientLevel(client.toRepresentation().getId())
+                    .add(authorities.stream().map(authority -> client.roles().get(authority).toRepresentation()).toList());
+        }
+    }
+
     private static Class<?> topLevelClass(final Class<?> clazz) {
         Class<?> current = clazz;
 
@@ -229,6 +276,7 @@ public abstract class AbstractIntegrationTest {
                 .executeInTransaction(false)
                 .cleanDisabled(false)
                 .javaMigrations(applicationContext.getBeansOfType(JavaMigration.class).values().toArray(new JavaMigration[0]))
+                .callbacks(applicationContext.getBeansOfType(Callback.class).values().toArray(new Callback[0]))
                 .load();
     }
 

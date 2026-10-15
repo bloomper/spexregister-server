@@ -70,7 +70,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |APP_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
 |APP_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
 |APP_KEYCLOAK_MCP_CLIENT_ID|The Keycloak client id(s), comma separated, that MCP clients authenticate with|spexregister-mcp
-|APP_SEED_AUDIT_DATA|A flag determining whether to seed audit data or not|false
+|APP_SEED_AUDIT_DATA|A flag determining whether to give every existing row a baseline revision at startup, which only happens while there are no revisions|false
 |APP_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
 
 |===
@@ -117,8 +117,11 @@ Sample data consists both of real data and random data but none of the data can 
 [sidebar]
 .NOTE
 --
-Any existing data will be wiped out.
+Any existing data and all users in Keycloak will be wiped out, at every start.
 --
+
+The import also creates the users listed under <<caddy,Test credentials>> in Keycloak, together with a number of random users.
+The realm itself contains no users, so without sample data the first user has to register and be given roles in Keycloak's admin console.
 
 [[keycloak]]
 == Keycloak
@@ -176,21 +179,10 @@ These are the steps to create a realm in Keycloak:
 *** view-users
 *** view-clients
 
-To also create test users and export the realm, i.e. ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], do the following:
+To export the realm, i.e. ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], do the following:
 
 * Start Keycloak by ``./bin/kc.sh start-dev``
 * Follow the steps outlined above
-* Create the following users
-** user@fgv.nu
-*** Assign client role USER
-** editor@fgv.nu
-*** Assign client role USER
-*** Assign client role EDITOR
-** admin@fgv.nu
-*** Assign client role USER
-*** Assign client role EDITOR
-*** Assign client role ADMIN
-* Set password ``s3cr3t`` for all users
 * Export by ``./kc.sh export --users realm_file --file fgv.json --realm fgv``
 
 [[caddy]]
@@ -239,7 +231,7 @@ Integration tests are slow to run as they depend on a full environment but that 
 [[test_credentials]]
 == Test credentials
 
-The following test users have been pre-created:
+The following test users are created when sample data is imported (see <<sample_data>>):
 
 !===
 

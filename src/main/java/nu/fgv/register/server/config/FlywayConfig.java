@@ -18,6 +18,7 @@ package nu.fgv.register.server.config;
 
 import jakarta.annotation.PostConstruct;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.migration.JavaMigration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +50,9 @@ public class FlywayConfig {
                 .baselineOnMigrate(true)
                 .installedBy("system")
                 .executeInTransaction(false)
+                .ignoreMigrationPatterns("repeatable:missing")
                 .javaMigrations(migrationBeans)
+                .callbacks(applicationContext.getBeansOfType(Callback.class).values().toArray(new Callback[0]))
                 .load();
 
         flyway.migrate();

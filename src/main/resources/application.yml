@@ -137,6 +137,7 @@ spexregister:
   data:
     seed-audit-data: ${APP_SEED_AUDIT_DATA}
     import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
+    sample-user-password: ${SAMPLE_USER_PASSWORD:s3cr3t}
 
 ---
 spring:
