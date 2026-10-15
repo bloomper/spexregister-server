@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.audit.AuditApi;
+import nu.fgv.register.server.audit.AuditPurgeService;
 import nu.fgv.register.server.audit.AuditedType;
 import nu.fgv.register.server.impex.JobApi;
 import nu.fgv.register.server.impex.JobService;
@@ -36,6 +37,7 @@ import nu.fgv.register.server.util.FileUtil;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
+import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
@@ -94,6 +96,8 @@ public class SpexareApi {
 
     private final SpexareService service;
     private final JobService jobService;
+    private final AuditPurgeService auditPurgeService;
+    private final SpexareRemovalRequestService removalRequestService;
     private final PagedResourcesAssembler<SpexareDto> pagedResourcesAssembler;
     private final PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler;
 
@@ -187,6 +191,30 @@ public class SpexareApi {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping(value = "/me", params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<JobReferenceDto> exportMe(@RequestParam final String type, final Locale locale) {
+        final Long id = service.findByCurrentUser()
+                .map(SpexareDto::getId)
+                .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, "me"));
+        final Long jobId = jobService.createExportJob(SpexareExportService.class, List.of(id), "", ImpexType.fromValue(type), null, locale);
+
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
+                .body(JobReferenceDto.builder()
+                        .id(jobId)
+                        .build());
+    }
+
+    @PostMapping(value = "/me/removal-request", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequiresAdminOrEditorOrUser
+    public ResponseEntity<Void> requestRemoval(@RequestBody final SpexareRemovalRequestDto dto) {
+        removalRequestService.request(dto.reason());
+
+        return ResponseEntity.accepted().build();
+    }
+
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final Long id) {
@@ -221,8 +249,11 @@ public class SpexareApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final Long id, @RequestParam(defaultValue = "false") final boolean purge) {
         service.deleteById(id);
+        if (purge) {
+            auditPurgeService.purgeSpexare(id);
+        }
 
         return ResponseEntity.noContent().build();
     }

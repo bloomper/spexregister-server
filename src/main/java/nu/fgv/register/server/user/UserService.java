@@ -71,6 +71,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -416,6 +418,26 @@ public class UserService {
     }
 
     @RequiresAdmin
+    public Map<Long, StateDto> getStatesByUsers(final Collection<Long> ids) {
+        return findReadable(ids).stream()
+                .filter(user -> user.getState() != null)
+                .collect(Collectors.toMap(User::getId, user -> STATE_MAPPER.toDto(user.getState())));
+    }
+
+    @RequiresAdmin
+    public Map<Long, SpexareDto> findSpexareByUsers(final Collection<Long> ids) {
+        return findReadable(ids).stream()
+                .filter(user -> user.getSpexare() != null)
+                .collect(Collectors.toMap(User::getId, user -> SPEXARE_MAPPER.toDto(user.getSpexare())));
+    }
+
+    private List<User> findReadable(final Collection<Long> ids) {
+        return repository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
+    }
+
+    @RequiresAdmin
     public StateDto getStateByUser(final Long id) {
         return repository
                 .findById0(id)
@@ -477,6 +499,7 @@ public class UserService {
                                 }
                                 user.setSpexare(spexare);
                                 repository.save(user);
+                                fillMissingNames(user.getExternalId(), spexare);
 
                                 final PrincipalSid sid = new PrincipalSid(user.getExternalId());
 
@@ -530,11 +553,14 @@ public class UserService {
         log.info("Starting user sync job");
         runAsSystem(() -> {
             final Set<String> members = new HashSet<>();
+            final Map<String, UserRepresentation> representations = new HashMap<>();
             final AtomicInteger synced = new AtomicInteger();
             final AtomicInteger removed = new AtomicInteger();
+            final AtomicInteger named = new AtomicInteger();
 
             // Each user commits on its own, so one failure does not undo the rest of the run.
             authorityRepository.findAll().forEach(authority -> roleMembers(authority.getId()).forEach(representation -> {
+                representations.putIfAbsent(representation.getId(), representation);
                 if (members.add(representation.getId()) && !repository.existsByExternalId(representation.getId())) {
                     try {
                         inTransaction(() -> addSyncedUser(representation.getId()));
@@ -557,7 +583,17 @@ public class UserService {
                         }
                     });
 
-            log.info("Finished user sync job (members: {}, synced: {}, removed: {})", members.size(), synced.get(), removed.get());
+            repository.findAll().stream()
+                    .filter(user -> user.getSpexare() != null)
+                    .filter(user -> representations.containsKey(user.getExternalId()))
+                    .filter(user -> hasMissingNames(representations.get(user.getExternalId())))
+                    .forEach(user -> {
+                        if (fillMissingNames(user.getExternalId(), user.getSpexare())) {
+                            named.incrementAndGet();
+                        }
+                    });
+
+            log.info("Finished user sync job (members: {}, synced: {}, removed: {}, named: {})", members.size(), synced.get(), removed.get(), named.get());
         });
     }
 
@@ -613,7 +649,33 @@ public class UserService {
         log.debug("Synced user {} from Keycloak", externalId);
     }
 
-    // Only a definite "not found" removes a user; any other failure to ask Keycloak keeps it.
+    private static boolean hasMissingNames(final UserRepresentation representation) {
+        return !hasText(representation.getFirstName()) || !hasText(representation.getLastName());
+    }
+
+    private boolean fillMissingNames(final String externalId, final Spexare spexare) {
+        try {
+            final UserResource resource = keycloakAdminClient.realm(keycloakRealm).users().get(externalId);
+            final UserRepresentation representation = resource.toRepresentation();
+
+            if (!hasMissingNames(representation)) {
+                return false;
+            }
+            if (!hasText(representation.getFirstName())) {
+                representation.setFirstName(spexare.getFirstName());
+            }
+            if (!hasText(representation.getLastName())) {
+                representation.setLastName(spexare.getLastName());
+            }
+            resource.update(representation);
+            log.debug("Set missing names of user {} in Keycloak from spexare {}", externalId, spexare.getId());
+            return true;
+        } catch (final Exception e) {
+            log.warn("Could not set names of user {} in Keycloak", externalId, e);
+            return false;
+        }
+    }
+
     private boolean isDeletedInKeycloak(final String externalId) {
         try {
             keycloakAdminClient.realm(keycloakRealm).users().get(externalId).toRepresentation();

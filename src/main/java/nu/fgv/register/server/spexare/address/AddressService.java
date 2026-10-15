@@ -40,14 +40,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.address.AddressMapper.ADDRESS_MAPPER;
 import static nu.fgv.register.server.spexare.address.AddressSpecification.hasId;
 import static nu.fgv.register.server.spexare.address.AddressSpecification.hasSpexare;
+import static nu.fgv.register.server.spexare.address.AddressSpecification.hasSpexareIn;
 import static nu.fgv.register.server.spexare.address.AddressSpecification.hasType;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -66,6 +70,22 @@ public class AddressService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
     private final PermissionService permissionService;
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<AddressDto>> findBySpexareIds(final Collection<Long> ids) {
+        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
+
+        if (spexare.isEmpty()) {
+            return Map.of();
+        }
+
+        return repository
+                .findAll(hasSpexareIn(spexare), Sort.by(Address_.TYPE))
+                .stream()
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(ADDRESS_MAPPER::toDto, Collectors.toList())));
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<AddressDto> findBySpexare(final Long id) {

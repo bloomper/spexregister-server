@@ -3,6 +3,8 @@ spring:
     import: "optional:configtree:/run/secrets/"
   datasource:
     password: ${MYSQL_APP_USER_PASSWORD}
+  mail:
+    password: ${SMTP_PASSWORD:}
   jpa:
     open-in-view: false
     properties:
@@ -89,6 +91,9 @@ spring:
 management:
   server:
     port: 9000
+  health:
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
@@ -134,6 +139,9 @@ spexregister:
     authorized-parties: ${APP_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
   impex:
     storage-path: ./data/impex_data
+  mail:
+    from: ${MAIL_FROM:noreply@localhost}
+    admin-recipients: ${ADMIN_NOTIFICATION_RECIPIENTS:}
   data:
     seed-audit-data: ${APP_SEED_AUDIT_DATA}
     import-sample-data: ${APP_IMPORT_SAMPLE_DATA}

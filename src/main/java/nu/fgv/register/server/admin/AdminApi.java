@@ -17,47 +17,28 @@
 package nu.fgv.register.server.admin;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.util.search.IndexingService;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static org.springframework.util.StringUtils.capitalize;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/admin")
 public class AdminApi {
 
-    private final IndexingService indexingService;
+    private final AdminService service;
 
-    @PostMapping(value = "/index/{entity}")
+    @PostMapping("/index/spexare")
     @RequiresAdmin
-    public ResponseEntity<Void> index(final @PathVariable String entity) {
-        try {
-            final Class<?> clazz = Class.forName(String.format("nu.fgv.register.server.%s.%s", entity.toLowerCase(), capitalize(entity))); // NOSONAR
+    public ResponseEntity<Void> indexSpexare() {
+        service.indexSpexare();
 
-            indexingService.initiateIndexingFor(clazz, true)
-                    .whenComplete((ignored, ex) -> {
-                        if (ex != null) {
-                            log.error("Admin-triggered indexing finished with errors for {}", clazz.getSimpleName(), ex);
-                        } else {
-                            log.info("Admin-triggered indexing finished successfully for {}", clazz.getSimpleName());
-                        }
-                    });
-
-            return ResponseEntity.accepted().build();
-        } catch (final ClassNotFoundException _) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.accepted().build();
     }
 }

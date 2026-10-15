@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare;
 
+import nu.fgv.register.server.audit.AuditPurgeService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.spex.SpexUpdateDto;
@@ -123,6 +124,10 @@ class SpexareApiTest extends AbstractApiTest {
     private SpexareImportService importService;
     @MockitoBean
     private JobService jobService;
+    @MockitoBean
+    private AuditPurgeService auditPurgeService;
+    @MockitoBean
+    private SpexareRemovalRequestService removalRequestService;
     @MockitoBean
     private PagedWithFacetsResourcesAssembler<SpexareDto> pagedWithFacetsResourcesAssembler; // must mock as it is not instantiated when using @WebMvcTest
 
@@ -259,6 +264,66 @@ class SpexareApiTest extends AbstractApiTest {
                                 ),
                                 exportResponseFields,
                                 security(getRolesFromMethod(SpexareApi.class, "retrieve", List.class, String.class, String.class, String.class, Locale.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_get_export_me() throws Exception {
+        when(service.findByCurrentUser()).thenReturn(Optional.of(SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build()));
+        when(jobService.createExportJob(any(), anyList(), any(String.class), any(ImpexType.class), isNull(), any(Locale.class))).thenReturn(1L);
+
+        mockMvc
+                .perform(
+                        get("/api/spexare/me?type=excel")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isAccepted())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare-get-export-me",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                queryParameters(
+                                        parameterWithName("type").description("The impex type (excel and excel_xls supported)")
+                                ),
+                                exportResponseFields,
+                                security(getRolesFromMethod(SpexareApi.class, "exportMe", String.class, Locale.class))
+                        )
+                );
+    }
+
+    @Test
+    void should_request_removal() throws Exception {
+        final var fields = new ConstrainedFields(SpexareRemovalRequestDto.class);
+        final var dto = SpexareRemovalRequestDto.builder().reason("No longer interested").build();
+
+        doNothing().when(removalRequestService).request(any(String.class));
+
+        mockMvc
+                .perform(
+                        post("/api/spexare/me/removal-request")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
+                )
+                .andExpect(status().isAccepted())
+                .andDo(print())
+                .andDo(
+                        document(
+                                "spexare-removal-request",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                requestFields(
+                                        fields.withPath("reason").description("Why the removal is requested (at most 2000 characters)").optional()
+                                ),
+                                secureRequestHeaders,
+                                security(getRolesFromMethod(SpexareApi.class, "requestRemoval", SpexareRemovalRequestDto.class))
                         )
                 );
     }
@@ -501,6 +566,7 @@ class SpexareApiTest extends AbstractApiTest {
         mockMvc
                 .perform(
                         delete("/api/spexare/{id}", 1L)
+                                .queryParam("purge", "true")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -515,8 +581,11 @@ class SpexareApiTest extends AbstractApiTest {
                                 pathParameters(
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
+                                queryParameters(
+                                        parameterWithName("purge").description("Whether to also remove the audit history of the spexare, leaving no trace of the person (default false)").optional()
+                                ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "delete", Long.class, boolean.class))
                         )
                 );
     }

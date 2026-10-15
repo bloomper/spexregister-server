@@ -1865,6 +1865,55 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @DisplayName("Spexare")
     class SpexareTests {
 
+        private void addSpexare(final User user, final Spexare spexare) {
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
+            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("user/userSpexareAdd")
+                    .variable("userId", user.getId())
+                    .variable("id", spexare.getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("userSpexareAdd")
+                    .valueIsNull();
+        }
+
+        @Test
+        void should_set_missing_names_in_keycloak_when_adding() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
+
+            addSpexare(user, spexare);
+
+            final UserRepresentation representation = keycloakAdminClient.realm(keycloakRealm).users().get(user.getExternalId()).toRepresentation();
+            assertThat(representation.getFirstName()).isEqualTo(spexare.getFirstName());
+            assertThat(representation.getLastName()).isEqualTo(spexare.getLastName());
+        }
+
+        @Test
+        void should_keep_existing_names_in_keycloak_when_adding() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            final var spexare = persistSpexare(randomizeSpexare());
+            final UserResource resource = keycloakAdminClient.realm(keycloakRealm).users().get(user.getExternalId());
+            final UserRepresentation existing = resource.toRepresentation();
+            existing.setFirstName("Given");
+            existing.setLastName("Family");
+            resource.update(existing);
+
+            addSpexare(user, spexare);
+
+            final UserRepresentation representation = resource.toRepresentation();
+            assertThat(representation.getFirstName()).isEqualTo("Given");
+            assertThat(representation.getLastName()).isEqualTo("Family");
+        }
+
         @Test
         void should_return() {
             final var state = persistState(randomizeState());

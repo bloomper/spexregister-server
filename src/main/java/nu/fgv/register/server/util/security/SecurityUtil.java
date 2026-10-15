@@ -63,6 +63,12 @@ public class SecurityUtil {
                 .orElse("");
     }
 
+    public static String getCurrentUserNameClaim() {
+        return getCurrentUserClaim("name")
+                .map(String.class::cast)
+                .orElse("");
+    }
+
     public static ObjectIdentity toObjectIdentity(final Class<?> clazz, final Serializable id) {
         return new ObjectIdentityImpl(clazz, id);
     }

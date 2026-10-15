@@ -38,8 +38,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.tagging.TaggingSpecification.hasSpexare;
 import static nu.fgv.register.server.spexare.tagging.TaggingSpecification.hasSpexareId;
@@ -59,6 +65,18 @@ public class TaggingService {
     private final TagRepository tagRepository;
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<TagDto>> findBySpexareIds(final Collection<Long> ids) {
+        return spexareRepository.findWithTagsByIdIn(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .collect(Collectors.toMap(Spexare::getId, spexare -> Optional.ofNullable(spexare.getTags())
+                        .orElse(Set.of())
+                        .stream()
+                        .sorted(Comparator.comparing(Tag::getName))
+                        .map(TAG_MAPPER::toDto)
+                        .toList()));
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<TagDto> findBySpexare(final Long id) {

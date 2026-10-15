@@ -24,13 +24,17 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -69,10 +73,13 @@ public class ToggleGraphqlApi {
         return service.findBySpexare(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
-    @SchemaMapping(typeName = "Spexare", field = "toggles")
+    @BatchMapping(typeName = "Spexare", field = "toggles")
     @RequiresAdminOrEditorOrUser
-    public List<ToggleDto> retrieveBySpexare(final SpexareDto dto) {
-        return service.findBySpexare(dto.getId());
+    public Map<SpexareDto, List<ToggleDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
+        final Map<Long, List<ToggleDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
+
+        return dtos.stream()
+                .collect(Collectors.toMap(Function.identity(), dto -> result.getOrDefault(dto.getId(), List.of()), (a, _) -> a));
     }
 
 }

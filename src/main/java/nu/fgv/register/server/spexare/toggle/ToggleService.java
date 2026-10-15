@@ -38,14 +38,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.toggle.ToggleMapper.TOGGLE_MAPPER;
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasId;
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasSpexare;
+import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasSpexareIn;
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasType;
 
 /**
@@ -63,6 +67,22 @@ public class ToggleService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
     private final PermissionService permissionService;
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<ToggleDto>> findBySpexareIds(final Collection<Long> ids) {
+        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
+
+        if (spexare.isEmpty()) {
+            return Map.of();
+        }
+
+        return repository
+                .findAll(hasSpexareIn(spexare), Sort.by(Toggle_.TYPE))
+                .stream()
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(TOGGLE_MAPPER::toDto, Collectors.toList())));
+    }
 
     @RequiresAdminOrEditorOrUser
     public List<ToggleDto> findBySpexare(final Long id) {

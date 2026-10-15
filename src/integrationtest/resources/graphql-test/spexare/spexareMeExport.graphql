@@ -1,0 +1,5 @@
+query spexareMeExport ($type: ImpexType!) {
+    spexareMeExport(type: $type) {
+        id
+    }
+}

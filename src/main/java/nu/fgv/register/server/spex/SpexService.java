@@ -47,17 +47,21 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spex.SpexSpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.SpexSpecification.hasId;
 import static nu.fgv.register.server.spex.SpexSpecification.hasIds;
 import static nu.fgv.register.server.spex.SpexSpecification.hasParent;
+import static nu.fgv.register.server.spex.SpexSpecification.hasParentIds;
 import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
@@ -404,6 +408,37 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
+    public Map<Long, SpexDto> findParentsBySpex(final Collection<Long> ids) {
+        return findReadable(ids).stream()
+                .filter(spex -> spex.getParent() != null)
+                .collect(Collectors.toMap(Spex::getId, spex -> SPEX_MAPPER.toDto(spex.getParent())));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, List<SpexDto>> findRevivalsByParents(final Collection<Long> ids) {
+        final List<Long> parentIds = findReadable(ids).stream()
+                .filter(parent -> !parent.isRevival())
+                .map(Spex::getId)
+                .toList();
+
+        if (parentIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return repository
+                .findAll(hasParentIds(parentIds), Sort.by(Spex_.YEAR), BasePermission.READ)
+                .stream()
+                .collect(Collectors.groupingBy(revival -> revival.getParent().getId(), Collectors.mapping(SPEX_MAPPER::toDto, Collectors.toList())));
+    }
+
+    @RequiresAdminOrEditorOrUser
+    public Map<Long, SpexCategoryDto> findCategoriesBySpex(final Collection<Long> ids) {
+        return findReadable(ids).stream()
+                .filter(spex -> spex.getDetails().getCategory() != null)
+                .collect(Collectors.toMap(Spex::getId, spex -> SPEX_CATEGORY_MAPPER.toDto(spex.getDetails().getCategory())));
+    }
+
+    @RequiresAdminOrEditorOrUser
     public SpexCategoryDto findCategoryBySpex(final Long id) {
         if (doesSpexExist(id)) {
             return repository
@@ -467,6 +502,12 @@ public class SpexService {
         } else {
             throw new ResourceNotFoundException(Spex.class, id);
         }
+    }
+
+    private List<Spex> findReadable(final Collection<Long> ids) {
+        return repository.findAllById(ids).stream()
+                .filter(permissionService::hasReadPermission)
+                .toList();
     }
 
     private boolean doesSpexExist(final Long id) {

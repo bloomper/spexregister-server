@@ -25,6 +25,8 @@ import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -47,6 +49,10 @@ public class MembershipSpecification extends BaseSpecification<Membership> {
 
     public static Specification<Membership> hasSpexare(final Spexare spexare) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Membership_.spexare), spexare);
+    }
+
+    public static Specification<Membership> hasSpexareIn(final Collection<Spexare> spexare) {
+        return (root, query, criteriaBuilder) -> root.get(Membership_.spexare).in(spexare);
     }
 
     public static Specification<Membership> hasYear(final String year) {
