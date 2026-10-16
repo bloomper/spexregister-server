@@ -10,7 +10,7 @@ extend type Query {
 extend type Mutation {
     spexareCreate(input: SpexareCreate!): Spexare
     spexareUpdate(input: SpexareUpdate!): Spexare
-    spexareDelete(id: ID!, purge: Boolean = false): Void
+    spexareDelete(id: ID!, purge: Boolean! = false): Void
     spexareImageDelete(id: ID!): Void
     spexarePartnerAdd(spexareId: ID!, id: ID!): Void
     spexarePartnerRemove(spexareId: ID!): Void
