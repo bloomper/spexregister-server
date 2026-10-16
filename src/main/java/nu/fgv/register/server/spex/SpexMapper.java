@@ -17,6 +17,7 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.spex.category.SpexCategoryMapper;
+import nu.fgv.register.server.util.FileUtil;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.InheritConfiguration;
@@ -38,7 +39,7 @@ import java.util.Optional;
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = SpexCategoryMapper.class,
-        imports = {Optional.class, WebMvcLinkBuilder.class}
+        imports = {Optional.class, WebMvcLinkBuilder.class, FileUtil.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -54,7 +55,7 @@ public interface SpexMapper {
     SpexDto toDto(Spex model);
 
     @Mapping(target = "title", source = "details.title")
-    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
     @Mapping(target = "categoryId", source = "details.category.id")
     @Mapping(target = "categoryName", source = "details.category.name")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")

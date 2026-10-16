@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spexare;
 
+import nu.fgv.register.server.util.FileUtil;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
@@ -36,7 +37,7 @@ import java.util.Optional;
  */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        imports = {Optional.class, WebMvcLinkBuilder.class}
+        imports = {Optional.class, WebMvcLinkBuilder.class, FileUtil.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -49,7 +50,7 @@ public interface SpexareMapper {
     @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
     SpexareDto toDto(Spexare model);
 
-    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
     @Mapping(target = "partnerId", source = "partner.id")
     @Mapping(target = "partnerFirstName", source = "partner.firstName")
     @Mapping(target = "partnerLastName", source = "partner.lastName")

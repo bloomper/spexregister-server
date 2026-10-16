@@ -16,6 +16,7 @@
 
 package nu.fgv.register.server.spex.category;
 
+import nu.fgv.register.server.util.FileUtil;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
@@ -35,7 +36,7 @@ import java.util.Optional;
  */
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        imports = {Optional.class, WebMvcLinkBuilder.class}
+        imports = {Optional.class, WebMvcLinkBuilder.class, FileUtil.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -50,7 +51,7 @@ public interface SpexCategoryMapper {
     SpexCategoryDto toDto(SpexCategory model);
 
     @BeanMapping(ignoreUnmappedSourceProperties = {"logo"})
-    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
     SpexCategoryImpexDto toImpexDto(SpexCategory model);

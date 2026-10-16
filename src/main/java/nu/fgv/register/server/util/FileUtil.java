@@ -21,9 +21,11 @@ import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import nu.fgv.register.server.config.SpexregisterConfig;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import org.jspecify.annotations.Nullable;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
 import java.net.Inet6Address;
@@ -163,6 +165,47 @@ public class FileUtil {
     }
 
     public static boolean isLocalUrl(final @Nullable String url, final String baseUrl) {
-        return url != null && url.startsWith(baseUrl);
+        if (url == null) {
+            return false;
+        }
+
+        try {
+            final URI uri = new URI(url.trim());
+
+            if (uri.getScheme() == null && uri.getRawAuthority() == null) {
+                return uri.getRawPath() != null && uri.getRawPath().startsWith("/");
+            }
+
+            final URI base = new URI(baseUrl);
+
+            return base.getScheme() != null && base.getScheme().equalsIgnoreCase(uri.getScheme())
+                    && base.getHost() != null && base.getHost().equalsIgnoreCase(uri.getHost())
+                    && effectivePort(base) == effectivePort(uri);
+        } catch (final URISyntaxException _) {
+            return false;
+        }
+    }
+
+    public static String toPublicUrl(final String url) {
+        return toPublicUrl(url, ApplicationContextHolder.getBean(SpexregisterConfig.class).getBaseUrl());
+    }
+
+    public static String toPublicUrl(final String url, final String baseUrl) {
+        final URI uri = URI.create(url);
+
+        return UriComponentsBuilder.fromUriString(baseUrl)
+                .replacePath(uri.getRawPath())
+                .replaceQuery(uri.getRawQuery())
+                .fragment(null)
+                .build(true)
+                .toUriString();
+    }
+
+    private static int effectivePort(final URI uri) {
+        if (uri.getPort() != -1) {
+            return uri.getPort();
+        }
+
+        return "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
     }
 }

@@ -95,4 +95,37 @@ class FileUtilTest {
     void should_allow_a_public_http_host() {
         assertThat(FileUtil.requirePublicHttpUri("https://93.184.216.34/image.png").getHost(), is("93.184.216.34"));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/api/spexare/1/image",
+            "https://register-api.example.org/api/spexare/1/image",
+            "HTTPS://Register-Api.Example.org:443/api/spex/2/poster"
+    })
+    void should_treat_relative_and_own_origin_urls_as_local(final String url) {
+        assertThat(FileUtil.isLocalUrl(url, "https://register-api.example.org/api"), is(true));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "http://register-api.example.org/api/spexare/1/image",
+            "https://register-api.example.org:8443/api/spexare/1/image",
+            "https://register-api.example.org.evil.example/api/spexare/1/image",
+            "//evil.example/api/spexare/1/image",
+            "https://evil.example/image.png",
+            "image.png",
+            "not a url"
+    })
+    void should_treat_other_urls_as_external(final String url) {
+        assertThat(FileUtil.isLocalUrl(url, "https://register-api.example.org/api"), is(false));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/api/spexare/1/image",
+            "http://api:8080/api/spexare/1/image"
+    })
+    void should_rebase_urls_onto_the_public_base_url(final String url) {
+        assertThat(FileUtil.toPublicUrl(url, "https://register-api.example.org/api"), is("https://register-api.example.org/api/spexare/1/image"));
+    }
 }

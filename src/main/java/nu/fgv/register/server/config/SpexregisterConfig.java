@@ -34,10 +34,12 @@ import java.util.List;
 @Setter
 public class SpexregisterConfig {
 
+    private String baseUrl;
     private String defaultLanguage;
     private List<String> languages;
 
     SpexregisterConfig() {
+        this.baseUrl = "";
         this.defaultLanguage = "";
         this.languages = new ArrayList<>();
     }
