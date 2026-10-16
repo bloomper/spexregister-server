@@ -190,7 +190,7 @@ public class AuditRegistry {
     void initialize() {
         register(AuditedEntityDescriptor.of(AuditedType.NEWS, News.class, Long::valueOf, newsRepository::findById, self(), List.of()).withLabel(News::getSubject));
         register(AuditedEntityDescriptor.of(AuditedType.SPEX, Spex.class, Long::valueOf, spexRepository::findById, self(), List.of()).withLabel(Spex::getYear).withReferences(new AuditedReferenceDescriptor(AuditedType.SPEX_DETAILS, SpexDetails.class, "details")));
-        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, self(), List.of()).withLabel(SpexDetails::getTitle));
+        register(AuditedEntityDescriptor.of(AuditedType.SPEX_DETAILS, SpexDetails.class, Long::valueOf, spexDetailsRepository::findById, (SpexDetails d) -> spexRepository.findByDetailsAndParentIsNull(d).orElse(null), List.of()).withLabel(SpexDetails::getTitle));
         register(AuditedEntityDescriptor.of(AuditedType.SPEX_CATEGORY, SpexCategory.class, Long::valueOf, spexCategoryRepository::findById, self(), List.of()).withLabel(SpexCategory::getName));
         register(AuditedEntityDescriptor.of(AuditedType.TAG, Tag.class, Long::valueOf, tagRepository::findById, self(), List.of()).withLabel(Tag::getName));
         register(AuditedEntityDescriptor.of(AuditedType.TASK, Task.class, Long::valueOf, taskRepository::findById, self(), List.of()).withLabel(Task::getName));

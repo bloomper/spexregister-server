@@ -363,6 +363,33 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        void should_serve_the_poster_when_asked_for_by_the_details_themselves() {
+            final var category = persistSpexCategory("Chalmersspexet");
+            final var details = persistSpexDetails(category, "Nobel");
+            final var spex = persistSpex(details, "2024");
+            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
+
+            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
+                    .toList()
+                    .getLast();
+
+            final byte[] poster = restTestClient
+                    .get()
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX_DETAILS", details.getId(), creation.revision(), "poster")
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectHeader().contentType(MediaType.IMAGE_PNG)
+                    .expectBody(byte[].class)
+                    .returnResult()
+                    .getResponseBody();
+
+            assertThat(poster).containsExactly(1, 2, 3);
+        }
+
+        @Test
         void should_serve_the_poster_to_someone_permitted_only_on_the_spex() {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
