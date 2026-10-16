@@ -44,6 +44,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -349,7 +350,37 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("revisionDetail.entities[0].revisionType").entity(String.class).isEqualTo("ADD")
                     .path("revisionDetail.entities[0].changes[0].field").entity(String.class).isEqualTo("name")
                     .path("revisionDetail.entities[0].target.type").entity(String.class).isEqualTo("TAG")
-                    .path("revisionDetail.entities[0].target.id").entity(Long.class).isEqualTo(tag.getId());
+                    .path("revisionDetail.entities[0].target.id").entity(Long.class).isEqualTo(tag.getId())
+                    .path("revisionDetail.summary").entityList(Object.class).hasSize(1)
+                    .path("revisionDetail.summary[0].count").entity(Long.class).isEqualTo(1L)
+                    .path("revisionDetail.summary[0].returned").entity(Integer.class).isEqualTo(1);
+        }
+
+        @Test
+        void should_cap_entities_per_type_but_count_them_all() {
+            final List<Tag> tags = repository.saveAll(IntStream.range(0, 5)
+                    .mapToObj(_ -> {
+                        final Tag tag = random.nextObject(Tag.class);
+                        tag.setId(null);
+                        return tag;
+                    })
+                    .toList());
+            final Long revision = firstRevisionOf(tags.getFirst());
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("audit/revisionDetail")
+                    .variable("revision", revision)
+                    .variable("limitPerType", 2)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("revisionDetail.entities").entityList(Object.class).hasSize(2)
+                    .path("revisionDetail.summary[0].type").entity(String.class).isEqualTo("TAG")
+                    .path("revisionDetail.summary[0].count").entity(Long.class).isEqualTo(5L)
+                    .path("revisionDetail.summary[0].returned").entity(Integer.class).isEqualTo(2);
         }
 
         @Test

@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,17 @@ public class EnversAuditSupport {
         customize.accept(q);
 
         return (List<Object[]>) q.getResultList();
+    }
+
+    public <E> long countRevisionsOfEntity(final Class<E> entityType, final Consumer<AuditQuery> customize) {
+        final AuditQuery q = auditReader()
+                .createQuery()
+                .forRevisionsOfEntity(entityType, false, true)
+                .addProjection(AuditEntity.revisionNumber().count());
+
+        customize.accept(q);
+
+        return ((Number) q.getSingleResult()).longValue();
     }
 
     @SuppressWarnings("unchecked")

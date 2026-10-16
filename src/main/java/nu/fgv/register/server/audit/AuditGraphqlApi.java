@@ -79,8 +79,8 @@ public class AuditGraphqlApi {
 
     @QueryMapping("revisionDetail")
     @RequiresAdmin
-    public RevisionDetailDto revisionDetail(@Argument final Long revision) {
-        return service.findDetail(revision);
+    public RevisionDetailDto revisionDetail(@Argument final Long revision, @Argument final Integer limitPerType) {
+        return service.findDetail(revision, limitPerType);
     }
 
     @QueryMapping("revisionAuthors")

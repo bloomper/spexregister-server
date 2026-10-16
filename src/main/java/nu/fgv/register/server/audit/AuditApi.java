@@ -81,8 +81,9 @@ public class AuditApi {
 
     @GetMapping(value = "/detail/{revision}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<RevisionDetailDto>> retrieveDetail(@PathVariable final Long revision) {
-        return ResponseEntity.ok(EntityModel.of(service.findDetail(revision)));
+    public ResponseEntity<EntityModel<RevisionDetailDto>> retrieveDetail(@PathVariable final Long revision,
+                                                                         @RequestParam(required = false, defaultValue = "20") final Integer limitPerType) {
+        return ResponseEntity.ok(EntityModel.of(service.findDetail(revision, limitPerType)));
     }
 
     @GetMapping(value = "/{type}/{id}", produces = MediaTypes.HAL_JSON_VALUE)

@@ -1,11 +1,16 @@
-query revisionDetail ($revision: Long!) {
-    revisionDetail (revision: $revision) {
+query revisionDetail ($revision: Long!, $limitPerType: Int! = 20) {
+    revisionDetail (revision: $revision, limitPerType: $limitPerType) {
         revision
         modifiedAt
         modifiedBy
         source
         operation
         comment
+        summary {
+            type
+            count
+            returned
+        }
         entities {
             type
             entityId

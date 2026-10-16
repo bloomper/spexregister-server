@@ -3,7 +3,7 @@ extend type Query {
     revision(type: AuditedType!, id: ID!, revision: Long!): Revision
     relatedRevisions(type: AuditedType!, id: ID!, relatedType: AuditedType!): [Revision]
     revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, modifiedBy: [String!], sources: [AuditSource!], from: Date, to: Date, sinceInDays: Int = 90): RevisionFeedConnection
-    revisionDetail(revision: Long!): RevisionDetail
+    revisionDetail(revision: Long!, limitPerType: Int! = 20): RevisionDetail
     revisionAuthors: [String!]!
     restorePreview(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestorePreview
 }
@@ -49,7 +49,14 @@ type RevisionDetail {
     source: AuditSource
     operation: String
     comment: String
+    summary: [RevisionTypeSummary!]!
     entities: [RevisionEntityChange!]!
+}
+
+type RevisionTypeSummary {
+    type: AuditedType!
+    count: Long!
+    returned: Int!
 }
 
 type RevisionEntityChange {

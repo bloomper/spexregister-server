@@ -442,23 +442,42 @@ public class AuditService {
      * them.
      */
     @RequiresAdmin
-    public RevisionDetailDto findDetail(final long revision) {
+    public RevisionDetailDto findDetail(final long revision, final int limitPerType) {
+        if (limitPerType < 1) {
+            throw new BadRequestException("limitPerType must be at least 1");
+        }
+
         final AuditRevisionEntity revisionEntity = entityManager.find(AuditRevisionEntity.class, revision);
 
         if (revisionEntity == null) {
             throw new ResourceNotFoundException(AuditRevisionEntity.class, revision);
         }
 
+        final List<RevisionTypeSummaryDto> summary = new ArrayList<>();
         final List<RevisionEntityChangeDto> entities = new ArrayList<>();
 
         for (final String entityName : revisionEntity.getModifiedEntityNames()) {
             final AuditedType type = registry.byEntityName(entityName);
 
             if (type != null) {
-                entities.addAll(entityChangesAt(registry.require(type), revision));
+                final AuditedEntityDescriptor descriptor = registry.require(type);
+                final List<Object[]> triples = envers.revisionTriples(descriptor.entityClass(), false, true,
+                        q -> q.add(AuditEntity.revisionNumber().eq(revision)).setMaxResults(limitPerType + 1));
+                final List<Object[]> returned = triples.subList(0, Math.min(triples.size(), limitPerType));
+                final long count = triples.size() > limitPerType
+                        ? envers.countRevisionsOfEntity(descriptor.entityClass(), q -> q.add(AuditEntity.revisionNumber().eq(revision)))
+                        : triples.size();
+
+                summary.add(RevisionTypeSummaryDto.builder()
+                        .type(type)
+                        .count(count)
+                        .returned(returned.size())
+                        .build());
+                entities.addAll(entityChangesAt(descriptor, revision, returned));
             }
         }
 
+        summary.sort(Comparator.comparingInt(entry -> entry.type().ordinal()));
         entities.sort(Comparator.comparingInt(entity -> entity.type().ordinal()));
 
         return RevisionDetailDto.builder()
@@ -468,13 +487,14 @@ public class AuditService {
                 .source(revisionEntity.getSource())
                 .operation(revisionEntity.getOperation())
                 .comment(revisionEntity.getComment())
+                .summary(List.copyOf(summary))
                 .entities(List.copyOf(entities))
                 .build();
     }
 
-    private List<RevisionEntityChangeDto> entityChangesAt(final AuditedEntityDescriptor descriptor, final long revision) {
-        final List<Object[]> triples = envers.revisionTriples(descriptor.entityClass(), false, true,
-                q -> q.add(AuditEntity.revisionNumber().eq(revision)));
+    private List<RevisionEntityChangeDto> entityChangesAt(final AuditedEntityDescriptor descriptor,
+                                                          final long revision,
+                                                          final List<Object[]> triples) {
         final List<RevisionEntityChangeDto> changes = new ArrayList<>(triples.size());
 
         for (final Object[] triple : triples) {
@@ -489,7 +509,8 @@ public class AuditService {
                     .revisionType(revisionType)
                     .changes(id == null || revisionType == RevisionType.DEL
                             ? List.of()
-                            : differ.diff(descriptor.entityClass(), previousSnapshot(descriptor, id, revision), snapshot).stream()
+                            : differ.diff(descriptor.entityClass(),
+                                    revisionType == RevisionType.ADD ? null : previousSnapshot(descriptor, id, revision), snapshot).stream()
                             .map(change -> change.ownedBy(descriptor.type(), asLong(id)))
                             .toList())
                     .target(id == null ? null : targetOf(descriptor, id))

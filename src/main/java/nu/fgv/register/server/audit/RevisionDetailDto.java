@@ -36,6 +36,7 @@ public record RevisionDetailDto(
         @Nullable AuditSource source,
         @Nullable String operation,
         @Nullable String comment,
+        List<RevisionTypeSummaryDto> summary,
         List<RevisionEntityChangeDto> entities
 ) {
 }

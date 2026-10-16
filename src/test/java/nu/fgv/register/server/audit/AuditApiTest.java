@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -168,7 +169,7 @@ class AuditApiTest extends AbstractApiTest {
 
     @Test
     void should_get_revision_detail() throws Exception {
-        when(service.findDetail(anyLong()))
+        when(service.findDetail(anyLong(), anyInt()))
                 .thenReturn(RevisionDetailDto.builder()
                         .revision(2L)
                         .modifiedAt(Instant.parse("2026-09-08T14:02:00Z"))
@@ -176,6 +177,11 @@ class AuditApiTest extends AbstractApiTest {
                         .source(AuditSource.WEB)
                         .operation("tagUpdate")
                         .comment("Corrected a typo")
+                        .summary(List.of(RevisionTypeSummaryDto.builder()
+                                .type(AuditedType.TAG)
+                                .count(1L)
+                                .returned(1)
+                                .build()))
                         .entities(List.of(RevisionEntityChangeDto.builder()
                                 .type(AuditedType.TAG)
                                 .entityId(1L)
@@ -217,14 +223,18 @@ class AuditApiTest extends AbstractApiTest {
                                         fieldWithPath("source").description("What kind of activity produced the revision").optional(),
                                         fieldWithPath("operation").description("Which operation produced the revision").optional(),
                                         fieldWithPath("comment").description("The reason given for the change").optional(),
-                                        subsectionWithPath("entities").description("What each entity touched by the revision changed, and where to look at it")
+                                        subsectionWithPath("summary").description("How many entities of each type the revision touched, and how many of them are listed in entities"),
+                                        subsectionWithPath("entities").description("What each entity touched by the revision changed, and where to look at it, capped at limitPerType per type")
                                 ),
                                 pathParameters(
                                         parameterWithName("revision").description("The revision number")
                                 ),
+                                queryParameters(
+                                        parameterWithName("limitPerType").description("The maximum number of entities to list per type (default 20)").optional()
+                                ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(AuditApi.class, "retrieveDetail", Long.class))
+                                security(getRolesFromMethod(AuditApi.class, "retrieveDetail", Long.class, Integer.class))
                         )
                 );
     }
