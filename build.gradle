@@ -280,6 +280,9 @@ jib {
     to {
         image = "bloomper/${project.name}:develop"
     }
+    container {
+        user = '1000:1000'
+    }
     pluginExtensions {
         pluginExtension {
             implementation = 'com.google.cloud.tools.jib.gradle.extension.layerfilter.JibLayerFilterExtension'

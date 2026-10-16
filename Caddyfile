@@ -4,19 +4,19 @@
     https_port 8443
 }
 
-keycloak.fgv.local.nu:8443 {
+auth.fgv.local.nu:8443 {
     tls internal
-    reverse_proxy keycloak:8081
+    reverse_proxy auth:8081
 }
 
 api.register.fgv.local.nu:8443 {
     tls internal
-    reverse_proxy app:8080 {
+    reverse_proxy api:8080 {
         header_up X-Forwarded-Port {http.request.port}
     }
 }
 
 mail.fgv.local.nu:8443 {
     tls internal
-    reverse_proxy mailpit:8025
+    reverse_proxy mail:8025
 }

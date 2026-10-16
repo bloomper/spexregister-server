@@ -44,13 +44,13 @@ The parameters can be found under ``.docker/secrets`` where each file represents
 |===
 |Parameter|Purpose|Comment|Example value
 
-|MYSQL_APP_ROOT_PASSWORD|The password for the root user of Spexregister Server's database||verysecret
-|MYSQL_APP_USER_PASSWORD|The password for the user of Spexregister Server's database||secret
-|MYSQL_KEYCLOAK_ROOT_PASSWORD|The password for the root user of Keycloak's database||verysecret
-|MYSQL_KEYCLOAK_USER_PASSWORD|The password for the user of Keycloak's database||secret
-|KEYCLOAK_ADMIN_PASSWORD|The password of Keycloak's administrative user||password
-|APP_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
-|APP_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
+|MYSQL_API_ROOT_PASSWORD|The password for the root user of Spexregister Server's database||verysecret
+|MYSQL_API_USER_PASSWORD|The password for the user of Spexregister Server's database||secret
+|MYSQL_AUTH_ROOT_PASSWORD|The password for the root user of Keycloak's database||verysecret
+|MYSQL_AUTH_USER_PASSWORD|The password for the user of Keycloak's database||secret
+|AUTH_ADMIN_PASSWORD|The password of Keycloak's administrative user||password
+|API_AUTH_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
+|API_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
 
 |===
 
@@ -59,19 +59,19 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |===
 |Parameter|Purpose|Default value
 
-|MYSQL_APP_DATABASE|The name of the database used by Spexregister Server|spexregister
-|MYSQL_APP_ROOT_USER|The root user of Spexregister Server's database|root
-|MYSQL_APP_USER|The user of Spexregister Server's database|spexregister
-|MYSQL_KEYCLOAK_DATABASE|The name of the database used by Spexregister Server|keycloak
-|MYSQL_KEYCLOAK_ROOT_USER|The root user of Keycloak's database|root
-|MYSQL_KEYCLOAK_USER|The user of Keycloak's database|keycloak
-|KEYCLOAK_ADMIN|The administrative user of Keycloak|admin
-|APP_KEYCLOAK_REALM|The Keycloak realm of Spexregister Server|fgv
-|APP_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
-|APP_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
-|APP_KEYCLOAK_MCP_CLIENT_ID|The Keycloak client id(s), comma separated, that MCP clients authenticate with|spexregister-mcp
-|APP_SEED_AUDIT_DATA|A flag determining whether to give every existing row a baseline revision at startup, which only happens while there are no revisions|false
-|APP_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
+|MYSQL_API_DATABASE|The name of the database used by Spexregister Server|spexregister
+|MYSQL_API_ROOT_USER|The root user of Spexregister Server's database|root
+|MYSQL_API_USER|The user of Spexregister Server's database|spexregister
+|MYSQL_AUTH_DATABASE|The name of the database used by Spexregister Server|keycloak
+|MYSQL_AUTH_ROOT_USER|The root user of Keycloak's database|root
+|MYSQL_AUTH_USER|The user of Keycloak's database|keycloak
+|AUTH_ADMIN|The administrative user of Keycloak|admin
+|API_AUTH_REALM|The Keycloak realm of Spexregister Server|fgv
+|API_AUTH_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
+|API_AUTH_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
+|API_AUTH_MCP_CLIENT_ID|The Keycloak client id(s), comma separated, that MCP clients authenticate with|spexregister-mcp
+|API_SEED_AUDIT_DATA|A flag determining whether to give every existing row a baseline revision at startup, which only happens while there are no revisions|false
+|API_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
 
 |===
 
@@ -82,7 +82,7 @@ Add the following to `/etc/hosts` (or the Windows equivalent):
 ###################################
 #          Spexregister           #
 ###################################
-127.0.0.1 keycloak.fgv.local.nu
+127.0.0.1 auth.fgv.local.nu
 127.0.0.1 api.register.fgv.local.nu
 127.0.0.1 register.fgv.local.nu
 127.0.0.1 mail.fgv.local.nu
@@ -102,7 +102,7 @@ Keycloak creates the realm from ``fgv.json`` the first time it starts.
 The realm lets a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, log in from ``WEB_URL`` in ``.env``, which defaults to ``http://localhost:3000``.
 Registration requires a Cloudflare Turnstile challenge.
 Locally, Keycloak uses Cloudflare's test keys, which always pass.
-To see a failed challenge, set ``TURNSTILE_SECRET_KEY=2x0000000000000000000000000000000AA`` in ``.env`` and run ``docker compose up -d keycloak``.
+To see a failed challenge, set ``TURNSTILE_SECRET_KEY=2x0000000000000000000000000000000AA`` in ``.env`` and run ``docker compose up -d auth``.
 
 ``./scripts/configure-keycloak.sh`` allows Postman's callback URL in Keycloak (see <<testing_the_api>>).
 
@@ -125,7 +125,7 @@ The same scripts for staging and production are in https://github.com/bloomper/s
 [[sample_data]]
 == Sample data
 
-If ``APP_IMPORT_SAMPLE_DATA`` in ``.env`` is set to ``true``, sample data will be imported.
+If ``API_IMPORT_SAMPLE_DATA`` in ``.env`` is set to ``true``, sample data will be imported.
 Sample data consists both of real data and random data but none of the data can be traced to real individuals, i.e. no personally identifiable information (PII).
 
 [sidebar]
@@ -152,8 +152,8 @@ That repository publishes the Docker image ``bloomper/fgv-keycloak``, which ``do
 [[keycloak_administration]]
 === Administration UI
 
-The administrative UI of Keycloak can be accessed at https://keycloak.fgv.local.nu:8443/auth.
-The username is set by ``KEYCLOAK_ADMIN`` in ``.env`` and the password in ``.docker/secrets/KEYCLOAK_ADMIN_PASSWORD``.
+The administrative UI of Keycloak can be accessed at https://auth.fgv.local.nu:8443/auth.
+The username is set by ``AUTH_ADMIN`` in ``.env`` and the password in ``.docker/secrets/AUTH_ADMIN_PASSWORD``.
 
 [[keycloak_setup]]
 === Setup
@@ -223,7 +223,7 @@ These are the emails sent during self-registration:
 |Email|Sent by|Recipient
 
 |Email verification|Keycloak|The registering user
-|New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``KEYCLOAK_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
+|New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``AUTH_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
 |Account approved|Keycloak, when an administrator assigns the user a role|The approved user
 
 |===
@@ -273,9 +273,9 @@ Enter values as follows (leave other fields empty).
 |Field|Value|Comment
 
 |Callback URL|https://oauth.pstmn.io/v1/browser-callback|
-|Auth URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/auth|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|Access Token URL|https://keycloak.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/token|If ``APP_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|Client ID|spexregister|If ``APP_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|Auth URL|https://auth.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/auth|If ``API_AUTH_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Access Token URL|https://auth.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/token|If ``API_AUTH_REALM`` in ``.env`` has been changed, the value must be changed accordingly
+|Client ID|spexregister|If ``API_AUTH_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
 |Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If the secret of the client has been changed in Keycloak, the value must be changed accordingly
 |Scope|offline_access|
 |Client Authentication|Send as Basic Auth header|
@@ -299,7 +299,7 @@ with source ``MCP``.
 Authentication uses OAuth 2.0 against Keycloak with the public client ``spexregister-mcp`` (authorization code with PKCE,
 redirect URIs ``http://localhost:*`` and ``http://127.0.0.1:*``). Only tokens issued to that client are accepted
 by the MCP endpoint, and they are not accepted by the rest of the API.
-The tokens must also have the MCP endpoint's address, i.e. ``APP_BASE_URL`` with the path ``/api/mcp``, as audience.
+The tokens must also have the MCP endpoint's address, i.e. ``API_BASE_URL`` with the path ``/api/mcp``, as audience.
 Keycloak adds it through the client's audience mapper, which ``fgv.json`` sets from ``SPEXREGISTER_MCP_URL``.
 Users confirm the access once, on Keycloak's consent page.
 MCP clients discover Keycloak through the protected resource metadata at

@@ -2,7 +2,7 @@ spring:
   config:
     import: "optional:configtree:/run/secrets/"
   datasource:
-    password: ${MYSQL_APP_USER_PASSWORD}
+    password: ${MYSQL_API_USER_PASSWORD}
   mail:
     password: ${SMTP_PASSWORD:}
   jpa:
@@ -46,7 +46,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${APP_KEYCLOAK_URL}/realms/${APP_KEYCLOAK_REALM}
+          issuer-uri: ${API_AUTH_URL}/realms/${API_AUTH_REALM}
   threads:
     virtual:
       enabled: true
@@ -108,13 +108,13 @@ logging:
     path: ./data/log_data
 
 spexregister:
-  base-url: ${APP_BASE_URL}
+  base-url: ${API_BASE_URL}
   default-language: sv
   languages:
     - en
     - sv
   crypto:
-    secret-key: ${APP_SECRET_KEY}
+    secret-key: ${API_SECRET_KEY}
   jobs:
     full-index:
       cron-expression: 0 0 */4 * * ? # Every 4 hours
@@ -126,24 +126,24 @@ spexregister:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7
   keycloak:
-    url: ${APP_KEYCLOAK_URL}
-    realm: ${APP_KEYCLOAK_REALM}
+    url: ${API_AUTH_URL}
+    realm: ${API_AUTH_REALM}
     admin:
-      client-id: ${APP_KEYCLOAK_ADMIN_CLIENT_ID}
-      client-secret: ${APP_KEYCLOAK_ADMIN_CLIENT_SECRET}
+      client-id: ${API_AUTH_ADMIN_CLIENT_ID}
+      client-secret: ${API_AUTH_ADMIN_CLIENT_SECRET}
     client:
-      client-id: ${APP_KEYCLOAK_CLIENT_CLIENT_ID}
+      client-id: ${API_AUTH_CLIENT_CLIENT_ID}
     pending-approval-group: pending-approval
   mcp:
-    authorized-parties: ${APP_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
+    authorized-parties: ${API_AUTH_MCP_CLIENT_ID:spexregister-mcp}
   impex:
     storage-path: ./data/impex_data
   mail:
     from: ${MAIL_FROM:noreply@localhost}
     admin-recipients: ${ADMIN_NOTIFICATION_RECIPIENTS:}
   data:
-    seed-audit-data: ${APP_SEED_AUDIT_DATA}
-    import-sample-data: ${APP_IMPORT_SAMPLE_DATA}
+    seed-audit-data: ${API_SEED_AUDIT_DATA}
+    import-sample-data: ${API_IMPORT_SAMPLE_DATA}
     sample-user-password: ${SAMPLE_USER_PASSWORD:s3cr3t-s3cr3t}
 
 ---
