@@ -443,7 +443,27 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("graphNeighbourhood.origin.label").entity(String.class).isEqualTo("Ada Lovelace")
-                    .path("graphNeighbourhood.groups[?(@.type == 'PARTICIPATION')].totalCount").entityList(Integer.class).containsExactly(1);
+                    .path("graphNeighbourhood.groups[?(@.type == 'PARTICIPATION')].totalCount").entityList(Integer.class).containsExactly(1)
+                    .path("graphNeighbourhood.groups[?(@.type == 'PARTICIPATION')].edges[*].label").entityList(String.class).containsExactly(spex.getYear());
+        }
+
+        @Test
+        void should_label_participation_with_the_spex_year_for_spex() {
+            final var spexare = persistReadableSpexare("Ada", "Lovelace", true);
+            final var spex = persistReadableSpex();
+            persistParticipation(spexare, spex);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.SPEX)
+                    .variable("id", spex.getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.groups[?(@.type == 'PARTICIPATION')].edges[*].label").entityList(String.class).containsExactly(spex.getYear());
         }
 
         /**

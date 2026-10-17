@@ -111,6 +111,12 @@ public class GraphService {
                 .orElse("");
     }
 
+    private static String functionLabel(final Spexare spexare, final String roles) {
+        final String name = "%s %s".formatted(spexare.getFirstName(), spexare.getLastName());
+
+        return roles.isEmpty() ? name : "%s (%s)".formatted(name, roles);
+    }
+
     private static GraphNodeDto nodeOf(final Spexare spexare) {
         return new GraphNodeDto(idOf(GraphNodeType.SPEXARE, spexare.getId()), GraphNodeType.SPEXARE,
                 "%s %s".formatted(spexare.getFirstName(), spexare.getLastName()), spexare.getNickName(),
@@ -289,7 +295,8 @@ public class GraphService {
         groups.add(group(GraphEdgeType.FUNCTION, held.size(), held.stream(),
                 item -> nodeOf(item.task()),
                 item -> GraphEdgeDto.of(idOf(GraphNodeType.TASK, item.task().getId()),
-                        idOf(GraphNodeType.SPEX, item.spex().getId()), GraphEdgeType.FUNCTION, item.roles())));
+                        idOf(GraphNodeType.SPEX, item.spex().getId()), GraphEdgeType.FUNCTION,
+                        functionLabel(spexare, item.roles()))));
 
         final List<Tag> tags = List.copyOf(orEmpty(spexare.getTags()));
 
@@ -324,7 +331,7 @@ public class GraphService {
         groups.add(new GraphGroupDto(GraphEdgeType.PARTICIPATION, participants.getTotalCount(),
                 participants.getContent(),
                 participants.getContent().stream()
-                        .map(node -> GraphEdgeDto.of(node.id(), origin, GraphEdgeType.PARTICIPATION, node.label()))
+                        .map(node -> GraphEdgeDto.of(node.id(), origin, GraphEdgeType.PARTICIPATION, spex.getYear()))
                         .toList()));
 
         final List<SpexCategory> categories = Optional.ofNullable(spex.getDetails().getCategory())
