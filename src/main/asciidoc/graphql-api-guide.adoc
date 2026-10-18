@@ -11,8 +11,16 @@ xref:index.adoc[Back to start page]
 [[schema]]
 == Schema
 
-The schema is available at https://register.fgv.nu/api/graphql.
-If running locally, the corresponding URL is http://localhost:8080/api/graphql.
+The endpoint is ``/api/graphql``, e.g. https://register.fgv.nu/api/graphql.
+If running locally, the corresponding URL is https://api.register.fgv.local.nu:8443/api/graphql.
+
+Introspection is enabled only with the Spring profile ``local``.
+The schema can otherwise be downloaded, with an access token, from ``/api/graphql/schema``.
+
+[[subscriptions]]
+== Subscriptions
+
+Subscriptions, such as ``jobProgress`` for following an import or export job, run over WebSocket on the same path.
 
 [[errors]]
 == Errors
@@ -34,14 +42,14 @@ Note that invalid input according to the schema will be detected and reported as
 
 Spexregister Server uses the following roles:
 
-!===
+|===
 |Role|Technical name|Description
 
 |USER|ROLE_USER|User with no administrative privileges
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
 
-!===
+|===
 
 [[filtering]]
 == Filtering

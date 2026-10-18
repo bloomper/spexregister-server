@@ -50,6 +50,12 @@ Spexregister Server tries to adhere as closely as possible to standard HTTP and 
 | `400 Bad Request`
 | The request was malformed.
 
+| `401 Unauthorized`
+| The request has no valid access token.
+
+| `403 Forbidden`
+| The user lacks the role or permission the request requires.
+
 | `404 Not Found`
 | The requested resource did not exist.
 
@@ -81,7 +87,7 @@ include::{static-snippets}/error/response-fields.adoc[]
 More information can be found link:https://www.rfc-editor.org/rfc/rfc9457[here].
 
 For example, a request that attempts to retrieve a non-existent ``Spex`` will produce a
-`400 Not Found` response:
+`404 Not Found` response:
 
 include::{static-snippets}/error/http-response.adoc[]
 
@@ -99,14 +105,14 @@ Users of the API should not create URIs themselves, instead they should use the 
 
 Spexregister Server uses the following roles:
 
-!===
+|===
 |Role|Technical name|Description
 
 |USER|ROLE_USER|User with no administrative privileges
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
 
-!===
+|===
 
 [[filtering]]
 == Filtering

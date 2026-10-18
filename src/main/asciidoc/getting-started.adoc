@@ -21,8 +21,6 @@ You also need the following if you are to do development in Spexregister Server:
 * Git
 * Java
 ** Version 25 is required, later versions might work as well
-* Gradle
-** Version 9.2.1 is verified to work
 * An IDE of your choice
 
 [[cloning_the_repository]]
@@ -39,7 +37,14 @@ $ git clone https://github.com/bloomper/spexregister-server
 == Setup
 
 There are some configuration parameters that need to be set before Spexregister Server can be started.
-The parameters can be found under ``.docker/secrets`` where each file represents a parameter.
+Each parameter is a file under ``.docker/secrets``, containing only the value.
+``.docker`` is not version controlled, so create the files and the directories that ``docker-compose.yaml`` mounts:
+
+[source,bash]
+----
+$ mkdir -p .docker/secrets .docker/caddy/{data,config} .docker/auth/log_data \
+    .docker/mysql/{api,auth}/{db_data,log_data} .docker/api/{log_data,index_data,impex_data}
+----
 
 |===
 |Parameter|Purpose|Comment|Example value
@@ -62,14 +67,13 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |MYSQL_API_DATABASE|The name of the database used by Spexregister Server|spexregister
 |MYSQL_API_ROOT_USER|The root user of Spexregister Server's database|root
 |MYSQL_API_USER|The user of Spexregister Server's database|spexregister
-|MYSQL_AUTH_DATABASE|The name of the database used by Spexregister Server|keycloak
+|MYSQL_AUTH_DATABASE|The name of the database used by Keycloak|keycloak
 |MYSQL_AUTH_ROOT_USER|The root user of Keycloak's database|root
 |MYSQL_AUTH_USER|The user of Keycloak's database|keycloak
 |AUTH_ADMIN|The administrative user of Keycloak|admin
 |API_AUTH_REALM|The Keycloak realm of Spexregister Server|fgv
 |API_AUTH_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
 |API_AUTH_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
-|API_AUTH_MCP_CLIENT_ID|The Keycloak client id(s), comma separated, that MCP clients authenticate with|spexregister-mcp
 |API_SEED_AUDIT_DATA|A flag determining whether to give every existing row a baseline revision at startup, which only happens while there are no revisions|false
 |API_IMPORT_SAMPLE_DATA|A flag determining whether to import sample data or not|false
 
@@ -134,7 +138,7 @@ Sample data consists both of real data and random data but none of the data can 
 Any existing data and all users in Keycloak will be wiped out, at every start.
 --
 
-The import also creates the users listed under <<caddy,Test credentials>> in Keycloak, together with a number of random users.
+The import also creates the users listed under <<test_credentials>> in Keycloak, together with a number of random users.
 The realm itself contains no users, so without sample data the first user has to register and be given roles in Keycloak's admin console.
 
 [[keycloak]]
@@ -158,46 +162,10 @@ The username is set by ``AUTH_ADMIN`` in ``.env`` and the password in ``.docker/
 [[keycloak_setup]]
 === Setup
 
-These are the steps to create a realm in Keycloak:
-
-* Create realm ``fgv``
-** General
-*** Display name: FGV
-*** HTML display name: Föreningen Gamla Västar
-** Login
-*** Forgot password: Enabled
-*** Email as username: Enabled
-*** Login with email: Enabled
-** Themes
-*** Login theme: FGV
-** Localization
-*** Internationalization: Enabled
-*** Supported locales: English, Swedish
-*** Default locale: Swedish
-* Create client ``spexregister``
-** Enable client authentication
-*** The generated secret found under Credentials -> Client Secret is the one to use for any clients
-** Create role ``USER``
-** Create role ``EDITOR``
-** Create role ``ADMIN``
-** Disable full scopes (client scopes -> spexregister-dedicated -> Scope -> Full scope allowed -> Off)
-* Create client ``fgv-admin``
-** Enable client authentication
-*** The generated secret found under Credentials -> Client Secret is the one to use for Spexregister Server
-** Enable service account roles
-** Disable standard flow
-** Disable direct access grants
-** Assign the following service account roles
-*** manage-users
-*** query-users
-*** view-users
-*** view-clients
-
-To export the realm, i.e. ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], do the following:
-
-* Start Keycloak by ``./bin/kc.sh start-dev``
-* Follow the steps outlined above
-* Export by ``./kc.sh export --users realm_file --file fgv.json --realm fgv``
+The realm is defined by ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], whose README describes what it contains.
+To change it, make the change in the administration UI, export it with _Realm settings -> Action -> Partial export_ and carry the change over to ``fgv.json`` by hand.
+Keep the `+${...}+` placeholders, and keep realm keys and users out, apart from the service account of ``fgv-admin``.
+Copy the result to ``src/integrationtest/resources/keycloak/fgv.json`` as well, and add a script under ``scripts/migrations/`` (see <<keycloak_migrations>>) for realms that already exist.
 
 [[caddy]]
 == Caddy
@@ -213,11 +181,11 @@ Import it into your OS's trust manager.
 == Mailpit
 
 Mailpit (https://mailpit.axllent.org/) acts as the SMTP server when running locally.
-It catches all emails sent by Keycloak, nothing is delivered to real recipients. Spexregister Server sends no emails itself.
+It catches all emails sent by Keycloak and Spexregister Server, nothing is delivered to real recipients.
 
 The caught emails can be viewed at https://mail.fgv.local.nu:8443 (or http://localhost:8025).
 
-These are the emails sent during self-registration:
+These are the emails sent:
 
 |===
 |Email|Sent by|Recipient
@@ -225,6 +193,7 @@ These are the emails sent during self-registration:
 |Email verification|Keycloak|The registering user
 |New user awaiting approval|Keycloak|``admin@fgv.local.nu``, can be changed by setting ``AUTH_ADMIN_NOTIFICATION_RECIPIENTS`` in ``.env``
 |Account approved|Keycloak, when an administrator assigns the user a role|The approved user
+|Removal request|Spexregister Server, when a user asks for their data to be removed|``admin@fgv.local.nu``, set by ``ADMIN_NOTIFICATION_RECIPIENTS`` in ``docker-compose.yaml``
 
 |===
 
@@ -240,14 +209,22 @@ Unit tests do not require any external dependencies, such as a database, and are
 An example of unit tests is API tests which are used to generate the REST API documentation.
 Apart from API tests, unit tests are mostly only written for complex logic.
 
-Integration tests are slow to run as they depend on a full environment but that also means that they are end-to-end tests which are generally considered to provide better test value.
+Integration tests start MySQL and Keycloak with Testcontainers, so they need Docker.
+They take a couple of minutes and are end-to-end tests which are generally considered to provide better test value.
+
+[source,bash]
+----
+$ ./gradlew test               # unit tests, also generates the snippets for the REST API documentation
+$ ./gradlew integrationTest
+$ ./gradlew build              # all of the above, plus this documentation
+----
 
 [[test_credentials]]
 == Test credentials
 
 The following test users are created when sample data is imported (see <<sample_data>>):
 
-!===
+|===
 
 |Username|Password|Comment
 
@@ -255,7 +232,7 @@ The following test users are created when sample data is imported (see <<sample_
 |editor@fgv.nu|s3cr3t-s3cr3t|Has editor privileges
 |user@fgv.nu|s3cr3t-s3cr3t|Has user privileges
 
-!===
+|===
 
 [[testing_the_api]]
 == Testing the API
@@ -280,10 +257,10 @@ Enter values as follows (leave other fields empty).
 |Scope|offline_access|
 |Client Authentication|Send as Basic Auth header|
 
+|===
+
 Request an access token by clicking ``Get New Access Token`` and use any of the test credentials to login.
 Use the obtained access token when invoking the API endpoints.
-
-|===
 
 [[mcp_server]]
 == MCP server

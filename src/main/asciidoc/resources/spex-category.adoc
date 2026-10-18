@@ -66,8 +66,13 @@ operation::spex-category-logo-get[snippets='security,request-headers,path-parame
 operation::spex-category-logo-add[snippets='security,request-headers,http-request,http-response']
 
 [[logo_update_multipart]]
-== Update (multipart)
+=== Update (multipart)
 
 operation::spex-category-logo-add-multipart[snippets='security,request-headers,http-request,http-response']
+
+[[logo_delete]]
+=== Delete
+
+operation::spex-category-logo-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
 xref:../api-guide.adoc[Back to API guide]

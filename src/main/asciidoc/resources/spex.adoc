@@ -109,6 +109,16 @@ operation::spex-revival-add[snippets='security,request-headers,path-parameters,h
 
 operation::spex-revival-remove[snippets='security,request-headers,path-parameters,http-request,http-response']
 
+[[parent]]
+== Parent
+
+The parent of a revival is the spex it revives.
+
+[[parent_get]]
+=== Get
+
+operation::spex-parent-get[snippets='security,request-headers,path-parameters,http-request,response-headers,response-fields,links,http-response']
+
 [[category]]
 == Category
 
