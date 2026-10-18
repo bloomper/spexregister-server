@@ -51,12 +51,12 @@ class CellTypedWriterFactory {
             return cellTypedWriter.charWriter;
         } else if (clazz == Boolean.class || clazz == boolean.class) {
             return cellTypedWriter.booleanWriter;
-        } else if (clazz == Date.class) {
-            return cellTypedWriter.utilDateWriter;
-        } else if (clazz == Calendar.class) {
-            return cellTypedWriter.calendarWriter;
         } else if (clazz == java.sql.Date.class) {
             return cellTypedWriter.sqlDateWriter;
+        } else if (clazz != null && Date.class.isAssignableFrom(clazz)) {
+            return cellTypedWriter.utilDateWriter;
+        } else if (clazz != null && Calendar.class.isAssignableFrom(clazz)) {
+            return cellTypedWriter.calendarWriter;
         } else {
             return cellTypedWriter.stringWriter;
         }
