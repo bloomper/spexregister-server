@@ -112,6 +112,7 @@ public class SpexActivityService {
                                 final SpexActivity spexActivity = new SpexActivity();
                                 spexActivity.setActivity(activity);
                                 spexActivity.setSpex(spex);
+                                activity.setSpexActivity(spexActivity);
                                 return repository.save(spexActivity);
                             })
                     )

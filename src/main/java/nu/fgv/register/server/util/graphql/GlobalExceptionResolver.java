@@ -39,15 +39,12 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.http.ProblemDetail;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,7 +63,7 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
     }
 
     @Override
-    protected List<GraphQLError> resolveToMultipleErrors(final Throwable ex, final DataFetchingEnvironment environment) {
+    protected @Nullable List<GraphQLError> resolveToMultipleErrors(final Throwable ex, final DataFetchingEnvironment environment) {
         if (ex instanceof final ConstraintViolationException e) {
             return e.getConstraintViolations().stream()
                     .map(error -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment))
@@ -74,7 +71,7 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
         } else {
             final GraphQLError error = resolveToSingleError(ex, environment);
 
-            return error != null ? List.of(error) : Collections.emptyList();
+            return error != null ? List.of(error) : null;
         }
     }
 

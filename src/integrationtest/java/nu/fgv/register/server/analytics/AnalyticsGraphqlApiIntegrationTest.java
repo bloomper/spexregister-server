@@ -16,6 +16,8 @@
 
 package nu.fgv.register.server.analytics;
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.spex.Spex;
+import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+
+import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 
 /**
  * @author Anders Jacobsson
@@ -49,6 +53,31 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                         taskCountByCategory { label count }
                         userCountHistory { label count }
                         spexareCountHistory { label count }
+                    }
+                }
+            }
+            """;
+
+    private static final String SECTIONS = """
+            query {
+                analytics {
+                    participation {
+                        bySpexYear { key count facet }
+                        topTask { label count }
+                        byTaskCategory { label count }
+                    }
+                    lifecycle {
+                        newcomersByYear { key count }
+                        oneTimers
+                        returning
+                        neverActive
+                    }
+                    dataQuality {
+                        total
+                        issues { key count }
+                    }
+                    operations {
+                        usersWithoutSpexare
                     }
                 }
             }
@@ -74,7 +103,60 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
         );
 
         jdbcClient.sql("UPDATE spex SET parent_id = NULL").update();
-        JdbcTestUtils.deleteFromTables(jdbcClient, "task_activity", "activity", "spexare", "task", "task_category", "spex", "spex_details");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "actor", "task_activity", "spex_activity", "activity", "spexare", "task", "task_category", "spex", "spex_details");
+    }
+
+    @Test
+    void should_chart_activities_added_through_the_api() {
+        jdbcClient.sql("INSERT INTO spex_details (id, title, created_by, created_at, version) VALUES (1, 'Bojan', 'system', NOW(), 0), (2, 'Nero', 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at, version) VALUES (1, '2010', NULL, 1, 'system', NOW(), 0), (2, '2015', NULL, 2, 'system', NOW(), 0)").update();
+        grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, 1L));
+        grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, 2L));
+        jdbcClient.sql("INSERT INTO task_category (id, name, actor_present, created_by, created_at, version) VALUES (1, 'Orkester', FALSE, 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO task (id, name, category_id, created_by, created_at, version) VALUES (1, 'Trumpet', 1, 'system', NOW(), 0), (2, 'Kontrabas', 1, 'system', NOW(), 0)").update();
+        grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, 1L));
+        grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, 2L));
+
+        final String admin = obtainAdminAccessToken();
+        final String ada = createSpexare(admin, "Ada", true);
+        addSpex(admin, ada, 1);
+        addTask(admin, ada, addSpex(admin, ada, 2), 1);
+        final String bo = createSpexare(admin, "Bo", true);
+        final String boActivity = addSpex(admin, bo, 2);
+        removeTask(admin, bo, boActivity, addTask(admin, bo, boActivity, 2));
+        createSpexare(admin, "Cy", true);
+        addSpex(admin, createSpexare(admin, "Dag", false), 1);
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build()
+                .document(SECTIONS)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.participation.bySpexYear[*].key").entityList(String.class).isEqualTo(List.of("2010", "2015"))
+                .path("analytics.participation.bySpexYear[*].count").entityList(Integer.class).isEqualTo(List.of(1, 2))
+                .path("analytics.participation.bySpexYear[*].facet").entityList(String.class).isEqualTo(List.of("spexYears", "spexYears"))
+                .path("analytics.participation.topTask[*].label").entityList(String.class).isEqualTo(List.of("Trumpet"))
+                .path("analytics.participation.byTaskCategory[*].count").entityList(Integer.class).isEqualTo(List.of(1))
+                .path("analytics.lifecycle.newcomersByYear[*].count").entityList(Integer.class).isEqualTo(List.of(1, 1))
+                .path("analytics.lifecycle.oneTimers").entity(Integer.class).isEqualTo(1)
+                .path("analytics.lifecycle.returning").entity(Integer.class).isEqualTo(1)
+                .path("analytics.lifecycle.neverActive").entity(Integer.class).isEqualTo(1)
+                .path("analytics.dataQuality").valueIsNull()
+                .path("analytics.operations").valueIsNull();
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken()))
+                .build()
+                .document(SECTIONS)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.dataQuality.total").entity(Integer.class).isEqualTo(4)
+                .path("analytics.dataQuality.issues[?(@.key == 'noActivity')].count").entityList(Integer.class).isEqualTo(List.of(1));
     }
 
     @Test
@@ -129,5 +211,77 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .errors()
                 .verify()
                 .path("analytics.totals.userCountHistory[*].label").entityList(String.class).isEqualTo(years);
+    }
+
+    private String createSpexare(final String token, final String firstName, final boolean published) {
+        return httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
+                .build()
+                .documentName("spexare/spexareCreate")
+                .variable("firstName", firstName)
+                .variable("lastName", "Analytiksson")
+                .variable("deceased", false)
+                .variable("published", published)
+                .execute()
+                .errors()
+                .verify()
+                .path("spexareCreate.id").entity(String.class).get();
+    }
+
+    private String addTask(final String token, final String spexareId, final String activityId, final long taskId) {
+        return httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
+                .build()
+                .documentName("spexare/activity/taskActivity/taskActivityCreate")
+                .variable("spexareId", spexareId)
+                .variable("activityId", activityId)
+                .variable("taskId", taskId)
+                .execute()
+                .errors()
+                .verify()
+                .path("taskActivityCreate.id").entity(String.class).get();
+    }
+
+    private void removeTask(final String token, final String spexareId, final String activityId, final String taskActivityId) {
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
+                .build()
+                .documentName("spexare/activity/taskActivity/taskActivityDelete")
+                .variable("spexareId", spexareId)
+                .variable("activityId", activityId)
+                .variable("id", taskActivityId)
+                .execute()
+                .errors()
+                .verify();
+    }
+
+    private String addSpex(final String token, final String spexareId, final long spexId) {
+        final String activityId = httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
+                .build()
+                .documentName("spexare/activity/activityCreate")
+                .variable("spexareId", spexareId)
+                .execute()
+                .errors()
+                .verify()
+                .path("activityCreate.id").entity(String.class).get();
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
+                .build()
+                .documentName("spexare/activity/spexActivity/spexActivityCreate")
+                .variable("spexareId", spexareId)
+                .variable("activityId", activityId)
+                .variable("spexId", spexId)
+                .execute()
+                .errors()
+                .verify();
+
+        return activityId;
     }
 }

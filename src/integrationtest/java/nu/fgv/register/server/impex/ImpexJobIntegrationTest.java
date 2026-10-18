@@ -17,7 +17,10 @@
 package nu.fgv.register.server.impex;
 
 import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.impex.exporting.excel.ExcelWriter;
+import nu.fgv.register.server.impex.model.ImpexAction;
 import nu.fgv.register.server.tag.Tag;
+import nu.fgv.register.server.tag.TagImpexDto;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.apache.poi.ss.usermodel.Row;
@@ -27,8 +30,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,38 +43,48 @@ import org.springframework.web.client.ApiVersionInserter;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
-class ExportJobIntegrationTest extends AbstractIntegrationTest {
+class ImpexJobIntegrationTest extends AbstractIntegrationTest {
 
     private static final ParameterizedTypeReference<Map<String, Object>> JSON = new ParameterizedTypeReference<>() {
     };
 
+    private static final Locale LOCALE = Locale.forLanguageTag("sv");
+
     private final TagRepository tagRepository;
+    private final MessageSource messageSource;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    public ExportJobIntegrationTest(final JdbcClient jdbcClient,
-                                    final AclCache aclCache,
-                                    final Keycloak keycloakAdminClient,
-                                    final String keycloakClientId,
-                                    final PermissionService permissionService,
-                                    final ObjectMapper objectMapper,
-                                    final TagRepository tagRepository) {
+    public ImpexJobIntegrationTest(final JdbcClient jdbcClient,
+                                   final AclCache aclCache,
+                                   final Keycloak keycloakAdminClient,
+                                   final String keycloakClientId,
+                                   final PermissionService permissionService,
+                                   final ObjectMapper objectMapper,
+                                   final TagRepository tagRepository,
+                                   final MessageSource messageSource) {
         super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
         this.tagRepository = tagRepository;
+        this.messageSource = messageSource;
     }
 
     @BeforeEach
@@ -127,7 +142,55 @@ class ExportJobIntegrationTest extends AbstractIntegrationTest {
                 .expectStatus().isForbidden();
     }
 
-    private void persistTag(final String name) {
+    @Test
+    void should_import_a_workbook_as_one_import_revision() throws Exception {
+        final Tag existing = persistTag("Founder");
+        grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, existing.getId()));
+
+        final String token = obtainAdminAccessToken();
+        final Long jobId = startTagImport(token, workbook(
+                tag(ImpexAction.UPDATE, existing.getId(), "Founder and pillar"),
+                tag(ImpexAction.CREATE, null, "Honorary member")
+        ));
+
+        assertThat(awaitJob(token, jobId)).isEqualTo("COMPLETED");
+
+        final Map<String, Object> job = job(token, jobId);
+
+        assertThat(job.get("exitStatus")).isEqualTo("COMPLETED");
+        assertThat(job.get("importResult")).asInstanceOf(MAP).containsEntry("success", true);
+        assertThat(jdbcClient.sql("SELECT name FROM tag ORDER BY name").query(String.class).list())
+                .containsExactly("Founder and pillar", "Honorary member");
+        assertThat(jdbcClient.sql("""
+                        SELECT DISTINCT CONCAT(r.source, ' ', r.comment)
+                        FROM revinfo r JOIN tag_audit a ON a.rev = r.id
+                        WHERE a.name IN ('Founder and pillar', 'Honorary member')
+                        """).query(String.class).list())
+                .containsExactly("IMPORT Import job %d (EXCEL)".formatted(jobId));
+    }
+
+    @Test
+    void should_reject_an_invalid_workbook_without_changing_anything() throws Exception {
+        persistTag("Founder");
+
+        final String token = obtainAdminAccessToken();
+        final Long jobId = startTagImport(token, workbook(
+                tag(ImpexAction.CREATE, null, "Honorary member"),
+                tag(ImpexAction.CREATE, null, "")
+        ));
+
+        awaitJob(token, jobId);
+
+        final Map<String, Object> job = job(token, jobId);
+
+        assertThat(job.get("exitStatus")).isEqualTo("FAILED");
+        assertThat(job.get("importResult")).asInstanceOf(MAP)
+                .containsEntry("success", false)
+                .extractingByKey("messages").asInstanceOf(LIST).isNotEmpty();
+        assertThat(jdbcClient.sql("SELECT name FROM tag").query(String.class).list()).containsExactly("Founder");
+    }
+
+    private Tag persistTag(final String name) {
         final Tag tag = new Tag();
 
         tag.setName(name);
@@ -136,6 +199,58 @@ class ExportJobIntegrationTest extends AbstractIntegrationTest {
 
         grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, saved.getId()));
         grantReadPermissionToRoleEditor(toObjectIdentity(Tag.class, saved.getId()));
+        return saved;
+    }
+
+    private Long startTagImport(final String token, final byte[] file) {
+        dropTestAuthenticationFromReactorContext();
+
+        final Map<String, Object> reference = restTestClient
+                .post()
+                .uri("/tags?type=excel")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .header(HttpHeaders.ACCEPT_LANGUAGE, LOCALE.toLanguageTag())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .apiVersion("1.0")
+                .body(file)
+                .exchange()
+                .expectStatus().isAccepted()
+                .expectBody(JSON)
+                .returnResult()
+                .getResponseBody();
+
+        return ((Number) Objects.requireNonNull(reference).get("id")).longValue();
+    }
+
+    private Map<String, Object> job(final String token, final Long jobId) {
+        return Objects.requireNonNull(restTestClient
+                .get()
+                .uri("/jobs/{id}", jobId)
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .apiVersion("1.0")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(JSON)
+                .returnResult()
+                .getResponseBody());
+    }
+
+    private byte[] workbook(final TagImpexDto... tags) throws IOException {
+        try (final XSSFWorkbook workbook = new XSSFWorkbook();
+             final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            new ExcelWriter().createSheet(messageSource, LOCALE, workbook, List.of(tags), null, TagImpexDto.class, false);
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    private static TagImpexDto tag(final ImpexAction action, final Long id, final String name) {
+        final TagImpexDto dto = new TagImpexDto();
+
+        dto.setAction(action);
+        dto.setId(id);
+        dto.setName(name);
+        return dto;
     }
 
     private Long startTagExport(final String token) {
