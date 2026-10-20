@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Saved searches are private to their owner, so every lookup is scoped by owner rather than by ACL.
+ * Saved searches are private to their owner, so every lookup is scoped by owner rather than by an access policy.
  *
  * @author Anders Jacobsson
  * @since 2.0

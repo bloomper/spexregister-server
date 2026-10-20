@@ -19,7 +19,7 @@ package nu.fgv.register.server.news;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
@@ -33,8 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,11 +48,7 @@ import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToAfterTod
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToBeforeToday;
 import static nu.fgv.register.server.news.NewsSpecification.hasVisibleToToday;
 import static nu.fgv.register.server.news.NewsSpecification.isPublished;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -75,7 +70,7 @@ public class NewsService {
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<News>builder().build(FilterParser.parse(filter), NewsSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -90,10 +85,10 @@ public class NewsService {
     public Page<NewsDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<News>builder().build(FilterParser.parse(filter), NewsSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<News>builder().build(FilterParser.parse(filter), NewsSpecification::new), pageable, Permission.READ)
                         .map(NEWS_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(NEWS_MAPPER::toDto);
     }
 
@@ -125,7 +120,7 @@ public class NewsService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -135,16 +130,6 @@ public class NewsService {
         return Optional.of(NEWS_MAPPER.toModel(dto))
                 .map(repository::save)
                 .map(news -> {
-                    final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
-                    if (news.getPublished()) {
-                        permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
-                    }
-
                     return NEWS_MAPPER.toDto(news);
                 })
                 .orElseThrow(() -> new InternalErrorException("Could not create news"));
@@ -165,17 +150,6 @@ public class NewsService {
                     return news;
                 })
                 .map(repository::save)
-                .map(news -> {
-                    final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
-
-                    if (news.getPublished()) {
-                        permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
-                    } else {
-                        permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
-                    }
-
-                    return news;
-                })
                 .map(NEWS_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(News.class, dto.id()));
     }
@@ -186,7 +160,6 @@ public class NewsService {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(news -> {
-                        permissionService.deleteAcl(toObjectIdentity(News.class, id));
                         repository.delete(news);
                     });
         } else {
@@ -207,9 +180,6 @@ public class NewsService {
                     .peek(news -> news.setPublished(false)) // NOSONAR
                     .map(repository::save)
                     .forEach(news -> {
-                        final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
-
-                        permissionService.revokePermission(oid, ROLE_USER_SID, BasePermission.READ);
                         unpublishedCount.incrementAndGet();
                     });
 
@@ -219,9 +189,6 @@ public class NewsService {
                     .peek(news -> news.setPublished(true)) // NOSONAR
                     .map(repository::save)
                     .forEach(news -> {
-                        final ObjectIdentity oid = toObjectIdentity(News.class, news.getId());
-
-                        permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
                         publishedCount.incrementAndGet();
                     });
             log.info("Finished news publish/unpublish job (published: {}, unpublished: {})", publishedCount.get(), unpublishedCount.get());

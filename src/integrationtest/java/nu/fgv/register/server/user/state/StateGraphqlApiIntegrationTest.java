@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.user.state;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.LabelsRandomizer;
@@ -34,7 +33,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -58,13 +56,11 @@ class StateGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public StateGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final StateRepository repository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();

@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
@@ -44,7 +43,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -64,7 +62,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -88,16 +85,14 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareApiIntegrationTest(final JdbcClient jdbcClient,
-                                     final AclCache aclCache,
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
-                                     final PermissionService permissionService,
                                      final SpexareRepository repository,
                                      final ObjectMapper objectMapper,
                                      final ResourceLoader resourceLoader,
                                      final EntityManager entityManager,
                                      final PlatformTransactionManager transactionManager) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.resourceLoader = resourceLoader;
         this.entityManager = entityManager;
@@ -207,7 +202,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -231,7 +225,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var spexare = persistSpexare(randomizeSpexare());
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
 
             final List<SpexareDto> result = Objects.requireNonNull(
@@ -289,7 +282,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<SpexareDto> result = Objects.requireNonNull(
                             restTestClient
@@ -321,7 +313,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     spexare.setFirstName("whatever");
                 }
                 final var spexare0 = persistSpexare(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare0.getId()));
             });
 
             final List<SpexareDto> result = Objects.requireNonNull(
@@ -378,7 +369,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
@@ -409,7 +399,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 repository.save(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
             syncIndex();
 
@@ -438,7 +427,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
@@ -465,7 +453,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             final List<SpexareDto> result = Objects.requireNonNull(
@@ -567,7 +554,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto result = restTestClient
                     .get()
@@ -613,9 +599,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = restTestClient
                     .get()
@@ -745,12 +728,11 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = restTestClient
                     .get()
                     .uri("/{id}", spexare.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -773,7 +755,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .put()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -812,9 +794,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = restTestClient
                     .get()
@@ -894,12 +873,11 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = restTestClient
                     .get()
                     .uri("/{id}", spexare.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -920,7 +898,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .patch()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -959,8 +937,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             restTestClient
                     .delete()
@@ -1000,7 +976,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{id}", spexare.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -1014,24 +990,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         }
 
-        @Test
-        void should_return_403_when_not_permitted_due_to_insufficient_role() {
-            final ProblemDetail result = restTestClient
-                    .delete()
-                    .uri("/{id}", 1L)
-                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isForbidden()
-                    .expectBody(ProblemDetail.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(repository.count()).isZero();
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
-        }
     }
 
     @Nested
@@ -1041,8 +999,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_image_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             restTestClient
@@ -1073,8 +1029,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_image_via_multipart_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = resourceLoader.getResource("classpath:test.png");
 
             final MultiValueMap<@NonNull String, Object> parts = new LinkedMultiValueMap<>();
@@ -1109,8 +1063,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_image_and_return_204() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             restTestClient
@@ -1150,11 +1102,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_200() {
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -1171,7 +1119,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
                     .expectBody(SpexareDto.class)
                     .returnResult()
                     .getResponseBody();
-
 
             assertThat(result).isNotNull();
             assertThat(result)
@@ -1200,8 +1147,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_retrieving_and_partner_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final ProblemDetail result = restTestClient
                     .get()
@@ -1222,11 +1167,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
 
             restTestClient
                     .put()
@@ -1259,8 +1200,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_partner_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final ProblemDetail result = restTestClient
                     .put()
@@ -1281,11 +1220,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -1306,8 +1241,6 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_204_when_removing_and_no_partner() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             restTestClient
                     .delete()

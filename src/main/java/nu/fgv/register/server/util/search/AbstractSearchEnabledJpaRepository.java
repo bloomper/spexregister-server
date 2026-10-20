@@ -17,7 +17,7 @@
 package nu.fgv.register.server.util.search;
 
 import jakarta.persistence.EntityManager;
-import nu.fgv.register.server.acl.SimpleAclJpaRepository;
+import nu.fgv.register.server.security.policy.SimplePolicyJpaRepository;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.engine.search.sort.dsl.CompositeSortComponentsStep;
@@ -45,7 +45,7 @@ import static org.springframework.util.StringUtils.hasText;
  * @author Anders Jacobsson
  * @since 2.0
  */
-public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializable> extends SimpleAclJpaRepository<T, ID> implements SearchEnabledJpaRepository<T, ID> {
+public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializable> extends SimplePolicyJpaRepository<T, ID> implements SearchEnabledJpaRepository<T, ID> {
 
     private final EntityManager entityManager;
 

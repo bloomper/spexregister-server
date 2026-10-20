@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.tagging;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
@@ -44,7 +43,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -56,7 +54,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -76,15 +73,13 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TaggingApiIntegrationTest(final JdbcClient jdbcClient,
-                                     final AclCache aclCache,
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
-                                     final PermissionService permissionService,
                                      final TaggingRepository repository,
                                      final TagRepository tagRepository,
                                      final SpexareRepository spexareRepository,
                                      final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;
@@ -163,7 +158,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
@@ -186,7 +180,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
             spexare.setTags(Set.of(tag));
             spexareRepository.save(spexare);
@@ -213,7 +206,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var taggings = new ArrayList<Tag>();
             IntStream.range(0, size).forEach(i -> {
                 final var tag = persistTag(randomizeTag());
@@ -252,8 +244,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient
@@ -287,8 +277,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient
@@ -341,13 +329,12 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             final ProblemDetail result = restTestClient
                     .post()
                     .uri("/{tagId}", spexare.getId(), tag.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -364,8 +351,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient
@@ -387,8 +372,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient
@@ -431,8 +414,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final ProblemDetail result = restTestClient
                     .delete()
@@ -475,8 +456,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient
@@ -488,12 +467,10 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                     .exchange()
                     .expectStatus().isCreated();
 
-            revokeWritePermissionFromRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{tagId}", spexare.getId(), tag.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -510,8 +487,6 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             restTestClient

@@ -34,7 +34,7 @@ public record AuditedEntityDescriptor(
         Class<?> entityClass,
         Function<String, Object> idParser,
         Function<Object, Optional<Object>> findCurrent,
-        @Nullable Function<Object, @Nullable Object> aclRoot,
+        @Nullable Function<Object, @Nullable Object> accessRoot,
         List<AuditedChildDescriptor> children,
         @Nullable Function<Object, @Nullable String> label,
         List<AuditedReferenceDescriptor> references
@@ -46,7 +46,7 @@ public record AuditedEntityDescriptor(
             final Class<E> entityClass,
             final Function<String, ID> idParser,
             final Function<ID, Optional<E>> findCurrent,
-            final @Nullable Function<E, @Nullable Object> aclRoot,
+            final @Nullable Function<E, @Nullable Object> accessRoot,
             final List<AuditedChildDescriptor> children
     ) {
         return new AuditedEntityDescriptor(
@@ -54,7 +54,7 @@ public record AuditedEntityDescriptor(
                 entityClass,
                 (Function<String, Object>) idParser,
                 (Function<Object, Optional<Object>>) (Function<?, ?>) findCurrent,
-                (Function<Object, @Nullable Object>) aclRoot,
+                (Function<Object, @Nullable Object>) accessRoot,
                 children,
                 null,
                 List.of()
@@ -62,7 +62,7 @@ public record AuditedEntityDescriptor(
     }
 
     public AuditedEntityDescriptor withReferences(final AuditedReferenceDescriptor... references) {
-        return new AuditedEntityDescriptor(type, entityClass, idParser, findCurrent, aclRoot, children, label, List.of(references));
+        return new AuditedEntityDescriptor(type, entityClass, idParser, findCurrent, accessRoot, children, label, List.of(references));
     }
 
     @SuppressWarnings("unchecked")
@@ -72,7 +72,7 @@ public record AuditedEntityDescriptor(
                 entityClass,
                 idParser,
                 findCurrent,
-                aclRoot,
+                accessRoot,
                 children,
                 (Function<Object, @Nullable String>) label,
                 references

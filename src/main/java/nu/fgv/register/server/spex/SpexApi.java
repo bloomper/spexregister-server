@@ -159,7 +159,7 @@ public class SpexApi {
     }
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
@@ -171,7 +171,7 @@ public class SpexApi {
     }
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
@@ -201,7 +201,7 @@ public class SpexApi {
     }
 
     @RequestMapping(value = "/{spexId}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> uploadPoster(@PathVariable final Long spexId, @RequestBody final byte[] file) {
         service.savePoster(spexId, file);
 
@@ -219,7 +219,7 @@ public class SpexApi {
     }
 
     @DeleteMapping("/{spexId}/poster")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> deletePoster(@PathVariable final Long spexId) {
         service.deletePoster(spexId);
 
@@ -253,7 +253,7 @@ public class SpexApi {
     }
 
     @PostMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long spexId, @PathVariable final String year) {
         final SpexDto dto = service.addRevival(spexId, year);
 
@@ -262,7 +262,7 @@ public class SpexApi {
     }
 
     @DeleteMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> deleteRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
         service.deleteRevival(spexId, id);
 

@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.config;
 
-import nu.fgv.register.server.acl.SimpleAclJpaRepository;
+import nu.fgv.register.server.security.policy.SimplePolicyJpaRepository;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository;
 import nu.fgv.register.server.util.security.JwtAuditorAwareImpl;
@@ -40,7 +40,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         basePackages = {
                 "nu.fgv.register.server"
         },
-        repositoryBaseClass = SimpleAclJpaRepository.class,
+        repositoryBaseClass = SimplePolicyJpaRepository.class,
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,

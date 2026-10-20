@@ -16,12 +16,10 @@
 
 package nu.fgv.register.server.util;
 
-import nu.fgv.register.server.acl.PermissionService;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -35,11 +33,9 @@ public class AbstractGraphqlIntegrationTest extends AbstractIntegrationTest {
     protected String graphqlPath;
 
     protected AbstractGraphqlIntegrationTest(final JdbcClient jdbcClient,
-                                             final AclCache aclCache,
                                              final Keycloak keycloakAdminClient,
                                              final String keycloakClientId,
-                                             final PermissionService permissionService,
                                              final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
     }
 }

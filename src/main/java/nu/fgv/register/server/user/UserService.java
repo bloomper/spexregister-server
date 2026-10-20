@@ -21,7 +21,8 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -61,9 +62,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -89,9 +88,7 @@ import static nu.fgv.register.server.user.UserSpecification.NO_FILTER;
 import static nu.fgv.register.server.user.UserSpecification.hasIds;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.passay.rule.AllowedCharacterRule.ERROR_CODE;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -112,6 +109,7 @@ public class UserService {
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
+    private final PermissionGrantService permissionGrantService;
     private final AuthorityService authorityService;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
@@ -127,7 +125,7 @@ public class UserService {
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -142,10 +140,10 @@ public class UserService {
     public Page<UserDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<User>builder().build(FilterParser.parse(filter), UserSpecification::new), pageable, Permission.READ)
                         .map(this::joinModelWithRepresentation) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(this::joinModelWithRepresentation);
     }
 
@@ -209,7 +207,7 @@ public class UserService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -232,10 +230,6 @@ public class UserService {
                     return findResourceByExternalId(externalId)
                             .map(resource -> {
                                 final User model = repository.save(USER_MAPPER.toModel(externalId, initialState));
-                                final ObjectIdentity oid = toObjectIdentity(User.class, model.getId());
-
-                                permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
 
                                 return USER_MAPPER.toDto(model, resource.toRepresentation(), temporaryPassword);
                             })
@@ -295,8 +289,7 @@ public class UserService {
                         return repository.findById0(id);
                     })
                     .ifPresent(user -> {
-                        revokeSpexarePermissions(user);
-                        permissionService.deleteAcl(toObjectIdentity(User.class, id));
+                        permissionGrantService.deleteByUser(user);
                         repository.delete(user);
                     });
         } else {
@@ -500,13 +493,6 @@ public class UserService {
                                 user.setSpexare(spexare);
                                 repository.save(user);
                                 fillMissingNames(user.getExternalId(), spexare);
-
-                                final PrincipalSid sid = new PrincipalSid(user.getExternalId());
-
-                                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), sid);
-                                if (spexare.getPartner() != null) {
-                                    permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getPartner().getId()), sid);
-                                }
                             })
                     );
         } else {
@@ -522,28 +508,11 @@ public class UserService {
                     .map(permissionService::checkWritePermission)
                     .filter(user -> user.getSpexare() != null)
                     .ifPresent(user -> {
-                        revokeSpexarePermissions(user);
-
                         user.setSpexare(null);
                         repository.save(user);
                     });
         } else {
             throw new ResourceNotFoundException(User.class, id);
-        }
-    }
-
-    private void revokeSpexarePermissions(final User user) {
-        final Spexare spexare = user.getSpexare();
-
-        if (spexare == null) {
-            return;
-        }
-
-        final PrincipalSid sid = new PrincipalSid(user.getExternalId());
-
-        permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), sid);
-        if (spexare.getPartner() != null) {
-            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getPartner().getId()), sid);
         }
     }
 
@@ -642,10 +611,7 @@ public class UserService {
 
     private void addSyncedUser(final String externalId) {
         final User user = repository.save(USER_MAPPER.toModel(externalId, getUserInitialState()));
-        final ObjectIdentity oid = toObjectIdentity(User.class, user.getId());
 
-        permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
         log.debug("Synced user {} from Keycloak", externalId);
     }
 
@@ -690,8 +656,7 @@ public class UserService {
 
     private void removeSyncedUser(final Long id) {
         repository.findById(id).ifPresent(user -> {
-            revokeSpexarePermissions(user);
-            permissionService.deleteAcl(toObjectIdentity(User.class, user.getId()));
+            permissionGrantService.deleteByUser(user);
             repository.delete(user);
             log.info("Removed user {} that no longer exists in Keycloak", user.getExternalId());
         });

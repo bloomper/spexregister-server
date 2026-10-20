@@ -45,7 +45,7 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.acls.domain.BasePermission;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,13 +167,13 @@ public class GraphService {
 
         final List<GraphNodeDto> nodes = new ArrayList<>();
 
-        nodes.addAll(spexareRepository.findBy(GraphSpecification.spexareMatching(term), BasePermission.READ,
+        nodes.addAll(spexareRepository.findBy(GraphSpecification.spexareMatching(term), Permission.READ,
                 query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
-        nodes.addAll(spexRepository.findBy(GraphSpecification.spexMatching(term), BasePermission.READ,
+        nodes.addAll(spexRepository.findBy(GraphSpecification.spexMatching(term), Permission.READ,
                 query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
-        nodes.addAll(taskRepository.findBy(GraphSpecification.taskMatching(term), BasePermission.READ,
+        nodes.addAll(taskRepository.findBy(GraphSpecification.taskMatching(term), Permission.READ,
                 query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
-        nodes.addAll(tagRepository.findBy(GraphSpecification.tagMatching(term), BasePermission.READ,
+        nodes.addAll(tagRepository.findBy(GraphSpecification.tagMatching(term), Permission.READ,
                 query -> query.sortBy(BY_ID).limit(first).all()).stream().map(GraphService::nodeOf).toList());
 
         return nodes.stream()
@@ -210,7 +210,7 @@ public class GraphService {
                     ? spexareWindow(GraphSpecification.spexareWithTag(id), scroll)
                     : GraphqlUtil.emptyWindow();
             case SPEX_CATEGORY -> edge == GraphEdgeType.CATEGORY
-                    ? spexRepository.findBy(GraphSpecification.spexInCategory(id), BasePermission.READ, query -> {
+                    ? spexRepository.findBy(GraphSpecification.spexInCategory(id), Permission.READ, query -> {
                 final long total = query.count();
 
                 return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
@@ -218,7 +218,7 @@ public class GraphService {
             })
                     : GraphqlUtil.emptyWindow();
             case TASK_CATEGORY -> edge == GraphEdgeType.CATEGORY
-                    ? taskRepository.findBy(GraphSpecification.taskInCategory(id), BasePermission.READ, query -> {
+                    ? taskRepository.findBy(GraphSpecification.taskInCategory(id), Permission.READ, query -> {
                 final long total = query.count();
 
                 return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)
@@ -244,7 +244,7 @@ public class GraphService {
     }
 
     private Optional<GraphNodeDto> randomSpexare() {
-        return spexareRepository.findBy(Specification.unrestricted(), BasePermission.READ, query -> {
+        return spexareRepository.findBy(Specification.unrestricted(), Permission.READ, query -> {
             final long total = query.count();
 
             if (total == 0L) {
@@ -306,10 +306,10 @@ public class GraphService {
 
         final List<Spexare> partners = Stream.concat(
                         Optional.ofNullable(spexare.getPartner())
-                                .map(partner -> spexareRepository.findAll(GraphSpecification.spexareWithId(partner.getId()), BY_ID, BasePermission.READ))
+                                .map(partner -> spexareRepository.findAll(GraphSpecification.spexareWithId(partner.getId()), BY_ID, Permission.READ))
                                 .orElseGet(List::of)
                                 .stream(),
-                        spexareRepository.findAll(GraphSpecification.partnerOf(spexare.getId()), BY_ID, BasePermission.READ).stream())
+                        spexareRepository.findAll(GraphSpecification.partnerOf(spexare.getId()), BY_ID, Permission.READ).stream())
                 .collect(Collectors.toMap(Spexare::getId, partner -> partner, (a, b) -> a, LinkedHashMap::new))
                 .values().stream()
                 .limit(first)
@@ -345,7 +345,7 @@ public class GraphService {
         final List<Spex> related = Stream.concat(
                         Optional.ofNullable(spex.getParent()).stream(),
                         spexRepository.findAll(Specification.<Spex>unrestricted()
-                                .and((root, _, cb) -> cb.equal(root.get("parent").get("id"), spex.getId())), BY_ID, BasePermission.READ).stream())
+                                .and((root, _, cb) -> cb.equal(root.get("parent").get("id"), spex.getId())), BY_ID, Permission.READ).stream())
                 .limit(first)
                 .toList();
 
@@ -415,7 +415,7 @@ public class GraphService {
     }
 
     private CountedWindow<GraphNodeDto> spexareWindow(final Specification<Spexare> spec, final GraphqlUtil.ScrollRequest scroll) {
-        return spexareRepository.findBy(spec, BasePermission.READ, query -> {
+        return spexareRepository.findBy(spec, Permission.READ, query -> {
             final long total = query.count();
 
             return CountedWindow.of(query.limit(scroll.limit()).sortBy(BY_ID)

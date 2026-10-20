@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.audit;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -50,7 +49,6 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import tools.jackson.databind.ObjectMapper;
 
@@ -61,7 +59,6 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -95,10 +92,8 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AuditDataSeederIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final AuditDataSeeder seeder,
                                           final TagRepository tagRepository,
                                           final SpexareRepository spexareRepository,
@@ -109,7 +104,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
                                           final SpexCategoryRepository spexCategoryRepository,
                                           final AuditService auditService,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.seeder = seeder;
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;
@@ -228,7 +223,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_give_every_row_a_single_creating_revision() {
             final var tag = persistTag();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             runAsSystem(() -> seeder.seedBaseline(jdbcClient));
 
@@ -260,7 +254,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_produce_a_readable_multi_revision_history() {
             final var tag = persistTag();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
@@ -434,7 +427,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory();
             final var details = persistSpexDetails(category, "H. C. Andersen");
             final var spex = persistSpex(details, "2022");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             runAsSystem(() -> seeder.seedBaseline(jdbcClient));
 
@@ -455,7 +447,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory();
             final var details = persistSpexDetails(category, "Carl von Linné");
             final var spex = persistSpex(details, "2020");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
@@ -481,8 +472,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         void should_restore_a_tag_to_its_seeded_previous_value() {
             final var tag = persistTag();
             final var currentName = tag.getName();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
@@ -502,8 +491,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType();
             final var spexare = persistSpexare();
             persistAddress(type, spexare);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 

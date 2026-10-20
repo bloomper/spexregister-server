@@ -19,7 +19,7 @@ package nu.fgv.register.server.spexare.activity.task;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.spexare.activity.Activity;

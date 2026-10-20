@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.task.actor;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -51,7 +50,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -60,7 +58,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -84,10 +81,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public ActorGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final ActorRepository repository,
                                           final TaskActivityRepository taskActivityRepository,
                                           final ActivityRepository activityRepository,
@@ -96,7 +91,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final TaskCategoryRepository taskCategoryRepository,
                                           final TypeRepository typeRepository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.taskActivityRepository = taskActivityRepository;
         this.activityRepository = activityRepository;
@@ -237,12 +232,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -272,12 +263,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -308,12 +295,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -344,12 +327,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_task_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -380,12 +359,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_vocal_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var dto = random.nextObject(ActorCreateDto.class);
@@ -415,15 +390,9 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -454,12 +423,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_creating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
@@ -491,11 +456,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -503,7 +465,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/taskActivity/actor/actorCreate")
                     .variable("spexareId", spexare.getId())
@@ -526,12 +488,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -566,12 +524,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -622,12 +576,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -659,12 +609,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -696,12 +642,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -733,12 +675,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_task_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -770,12 +708,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_vocal_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -807,15 +741,9 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -851,12 +779,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
@@ -893,12 +817,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_incorrect_task_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
@@ -935,11 +855,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -951,7 +868,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/taskActivity/actor/actorUpdate")
                     .variable("spexareId", spexare.getId())
@@ -975,12 +892,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1020,12 +933,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1053,12 +962,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1087,12 +992,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1122,12 +1023,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1157,12 +1054,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_task_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1192,15 +1085,9 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1230,12 +1117,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity2, task));
@@ -1266,12 +1149,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_task_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity1 = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var taskActivity2 = persistTaskActivity(randomizeTaskActivity(activity, task));
@@ -1302,11 +1181,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1314,7 +1190,7 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/taskActivity/actor/actorDelete")
                     .variable("spexareId", spexare.getId())
@@ -1336,12 +1212,8 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
             final var task = persistTask(randomizeTask(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, task.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
             final var vocal = persistVocal(randomizeVocal());
@@ -1367,6 +1239,5 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(repository.count()).isEqualTo(1);
         }
     }
-
 
 }

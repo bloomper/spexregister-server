@@ -17,7 +17,6 @@
 package nu.fgv.register.server.user;
 
 import jakarta.ws.rs.core.Response;
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.user.authority.Authority;
@@ -54,7 +53,6 @@ import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -69,7 +67,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -95,16 +92,14 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public UserGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                         final AclCache aclCache,
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
-                                         final PermissionService permissionService,
                                          final UserRepository repository,
                                          final AuthorityRepository authorityRepository,
                                          final StateRepository stateRepository,
                                          final SpexareRepository spexareRepository,
                                          final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.authorityRepository = authorityRepository;
         this.stateRepository = stateRepository;
@@ -324,7 +319,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_one() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -345,7 +339,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             IntStream.range(0, size).forEach(i -> {
                 final var user = persistUser(randomizeUser(state));
-                grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
             httpGraphQlTester
@@ -511,7 +504,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var user = persistUser(randomizeUser(state));
-                        grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
                         return user.getId();
                     })
                     .toList();
@@ -526,7 +518,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_zero() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -546,7 +537,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_one() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -570,7 +560,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             IntStream.range(0, size).forEach(i -> {
                 final var user = persistUser(randomizeUser(state));
                 externalIds.add(user.getExternalId());
-                grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
             });
 
             httpGraphQlTester
@@ -665,7 +654,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -724,8 +712,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_update() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             final UserDto before = httpGraphQlTester
                     .mutate()
@@ -809,7 +795,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             final UserDto before = httpGraphQlTester
                     .mutate()
@@ -831,7 +816,7 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -878,8 +863,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_delete() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -921,11 +904,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userDelete")
                     .variable("id", user.getId())
@@ -968,7 +950,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_zero() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -992,7 +973,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authority = getRandomAuthority();
             final var user = persistUser(randomizeUser(state), authority);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1018,7 +998,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1045,8 +1024,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(1);
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1119,7 +1096,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_adding_and_authority_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1146,8 +1122,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1221,7 +1195,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_adding_multiple_and_authorities_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1248,7 +1221,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authority = getRandomAuthority();
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1275,8 +1247,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authority = getRandomAuthority();
             final var user = persistUser(randomizeUser(state), authority);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1347,7 +1317,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_removing_and_authority_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1374,8 +1343,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1448,7 +1415,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_removing_multiple_and_authorities_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1475,7 +1441,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authority = getRandomAuthority();
             final var user = persistUser(randomizeUser(state), authority);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1523,11 +1488,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userAuthorityAdd")
                     .variable("userId", user.getId())
@@ -1568,11 +1532,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userAuthoritiesAdd")
                     .variable("userId", user.getId())
@@ -1613,11 +1576,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authority = getRandomAuthority();
             final var user = persistUser(randomizeUser(state), authority);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userAuthorityRemove")
                     .variable("userId", user.getId())
@@ -1658,11 +1620,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var authorities = getRandomAuthorities(2);
             final var user = persistUser(randomizeUser(state), authorities.getFirst(), authorities.get(1));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userAuthoritiesRemove")
                     .variable("userId", user.getId())
@@ -1707,8 +1668,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1731,8 +1690,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var newState = persistState(randomizeState());
             newState.setEnabled(!state.getEnabled());
             stateRepository.save(newState);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1801,7 +1758,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_setting_and_state_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1824,11 +1780,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var newState = persistState(randomizeState());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userStateSet")
                     .variable("userId", user.getId())
@@ -1866,8 +1821,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     class SpexareTests {
 
         private void addSpexare(final User user, final Spexare spexare) {
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1921,9 +1874,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             user.setSpexare(spexare);
             repository.save(user);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1944,8 +1894,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -2012,7 +1960,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_NOT_FOUND_when_adding_and_spexare_not_found() {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -2037,9 +1984,6 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var spexare = persistSpexare(randomizeSpexare());
             user.setSpexare(spexare);
             repository.save(user);
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -2103,12 +2047,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userSpexareAdd")
                     .variable("userId", user.getId())
@@ -2145,12 +2087,10 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var state = persistState(randomizeState());
             final var user = persistUser(randomizeUser(state));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(User.class, user.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("user/userSpexareRemove")
                     .variable("userId", user.getId())

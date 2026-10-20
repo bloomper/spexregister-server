@@ -46,6 +46,8 @@ spexregister:
     client:
       client-id: spexregister
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
+  security:
+    authorized-parties: spexregister,fgv-revival-service
   mcp:
     authorized-parties: spexregister-mcp,spexregister-mcp-unbound
   impex:

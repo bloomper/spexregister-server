@@ -7,6 +7,31 @@ It is a Spring Boot application with a REST API, a GraphQL API and an MCP server
 index and Keycloak ([fgv-keycloak][8]) for authentication. [Spexregister Web][9] is its frontend and
 [spexregister-deploy][10] runs it on a server.
 
+## Roles and access
+
+Roles are client roles on `spexregister` in Keycloak:
+
+| Role      | Who                                  | What                                                       |
+|-----------|--------------------------------------|------------------------------------------------------------|
+| `USER`    | Every user                           | Reads the register; changes their own and their partner's record |
+| `EDITOR`  | Editors                              | Also changes it                                            |
+| `ADMIN`   | Administrators                       | Everything, including users, settings and permission grants |
+| `REVIVAL` | Nyuppsättning's service account only | Reads spex, tasks and task categories, nothing else      |
+
+Which records a caller may read, write, delete or administer is decided by one access policy per kind of record, in
+`nu.fgv.register.server.security.policy`. A policy answers from the caller's roles, the record's own data (published
+or not, whose record it is) and any permission grants that cover it. Lists and searches get the same rules as a
+query predicate, so a record the caller may not read behaves as if it did not exist. To change who may do what,
+change the policy; no stored data has to change.
+
+Admins can grant a user or a role extra rights on one spexare, on everyone with an activity in a spex, or on one spex,
+optionally until a date (`permissionGrant*` in GraphQL, *Permissions* under admin in the web). Grants only add rights,
+and they are in the change log.
+
+`REVIVAL` is checked with `@RequiresReferenceDataReader` on the operations it may call. It is not an `authority`, so
+the user sync never imports the service account as a user. Its tokens must come from an authorized party: set
+`SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES` to include `fgv-revival-service`.
+
 ## Learning more
 
 To learn more about Spexregister Server, please consult the [reference documentation][1]. When running locally,

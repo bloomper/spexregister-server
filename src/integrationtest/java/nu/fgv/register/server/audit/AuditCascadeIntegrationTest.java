@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.audit;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -47,7 +46,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -58,7 +56,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -78,15 +75,13 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AuditCascadeIntegrationTest(final JdbcClient jdbcClient,
-                                       final AclCache aclCache,
                                        final Keycloak keycloakAdminClient,
                                        final String keycloakClientId,
-                                       final PermissionService permissionService,
                                        final SpexareRepository spexareRepository,
                                        final AddressRepository addressRepository,
                                        final TypeRepository typeRepository,
                                        final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexareRepository = spexareRepository;
         this.addressRepository = addressRepository;
         this.typeRepository = typeRepository;
@@ -161,7 +156,6 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
         void should_return_the_history_of_every_address_including_removed_ones() {
             final var type = persistType();
             final var spexare = persistSpexare();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final var kept = persistAddress(type, spexare);
             final var removed = persistAddress(type, spexare);
@@ -200,7 +194,6 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
         void should_name_the_entity_each_revision_belongs_to() {
             final var type = persistType();
             final var spexare = persistSpexare();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final var first = persistAddress(type, spexare);
 
@@ -233,7 +226,6 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_reach_entities_nested_below_an_activity() {
             final var spexare = persistSpexare();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<RevisionDto> result = Objects.requireNonNull(
                             restTestClient
@@ -262,7 +254,6 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
         void should_not_be_possible_to_restore_an_entity_that_no_longer_exists() {
             final var type = persistType();
             final var spexare = persistSpexare();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final var removed = persistAddress(type, spexare);
             final long creation = latestRevision();
@@ -288,8 +279,6 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
         void should_recreate_removed_child_and_delete_added_child() {
             final var type = persistType();
             final var spexare = persistSpexare();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final var kept = persistAddress(type, spexare);
             final var removed = persistAddress(type, spexare);

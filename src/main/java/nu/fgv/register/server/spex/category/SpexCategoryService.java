@@ -19,7 +19,7 @@ package nu.fgv.register.server.spex.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
@@ -35,8 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,10 +45,6 @@ import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEG
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
 import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -71,7 +66,7 @@ public class SpexCategoryService {
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -86,10 +81,10 @@ public class SpexCategoryService {
     public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), pageable, Permission.READ)
                         .map(SPEX_CATEGORY_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
@@ -122,7 +117,7 @@ public class SpexCategoryService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -132,11 +127,6 @@ public class SpexCategoryService {
         return Optional.of(SPEX_CATEGORY_MAPPER.toModel(dto))
                 .map(repository::save)
                 .map(category -> {
-                    final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, category.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-
                     return SPEX_CATEGORY_MAPPER.toDto(category);
                 })
                 .orElseThrow(() -> new InternalErrorException("Could not create spex category"));
@@ -167,7 +157,6 @@ public class SpexCategoryService {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(category -> {
-                        permissionService.deleteAcl(toObjectIdentity(SpexCategory.class, id));
                         repository.delete(category);
                     });
         } else {

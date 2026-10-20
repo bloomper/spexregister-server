@@ -17,7 +17,6 @@
 package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -41,7 +40,6 @@ import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -61,7 +59,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -84,15 +81,13 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                            final AclCache aclCache,
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
-                                            final PermissionService permissionService,
                                             final SpexareRepository repository,
                                             final ObjectMapper objectMapper,
                                             final EntityManager entityManager,
                                             final PlatformTransactionManager transactionManager) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.entityManager = entityManager;
         this.transactionManager = transactionManager;
@@ -210,7 +205,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -230,7 +224,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var spexare = persistSpexare(randomizeSpexare());
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
 
             httpGraphQlTester
@@ -377,7 +370,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var spexare = persistSpexare(randomizeSpexare());
-                        grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
                         return spexare.getId();
                     })
                     .toList();
@@ -409,7 +401,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -434,7 +425,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     spexare.setFirstName("whatever");
                 }
                 final var spexare0 = persistSpexare(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare0.getId()));
             });
 
             httpGraphQlTester
@@ -477,7 +467,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             httpGraphQlTester
@@ -501,7 +490,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 repository.save(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
             syncIndex();
 
@@ -523,7 +511,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero_if_not_published_and_not_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             httpGraphQlTester
@@ -543,7 +530,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one_if_not_published_and_permitted() {
             final var spexare = persistSpexare(randomizeSpexare(false));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             syncIndex();
 
             httpGraphQlTester
@@ -572,7 +558,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 repository.save(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
             syncIndex();
 
@@ -599,7 +584,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 repository.save(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
             syncIndex();
 
@@ -626,7 +610,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 final var spexare = persistSpexare(randomizeSpexare());
                 spexare.setFirstName("firstName");
                 repository.save(spexare);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             });
             syncIndex();
 
@@ -744,7 +727,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -788,9 +770,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantAdministrationPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = httpGraphQlTester
                     .mutate()
@@ -903,11 +882,10 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final SpexareDto before = httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
                     .variable("id", spexare.getId())
@@ -929,7 +907,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexareUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -997,8 +975,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1022,8 +998,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             spexare.setFirstName("Renamed");
             spexare.setImage(Image.of(new byte[]{1, 2, 3}, MediaType.IMAGE_PNG_VALUE));
             final Long imageId = repository.save(spexare).getImage().getId();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var other = persistSpexare(randomizeSpexare());
             final List<Long> revisions = jdbcClient.sql("SELECT rev FROM spexare_audit WHERE id = :id")
                     .param("id", spexare.getId())
@@ -1077,7 +1051,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexareDelete")
                     .variable("id", spexare.getId())
@@ -1118,8 +1092,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete_image() throws Exception {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var image = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             restTestClient
@@ -1176,8 +1148,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1222,11 +1192,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return() {
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -1252,11 +1218,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1321,8 +1283,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_updating_and_partner_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1343,11 +1303,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var partner = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, partner.getId()));
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             spexare.setPartner(partner);
             partner.setPartner(spexare);
             repository.save(spexare);
@@ -1397,8 +1353,6 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_when_removing_and_no_partner() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()

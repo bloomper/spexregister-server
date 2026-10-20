@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.bulk;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -56,9 +55,10 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import nu.fgv.register.server.user.UserRepository;
+import nu.fgv.register.server.user.state.StateRepository;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -66,7 +66,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -90,14 +89,14 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
     private final TaskCategoryRepository taskCategoryRepository;
     private final ActivityRepository activityRepository;
     private final TaskActivityRepository taskActivityRepository;
+    private final UserRepository userRepository;
+    private final StateRepository stateRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareBulkGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                                final AclCache aclCache,
                                                 final Keycloak keycloakAdminClient,
                                                 final String keycloakClientId,
-                                                final PermissionService permissionService,
                                                 final SpexareRepository spexareRepository,
                                                 final TagRepository tagRepository,
                                                 final TypeRepository typeRepository,
@@ -109,8 +108,10 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                                                 final TaskCategoryRepository taskCategoryRepository,
                                                 final ActivityRepository activityRepository,
                                                 final TaskActivityRepository taskActivityRepository,
+                                                final UserRepository userRepository,
+                                                final StateRepository stateRepository,
                                                 final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexareRepository = spexareRepository;
         this.tagRepository = tagRepository;
         this.typeRepository = typeRepository;
@@ -122,6 +123,8 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         this.taskCategoryRepository = taskCategoryRepository;
         this.activityRepository = activityRepository;
         this.taskActivityRepository = taskActivityRepository;
+        this.userRepository = userRepository;
+        this.stateRepository = stateRepository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
@@ -161,7 +164,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         );
 
         // revinfo is left alone: every *_audit row references it, so clearing it breaks the FK.
-        JdbcTestUtils.deleteFromTables(jdbcClient,
+        JdbcTestUtils.deleteFromTables(jdbcClient, "user_audit", "user",
                 "task_activity", "spex_activity", "activity",
                 "tagging", "consent", "tag", "type", "task", "task_category", "spex", "spex_details", "spex_category", "spexare",
                 "task_activity_audit", "spex_activity_audit", "activity_audit",
@@ -177,23 +180,41 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
 
         final var saved = spexareRepository.save(spexare);
 
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, saved.getId()));
-        grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, saved.getId()));
-
         return saved;
     }
 
+    /**
+     * A published spexare: a user reads it but may not change it.
+     */
     private Spexare persistReadOnlySpexare() {
         final var spexare = random.nextObject(Spexare.class);
 
         spexare.setId(null);
         spexare.setPublished(true);
 
-        final var saved = spexareRepository.save(spexare);
+        return spexareRepository.save(spexare);
+    }
 
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, saved.getId()));
+    /**
+     * A spexare linked to the test user: they may change their own record.
+     */
+    private Spexare persistOwnSpexare() {
+        final var spexare = persistWritableSpexare();
+        final var user = new User();
 
-        return saved;
+        user.setExternalId(keycloakAdminClient.realm(keycloakRealm).users().search(TEST_USER).getFirst().getId());
+        user.setState(stateRepository.findAll().getFirst());
+        user.setSpexare(spexare);
+        userRepository.save(user);
+
+        return spexare;
+    }
+
+    private HttpGraphQlTester asUser() {
+        return httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build();
     }
 
     private Tag persistTag() {
@@ -302,11 +323,11 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
 
         @Test
         void should_report_a_record_the_caller_may_not_write_as_not_permitted() {
-            final var writable = persistWritableSpexare();
+            final var writable = persistOwnSpexare();
             final var readOnly = persistReadOnlySpexare();
             final var tag = persistTag();
 
-            asAdmin()
+            asUser()
                     .documentName("spexare/bulk/spexareBulkPreview")
                     .variable("input", Map.of(
                             "target", Map.of("ids", List.of(writable.getId(), readOnly.getId())),
@@ -373,11 +394,11 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
 
         @Test
         void should_leave_a_record_the_caller_may_not_write_alone() {
-            final var writable = persistWritableSpexare();
+            final var writable = persistOwnSpexare();
             final var readOnly = persistReadOnlySpexare();
             final var tag = persistTag();
 
-            asAdmin()
+            asUser()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
                             "target", Map.of("ids", List.of(writable.getId(), readOnly.getId())),

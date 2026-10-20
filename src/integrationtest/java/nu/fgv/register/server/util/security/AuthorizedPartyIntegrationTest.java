@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util.security;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,6 @@ import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -52,12 +50,10 @@ class AuthorizedPartyIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AuthorizedPartyIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
     }
 
     @BeforeEach

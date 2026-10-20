@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.util.search;
 
-import nu.fgv.register.server.acl.AclJpaRepository;
+import nu.fgv.register.server.security.policy.PolicyJpaRepository;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +32,7 @@ import java.util.List;
  * @since 2.0
  */
 @NoRepositoryBean
-public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends AclJpaRepository<T, ID> {
+public interface SearchEnabledJpaRepository<T, ID extends Serializable> extends PolicyJpaRepository<T, ID> {
 
     SearchResult<T> search(String query, @Nullable List<AggregationFilter> aggregationFilters, Pageable pageable);
 

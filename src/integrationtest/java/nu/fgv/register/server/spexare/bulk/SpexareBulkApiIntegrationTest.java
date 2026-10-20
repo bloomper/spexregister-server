@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.bulk;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -47,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -66,14 +63,12 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareBulkApiIntegrationTest(final JdbcClient jdbcClient,
-                                         final AclCache aclCache,
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
-                                         final PermissionService permissionService,
                                          final SpexareRepository spexareRepository,
                                          final TagRepository tagRepository,
                                          final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexareRepository = spexareRepository;
         this.tagRepository = tagRepository;
 
@@ -113,9 +108,6 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
         spexare.setPublished(true);
 
         final var saved = spexareRepository.save(spexare);
-
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, saved.getId()));
-        grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, saved.getId()));
 
         return saved;
     }

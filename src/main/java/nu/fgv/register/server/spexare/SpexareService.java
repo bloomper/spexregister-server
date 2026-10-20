@@ -19,7 +19,8 @@ package nu.fgv.register.server.spexare;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
@@ -53,9 +54,7 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -79,12 +78,8 @@ import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -99,6 +94,7 @@ public class SpexareService {
 
     private final SpexareRepository repository;
     private final PermissionService permissionService;
+    private final PermissionGrantService permissionGrantService;
     private final MessageSource messageSource;
 
     @RequiresAdminOrEditorOrUser
@@ -138,7 +134,7 @@ public class SpexareService {
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<Spexare>builder().build(parseFilter(filter), SpexareSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -153,10 +149,10 @@ public class SpexareService {
     public Page<SpexareDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<Spexare>builder().build(parseFilter(filter), SpexareSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<Spexare>builder().build(parseFilter(filter), SpexareSpecification::new), pageable, Permission.READ)
                         .map(SPEXARE_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(SPEXARE_MAPPER::toDto);
     }
 
@@ -200,7 +196,7 @@ public class SpexareService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -208,19 +204,8 @@ public class SpexareService {
     @RequiresAdminOrEditor
     public SpexareDto create(final SpexareCreateDto dto) {
         return Optional.of(SPEXARE_MAPPER.toModel(dto))
-                .map(model -> {
-                    final Spexare spexare = repository.save(model);
-                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                    if (spexare.getPublished()) {
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
-                    }
-
-                    return SPEXARE_MAPPER.toDto(model);
-                })
+                .map(repository::save)
+                .map(SPEXARE_MAPPER::toDto)
                 .orElseThrow(() -> new InternalErrorException("Could not create spexare"));
     }
 
@@ -239,28 +224,17 @@ public class SpexareService {
                     return spexare;
                 })
                 .map(repository::save)
-                .map(spexare -> {
-                    final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
-
-                    if (spexare.getPublished()) {
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
-                    } else {
-                        permissionService.revokePermission(oid, BasePermission.READ, ROLE_USER_SID);
-                    }
-
-                    return spexare;
-                })
                 .map(SPEXARE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, dto.id()));
     }
 
-    @RequiresAdmin
+    @RequiresAdminOrEditorOrUser
     public void deleteById(final Long id) {
         if (doesSpexareExist(id)) {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(spexare -> {
-                        permissionService.deleteAcl(toObjectIdentity(Spexare.class, id));
+                        permissionGrantService.deleteBySpexare(spexare);
                         repository.delete(spexare);
                     });
         } else {
@@ -350,14 +324,6 @@ public class SpexareService {
 
             repository.saveAndFlush(spexare);
             repository.saveAndFlush(partner);
-
-            if (spexare.getUser() != null) {
-                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, partner.getId()), new PrincipalSid(spexare.getUser().getExternalId()));
-            }
-
-            if (partner.getUser() != null) {
-                permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), new PrincipalSid(partner.getUser().getExternalId()));
-            }
         } else {
             throw new ResourcesNotFoundException(new String[]{Spexare.class.getSimpleName(), "Partner"}, spexareId, id);
         }
@@ -374,14 +340,6 @@ public class SpexareService {
                         final Spexare partner = spexare.getPartner();
 
                         permissionService.checkWritePermission(partner);
-
-                        if (spexare.getUser() != null) {
-                            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, partner.getId()), new PrincipalSid(spexare.getUser().getExternalId()));
-                        }
-
-                        if (partner.getUser() != null) {
-                            permissionService.revokeReadAndWrite(toObjectIdentity(Spexare.class, spexare.getId()), new PrincipalSid(partner.getUser().getExternalId()));
-                        }
 
                         partner.setPartner(null);
                         spexare.setPartner(null);

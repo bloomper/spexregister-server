@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.impex.model.ImpexAction;
 import nu.fgv.register.server.impex.model.ImportResultDto;
 import nu.fgv.register.server.spexare.address.AddressImpexDto;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import tools.jackson.databind.ObjectMapper;
 
@@ -49,13 +47,11 @@ class SpexareImportIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareImportIntegrationTest(final JdbcClient jdbcClient,
-                                        final AclCache aclCache,
                                         final Keycloak keycloakAdminClient,
                                         final String keycloakClientId,
-                                        final PermissionService permissionService,
                                         final ObjectMapper objectMapper,
                                         final SpexareImportService importService) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.importService = importService;
     }
 

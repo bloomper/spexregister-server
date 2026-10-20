@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.tag;
 
-import nu.fgv.register.server.acl.AclJpaRepository;
+import nu.fgv.register.server.security.policy.PolicyJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
@@ -28,7 +28,7 @@ import java.util.Optional;
  * @since 2.0
  */
 @Repository
-public interface TagRepository extends AclJpaRepository<Tag, Long>, JpaSpecificationExecutor<Tag> {
+public interface TagRepository extends PolicyJpaRepository<Tag, Long>, JpaSpecificationExecutor<Tag> {
 
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Tag> findById0(final Long id) {

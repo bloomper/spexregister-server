@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.spex;
 
-import nu.fgv.register.server.acl.AclJpaRepository;
+import nu.fgv.register.server.security.policy.PolicyJpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,5 +24,5 @@ import org.springframework.stereotype.Repository;
  * @since 2.0
  */
 @Repository
-public interface SpexDetailsRepository extends AclJpaRepository<SpexDetails, Long> {
+public interface SpexDetailsRepository extends PolicyJpaRepository<SpexDetails, Long> {
 }

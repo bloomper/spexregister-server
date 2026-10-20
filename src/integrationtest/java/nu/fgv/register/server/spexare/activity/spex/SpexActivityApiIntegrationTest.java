@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -48,7 +47,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -57,7 +55,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -80,10 +77,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexActivityApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final SpexActivityRepository repository,
                                           final ActivityRepository activityRepository,
                                           final SpexareRepository spexareRepository,
@@ -91,7 +86,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
                                           final SpexDetailsRepository spexDetailsRepository,
                                           final SpexCategoryRepository spexCategoryRepository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.activityRepository = activityRepository;
         this.spexareRepository = spexareRepository;
@@ -213,11 +208,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -242,7 +234,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -264,11 +255,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -291,11 +279,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -318,13 +303,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -347,11 +328,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -379,11 +357,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -408,7 +383,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -430,11 +404,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -457,11 +428,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -484,13 +452,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -513,11 +477,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -546,12 +507,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             restTestClient
@@ -582,12 +539,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -610,12 +563,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -637,8 +586,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_spex_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -661,15 +608,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
 
             final ProblemDetail result = restTestClient
@@ -692,17 +633,14 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
                     .post()
                     .uri("/{spexId}", spexare.getId(), activity.getId(), spex.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -719,12 +657,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             restTestClient
@@ -746,14 +680,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
@@ -779,12 +708,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -808,12 +733,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -837,12 +758,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_spex_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -866,15 +783,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -898,12 +809,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -928,20 +835,16 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
             final ProblemDetail result = restTestClient
                     .put()
                     .uri("/{id}/{spexId}", spexare.getId(), activity.getId(), spexActivity.getId(), spex2.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -958,13 +861,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
@@ -987,12 +886,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -1020,8 +915,6 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             final ProblemDetail result = restTestClient
@@ -1044,9 +937,7 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -1070,12 +961,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -1099,15 +986,9 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -1131,12 +1012,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -1161,18 +1038,15 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{id}", spexare.getId(), activity.getId(), spexActivity.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -1189,12 +1063,8 @@ class SpexActivityApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.membership;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -43,7 +42,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -52,7 +50,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -72,15 +69,13 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public MembershipGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                               final AclCache aclCache,
                                                final Keycloak keycloakAdminClient,
                                                final String keycloakClientId,
-                                               final PermissionService permissionService,
                                                final MembershipRepository repository,
                                                final TypeRepository typeRepository,
                                                final SpexareRepository spexareRepository,
                                                final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -166,8 +161,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_create() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(MembershipCreateDto.class);
 
@@ -219,8 +212,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_CONFLICT_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(MembershipCreateDto.class);
 
@@ -288,8 +279,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_NOT_FOUND_when_creating_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(MembershipCreateDto.class);
 
             httpGraphQlTester
@@ -316,12 +305,11 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(MembershipCreateDto.class);
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/membership/membershipCreate")
                     .variable("spexareId", spexare.getId())
@@ -343,8 +331,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(MembershipCreateDto.class);
 
             httpGraphQlTester
@@ -374,8 +360,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -425,8 +409,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_NOT_FOUND_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
 
             httpGraphQlTester
@@ -451,8 +433,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_NOT_FOUND_when_deleting_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -478,8 +458,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_NOT_FOUND_when_deleting_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
@@ -505,11 +483,7 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare2));
 
@@ -535,13 +509,12 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/membership/membershipDelete")
                     .variable("spexareId", spexare.getId())
@@ -561,7 +534,6 @@ class MembershipGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var membership = persistMembership(randomizeMembership(type, spexare));
 

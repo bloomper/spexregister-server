@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.audit.AuditService;
 import nu.fgv.register.server.audit.AuditedType;
 import nu.fgv.register.server.audit.FieldChangeDto;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
@@ -58,16 +56,14 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexareImageIntegrationTest(final JdbcClient jdbcClient,
-                                       final AclCache aclCache,
                                        final Keycloak keycloakAdminClient,
                                        final String keycloakClientId,
-                                       final PermissionService permissionService,
                                        final ObjectMapper objectMapper,
                                        final SpexareService service,
                                        final SpexareRepository repository,
                                        final AuditService auditService,
                                        final TransactionTemplate transactionTemplate) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.service = service;
         this.repository = repository;
         this.auditService = auditService;

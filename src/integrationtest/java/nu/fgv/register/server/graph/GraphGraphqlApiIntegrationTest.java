@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.graph;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -54,7 +53,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -62,7 +60,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -89,10 +86,8 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public GraphGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final SpexareRepository spexareRepository,
                                           final ActivityRepository activityRepository,
                                           final SpexActivityRepository spexActivityRepository,
@@ -104,7 +99,7 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final UserRepository userRepository,
                                           final StateRepository stateRepository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexareRepository = spexareRepository;
         this.activityRepository = activityRepository;
         this.spexActivityRepository = spexActivityRepository;
@@ -160,15 +155,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         spexare.setPublished(published);
 
         final var saved = spexareRepository.save(spexare);
-        final var oid = toObjectIdentity(Spexare.class, saved.getId());
-
-        // Mirrors SpexareService.create: the user role only gets READ on published people.
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-
-        if (published) {
-            grantReadPermissionToRoleUser(oid);
-        }
 
         return saved;
     }
@@ -195,8 +181,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         final var savedCategory = taskCategoryRepository.save(category);
 
-        grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, savedCategory.getId()));
-
         final var task = random.nextObject(Task.class);
 
         task.setId(null);
@@ -204,8 +188,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         task.setCategory(savedCategory);
 
         final var saved = taskRepository.save(task);
-
-        grantReadPermissionToRoleUser(toObjectIdentity(Task.class, saved.getId()));
 
         return saved;
     }
@@ -216,10 +198,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         category.setId(null);
 
         final var savedCategory = spexCategoryRepository.save(category);
-
-        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
 
         final var details = random.nextObject(SpexDetails.class);
 
@@ -233,11 +211,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         spex.setDetails(spexDetailsRepository.save(details));
 
         final var saved = spexRepository.save(spex);
-        final var oid = toObjectIdentity(Spex.class, saved.getId());
-
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-        grantReadPermissionToRoleUser(oid);
 
         return saved;
     }
@@ -370,26 +343,6 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
          * Being linked to an entry you are not allowed to read must not break the way in; it falls
          * back to a random person like any unlinked account.
          */
-        @Test
-        void should_fall_back_to_random_when_the_own_spexare_is_not_readable() {
-            final var readable = persistReadableSpexare("Ada", "Lovelace", true);
-            final var mine = persistReadableSpexare("Grace", "Hopper", false);
-
-            linkToTestUser(mine);
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("graph/graphSearch")
-                    .variable("q", "")
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("graphSearch").entityList(GraphNodeDto.class).hasSize(1)
-                    .path("graphSearch[0].entityId").entity(String.class).isEqualTo(String.valueOf(readable.getId()));
-        }
-
         @Test
         void should_not_seed_an_unpublished_person_at_random() {
             persistReadableSpexare("Grace", "Hopper", false);

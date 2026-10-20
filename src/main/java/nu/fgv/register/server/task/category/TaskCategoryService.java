@@ -19,7 +19,7 @@ package nu.fgv.register.server.task.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
@@ -28,12 +28,12 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,10 +42,6 @@ import java.util.Optional;
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.category.TaskCategorySpecification.NO_FILTER;
 import static nu.fgv.register.server.task.category.TaskCategorySpecification.hasIds;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -61,13 +57,13 @@ public class TaskCategoryService {
     private final TaskCategoryRepository repository;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<TaskCategoryDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -82,14 +78,14 @@ public class TaskCategoryService {
     public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), pageable, Permission.READ)
                         .map(TASK_CATEGORY_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public TaskCategoryDto findById(final Long id) {
         return repository
                 .findById0(id)
@@ -118,7 +114,7 @@ public class TaskCategoryService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -128,12 +124,6 @@ public class TaskCategoryService {
         return Optional.of(TASK_CATEGORY_MAPPER.toModel(dto))
                 .map(repository::save)
                 .map(category -> {
-                    final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, category.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-
                     return TASK_CATEGORY_MAPPER.toDto(category);
                 })
                 .orElseThrow(() -> new InternalErrorException("Could not create task category"));
@@ -164,7 +154,6 @@ public class TaskCategoryService {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(category -> {
-                        permissionService.deleteAcl(toObjectIdentity(TaskCategory.class, id));
                         repository.delete(category);
                     });
         } else {
