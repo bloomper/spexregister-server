@@ -17,19 +17,14 @@
 package nu.fgv.register.server.util.data;
 
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.IdNumber;
-import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsMapper;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
-import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.category.SpexCategory;
-import nu.fgv.register.server.spexare.Spexare;
-import nu.fgv.register.server.tag.Tag;
-import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.task.category.TaskCategory;
-import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
@@ -46,7 +41,6 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,6 +54,7 @@ import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.sql.Connection;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -76,6 +71,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -84,6 +81,7 @@ import java.util.stream.IntStream;
  * @author Anders Jacobsson
  * @since 2.0
  */
+@Slf4j
 @Component
 public class SampleDataImporter {
     private static final int NUMBER_OF_SAMPLES_NEWS = 20;
@@ -106,6 +104,7 @@ public class SampleDataImporter {
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
     private final Random rnd = new SecureRandom();
+    private final AtomicInteger failedImageDownloads = new AtomicInteger();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CustomSwedenIdNumber customSwedenIdNumber = new CustomSwedenIdNumber();
     private final CryptoConverter cryptoConverter;
@@ -131,20 +130,45 @@ public class SampleDataImporter {
     public void importSampleData(final Connection connection) {
         final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(connection, true));
 
-        purgeAllRelevantTables(jdbcClient);
-        purgeKeycloak();
+        final long started = System.nanoTime();
+
+        log.info("Importing sample data");
+        timed("Emptied the tables", () -> purgeAllRelevantTables(jdbcClient));
+        timed("Deleted the users in Keycloak", this::purgeKeycloak);
         SecurityContextHolder.getContext().setAuthentication(AUTH);
 
-        createSampleTaskCategoriesAndTasks(connection, jdbcClient);
-        createSampleSpexCategoriesAndSpex(connection, jdbcClient);
-        createSampleNews(jdbcClient);
-        createSampleTags(jdbcClient);
-        createSampleSpexare(jdbcClient);
-        createFixedSampleUsers();
+        timed("Created the task categories and tasks", () -> createSampleTaskCategoriesAndTasks(connection, jdbcClient));
+        timed("Created the spex categories and spex", () -> createSampleSpexCategoriesAndSpex(connection, jdbcClient));
+        timed("Created the news", () -> createSampleNews(jdbcClient));
+        timed("Created the tags", () -> createSampleTags(jdbcClient));
+        failedImageDownloads.set(0);
+        timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
+        if (failedImageDownloads.get() > 0) {
+            log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
+        }
+        timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
 
-        auditDataSeeder.seedSampleHistory(jdbcClient, createSampleUsers(jdbcClient));
+        final List<String> users = timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
+
+        timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
 
         SecurityContextHolder.clearContext();
+        log.info("Imported sample data in {} s", Duration.ofNanos(System.nanoTime() - started).toSeconds());
+    }
+
+    private void timed(final String step, final Runnable action) {
+        timedResult(step, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private <T> T timedResult(final String step, final Supplier<T> action) {
+        final long started = System.nanoTime();
+        final T result = action.get();
+
+        log.info("{} in {} ms", step, Duration.ofNanos(System.nanoTime() - started).toMillis());
+        return result;
     }
 
     private void purgeAllRelevantTables(final JdbcClient jdbcClient) {
@@ -207,20 +231,22 @@ public class SampleDataImporter {
     }
 
     private void purgeKeycloak() {
-        keycloakAdminClient
+        final List<UserRepresentation> users = keycloakAdminClient
                 .realm(keycloakRealm)
                 .users()
-                .list()
-                .forEach(representation -> {
-                    try (final Response response = keycloakAdminClient
-                            .realm(keycloakRealm)
-                            .users()
-                            .delete(representation.getId())) {
-                        if (response.getStatus() != HttpStatus.NO_CONTENT.value()) {
-                            throw new IllegalStateException("Unable to delete user " + representation.getEmail());
-                        }
-                    }
-                });
+                .list();
+
+        log.info("Deleting {} users in Keycloak", users.size());
+        users.forEach(representation -> {
+            try (final Response response = keycloakAdminClient
+                    .realm(keycloakRealm)
+                    .users()
+                    .delete(representation.getId())) {
+                if (response.getStatus() != HttpStatus.NO_CONTENT.value()) {
+                    throw new IllegalStateException("Unable to delete user " + representation.getEmail());
+                }
+            }
+        });
     }
 
     private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
@@ -937,7 +963,10 @@ public class SampleDataImporter {
             }
 
             return outputStream.toByteArray();
-        } catch (final IOException _) {
+        } catch (final IOException e) {
+            if (failedImageDownloads.incrementAndGet() == 1) {
+                log.warn("Could not download a sample image from {}, generating it instead: {}", urlString, e.getMessage());
+            }
             return imageToByteArray(faker.image().base64PNG());
         }
     }
