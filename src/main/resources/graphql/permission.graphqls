@@ -1,0 +1,85 @@
+extend type Query {
+    permissionGrantPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["createdAt"], direction: SortDirection = DESC): PermissionGrantConnection
+    permissionGrant(id: ID!): PermissionGrant
+}
+
+extend type Mutation {
+    permissionGrantCreate(input: PermissionGrantCreate!): PermissionGrant
+    permissionGrantUpdate(input: PermissionGrantUpdate!): PermissionGrant
+    permissionGrantDelete(id: ID!): Void
+}
+
+enum Permission {
+    READ
+    WRITE
+    DELETE
+    ADMINISTRATION
+}
+
+enum PermissionGrantScope {
+    SPEXARE
+    SPEX_PARTICIPANTS
+    SPEX
+}
+
+type Permissions {
+    read: Boolean!
+    write: Boolean!
+    delete: Boolean!
+    administer: Boolean!
+}
+
+type PermissionGrant {
+    id: ID!
+    user: User
+    role: String
+    permission: Permission!
+    scope: PermissionGrantScope!
+    spexare: Spexare
+    spex: Spex
+    validUntil: Date
+    expired: Boolean!
+    createdBy: String!
+    createdAt: Instant!
+    lastModifiedBy: String
+    lastModifiedAt: Instant
+}
+
+type PermissionGrantConnection {
+    edges: [PermissionGrantEdge]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+type PermissionGrantEdge {
+    cursor: String!
+    node: PermissionGrant!
+}
+
+input PermissionGrantCreate {
+    userId: ID
+    role: String
+    permission: Permission!
+    scope: PermissionGrantScope!
+    spexareId: ID
+    spexId: ID
+    validUntil: Date
+}
+
+input PermissionGrantUpdate {
+    id: ID!
+    permission: Permission!
+    validUntil: Date
+}
+
+extend type Spexare {
+    permissions: Permissions!
+}
+
+extend type Spex {
+    permissions: Permissions!
+}
+
+extend type News {
+    permissions: Permissions!
+}

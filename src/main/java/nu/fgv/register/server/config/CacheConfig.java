@@ -39,7 +39,7 @@ public class CacheConfig {
 
     @Bean
     public CacheManagerCustomizer<ConcurrentMapCacheManager> cacheManagerCustomizer() {
-        return cacheManager -> cacheManager.setCacheNames(Arrays.asList("roleRepresentations", "aclCache"));
+        return cacheManager -> cacheManager.setCacheNames(Arrays.asList("roleRepresentations"));
     }
 
 }

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.tag;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -37,7 +36,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -47,7 +45,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -65,13 +62,11 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TagApiIntegrationTest(final JdbcClient jdbcClient,
-                                 final AclCache aclCache,
                                  final Keycloak keycloakAdminClient,
                                  final String keycloakClientId,
-                                 final PermissionService permissionService,
                                  final TagRepository repository,
                                  final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -132,7 +127,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
@@ -156,7 +150,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var tag = persistTag(randomizeTag());
-                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             });
 
             final List<TagDto> result = Objects.requireNonNull(
@@ -188,7 +181,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
@@ -214,7 +206,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
@@ -245,8 +236,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     tag.setName("whatever");
                 }
-                final var tag0 = persistTag(tag);
-                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag0.getId()));
+                persistTag(tag);
             });
 
             final List<TagDto> result = Objects.requireNonNull(
@@ -345,7 +335,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto result = restTestClient
                     .get()
@@ -391,9 +380,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = restTestClient
                     .get()
@@ -491,12 +477,11 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = restTestClient
                     .get()
                     .uri("/{id}", tag.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -515,7 +500,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .put()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -560,9 +545,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = restTestClient
                     .get()
@@ -640,13 +622,11 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = restTestClient
                     .get()
                     .uri("/{id}", tag.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -665,7 +645,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .patch()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -711,8 +691,6 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             restTestClient
                     .delete()
@@ -746,12 +724,11 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{id}", tag.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
                     .expectStatus().isForbidden()

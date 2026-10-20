@@ -46,7 +46,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${API_AUTH_URL}/realms/${API_AUTH_REALM}
+          issuer-uri: ${API_KEYCLOAK_URL}/realms/${API_KEYCLOAK_REALM}
   threads:
     virtual:
       enabled: true
@@ -126,16 +126,16 @@ spexregister:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7
   keycloak:
-    url: ${API_AUTH_URL}
-    realm: ${API_AUTH_REALM}
+    url: ${API_KEYCLOAK_URL}
+    realm: ${API_KEYCLOAK_REALM}
     admin:
-      client-id: ${API_AUTH_ADMIN_CLIENT_ID}
-      client-secret: ${API_AUTH_ADMIN_CLIENT_SECRET}
+      client-id: ${API_KEYCLOAK_ADMIN_CLIENT_ID}
+      client-secret: ${API_KEYCLOAK_ADMIN_CLIENT_SECRET}
     client:
-      client-id: ${API_AUTH_CLIENT_CLIENT_ID}
+      client-id: ${API_KEYCLOAK_CLIENT_CLIENT_ID}
     pending-approval-group: pending-approval
   mcp:
-    authorized-parties: ${API_AUTH_MCP_CLIENT_ID:spexregister-mcp}
+    authorized-parties: ${API_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
   impex:
     storage-path: ./data/impex_data
   mail:

@@ -152,4 +152,5 @@ enum AuditedType {
     USER
     STATE
     TYPE
+    PERMISSION_GRANT
 }

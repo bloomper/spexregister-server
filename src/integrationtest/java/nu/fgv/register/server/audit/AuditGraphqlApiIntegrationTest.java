@@ -16,7 +16,8 @@
 
 package nu.fgv.register.server.audit;
 
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -35,7 +36,6 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -59,19 +58,20 @@ import static org.jeasy.random.FieldPredicates.ofType;
 class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     private final EasyRandom random;
+    private final SpexareRepository spexareRepository;
     private final TagRepository repository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AuditGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final TagRepository repository,
+                                          final SpexareRepository spexareRepository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
+        this.spexareRepository = spexareRepository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
@@ -88,7 +88,7 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit", "revchanges", "revinfo");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit", "spexare", "spexare_audit", "revchanges", "revinfo");
     }
 
     private Long firstRevisionOf(final Tag tag) {
@@ -110,6 +110,20 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .param("modifiedAt", when.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .param("id", revision)
                 .update();
+    }
+
+    /**
+     * An unpublished spexare, which a user may not read.
+     */
+    private Spexare persistUnpublishedSpexare() {
+        final Spexare spexare = new Spexare();
+
+        spexare.setFirstName("Olle");
+        spexare.setLastName("Opublicerad");
+        spexare.setDeceased(false);
+        spexare.setPublished(false);
+
+        return spexareRepository.save(spexare);
     }
 
     private Tag persistTag() {
@@ -139,7 +153,6 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_add_and_mod() {
             final var tag = persistTag();
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             tag.setName("renamed");
             repository.save(tag);
@@ -163,15 +176,15 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         @Test
         void should_return_FORBIDDEN_when_not_permitted() {
-            final var tag = persistTag();
+            final var spexare = persistUnpublishedSpexare();
 
             httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("audit/revisions")
-                    .variable("type", AuditedType.TAG)
-                    .variable("id", tag.getId())
+                    .variable("type", AuditedType.SPEXARE)
+                    .variable("id", spexare.getId())
                     .execute()
                     .errors()
                     .satisfy(errors -> assertThat(errors)
@@ -188,8 +201,6 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_restore_as_admin() {
             final var tag = persistTag();
             final var originalName = tag.getName();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             tag.setName("renamed");
             repository.save(tag);
@@ -216,7 +227,6 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_editor() {
             final var tag = persistTag();
-            grantReadPermissionToRoleEditor(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -428,8 +438,6 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_record_a_restore_as_its_own_source() {
             final var tag = persistTag();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             tag.setName("renamed");
             repository.save(tag);
@@ -457,8 +465,6 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_record_the_graphql_operation_and_supplied_reason_behind_an_ordinary_edit() {
             final var tag = persistTag();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()

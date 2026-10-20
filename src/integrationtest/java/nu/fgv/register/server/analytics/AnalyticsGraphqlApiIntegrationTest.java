@@ -15,7 +15,6 @@
  */
 
 package nu.fgv.register.server.analytics;
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.task.Task;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
@@ -26,14 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 
 /**
  * @author Anders Jacobsson
@@ -86,12 +82,10 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AnalyticsGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                              final AclCache aclCache,
                                               final Keycloak keycloakAdminClient,
                                               final String keycloakClientId,
-                                              final PermissionService permissionService,
                                               final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
     }
 
     @BeforeEach
@@ -110,12 +104,8 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
     void should_chart_activities_added_through_the_api() {
         jdbcClient.sql("INSERT INTO spex_details (id, title, created_by, created_at, version) VALUES (1, 'Bojan', 'system', NOW(), 0), (2, 'Nero', 'system', NOW(), 0)").update();
         jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at, version) VALUES (1, '2010', NULL, 1, 'system', NOW(), 0), (2, '2015', NULL, 2, 'system', NOW(), 0)").update();
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, 1L));
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, 2L));
         jdbcClient.sql("INSERT INTO task_category (id, name, actor_present, created_by, created_at, version) VALUES (1, 'Orkester', FALSE, 'system', NOW(), 0)").update();
         jdbcClient.sql("INSERT INTO task (id, name, category_id, created_by, created_at, version) VALUES (1, 'Trumpet', 1, 'system', NOW(), 0), (2, 'Kontrabas', 1, 'system', NOW(), 0)").update();
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, 1L));
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Task.class, 2L));
 
         final String admin = obtainAdminAccessToken();
         final String ada = createSpexare(admin, "Ada", true);

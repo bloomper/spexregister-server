@@ -16,7 +16,7 @@
 
 package nu.fgv.register.server.task.category;
 
-import nu.fgv.register.server.acl.AclJpaRepository;
+import nu.fgv.register.server.security.policy.PolicyJpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
@@ -28,7 +28,7 @@ import java.util.Optional;
  * @since 2.0
  */
 @Repository
-public interface TaskCategoryRepository extends AclJpaRepository<TaskCategory, Long>, JpaSpecificationExecutor<TaskCategory> {
+public interface TaskCategoryRepository extends PolicyJpaRepository<TaskCategory, Long>, JpaSpecificationExecutor<TaskCategory> {
 
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<TaskCategory> findById0(final Long id) {

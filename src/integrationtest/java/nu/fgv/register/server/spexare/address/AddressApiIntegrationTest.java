@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.address;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -47,7 +46,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -58,7 +56,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -78,15 +75,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AddressApiIntegrationTest(final JdbcClient jdbcClient,
-                                     final AclCache aclCache,
                                      final Keycloak keycloakAdminClient,
                                      final String keycloakClientId,
-                                     final PermissionService permissionService,
                                      final AddressRepository repository,
                                      final TypeRepository typeRepository,
                                      final SpexareRepository spexareRepository,
                                      final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.spexareRepository = spexareRepository;
@@ -187,7 +182,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final List<AddressDto> result = Objects.requireNonNull(
                             restTestClient
@@ -210,7 +204,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             persistAddress(randomizeAddress(type, spexare));
 
@@ -236,7 +229,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> persistAddress(randomizeAddress(type, spexare)));
 
@@ -285,7 +277,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             persistAddress(randomizeAddress(type, spexare));
 
@@ -313,7 +304,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -342,7 +332,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             IntStream.range(0, size).forEach(i -> {
                 final var address = randomizeAddress(type, spexare);
@@ -382,7 +371,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -407,7 +395,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
 
             final ProblemDetail result = restTestClient
                     .get()
@@ -428,7 +415,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleUser(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -456,8 +442,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_create_and_return_201() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
 
@@ -493,8 +477,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_409_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
 
@@ -552,8 +534,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_creating_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressCreateDto.class);
 
             final ProblemDetail result = restTestClient
@@ -578,13 +558,12 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressCreateDto.class);
 
             final ProblemDetail result = restTestClient
                     .post()
                     .uri("/{typeId}", spexare.getId(), type.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -603,8 +582,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressCreateDto.class);
 
             restTestClient
@@ -627,8 +604,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
 
@@ -686,8 +661,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressUpdateDto.class);
 
@@ -735,8 +708,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             final ProblemDetail result = restTestClient
@@ -760,11 +731,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
             final var randDto = random.nextObject(AddressUpdateDto.class);
@@ -794,7 +761,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var address = persistAddress(randomizeAddress(type, spexare));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
@@ -804,7 +770,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .put()
                     .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -823,8 +789,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             restTestClient
@@ -847,8 +811,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressCreateDto.class);
 
@@ -904,8 +866,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var dto = random.nextObject(AddressUpdateDto.class);
 
@@ -953,8 +913,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             final ProblemDetail result = restTestClient
@@ -978,11 +936,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
             final var randDto = random.nextObject(AddressUpdateDto.class);
@@ -1012,7 +966,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var address = persistAddress(randomizeAddress(type, spexare));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
@@ -1022,7 +975,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .patch()
                     .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -1041,8 +994,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var type = persistType(randomizeType());
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var dto = random.nextObject(AddressUpdateDto.class);
 
             restTestClient
@@ -1065,8 +1016,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -1101,8 +1050,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
 
             final ProblemDetail result = restTestClient
@@ -1125,8 +1072,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -1150,8 +1095,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_type_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
@@ -1175,11 +1118,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_404_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare2));
 
@@ -1203,14 +1142,13 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -1227,7 +1165,6 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_401_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var type = persistType(randomizeType());
             final var address = persistAddress(randomizeAddress(type, spexare));
 

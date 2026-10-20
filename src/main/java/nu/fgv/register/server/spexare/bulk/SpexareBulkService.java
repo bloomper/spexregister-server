@@ -19,7 +19,7 @@ package nu.fgv.register.server.spexare.bulk;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
@@ -48,8 +48,7 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -65,8 +64,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -410,13 +407,7 @@ public class SpexareBulkService {
             touch(spexare);
 
             if (fields.published() != null) {
-                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexare.getId());
 
-                if (fields.published()) {
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
-                } else {
-                    permissionService.revokePermission(oid, BasePermission.READ, ROLE_USER_SID);
-                }
             }
         }
 

@@ -58,10 +58,6 @@ public abstract class AbstractImportService {
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
-    /**
-     * Commits on its own, whatever surrounds it. The import job runs inside one transaction, so
-     * without this a single failed row would roll back every row before it as well.
-     */
     protected void inTransaction(final Runnable work) {
         transactionTemplate.executeWithoutResult(_ -> work.run());
     }

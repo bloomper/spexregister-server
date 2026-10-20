@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.task.category;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -37,7 +36,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -47,7 +45,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -65,13 +62,11 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TaskCategoryApiIntegrationTest(final JdbcClient jdbcClient,
-                                          final AclCache aclCache,
                                           final Keycloak keycloakAdminClient,
                                           final String keycloakClientId,
-                                          final PermissionService permissionService,
                                           final TaskCategoryRepository repository,
                                           final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -132,7 +127,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final List<TaskCategoryDto> result = Objects.requireNonNull(
                             restTestClient
@@ -156,7 +150,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var category = persistTaskCategory(randomizeTaskCategory());
-                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             });
 
             final List<TaskCategoryDto> result = Objects.requireNonNull(
@@ -188,7 +181,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final List<TaskCategoryDto> result = Objects.requireNonNull(
                             restTestClient
@@ -214,7 +206,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final List<TaskCategoryDto> result = Objects.requireNonNull(
                             restTestClient
@@ -246,7 +237,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
                     category.setName("whatever");
                 }
                 final var category0 = persistTaskCategory(category);
-                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category0.getId()));
             });
 
             final List<TaskCategoryDto> result = Objects.requireNonNull(
@@ -345,7 +335,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto result = restTestClient
                     .get()
@@ -391,8 +380,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = restTestClient
                     .get()
@@ -495,12 +482,11 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = restTestClient
                     .get()
                     .uri("/{id}", category.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -520,7 +506,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .put()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -565,8 +551,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = restTestClient
                     .get()
@@ -645,12 +629,11 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = restTestClient
                     .get()
                     .uri("/{id}", category.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -669,7 +652,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = restTestClient
                     .patch()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -714,8 +697,6 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             restTestClient
                     .delete()
@@ -749,12 +730,11 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final ProblemDetail result = restTestClient
                     .delete()
                     .uri("/{id}", category.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
                     .expectStatus().isForbidden()

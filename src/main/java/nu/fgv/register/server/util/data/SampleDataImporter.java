@@ -19,7 +19,7 @@ package nu.fgv.register.server.util.data;
 import jakarta.ws.rs.core.Response;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.IdNumber;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsMapper;
 import nu.fgv.register.server.settings.Type;
@@ -46,9 +46,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -81,10 +79,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 
 /**
  * @author Anders Jacobsson
@@ -183,6 +177,7 @@ public class SampleDataImporter {
                 );
 
         final List<String> tables = List.of(
+                "permission_grant",
                 "actor",
                 "task_activity",
                 "spex_activity",
@@ -201,11 +196,7 @@ public class SampleDataImporter {
                 "image",
                 "news",
                 "tag",
-                "user",
-                "acl_entry",
-                "acl_object_identity",
-                "acl_class",
-                "acl_sid"
+                "user"
         );
 
         tables.forEach(table ->
@@ -235,18 +226,6 @@ public class SampleDataImporter {
     private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
         ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/tasks.sql"));
 
-        jdbcClient.sql("SELECT id FROM task_category")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-                    final ObjectIdentity oid = toObjectIdentity(TaskCategory.class, id);
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                });
-
         final String taskSql = "UPDATE task SET created_at = :createdAt WHERE id = :id";
 
         jdbcClient.sql("SELECT id FROM task")
@@ -254,11 +233,6 @@ public class SampleDataImporter {
                 .listOfRows()
                 .forEach(row -> {
                     final Long id = (Long) Objects.requireNonNull(row.get("id"));
-                    final ObjectIdentity oid = toObjectIdentity(Task.class, id);
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     jdbcClient.sql(taskSql)
                             .param("createdAt", randomizeCreatedAt())
@@ -283,10 +257,6 @@ public class SampleDataImporter {
                 .listOfRows()
                 .forEach(row -> {
                     final Long id = (Long) Objects.requireNonNull(row.get("id"));
-                    final ObjectIdentity oid = toObjectIdentity(SpexCategory.class, id);
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
 
                     jdbcClient
                             .sql(categorySql)
@@ -321,11 +291,6 @@ public class SampleDataImporter {
                 .listOfRows()
                 .forEach(row -> {
                     final Long id = (Long) Objects.requireNonNull(row.get("id"));
-                    final ObjectIdentity oid = toObjectIdentity(Spex.class, id);
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     jdbcClient.sql(spexSql)
                             .param("createdAt", randomizeCreatedAt())
@@ -345,7 +310,6 @@ public class SampleDataImporter {
         IntStream.range(0, NUMBER_OF_SAMPLES_NEWS).forEach(i -> {
             final Instant visibleFrom = faker.timeAndDate().past(10, TimeUnit.DAYS, Instant.now().plus(2, ChronoUnit.DAYS));
             final Instant visibleTo = faker.timeAndDate().future(20, TimeUnit.DAYS, visibleFrom);
-            final KeyHolder keyHolder = new GeneratedKeyHolder();
 
             jdbcClient
                     .sql(sql)
@@ -356,20 +320,7 @@ public class SampleDataImporter {
                     .param("published", NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault())))
                     .param("createdBy", SYSTEM_USER)
                     .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
-                    .update(keyHolder);
-
-            if (keyHolder.getKey() != null) {
-                final long id = keyHolder.getKey().longValue();
-                final ObjectIdentity oid = toObjectIdentity(News.class, id);
-
-                permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
-                if (NewsMapper.NEWS_MAPPER.isPublished(LocalDate.ofInstant(visibleFrom, ZoneId.systemDefault()), LocalDate.ofInstant(visibleTo, ZoneId.systemDefault()))) {
-                    permissionService.grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
-                }
-            }
+                    .update();
         });
     }
 
@@ -381,26 +332,12 @@ public class SampleDataImporter {
                     (:name, :createdBy, :createdAt, 0)
                 """;
 
-        IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(i -> {
-            final KeyHolder keyHolder = new GeneratedKeyHolder();
-
-            jdbcClient
-                    .sql(sql)
-                    .param("name", faker.lorem().word())
-                    .param("createdBy", SYSTEM_USER)
-                    .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
-                    .update(keyHolder);
-
-            if (keyHolder.getKey() != null) {
-                final long id = keyHolder.getKey().longValue();
-                final ObjectIdentity oid = toObjectIdentity(Tag.class, id);
-
-                permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
-            }
-        });
+        IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(_ -> jdbcClient
+                .sql(sql)
+                .param("name", faker.lorem().word())
+                .param("createdBy", SYSTEM_USER)
+                .param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                .update());
     }
 
     private void createSampleSpexare(final JdbcClient jdbcClient) {
@@ -449,14 +386,6 @@ public class SampleDataImporter {
 
             if (keyHolder.getKey() != null) {
                 final long spexareId = keyHolder.getKey().longValue();
-                final ObjectIdentity oid = toObjectIdentity(Spexare.class, spexareId);
-
-                permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID);
-                permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                if (published) {
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_USER_SID);
-                }
 
                 if (rnd.nextBoolean()) {
                     createSpexareImage(jdbcClient, spexareId);
@@ -864,12 +793,6 @@ public class SampleDataImporter {
 
                         if (keyHolder.getKey() != null) {
                             final long id = keyHolder.getKey().longValue();
-                            final ObjectIdentity oid = toObjectIdentity(User.class, id);
-                            final ObjectIdentity spexareOid = toObjectIdentity(Spexare.class, spexareId);
-
-                            permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                            permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, new PrincipalSid(externalId));
-                            permissionService.grantReadAndWrite(spexareOid, new PrincipalSid(externalId));
 
                             emailAddresses.add(userRepresentation.getEmail());
                         }
@@ -881,17 +804,6 @@ public class SampleDataImporter {
                 }
             }
         });
-
-        jdbcClient
-                .sql("SELECT u.external_id, s.partner_id FROM user u JOIN spexare s ON s.id = u.spexare_id WHERE s.partner_id IS NOT NULL")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final String externalId = (String) Objects.requireNonNull(row.get("external_id"));
-                    final Long partnerId = (Long) Objects.requireNonNull(row.get("partner_id"));
-
-                    permissionService.grantReadAndWrite(toObjectIdentity(Spexare.class, partnerId), new PrincipalSid(externalId));
-                });
 
         return List.copyOf(emailAddresses);
     }

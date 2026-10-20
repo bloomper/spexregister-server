@@ -20,6 +20,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsRepository;
+import nu.fgv.register.server.permission.PermissionGrant;
+import nu.fgv.register.server.permission.PermissionGrantRepository;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.spex.Spex;
@@ -100,6 +102,7 @@ public class AuditRegistry {
     private final UserRepository userRepository;
     private final StateRepository stateRepository;
     private final TypeRepository typeRepository;
+    private final PermissionGrantRepository permissionGrantRepository;
 
     private final Map<AuditedType, AuditedEntityDescriptor> descriptors = new EnumMap<>(AuditedType.class);
     private final Map<String, AuditedType> typesByEntityName = new java.util.HashMap<>();
@@ -197,6 +200,7 @@ public class AuditRegistry {
         register(AuditedEntityDescriptor.of(AuditedType.TASK_CATEGORY, TaskCategory.class, Long::valueOf, taskCategoryRepository::findById, self(), List.of()).withLabel(TaskCategory::getName));
         register(AuditedEntityDescriptor.of(AuditedType.USER, User.class, Long::valueOf, userRepository::findById, self(), List.of()).withLabel((User u) -> u.getSpexare() == null ? u.getExternalId() : fullName(u.getSpexare().getFirstName(), u.getSpexare().getLastName())));
         register(AuditedEntityDescriptor.of(AuditedType.STATE, State.class, Function.identity(), stateRepository::findById, null, List.of()).withLabel((State st) -> localized(st.getLabels(), st.getId())));
+        register(AuditedEntityDescriptor.of(AuditedType.PERMISSION_GRANT, PermissionGrant.class, Long::valueOf, permissionGrantRepository::findById, self(), List.of()).withLabel((PermissionGrant g) -> g.getScope() + " " + g.getPermission()));
         register(AuditedEntityDescriptor.of(AuditedType.TYPE, Type.class, Function.identity(), typeRepository::findById, null, List.of()).withLabel((Type ty) -> localized(ty.getLabels(), ty.getId())));
 
         register(AuditedEntityDescriptor.of(AuditedType.SPEXARE, Spexare.class, Long::valueOf, spexareRepository::findById, self(), spexareChildren()).withLabel((Spexare sp) -> fullName(sp.getFirstName(), sp.getLastName())));

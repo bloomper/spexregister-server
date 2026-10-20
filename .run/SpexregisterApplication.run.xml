@@ -14,27 +14,27 @@
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_ADMIN_CLIENT_SECRET" />
+        <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_SECRET" />
         <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_URL" />
+        <option name="name" value="API_KEYCLOAK_URL" />
         <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_REALM" />
+        <option name="name" value="API_KEYCLOAK_REALM" />
         <option name="value" value="fgv" />
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_ADMIN_CLIENT_ID" />
+        <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_ID" />
         <option name="value" value="fgv-admin" />
       </param>
       <param>
         <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_CLIENT_CLIENT_ID" />
+        <option name="name" value="API_KEYCLOAK_CLIENT_CLIENT_ID" />
         <option name="value" value="spexregister" />
       </param>
       <param>
@@ -46,11 +46,6 @@
         <option name="enabled" value="true" />
         <option name="name" value="API_SEED_AUDIT_DATA" />
         <option name="value" value="false" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_AUTH_CLIENT_CLIENT_SECRET" />
-        <option name="value" value="FILL_ME_IN" />
       </param>
     </additionalParameters>
     <module name="spexregister-server.main" />

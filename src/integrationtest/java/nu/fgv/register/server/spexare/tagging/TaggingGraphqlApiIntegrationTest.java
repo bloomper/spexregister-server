@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.tagging;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
@@ -41,7 +40,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -49,7 +47,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -69,15 +66,13 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TaggingGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                            final AclCache aclCache,
                                             final Keycloak keycloakAdminClient,
                                             final String keycloakClientId,
-                                            final PermissionService permissionService,
                                             final TaggingRepository repository,
                                             final TagRepository tagRepository,
                                             final SpexareRepository spexareRepository,
                                             final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;
@@ -144,8 +139,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_create() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
@@ -193,8 +186,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_CONFLICT_when_creating_already_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
@@ -253,12 +244,11 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/tagging/taggingCreate")
                     .variable("spexareId", spexare.getId())
@@ -277,8 +267,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
@@ -306,8 +294,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
@@ -394,8 +380,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -440,8 +424,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester
@@ -457,11 +439,9 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("taggingCreate")
                     .valueIsNull();
 
-            revokeWritePermissionFromRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/tagging/taggingDelete")
                     .variable("spexareId", spexare.getId())
@@ -480,8 +460,6 @@ class TaggingGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var tag = persistTag(randomizeTag());
 
             httpGraphQlTester

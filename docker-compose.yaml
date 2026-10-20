@@ -1,121 +1,55 @@
 name: spexregister-server
 
 services:
-  mysql-api:
+  spexregister-mysql:
     image: 'mysql:8.4'
     command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_HOST: localhost
-      MYSQL_DATABASE: ${MYSQL_API_DATABASE}
-      MYSQL_ROOT_USER: ${MYSQL_API_ROOT_USER}
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_API_ROOT_PASSWORD
-      MYSQL_USER: ${MYSQL_API_USER}
-      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_API_USER_PASSWORD
+      MYSQL_DATABASE: ${SPEXREGISTER_MYSQL_DATABASE}
+      MYSQL_ROOT_USER: ${SPEXREGISTER_MYSQL_ROOT_USER}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/SPEXREGISTER_MYSQL_ROOT_PASSWORD
+      MYSQL_USER: ${SPEXREGISTER_MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/SPEXREGISTER_MYSQL_USER_PASSWORD
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     labels:
       org.springframework.boot.ignore: true
     #ports:
     #  - "3306:3306"
     volumes:
-      - mysql_api_db_data:/var/lib/mysql
-      - mysql_api_log_data:/var/log/mysql
-    networks:
-      - api_network
+      - spexregister_mysql_data:/var/lib/mysql
+      - spexregister_mysql_log:/var/log/mysql
     secrets:
-      - MYSQL_API_ROOT_PASSWORD
-      - MYSQL_API_USER_PASSWORD
+      - SPEXREGISTER_MYSQL_ROOT_PASSWORD
+      - SPEXREGISTER_MYSQL_USER_PASSWORD
 
-  mysql-auth:
-    image: 'mysql:8.4'
-    command: --log-error=/var/log/mysql/error.log
-    environment:
-      MYSQL_HOST: localhost
-      MYSQL_DATABASE: ${MYSQL_AUTH_DATABASE}
-      MYSQL_ROOT_USER: ${MYSQL_AUTH_ROOT_USER}
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_AUTH_ROOT_PASSWORD
-      MYSQL_USER: ${MYSQL_AUTH_USER}
-      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_AUTH_USER_PASSWORD
-    labels:
-      org.springframework.boot.ignore: true
-    volumes:
-      - mysql_auth_db_data:/var/lib/mysql
-      - mysql_auth_log_data:/var/log/mysql
-    networks:
-      - auth_network
-    secrets:
-      - MYSQL_AUTH_ROOT_PASSWORD
-      - MYSQL_AUTH_USER_PASSWORD
-
-  auth:
-    image: bloomper/fgv-keycloak:develop
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        export KC_DB_PASSWORD=$$(cat /run/secrets/MYSQL_AUTH_USER_PASSWORD)
-        export KC_BOOTSTRAP_ADMIN_PASSWORD=$$(cat /run/secrets/AUTH_ADMIN_PASSWORD)
-        exec /opt/keycloak/bin/kc.sh start-dev --hostname auth.fgv.local.nu --http-port 8081 --proxy-headers xforwarded --http-enabled true --import-realm
-    environment:
-      KC_HTTP_RELATIVE_PATH: /auth
-      KC_HEALTH_ENABLED: true
-      KC_METRICS_ENABLED: true
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${AUTH_ADMIN}
-      KC_LOG: console,file
-      KC_LOG_FILE: /opt/keycloak/data/log/keycloak.log
-      KC_LOG_LEVEL: info
-      KC_DB: mysql
-      KC_DB_URL: jdbc:mysql://mysql-auth/${MYSQL_AUTH_DATABASE}
-      KC_DB_USERNAME: ${MYSQL_AUTH_USER}
-      KC_SPI_EVENTS_LISTENER__FGV_ADMIN_NOTIFICATION__RECIPIENTS: ${AUTH_ADMIN_NOTIFICATION_RECIPIENTS:-admin@fgv.local.nu}
-      SPEXREGISTER_URL: ${WEB_URL:-http://localhost:3000}
-      KC_SPI_FORM_ACTION__FGV_TURNSTILE__SITE_KEY: ${TURNSTILE_SITE_KEY:-1x00000000000000000000AA}
-      KC_SPI_FORM_ACTION__FGV_TURNSTILE__SECRET_KEY: ${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}
-      SPEXREGISTER_MCP_URL: https://api.register.fgv.local.nu:8443/api/mcp
-      SMTP_HOST: mail
-      SMTP_PORT: 1025
-      SMTP_FROM: noreply@fgv.local.nu
-    restart: on-failure
-    healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /auth/health/ready HTTP/1.1\r\nHost: auth.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    labels:
-      org.springframework.boot.ignore: true
-    depends_on:
-      mysql-auth:
-        condition: service_started
-    volumes:
-      - auth_log_data:/opt/keycloak/data/log
-    networks:
-      - api_network
-      - auth_network
-    secrets:
-      - MYSQL_AUTH_USER_PASSWORD
-      - AUTH_ADMIN_PASSWORD
-
-  api:
+  spexregister-api:
     image: 'bloomper/spexregister-server:develop'
     #platform: linux/arm64
-    container_name: api
     environment:
       SPRING_PROFILES_ACTIVE: local
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-api/${MYSQL_API_DATABASE}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_API_USER}
+      SPRING_DATASOURCE_URL: jdbc:mysql://spexregister-mysql/${SPEXREGISTER_MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${SPEXREGISTER_MYSQL_USER}
       SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
       LOGGING_FILE_PATH: /data/log_data
       SERVER_FORWARD_HEADERS_STRATEGY: native
       API_BASE_URL: https://api.register.fgv.local.nu:8443/api
-      API_AUTH_URL: http://auth:8081/auth
-      API_AUTH_REALM: ${API_AUTH_REALM}
-      API_AUTH_ADMIN_CLIENT_ID: ${API_AUTH_ADMIN_CLIENT_ID}
-      API_AUTH_CLIENT_CLIENT_ID: ${API_AUTH_CLIENT_CLIENT_ID}
+      API_KEYCLOAK_URL: http://keycloak-server:8080/auth
+      API_KEYCLOAK_REALM: ${API_KEYCLOAK_REALM}
+      API_KEYCLOAK_ADMIN_CLIENT_ID: ${API_KEYCLOAK_ADMIN_CLIENT_ID}
+      API_KEYCLOAK_CLIENT_CLIENT_ID: ${API_KEYCLOAK_CLIENT_CLIENT_ID}
       API_SEED_AUDIT_DATA: ${API_SEED_AUDIT_DATA}
       API_IMPORT_SAMPLE_DATA: ${API_IMPORT_SAMPLE_DATA}
-      SPRING_MAIL_HOST: mail
+      SPRING_MAIL_HOST: mailpit
       SPRING_MAIL_PORT: 1025
       MAIL_FROM: noreply@fgv.local.nu
       ADMIN_NOTIFICATION_RECIPIENTS: admin@fgv.local.nu
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://auth:8081/auth/realms/fgv/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-server:8080/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://auth.fgv.local.nu:8443/auth/realms/fgv
     restart: on-failure
     healthcheck:
@@ -124,127 +58,64 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      mysql-api:
-        condition: service_started
-      auth:
+      spexregister-mysql:
         condition: service_healthy
     volumes:
-      - api_log_data:/data/log_data
-      - api_index_data:/data/index_data
-      - api_impex_data:/data/impex_data
+      - spexregister_api_log:/data/log_data
+      - spexregister_api_index:/data/index_data
+      - spexregister_api_impex:/data/impex_data
     networks:
-      - api_network
+      - default
+      - fgv
     secrets:
-      - MYSQL_API_USER_PASSWORD
-      - API_AUTH_ADMIN_CLIENT_SECRET
+      - source: SPEXREGISTER_MYSQL_USER_PASSWORD
+        target: MYSQL_API_USER_PASSWORD
+      - API_KEYCLOAK_ADMIN_CLIENT_SECRET
       - API_SECRET_KEY
 
-  mail:
-    image: axllent/mailpit:v1.31.4
-    ports:
-      - "8025:8025"
-    labels:
-      org.springframework.boot.ignore: true
-    networks:
-      - api_network
-      - auth_network
-
-  caddy:
-    image: caddy:latest
-    restart: unless-stopped
-    ports:
-      - "8443:8443"
-      - "8443:8443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      api_network:
-        aliases:
-          - auth.fgv.local.nu
-          - api.register.fgv.local.nu
-
 volumes:
-  mysql_api_db_data:
+  spexregister_mysql_data:
     driver: local
     driver_opts:
       type: none
-      device: .docker/mysql/api/db_data
+      device: .docker/spexregister-mysql/data
       o: bind
-  mysql_auth_db_data:
+  spexregister_mysql_log:
     driver: local
     driver_opts:
       type: none
-      device: .docker/mysql/auth/db_data
+      device: .docker/spexregister-mysql/log
       o: bind
-  mysql_api_log_data:
+  spexregister_api_log:
     driver: local
     driver_opts:
       type: none
-      device: .docker/mysql/api/log_data
+      device: .docker/spexregister-api/log_data
       o: bind
-  mysql_auth_log_data:
+  spexregister_api_index:
     driver: local
     driver_opts:
       type: none
-      device: .docker/mysql/auth/log_data
+      device: .docker/spexregister-api/index_data
       o: bind
-  auth_log_data:
+  spexregister_api_impex:
     driver: local
     driver_opts:
       type: none
-      device: .docker/auth/log_data
-      o: bind
-  api_log_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/api/log_data
-      o: bind
-  api_index_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/api/index_data
-      o: bind
-  api_impex_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/api/impex_data
-      o: bind
-  caddy_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/caddy/data
-      o: bind
-  caddy_config:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/caddy/config
+      device: .docker/spexregister-api/impex_data
       o: bind
 
 networks:
-  api_network:
-    driver: bridge
-  auth_network:
-    driver: bridge
+  fgv:
+    name: fgv-local
+    external: true
 
 secrets:
-  MYSQL_API_ROOT_PASSWORD:
-    file: .docker/secrets/MYSQL_API_ROOT_PASSWORD
-  MYSQL_API_USER_PASSWORD:
-    file: .docker/secrets/MYSQL_API_USER_PASSWORD
-  MYSQL_AUTH_ROOT_PASSWORD:
-    file: .docker/secrets/MYSQL_AUTH_ROOT_PASSWORD
-  MYSQL_AUTH_USER_PASSWORD:
-    file: .docker/secrets/MYSQL_AUTH_USER_PASSWORD
-  AUTH_ADMIN_PASSWORD:
-    file: .docker/secrets/AUTH_ADMIN_PASSWORD
-  API_AUTH_ADMIN_CLIENT_SECRET:
-    file: .docker/secrets/API_AUTH_ADMIN_CLIENT_SECRET
+  SPEXREGISTER_MYSQL_ROOT_PASSWORD:
+    file: .docker/secrets/SPEXREGISTER_MYSQL_ROOT_PASSWORD
+  SPEXREGISTER_MYSQL_USER_PASSWORD:
+    file: .docker/secrets/SPEXREGISTER_MYSQL_USER_PASSWORD
+  API_KEYCLOAK_ADMIN_CLIENT_SECRET:
+    file: .docker/secrets/API_KEYCLOAK_ADMIN_CLIENT_SECRET
   API_SECRET_KEY:
     file: .docker/secrets/API_SECRET_KEY

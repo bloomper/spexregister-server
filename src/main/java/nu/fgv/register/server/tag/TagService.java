@@ -19,7 +19,7 @@ package nu.fgv.register.server.tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
@@ -32,8 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,10 +41,6 @@ import java.util.Optional;
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 import static nu.fgv.register.server.tag.TagSpecification.NO_FILTER;
 import static nu.fgv.register.server.tag.TagSpecification.hasIds;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -67,7 +62,7 @@ public class TagService {
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<Tag>builder().build(FilterParser.parse(filter), TagSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -82,10 +77,10 @@ public class TagService {
     public Page<TagDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<Tag>builder().build(FilterParser.parse(filter), TagSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<Tag>builder().build(FilterParser.parse(filter), TagSpecification::new), pageable, Permission.READ)
                         .map(TAG_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(TAG_MAPPER::toDto);
     }
 
@@ -118,7 +113,7 @@ public class TagService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -128,12 +123,6 @@ public class TagService {
         return Optional.of(TAG_MAPPER.toModel(dto))
                 .map(model -> {
                     final Tag tag = repository.save(model);
-                    final ObjectIdentity oid = toObjectIdentity(Tag.class, tag.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-                    permissionService.grantPermission(oid, BasePermission.DELETE, ROLE_EDITOR_SID);
 
                     return TAG_MAPPER.toDto(tag);
                 })
@@ -165,7 +154,6 @@ public class TagService {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(tag -> {
-                        permissionService.deleteAcl(toObjectIdentity(Tag.class, id));
                         repository.delete(tag);
                     });
         } else {

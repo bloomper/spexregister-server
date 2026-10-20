@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.news;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
@@ -33,7 +32,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -44,7 +42,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -61,13 +58,11 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public NewsGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                         final AclCache aclCache,
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
-                                         final PermissionService permissionService,
                                          final NewsRepository repository,
                                          final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -128,7 +123,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -148,7 +142,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var news = persistNews(randomizeNews());
-                grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             });
 
             httpGraphQlTester
@@ -295,7 +288,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var news = persistNews(randomizeNews());
-                        grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
                         return news.getId();
                     })
                     .toList();
@@ -309,7 +301,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -328,7 +319,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -352,7 +342,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 if (i % 2 == 0) {
                     news.setSubject("whatever");
                 }
-                grantReadPermissionToRoleUser(toObjectIdentity(News.class, persistNews(news).getId()));
+                persistNews(news);
             });
 
             httpGraphQlTester
@@ -455,7 +445,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -498,8 +487,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = httpGraphQlTester
                     .mutate()
@@ -610,11 +597,10 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
                     .variable("id", news.getId())
@@ -634,7 +620,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/newsUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -680,8 +666,6 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -720,11 +704,10 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/newsDelete")
                     .variable("id", news.getId())

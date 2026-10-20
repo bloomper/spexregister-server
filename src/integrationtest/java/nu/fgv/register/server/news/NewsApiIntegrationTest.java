@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.news;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -35,7 +34,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -46,7 +44,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -67,13 +64,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public NewsApiIntegrationTest(final JdbcClient jdbcClient,
-                                  final AclCache aclCache,
                                   final Keycloak keycloakAdminClient,
                                   final String keycloakClientId,
-                                  final PermissionService permissionService,
                                   final NewsRepository repository,
                                   final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -138,7 +133,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             final List<NewsDto> result = Objects.requireNonNull(
                             restTestClient
@@ -162,7 +156,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var news = persistNews(randomizeNews());
-                grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
             });
 
             final List<NewsDto> result = Objects.requireNonNull(
@@ -195,7 +188,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_zero() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             final List<NewsDto> result = Objects.requireNonNull(
                             restTestClient
@@ -221,7 +213,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_one() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             final List<NewsDto> result = Objects.requireNonNull(
                             restTestClient
@@ -252,7 +243,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                 if (i % 2 == 0) {
                     news.setSubject("whatever");
                 }
-                grantReadPermissionToRoleUser(toObjectIdentity(News.class, persistNews(news).getId()));
+                persistNews(news);
             });
 
             final List<NewsDto> result = Objects.requireNonNull(
@@ -347,7 +338,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_found() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto result = restTestClient
                     .get()
@@ -387,8 +377,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = restTestClient
                     .get()
@@ -423,10 +411,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
                     .returnResult()
                     .getResponseBody();
 
+            // The update leaves no publishing dates, so the item is unpublished and only editors and admins read it
             final NewsDto after = restTestClient
                     .get()
                     .uri("/{id}", news.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -482,12 +471,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = restTestClient
                     .get()
                     .uri("/{id}", news.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -507,7 +495,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             restTestClient
                     .put()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -542,8 +530,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_update_and_return_200() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleUser(toObjectIdentity(News.class, news.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = restTestClient
                     .get()
@@ -618,12 +604,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             final NewsDto before = restTestClient
                     .get()
                     .uri("/{id}", news.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -644,7 +629,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             restTestClient
                     .patch()
                     .uri("/{id}", dto.id())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -680,8 +665,6 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_delete_and_return_204() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             restTestClient
                     .delete()
@@ -712,12 +695,11 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_not_permitted_due_to_insufficient_permission() {
             final var news = persistNews(randomizeNews());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(News.class, news.getId()));
 
             restTestClient
                     .delete()
                     .uri("/{id}", news.getId())
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

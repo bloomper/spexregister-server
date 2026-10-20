@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -57,7 +58,7 @@ public class TaskGraphqlApi {
     private final JobService jobService;
 
     @QueryMapping("taskPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<TaskDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
@@ -77,7 +78,7 @@ public class TaskGraphqlApi {
     }
 
     @QueryMapping("task")
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public TaskDto retrieve(@Argument final Long id) {
         return service.findById(id);
     }
@@ -95,7 +96,7 @@ public class TaskGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Task", field = "category")
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public @Nullable TaskCategoryDto retrieveCategory(final TaskDto dto) {
         try {
             return service.findCategoryByTask(dto.getId());

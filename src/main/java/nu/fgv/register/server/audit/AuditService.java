@@ -22,7 +22,7 @@ import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareSensitiveData;
@@ -372,10 +372,6 @@ public class AuditService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    /**
-     * Everyone who has ever written a revision, so that a client can offer them as filter choices
-     * rather than asking for a name to be typed exactly.
-     */
     @RequiresAdmin
     public List<String> findAuthors() {
         return entityManager.createQuery("""
@@ -436,11 +432,6 @@ public class AuditService {
         return query.getResultList();
     }
 
-    /**
-     * Everything a single revision did, across every entity it touched. This is what makes a feed
-     * entry answerable: which records took part, what each of them changed, and where to look at
-     * them.
-     */
     @RequiresAdmin
     public RevisionDetailDto findDetail(final long revision, final int limitPerType) {
         if (limitPerType < 1) {
@@ -530,18 +521,14 @@ public class AuditService {
         return previous.isEmpty() ? null : previous.getFirst();
     }
 
-    /**
-     * The aggregate root a client should open to see this entity, which for children such as
-     * addresses and actors is the spexare they hang off. Deleted entities have nothing to open.
-     */
     private @Nullable RevisionTargetDto targetOf(final AuditedEntityDescriptor descriptor, final Object id) {
-        final Function<Object, @Nullable Object> aclRoot = descriptor.aclRoot();
+        final Function<Object, @Nullable Object> accessRoot = descriptor.accessRoot();
 
-        if (aclRoot == null) {
+        if (accessRoot == null) {
             return null;
         }
 
-        final Object root = descriptor.findCurrent().apply(id).map(aclRoot).orElse(null);
+        final Object root = descriptor.findCurrent().apply(id).map(accessRoot).orElse(null);
 
         if (root == null) {
             return null;
@@ -591,11 +578,6 @@ public class AuditService {
                 .build();
     }
 
-    /**
-     * A restore says why by itself, so it stamps its own origin onto the revision it produces —
-     * keeping any reason the caller already supplied, which is both more specific and in their
-     * language.
-     */
     @RequiresAdmin
     public RestoreResultDto restore(final AuditedType type, final String rawId, final long revision, final boolean cascade) {
         AuditContext.stamp(AuditContext.currentOrSystem()
@@ -917,7 +899,7 @@ public class AuditService {
     }
 
     private void authorizeRead(final AuditedEntityDescriptor descriptor, final Object id) {
-        if (descriptor.aclRoot() == null) {
+        if (descriptor.accessRoot() == null) {
             return;
         }
 
@@ -931,7 +913,7 @@ public class AuditService {
             return;
         }
 
-        final Object root = descriptor.aclRoot().apply(current.get());
+        final Object root = descriptor.accessRoot().apply(current.get());
 
         if (root != null) {
             permissionService.checkReadPermission(root);
@@ -942,8 +924,8 @@ public class AuditService {
         final Object current = descriptor.findCurrent().apply(id)
                 .orElseThrow(() -> new ResourceNotFoundException(descriptor.entityClass(), id));
 
-        if (descriptor.aclRoot() != null) {
-            final Object root = descriptor.aclRoot().apply(current);
+        if (descriptor.accessRoot() != null) {
+            final Object root = descriptor.accessRoot().apply(current);
 
             if (root != null) {
                 permissionService.checkWritePermission(root);

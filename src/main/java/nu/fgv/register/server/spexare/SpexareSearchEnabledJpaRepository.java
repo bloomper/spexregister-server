@@ -18,6 +18,8 @@ package nu.fgv.register.server.spexare;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import nu.fgv.register.server.permission.PermissionGrants;
+import nu.fgv.register.server.security.policy.Caller;
 import nu.fgv.register.server.spex.SpexDetails_;
 import nu.fgv.register.server.spex.Spex_;
 import nu.fgv.register.server.spexare.activity.Activity_;
@@ -27,6 +29,7 @@ import nu.fgv.register.server.spexare.activity.task.actor.Actor_;
 import nu.fgv.register.server.spexare.address.Address_;
 import nu.fgv.register.server.tag.Tag_;
 import nu.fgv.register.server.task.Task_;
+import nu.fgv.register.server.util.ApplicationContextHolder;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.search.AbstractSearchEnabledJpaRepository;
 import nu.fgv.register.server.util.security.SocialSecurityNumberHasher;
@@ -42,6 +45,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -183,6 +187,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
         final boolean readsUnpublished = isAdministratorOrEditor();
+        final Set<Long> grantedIds = readsUnpublished ? Set.of() : ApplicationContextHolder.getBean(PermissionGrants.class).readableSpexareIds(Caller.current());
         final boolean sensitiveReadable = SpexareSensitiveData.isReadableForAll();
         var search = searchSession
                 .search(Spexare.class)
@@ -205,7 +210,13 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                                 b.must(f.matchAll());
                             }
                             if (!readsUnpublished) {
-                                b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
+                                if (grantedIds.isEmpty()) {
+                                    b.must(f.match().field(Spexare_.PUBLISHED).matching(true));
+                                } else {
+                                    b.must(f.bool()
+                                            .should(f.match().field(Spexare_.PUBLISHED).matching(true))
+                                            .should(f.id().matchingAny(grantedIds)));
+                                }
                             }
                             if (query.aggregationFilters() != null && !query.aggregationFilters().isEmpty()) {
                                 b.must(f.bool().with(fb -> query.aggregationFilters().forEach(a -> {

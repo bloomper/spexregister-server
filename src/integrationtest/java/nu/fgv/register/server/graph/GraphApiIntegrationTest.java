@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.graph;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -45,7 +44,6 @@ import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -54,7 +52,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
 import static org.jeasy.random.FieldPredicates.ofType;
@@ -76,10 +73,8 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public GraphApiIntegrationTest(final JdbcClient jdbcClient,
-                                   final AclCache aclCache,
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
-                                   final PermissionService permissionService,
                                    final SpexareRepository spexareRepository,
                                    final ActivityRepository activityRepository,
                                    final SpexActivityRepository spexActivityRepository,
@@ -87,7 +82,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
                                    final SpexDetailsRepository spexDetailsRepository,
                                    final SpexCategoryRepository spexCategoryRepository,
                                    final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexareRepository = spexareRepository;
         this.activityRepository = activityRepository;
         this.spexActivityRepository = spexActivityRepository;
@@ -140,15 +135,6 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
         spexare.setPublished(published);
 
         final var saved = spexareRepository.save(spexare);
-        final var oid = toObjectIdentity(Spexare.class, saved.getId());
-
-        // Mirrors SpexareService.create: the user role only gets READ on published people.
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-
-        if (published) {
-            grantReadPermissionToRoleUser(oid);
-        }
 
         return saved;
     }
@@ -159,10 +145,6 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
         category.setId(null);
 
         final var savedCategory = spexCategoryRepository.save(category);
-
-        grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleEditor(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
-        grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, savedCategory.getId()));
 
         final var details = random.nextObject(SpexDetails.class);
 
@@ -176,11 +158,6 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
         spex.setDetails(spexDetailsRepository.save(details));
 
         final var saved = spexRepository.save(spex);
-        final var oid = toObjectIdentity(Spex.class, saved.getId());
-
-        grantReadPermissionToRoleAdmin(oid);
-        grantReadPermissionToRoleEditor(oid);
-        grantReadPermissionToRoleUser(oid);
 
         return saved;
     }

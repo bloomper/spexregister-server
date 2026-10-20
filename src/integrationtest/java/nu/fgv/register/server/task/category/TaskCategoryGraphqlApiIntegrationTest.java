@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.task.category;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
@@ -33,7 +32,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -61,13 +58,11 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TaskCategoryGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                                 final AclCache aclCache,
                                                  final Keycloak keycloakAdminClient,
                                                  final String keycloakClientId,
-                                                 final PermissionService permissionService,
                                                  final TaskCategoryRepository repository,
                                                  final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -124,7 +119,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_one() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -144,7 +138,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var category = persistTaskCategory(randomizeTaskCategory());
-                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
             });
 
             httpGraphQlTester
@@ -290,7 +283,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var category = persistTaskCategory(randomizeTaskCategory());
-                        grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
                         return category.getId();
                     })
                     .toList();
@@ -304,7 +296,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_zero() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -323,7 +314,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_one() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -348,7 +338,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     category.setName("whatever");
                 }
                 final var category0 = persistTaskCategory(category);
-                grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category0.getId()));
             });
 
             httpGraphQlTester
@@ -448,7 +437,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_found() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -491,8 +479,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_update() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(TaskCategory.class, category.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = httpGraphQlTester
                     .mutate()
@@ -601,11 +587,10 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             final TaskCategoryDto before = httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
                     .variable("id", category.getId())
@@ -624,7 +609,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -670,8 +655,6 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_delete() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -710,11 +693,10 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistTaskCategory(randomizeTaskCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(TaskCategory.class, category.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryDelete")
                     .variable("id", category.getId())

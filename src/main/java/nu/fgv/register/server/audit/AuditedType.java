@@ -41,5 +41,6 @@ public enum AuditedType {
     TASK_CATEGORY,
     USER,
     STATE,
-    TYPE
+    TYPE,
+    PERMISSION_GRANT
 }

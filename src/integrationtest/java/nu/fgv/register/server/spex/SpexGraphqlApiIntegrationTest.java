@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spex;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -40,7 +39,6 @@ import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -56,7 +54,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -76,15 +73,13 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                         final AclCache aclCache,
                                          final Keycloak keycloakAdminClient,
                                          final String keycloakClientId,
-                                         final PermissionService permissionService,
                                          final SpexRepository repository,
                                          final SpexDetailsRepository detailsRepository,
                                          final SpexCategoryRepository categoryRepository,
                                          final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.detailsRepository = detailsRepository;
         this.categoryRepository = categoryRepository;
@@ -195,9 +190,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -216,14 +209,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             IntStream.range(0, size).forEach(i -> {
                 final var spex = persistSpex(randomizeSpex(category));
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
                 if (i % 2 == 0) {
                     final var revival = randomizeRevival(spex);
                     persistRevival(revival);
-                    grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
                 }
             });
 
@@ -366,13 +356,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_only_count_and_return_filtered() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final List<Long> matching = new ArrayList<>();
             IntStream.range(0, 20).forEach(i -> {
                 final var spex = randomizeSpex(category);
                 spex.setYear(i % 2 == 0 ? "1996" : "1997");
                 final var persisted = persistSpex(spex);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, persisted.getId()));
                 if (i % 2 == 0) {
                     matching.add(persisted.getId());
                 }
@@ -394,44 +382,12 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        void should_exclude_not_permitted_from_total_count() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            final List<Long> permitted = new ArrayList<>();
-            IntStream.range(0, 20).forEach(i -> {
-                final var spex = persistSpex(randomizeSpex(category));
-                if (i % 2 == 0) {
-                    grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-                    permitted.add(spex.getId());
-                } else {
-                    grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-                }
-            });
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexPagedCursor")
-                    .variable("last", 4)
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(10)
-                    .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
-                    .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(permitted.subList(6, 10)));
-        }
-
-        @Test
         void should_return_last_page_of_revivals() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var parent = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, parent.getId()));
             final List<Long> revivals = IntStream.range(0, 12)
                     .mapToObj(_ -> {
                         final var revival = persistRevival(randomizeRevival(parent));
-                        grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
                         return revival.getId();
                     })
                     .toList();
@@ -458,12 +414,10 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         private List<Long> persistPermittedSpex(final int size) {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
 
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var spex = persistSpex(randomizeSpex(category));
-                        grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
                         return spex.getId();
                     })
                     .toList();
@@ -478,9 +432,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -499,9 +451,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -521,7 +471,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             IntStream.range(0, size).forEach(i -> {
                 final var spex = randomizeSpex(category);
                 if (i % 2 == 0) {
@@ -530,11 +479,9 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     spex.setYear("1997");
                 }
                 final var spex0 = persistSpex(spex);
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex0.getId()));
                 if (i % 4 == 0) {
                     final var revival = randomizeRevival(spex0);
                     persistRevival(revival);
-                    grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
                 }
             });
 
@@ -638,9 +585,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -683,11 +628,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final SpexDto before = httpGraphQlTester
                     .mutate()
@@ -799,13 +740,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final SpexDto before = httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
                     .variable("id", spex.getId())
@@ -824,7 +763,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -840,27 +779,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(repository.count()).isEqualTo(1);
         }
 
-        @Test
-        void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
-            final SpexUpdateDto dto = random.nextObject(SpexUpdateDto.class);
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexUpdate")
-                    .variables(objectMapper.convertValue(dto, new TypeReference<>() {
-                    }))
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexUpdate")
-                    .valueIsNull();
-
-            assertThat(repository.count()).isZero();
-        }
     }
 
     @Nested
@@ -870,10 +788,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -914,13 +829,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexDelete")
                     .variable("id", spex.getId())
@@ -962,11 +875,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete_poster() throws Exception {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var poster = Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:test.png").getPath()));
 
             restTestClient
@@ -1024,14 +933,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexPosterDelete")
                     .variable("id", spex.getId())
@@ -1046,24 +952,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(repository.count()).isEqualTo(1);
         }
 
-        @Test
-        void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_role() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexPosterDelete")
-                    .variable("id", 123L)
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexPosterDelete")
-                    .valueIsNull();
-
-            assertThat(repository.count()).isZero();
-        }
     }
 
     @Nested
@@ -1073,11 +961,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_parent_when_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1096,11 +981,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1122,11 +1004,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_spex_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1147,13 +1026,9 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_incorrect_spex() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex2.getId()));
             final var revival = persistRevival(randomizeRevival(spex2));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1174,9 +1049,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1212,11 +1085,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1236,12 +1106,9 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_many() {
             final int size = 42;
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             IntStream.range(0, size).forEach(i -> {
                 final var revival = persistRevival(randomizeRevival(spex));
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
             });
 
             httpGraphQlTester
@@ -1261,9 +1128,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero_paged() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1299,11 +1164,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one_paged() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1323,12 +1185,9 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_many_paged() {
             final int size = 42;
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
             IntStream.range(0, size).forEach(i -> {
                 final var revival = persistRevival(randomizeRevival(spex));
-                grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, revival.getId()));
             });
 
             httpGraphQlTester
@@ -1349,10 +1208,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_create() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1396,12 +1252,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_CONFLICT_when_adding_and_year_already_exists() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1425,13 +1277,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1474,11 +1321,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_removing_and_revival_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1502,13 +1345,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_adding_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalCreate")
                     .variable("spexId", spex.getId())
@@ -1526,38 +1367,14 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
-        void should_return_FORBIDDEN_when_adding_not_permitted_due_to_insufficient_role() {
+        void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_permission() {
+            final var category = persistSpexCategory(randomizeSpexCategory());
+            final var spex = persistSpex(randomizeSpex(category));
+            final var revival = persistRevival(randomizeRevival(spex));
+
             httpGraphQlTester
                     .mutate()
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexRevivalCreate")
-                    .variable("spexId", 1L)
-                    .variable("year", "2022")
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexRevivalCreate")
-                    .valueIsNull();
-
-            assertThat(repository.count()).isZero();
-            assertThat(detailsRepository.count()).isZero();
-        }
-
-        @Test
-        void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_permission() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
-            final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            final var revival = persistRevival(randomizeRevival(spex));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, revival.getId()));
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalDelete")
                     .variable("spexId", spex.getId())
@@ -1574,26 +1391,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             assertThat(detailsRepository.count()).isEqualTo(1);
         }
 
-        @Test
-        void should_return_FORBIDDEN_when_deleting_not_permitted_due_to_insufficient_role() {
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexRevivalDelete")
-                    .variable("spexId", 1L)
-                    .variable("id", 1L)
-                    .execute()
-                    .errors()
-                    .satisfy((errors) -> assertThat(errors)
-                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
-                    )
-                    .path("spexRevivalDelete")
-                    .valueIsNull();
-
-            assertThat(repository.count()).isZero();
-            assertThat(detailsRepository.count()).isZero();
-        }
     }
 
     @Nested
@@ -1603,9 +1400,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleUser(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleUser(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1629,10 +1424,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_add() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(null));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1702,10 +1494,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_NOT_FOUND_when_adding_and_category_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1729,10 +1518,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_remove() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1780,8 +1566,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_ok_when_removing_and_no_category() {
             final var spex = persistSpex(randomizeSpex(null));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -1822,13 +1606,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_adding_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(null));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
                     .variable("spexId", spex.getId())
@@ -1869,13 +1651,11 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_removing_not_permitted_due_to_insufficient_permission() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
                     .variable("spexId", spex.getId())

@@ -19,7 +19,7 @@ package nu.fgv.register.server.task;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
@@ -34,12 +34,12 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,10 +49,6 @@ import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 import static nu.fgv.register.server.task.TaskSpecification.NO_FILTER;
 import static nu.fgv.register.server.task.TaskSpecification.hasIds;
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -69,13 +65,13 @@ public class TaskService {
     private final TaskCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<TaskDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -90,14 +86,14 @@ public class TaskService {
     public Page<TaskDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new), pageable, Permission.READ)
                         .map(TASK_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(TASK_MAPPER::toDto);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public TaskDto findById(final Long id) {
         return repository
                 .findById0(id)
@@ -126,7 +122,7 @@ public class TaskService {
                 spec = null;
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -136,11 +132,6 @@ public class TaskService {
         return Optional.of(TASK_MAPPER.toModel(dto))
                 .map(model -> {
                     final Task task = repository.save(model);
-                    final ObjectIdentity oid = toObjectIdentity(Task.class, task.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return TASK_MAPPER.toDto(task);
                 })
@@ -172,7 +163,6 @@ public class TaskService {
             repository.findById0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(task -> {
-                        permissionService.deleteAcl(toObjectIdentity(Task.class, id));
                         repository.delete(task);
                     });
         } else {
@@ -180,7 +170,7 @@ public class TaskService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public TaskCategoryDto findCategoryByTask(final Long id) {
         if (doesTaskExist(id)) {
             return repository

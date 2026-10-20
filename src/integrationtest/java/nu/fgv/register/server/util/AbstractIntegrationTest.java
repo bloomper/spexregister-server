@@ -22,7 +22,6 @@ import com.google.common.cache.LoadingCache;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.ws.rs.core.Response;
-import nu.fgv.register.server.acl.PermissionService;
 import org.apache.http.client.utils.URIBuilder;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.callback.Callback;
@@ -52,12 +51,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.AclCache;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Permission;
-import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,10 +80,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -110,11 +99,8 @@ public abstract class AbstractIntegrationTest {
     private static final String TEST_GRANT_TYPE = "password";
     private static final String TEST_DOMAIN = "@fgv.nu";
     protected static final String TEST_ADMIN = "admin" + TEST_DOMAIN;
-    protected static final PrincipalSid TEST_ADMIN_SID = new PrincipalSid(TEST_ADMIN);
     protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
-    protected static final PrincipalSid TEST_EDITOR_SID = new PrincipalSid(TEST_EDITOR);
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
-    protected static final PrincipalSid TEST_USER_SID = new PrincipalSid(TEST_USER);
     private static final String TEST_PASSWORD = "s3cr3t-s3cr3t";
     private static final String TEST_CLIENT_ID = "spexregister";
     protected static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
@@ -148,9 +134,7 @@ public abstract class AbstractIntegrationTest {
     protected final JdbcClient jdbcClient;
     protected final Keycloak keycloakAdminClient;
     protected final String keycloakClientId;
-    protected final PermissionService permissionService;
     protected final ObjectMapper objectMapper;
-    private final AclCache aclCache;
     protected RestTestClient restTestClient;
     @Value("${spexregister.keycloak.realm}")
     protected String keycloakRealm;
@@ -180,16 +164,12 @@ public abstract class AbstractIntegrationTest {
     private EntityManagerFactory entityManagerFactory;
 
     protected AbstractIntegrationTest(final JdbcClient jdbcClient,
-                                      final AclCache aclCache,
                                       final Keycloak keycloakAdminClient,
                                       final String keycloakClientId,
-                                      final PermissionService permissionService,
                                       final ObjectMapper objectMapper) {
         this.jdbcClient = jdbcClient;
-        this.aclCache = aclCache;
         this.keycloakAdminClient = keycloakAdminClient;
         this.keycloakClientId = keycloakClientId;
-        this.permissionService = permissionService;
         this.objectMapper = objectMapper;
     }
 
@@ -264,7 +244,7 @@ public abstract class AbstractIntegrationTest {
     @BeforeEach
     public void baseSetUp() {
         resetStateOncePerTestClass();
-        SecurityContextHolder.getContext().setAuthentication(TEST_AUTH); // Needed when manually granting permissions
+        SecurityContextHolder.getContext().setAuthentication(TEST_AUTH);
     }
 
     private void resetStateOncePerTestClass() {
@@ -293,12 +273,7 @@ public abstract class AbstractIntegrationTest {
 
     @AfterEach
     public void baseTearDown() {
-        jdbcClient.sql("DELETE FROM acl_entry").update();
-        jdbcClient.sql("DELETE FROM acl_object_identity").update();
-        jdbcClient.sql("DELETE FROM acl_class").update();
-        jdbcClient.sql("DELETE FROM acl_sid").update();
         SecurityContextHolder.clearContext();
-        aclCache.clearCache();
         keycloakAdminClient
                 .realm(keycloakRealm)
                 .users()
@@ -369,47 +344,6 @@ public abstract class AbstractIntegrationTest {
 
     protected String obtainUnboundMcpAccessToken(final String username) {
         return obtainAccessToken(username, TEST_PASSWORD, TEST_UNBOUND_MCP_CLIENT_ID);
-    }
-
-    protected void grantPermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {
-        permissionService.grantPermission(oid, sid, permission);
-    }
-
-    protected void revokePermission(final ObjectIdentity oid, final Sid sid, final Permission permission) {
-        permissionService.revokePermission(oid, sid, permission);
-    }
-
-    protected void grantReadPermissionToUser(final ObjectIdentity oid) {
-        grantPermission(oid, TEST_USER_SID, BasePermission.READ);
-    }
-
-    protected void grantReadPermissionToRoleUser(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_USER_SID, BasePermission.READ);
-    }
-
-    protected void grantReadPermissionToRoleEditor(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_EDITOR_SID, BasePermission.READ);
-    }
-
-    protected void grantReadPermissionToRoleAdmin(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.READ);
-    }
-
-    protected void grantWritePermissionToRoleAdmin(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
-    }
-
-    protected void grantDeletePermissionToRoleAdmin(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.DELETE);
-    }
-
-    protected void grantAdministrationPermissionToRoleAdmin(final ObjectIdentity oid) {
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.ADMINISTRATION);
-        grantPermission(oid, ROLE_ADMIN_SID, BasePermission.READ);
-    }
-
-    protected void revokeWritePermissionFromRoleAdmin(final ObjectIdentity oid) {
-        revokePermission(oid, ROLE_ADMIN_SID, BasePermission.WRITE);
     }
 
     @TestConfiguration

@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -48,7 +47,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -56,7 +54,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -79,10 +76,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public SpexActivityGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                                 final AclCache aclCache,
                                                  final Keycloak keycloakAdminClient,
                                                  final String keycloakClientId,
-                                                 final PermissionService permissionService,
                                                  final SpexActivityRepository repository,
                                                  final ActivityRepository activityRepository,
                                                  final SpexareRepository spexareRepository,
@@ -90,7 +85,7 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                                                  final SpexDetailsRepository spexDetailsRepository,
                                                  final SpexCategoryRepository spexCategoryRepository,
                                                  final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.activityRepository = activityRepository;
         this.spexareRepository = spexareRepository;
@@ -212,12 +207,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_create() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -241,12 +232,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -271,12 +258,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_creating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -299,8 +282,6 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_creating_and_spex_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -325,15 +306,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_CONFLICT_when_creating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
 
             httpGraphQlTester
@@ -358,16 +333,13 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/spexActivity/spexActivityCreate")
                     .variable("spexareId", spexare.getId())
@@ -387,12 +359,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -421,14 +389,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_update() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
@@ -454,12 +417,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_updating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -486,12 +445,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_updating_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -518,12 +473,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_updating_and_spex_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -550,15 +501,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_updating_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -585,12 +530,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_updating_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -618,19 +559,15 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/spexActivity/spexActivityUpdate")
                     .variable("spexareId", spexare.getId())
@@ -651,13 +588,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex1 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex1.getId()));
             final var spex2 = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex2.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex1));
 
@@ -688,12 +621,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_delete() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -717,8 +646,6 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_deleting_non_existing_value() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
 
             httpGraphQlTester
@@ -743,9 +670,7 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_deleting_and_spexare_not_found() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -771,12 +696,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_deleting_and_activity_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(null));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -802,15 +723,9 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_spexare() {
             final var spexare1 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare1.getId()));
             final var spexare2 = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare2.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare2));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
@@ -836,12 +751,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_NOT_FOUND_when_deleting_and_incorrect_activity() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity1 = persistActivity(randomizeActivity(spexare));
             final var activity2 = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity2, spex));
@@ -868,17 +779,14 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/activity/spexActivity/spexActivityDelete")
                     .variable("spexareId", spexare.getId())
@@ -898,12 +806,8 @@ class SpexActivityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_role() {
             final var spexare = persistSpexare(randomizeSpexare());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spexare.class, spexare.getId()));
             final var category = persistSpexCategory(randomizeSpexCategory());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(SpexCategory.class, category.getId()));
             final var spex = persistSpex(randomizeSpex(category));
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
             final var activity = persistActivity(randomizeActivity(spexare));
             final var spexActivity = persistSpexActivity(randomizeSpexActivity(activity, spex));
 

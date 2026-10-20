@@ -248,7 +248,7 @@ public class SpexareApi {
     }
 
     @DeleteMapping("/{id}")
-    @RequiresAdmin
+    @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long id, @RequestParam(defaultValue = "false") final boolean purge) {
         service.deleteById(id);
         if (purge) {

@@ -19,7 +19,8 @@ package nu.fgv.register.server.spex;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.acl.PermissionService;
+import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
@@ -37,13 +38,13 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.ObjectIdentity;
+import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -67,10 +68,6 @@ import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_ADMIN_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER_SID;
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -87,22 +84,23 @@ public class SpexService {
     private final SpexDetailsRepository detailsRepository;
     private final SpexCategoryRepository categoryRepository;
     private final PermissionService permissionService;
+    private final PermissionGrantService permissionGrantService;
 
     @RequiresAdminOrEditorOrUser
     public List<SpexDto> findAll(final Sort sort) {
         return repository
-                .findAll(isNotRevival(), sort, BasePermission.READ)
+                .findAll(isNotRevival(), sort, Permission.READ)
                 .stream().map(SPEX_MAPPER::toDto)
                 .toList();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<SpexDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
                                 SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new) :
                                 NO_FILTER,
-                        BasePermission.READ, query -> {
+                        Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -117,14 +115,14 @@ public class SpexService {
     public Page<SpexDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
                 repository
-                        .findAll(SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new), pageable, BasePermission.READ)
+                        .findAll(SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new), pageable, Permission.READ)
                         .map(SPEX_MAPPER::toDto) :
                 repository
-                        .findAll(pageable, BasePermission.READ)
+                        .findAll(pageable, Permission.READ)
                         .map(SPEX_MAPPER::toDto);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public SpexDto findById(final Long id) {
         return repository
                 .findById0(id)
@@ -153,7 +151,7 @@ public class SpexService {
                 spec = isNotRevival();
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -172,7 +170,7 @@ public class SpexService {
                 spec = isRevival();
             }
 
-            return repository.streamAll(spec, sort, BasePermission.READ)
+            return repository.streamAll(spec, sort, Permission.READ)
                     .iterator();
         };
     }
@@ -183,23 +181,18 @@ public class SpexService {
                 .map(model -> {
                     detailsRepository.save(model.getDetails());
                     final Spex spex = repository.save(model);
-                    final ObjectIdentity oid = toObjectIdentity(Spex.class, spex.getId());
-
-                    permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                    permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                    permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
 
                     return SPEX_MAPPER.toDto(spex);
                 })
                 .orElseThrow(() -> new InternalErrorException("Could not create spex"));
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public SpexDto update(final SpexUpdateDto dto) {
         return partialUpdate(dto);
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public SpexDto partialUpdate(final SpexUpdateDto dto) {
         return repository
                 .findById0(dto.id())
@@ -225,10 +218,10 @@ public class SpexService {
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(spex -> {
                         repository.findAll(hasParent(spex)).forEach(revival -> {
-                            permissionService.deleteAcl(toObjectIdentity(Spex.class, revival.getId()));
+                            permissionGrantService.deleteBySpex(revival);
                             repository.delete(revival);
                         });
-                        permissionService.deleteAcl(toObjectIdentity(Spex.class, id));
+                        permissionGrantService.deleteBySpex(spex);
                         repository.delete(spex);
                         detailsRepository.delete(spex.getDetails());
                     });
@@ -237,7 +230,7 @@ public class SpexService {
         }
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public SpexDto savePoster(final Long id, final byte[] poster) {
         return repository
                 .findById0(id)
@@ -251,7 +244,7 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public SpexDto deletePoster(final Long id) {
         return repository
                 .findById0(id)
@@ -292,7 +285,7 @@ public class SpexService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public SpexDto findRevivalById(final Long spexId, final Long id) {
         if (doSpexAndRevivalExist(spexId, id)) {
             return repository
@@ -312,7 +305,7 @@ public class SpexService {
                     .findById0(id)
                     .filter(parent -> !parent.isRevival())
                     .map(parent -> repository
-                            .findAll(hasParent(parent), Pageable.unpaged(Sort.by(Spex_.YEAR)), BasePermission.READ)
+                            .findAll(hasParent(parent), Pageable.unpaged(Sort.by(Spex_.YEAR)), Permission.READ)
                             .stream()
                             .map(SPEX_MAPPER::toDto)
                             .toList()
@@ -323,12 +316,12 @@ public class SpexService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<SpexDto> findRevivalsByParent(final Long id, final ScrollRequest scroll, final Sort sort) {
         return findRevivalsByParent(
                 id,
                 parent -> repository
-                        .findBy(hasParent(parent), BasePermission.READ, query -> {
+                        .findBy(hasParent(parent), Permission.READ, query -> {
                             final long total = query.count();
 
                             return CountedWindow.of(query
@@ -346,13 +339,13 @@ public class SpexService {
         return findRevivalsByParent(
                 id,
                 parent -> repository
-                        .findAll(hasParent(parent), pageable, BasePermission.READ)
+                        .findAll(hasParent(parent), pageable, Permission.READ)
                         .map(SPEX_MAPPER::toDto),
                 Page::empty
         );
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public SpexDto addRevival(final Long id, final String year) {
         if (doesSpexExist(id)) {
             return repository
@@ -368,12 +361,6 @@ public class SpexService {
                         final Spex revival = repository.save(spex);
                         touchSpexByDetails(parent.getDetails());
 
-                        final ObjectIdentity oid = toObjectIdentity(Spex.class, revival.getId());
-
-                        permissionService.grantPermission(oid, BasePermission.ADMINISTRATION, ROLE_ADMIN_SID);
-                        permissionService.grantPermission(oid, BasePermission.READ, ROLE_ADMIN_SID, ROLE_EDITOR_SID, ROLE_USER_SID);
-                        permissionService.grantPermission(oid, BasePermission.WRITE, ROLE_EDITOR_SID);
-
                         return revival;
                     })
                     .map(SPEX_MAPPER::toDto)
@@ -383,7 +370,7 @@ public class SpexService {
         }
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public void deleteRevival(final Long spexId, final Long id) {
         if (doSpexAndRevivalExist(spexId, id)) {
             repository
@@ -394,7 +381,7 @@ public class SpexService {
                     .ifPresentOrElse(
                             revival -> {
                                 final SpexDetails details = revival.getDetails();
-                                permissionService.deleteAcl(toObjectIdentity(Spex.class, revival.getId()));
+                                permissionGrantService.deleteBySpex(revival);
                                 repository.deleteById(revival.getId());
                                 touchSpexByDetails(details);
                             },
@@ -414,7 +401,7 @@ public class SpexService {
                 .collect(Collectors.toMap(Spex::getId, spex -> SPEX_MAPPER.toDto(spex.getParent())));
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public Map<Long, List<SpexDto>> findRevivalsByParents(final Collection<Long> ids) {
         final List<Long> parentIds = findReadable(ids).stream()
                 .filter(parent -> !parent.isRevival())
@@ -426,7 +413,7 @@ public class SpexService {
         }
 
         return repository
-                .findAll(hasParentIds(parentIds), Sort.by(Spex_.YEAR), BasePermission.READ)
+                .findAll(hasParentIds(parentIds), Sort.by(Spex_.YEAR), Permission.READ)
                 .stream()
                 .collect(Collectors.groupingBy(revival -> revival.getParent().getId(), Collectors.mapping(SPEX_MAPPER::toDto, Collectors.toList())));
     }

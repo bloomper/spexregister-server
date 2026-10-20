@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.impex;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.impex.exporting.excel.ExcelWriter;
 import nu.fgv.register.server.impex.model.ImpexAction;
 import nu.fgv.register.server.tag.Tag;
@@ -35,7 +34,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -53,7 +51,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
@@ -75,14 +72,12 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public ImpexJobIntegrationTest(final JdbcClient jdbcClient,
-                                   final AclCache aclCache,
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
-                                   final PermissionService permissionService,
                                    final ObjectMapper objectMapper,
                                    final TagRepository tagRepository,
                                    final MessageSource messageSource) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.tagRepository = tagRepository;
         this.messageSource = messageSource;
     }
@@ -145,7 +140,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
     @Test
     void should_import_a_workbook_as_one_import_revision() throws Exception {
         final Tag existing = persistTag("Founder");
-        grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, existing.getId()));
 
         final String token = obtainAdminAccessToken();
         final Long jobId = startTagImport(token, workbook(
@@ -197,8 +191,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
 
         final Tag saved = tagRepository.save(tag);
 
-        grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, saved.getId()));
-        grantReadPermissionToRoleEditor(toObjectIdentity(Tag.class, saved.getId()));
         return saved;
     }
 

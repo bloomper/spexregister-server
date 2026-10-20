@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.audit;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
@@ -24,6 +23,8 @@ import nu.fgv.register.server.spex.SpexDetailsRepository;
 import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
+import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
@@ -43,7 +44,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -52,7 +52,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -68,25 +67,26 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
     private final TagRepository repository;
     private final SpexRepository spexRepository;
     private final SpexDetailsRepository spexDetailsRepository;
+    private final SpexareRepository spexareRepository;
     private final SpexCategoryRepository spexCategoryRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public AuditApiIntegrationTest(final JdbcClient jdbcClient,
-                                   final AclCache aclCache,
                                    final Keycloak keycloakAdminClient,
                                    final String keycloakClientId,
-                                   final PermissionService permissionService,
                                    final TagRepository repository,
                                    final SpexRepository spexRepository,
                                    final SpexDetailsRepository spexDetailsRepository,
                                    final SpexCategoryRepository spexCategoryRepository,
+                                   final SpexareRepository spexareRepository,
                                    final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.spexRepository = spexRepository;
         this.spexDetailsRepository = spexDetailsRepository;
         this.spexCategoryRepository = spexCategoryRepository;
+        this.spexareRepository = spexareRepository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
@@ -103,8 +103,8 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "spex", "spex_details", "spex_category",
-                "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit", "revchanges", "revinfo");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "spex", "spex_details", "spex_category", "spexare",
+                "spexare_audit", "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit", "revchanges", "revinfo");
     }
 
     private List<RevisionDto> retrieveRevisions(final Long id, final String token) {
@@ -161,6 +161,20 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         return spexRepository.save(spex);
     }
 
+    /**
+     * An unpublished spexare, which a user may not read.
+     */
+    private Spexare persistUnpublishedSpexare() {
+        final Spexare spexare = new Spexare();
+
+        spexare.setFirstName("Olle");
+        spexare.setLastName("Opublicerad");
+        spexare.setDeceased(false);
+        spexare.setPublished(false);
+
+        return spexareRepository.save(spexare);
+    }
+
     private Tag persistTag() {
         final Tag tag = random.nextObject(Tag.class);
 
@@ -176,7 +190,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_add_and_mod() {
             final var tag = persistTag();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             tag.setName("renamed");
             repository.save(tag);
@@ -193,11 +206,11 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_403_when_not_permitted() {
-            final var tag = persistTag();
+            final var spexare = persistUnpublishedSpexare();
 
             restTestClient
                     .get()
-                    .uri("/{type}/{id}", "TAG", tag.getId())
+                    .uri("/{type}/{id}", "SPEXARE", spexare.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -215,7 +228,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
 
@@ -231,7 +243,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
 
@@ -251,9 +262,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(SpexDetails.class, details.getId()));
 
             final var originalRevision = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX)
@@ -284,7 +292,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             details.setPoster(Image.of(new byte[]{4, 5, 6}, MediaType.IMAGE_PNG_VALUE));
             spexDetailsRepository.save(details);
@@ -303,7 +310,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
 
@@ -331,7 +337,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
@@ -367,7 +372,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
@@ -394,7 +398,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
@@ -415,7 +418,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
@@ -437,8 +439,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var first = persistSpexDetails(category, "Nobel");
             final var second = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(first, "2024");
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Spex.class, spex.getId()));
 
             spex.setDetails(second);
             spexRepository.save(spex);
@@ -460,8 +460,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var tag = persistTag();
             final var originalName = tag.getName();
             final var originalCreatedBy = tag.getCreatedBy();
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             tag.setName("renamed");
             repository.save(tag);
@@ -493,7 +491,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_return_403_when_editor() {
             final var tag = persistTag();
-            grantReadPermissionToRoleEditor(toObjectIdentity(Tag.class, tag.getId()));
 
             restTestClient
                     .post()

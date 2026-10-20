@@ -122,7 +122,7 @@ public class SpexareGraphqlApi {
     }
 
     @MutationMapping("spexareDelete")
-    @RequiresAdmin
+    @RequiresAdminOrEditorOrUser
     public void delete(@Argument final Long id, @Argument final boolean purge) {
         service.deleteById(id);
         if (purge) {

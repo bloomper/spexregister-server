@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.tag;
 
-import nu.fgv.register.server.acl.PermissionService;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
@@ -33,7 +32,6 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.acls.model.AclCache;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.core.type.TypeReference;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.toObjectIdentity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -60,13 +57,11 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     public TagGraphqlApiIntegrationTest(final JdbcClient jdbcClient,
-                                        final AclCache aclCache,
                                         final Keycloak keycloakAdminClient,
                                         final String keycloakClientId,
-                                        final PermissionService permissionService,
                                         final TagRepository repository,
                                         final ObjectMapper objectMapper) {
-        super(jdbcClient, aclCache, keycloakAdminClient, keycloakClientId, permissionService, objectMapper);
+        super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -123,7 +118,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -143,7 +137,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final int size = 42;
             IntStream.range(0, size).forEach(i -> {
                 final var tag = persistTag(randomizeTag());
-                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
             });
 
             httpGraphQlTester
@@ -290,7 +283,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var tag = persistTag(randomizeTag());
-                        grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
                         return tag.getId();
                     })
                     .toList();
@@ -304,7 +296,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_zero() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -323,7 +314,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_one() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -347,7 +337,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 if (i % 2 == 0) {
                     tag.setName("whatever");
                 }
-                grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, persistTag(tag).getId()));
+                persistTag(tag);
             });
 
             httpGraphQlTester
@@ -448,7 +438,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_found() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -489,8 +478,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_update() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleUser(toObjectIdentity(Tag.class, tag.getId()));
-            grantWritePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = httpGraphQlTester
                     .mutate()
@@ -597,11 +584,10 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             final TagDto before = httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
                     .variable("id", tag.getId())
@@ -619,7 +605,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tagUpdate")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
@@ -665,8 +651,6 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_delete() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
-            grantDeletePermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
@@ -705,11 +689,10 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_return_FORBIDDEN_when_not_permitted_due_to_insufficient_permission() {
             final var tag = persistTag(randomizeTag());
-            grantReadPermissionToRoleAdmin(toObjectIdentity(Tag.class, tag.getId()));
 
             httpGraphQlTester
                     .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tagDelete")
                     .variable("id", tag.getId())
