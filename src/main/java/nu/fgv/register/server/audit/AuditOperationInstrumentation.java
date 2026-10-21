@@ -17,6 +17,7 @@
 package nu.fgv.register.server.audit;
 
 import graphql.ExecutionResult;
+import graphql.GraphQLContext;
 import graphql.execution.instrumentation.InstrumentationContext;
 import graphql.execution.instrumentation.InstrumentationState;
 import graphql.execution.instrumentation.SimpleInstrumentationContext;
@@ -35,12 +36,16 @@ public class AuditOperationInstrumentation extends SimplePerformantInstrumentati
     @Override
     public InstrumentationContext<ExecutionResult> beginExecuteOperation(final InstrumentationExecuteOperationParameters parameters,
                                                                          final InstrumentationState state) {
-        final AuditContext.Origin origin = AuditContext.current();
+        final GraphQLContext context = parameters.getExecutionContext().getGraphQLContext();
+        final AuditContext.Origin origin = context.getOrDefault(AuditContextAccessor.KEY, AuditContext.current());
         final OperationDefinition operation = parameters.getExecutionContext().getOperationDefinition();
         final String name = operation == null ? null : operation.getName();
 
         if (origin != null && name != null && !name.isBlank()) {
-            AuditContext.set(origin.withOperation(name));
+            final AuditContext.Origin named = origin.withOperation(name);
+
+            AuditContext.set(named);
+            context.put(AuditContextAccessor.KEY, named);
         }
 
         return SimpleInstrumentationContext.noOp();
