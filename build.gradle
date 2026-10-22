@@ -290,6 +290,9 @@ jib {
                     filter {
                         glob = '**/spring-boot-docker-compose-*.jar'
                     }
+                    filter {
+                        glob = '**/spring-boot-devtools-*.jar'
+                    }
                 }
             }
         }

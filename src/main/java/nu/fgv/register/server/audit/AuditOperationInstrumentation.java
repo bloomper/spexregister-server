@@ -24,6 +24,7 @@ import graphql.execution.instrumentation.SimpleInstrumentationContext;
 import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationExecuteOperationParameters;
 import graphql.language.OperationDefinition;
+import io.micrometer.context.ContextRegistry;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +33,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AuditOperationInstrumentation extends SimplePerformantInstrumentation {
+
+    public AuditOperationInstrumentation() {
+        ContextRegistry.getInstance().registerThreadLocalAccessor(new AuditContextAccessor());
+    }
 
     @Override
     public InstrumentationContext<ExecutionResult> beginExecuteOperation(final InstrumentationExecuteOperationParameters parameters,
