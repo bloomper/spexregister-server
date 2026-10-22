@@ -30,6 +30,7 @@ services:
 
   spexregister-api:
     image: 'bloomper/spexregister-server:develop'
+    profiles: [ api ]
     #platform: linux/arm64
     environment:
       SPRING_PROFILES_ACTIVE: local
@@ -43,14 +44,15 @@ services:
       API_KEYCLOAK_REALM: ${API_KEYCLOAK_REALM}
       API_KEYCLOAK_ADMIN_CLIENT_ID: ${API_KEYCLOAK_ADMIN_CLIENT_ID}
       API_KEYCLOAK_CLIENT_CLIENT_ID: ${API_KEYCLOAK_CLIENT_CLIENT_ID}
-      API_SEED_AUDIT_DATA: ${API_SEED_AUDIT_DATA}
-      API_IMPORT_SAMPLE_DATA: ${API_IMPORT_SAMPLE_DATA}
+      API_SEED_AUDIT_DATA: ${API_SEED_AUDIT_DATA:-false}
+      API_IMPORT_SAMPLE_DATA: ${API_IMPORT_SAMPLE_DATA:-false}
       SPRING_MAIL_HOST: mailpit
       SPRING_MAIL_PORT: 1025
       MAIL_FROM: noreply@fgv.local.nu
       ADMIN_NOTIFICATION_RECIPIENTS: admin@fgv.local.nu
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-server:8080/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://auth.fgv.local.nu:8443/auth/realms/fgv
+      SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES: spexregister,fgv-revival-service
     restart: on-failure
     healthcheck:
       test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /actuator/health HTTP/1.1\r\nhost: api.register.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep -q \"^HTTP/1.1 200\" <&3" ]
