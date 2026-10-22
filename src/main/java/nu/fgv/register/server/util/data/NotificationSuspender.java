@@ -23,6 +23,7 @@ import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author Anders Jacobsson
@@ -36,7 +37,7 @@ final class NotificationSuspender {
     private NotificationSuspender() {
     }
 
-    static Suspension suspend(final RealmResource realm) {
+    static <T> T whileSuspended(final RealmResource realm, final Supplier<T> action) {
         final RealmEventsConfigRepresentation config;
 
         try {
@@ -44,40 +45,38 @@ final class NotificationSuspender {
         } catch (final ForbiddenException e) {
             log.warn("The Keycloak admin client lacks the realm-management role manage-events, so the event listener {} stays on and the sample users are emailed",
                     NOTIFICATION_LISTENER);
-            return () -> {
-            };
+            return action.get();
         }
 
         if (config.getEventsListeners() == null || !config.getEventsListeners().contains(NOTIFICATION_LISTENER)) {
-            return () -> {
-            };
+            return action.get();
         }
 
         config.setEventsListeners(config.getEventsListeners().stream().filter(listener -> !listener.equals(NOTIFICATION_LISTENER)).toList());
         realm.updateRealmEventsConfig(config);
         log.info("Turned off event listener {}", NOTIFICATION_LISTENER);
 
-        return () -> {
-            try {
-                final RealmEventsConfigRepresentation current = realm.getRealmEventsConfig();
-                final List<String> listeners = new ArrayList<>(current.getEventsListeners() == null ? List.of() : current.getEventsListeners());
-
-                if (!listeners.contains(NOTIFICATION_LISTENER)) {
-                    listeners.add(NOTIFICATION_LISTENER);
-                    current.setEventsListeners(listeners);
-                    realm.updateRealmEventsConfig(current);
-                }
-                log.info("Turned event listener {} back on", NOTIFICATION_LISTENER);
-            } catch (final RuntimeException e) {
-                log.error("Could not turn event listener {} back on. Add it again under Realm settings -> Events -> Event listeners",
-                        NOTIFICATION_LISTENER, e);
-            }
-        };
+        try {
+            return action.get();
+        } finally {
+            turnBackOn(realm);
+        }
     }
 
-    interface Suspension extends AutoCloseable {
+    private static void turnBackOn(final RealmResource realm) {
+        try {
+            final RealmEventsConfigRepresentation current = realm.getRealmEventsConfig();
+            final List<String> listeners = new ArrayList<>(current.getEventsListeners() == null ? List.of() : current.getEventsListeners());
 
-        @Override
-        void close();
+            if (!listeners.contains(NOTIFICATION_LISTENER)) {
+                listeners.add(NOTIFICATION_LISTENER);
+                current.setEventsListeners(listeners);
+                realm.updateRealmEventsConfig(current);
+            }
+            log.info("Turned event listener {} back on", NOTIFICATION_LISTENER);
+        } catch (final RuntimeException e) {
+            log.error("Could not turn event listener {} back on. Add it again under Realm settings -> Events -> Event listeners",
+                    NOTIFICATION_LISTENER, e);
+        }
     }
 }

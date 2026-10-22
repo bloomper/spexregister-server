@@ -26,6 +26,7 @@ import java.util.List;
 
 import static nu.fgv.register.server.util.data.NotificationSuspender.NOTIFICATION_LISTENER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -54,10 +55,13 @@ class NotificationSuspenderTest {
 
         when(realm.getRealmEventsConfig()).thenReturn(config("jboss-logging", NOTIFICATION_LISTENER), config("jboss-logging"));
 
-        try (NotificationSuspender.Suspension ignored = NotificationSuspender.suspend(realm)) {
+        final String result = NotificationSuspender.whileSuspended(realm, () -> {
             verify(realm).updateRealmEventsConfig(updated.capture());
             assertThat(updated.getValue().getEventsListeners()).containsExactly("jboss-logging");
-        }
+            return "done";
+        });
+
+        assertThat(result).isEqualTo("done");
 
         verify(realm, times(2)).updateRealmEventsConfig(updated.capture());
         assertThat(updated.getValue().getEventsListeners()).containsExactly("jboss-logging", NOTIFICATION_LISTENER);
@@ -67,7 +71,7 @@ class NotificationSuspenderTest {
     void leavesTheListenerAloneWhenAlreadyBackOn() {
         when(realm.getRealmEventsConfig()).thenReturn(config(NOTIFICATION_LISTENER), config(NOTIFICATION_LISTENER));
 
-        NotificationSuspender.suspend(realm).close();
+        NotificationSuspender.whileSuspended(realm, () -> null);
 
         verify(realm, times(1)).updateRealmEventsConfig(any());
     }
@@ -76,16 +80,27 @@ class NotificationSuspenderTest {
     void doesNothingWhenTheListenerIsOff() {
         when(realm.getRealmEventsConfig()).thenReturn(config("jboss-logging"));
 
-        NotificationSuspender.suspend(realm).close();
+        NotificationSuspender.whileSuspended(realm, () -> null);
 
         verify(realm, never()).updateRealmEventsConfig(any());
+    }
+
+    @Test
+    void turnsTheListenerBackOnWhenTheActionFails() {
+        when(realm.getRealmEventsConfig()).thenReturn(config(NOTIFICATION_LISTENER), config());
+
+        assertThatThrownBy(() -> NotificationSuspender.whileSuspended(realm, () -> {
+            throw new IllegalStateException("boom");
+        })).isInstanceOf(IllegalStateException.class);
+
+        verify(realm, times(2)).updateRealmEventsConfig(any());
     }
 
     @Test
     void goesOnWithoutTheRole() {
         when(realm.getRealmEventsConfig()).thenThrow(new ForbiddenException());
 
-        NotificationSuspender.suspend(realm).close();
+        NotificationSuspender.whileSuspended(realm, () -> null);
 
         verify(realm, never()).updateRealmEventsConfig(any());
     }
