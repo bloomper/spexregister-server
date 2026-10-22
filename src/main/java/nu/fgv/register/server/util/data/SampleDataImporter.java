@@ -146,9 +146,12 @@ public class SampleDataImporter {
         if (failedImageDownloads.get() > 0) {
             log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
         }
-        timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
+        final List<String> users;
 
-        final List<String> users = timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
+        try (final NotificationSuspender.Suspension ignored = NotificationSuspender.suspend(keycloakAdminClient.realm(keycloakRealm))) {
+            timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
+            users = timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
+        }
 
         timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
 
