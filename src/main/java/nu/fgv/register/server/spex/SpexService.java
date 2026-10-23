@@ -258,7 +258,7 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public Pair<byte[], String> getPoster(final Long id) {
         if (!doesSpexExist(id)) {
             throw new ResourceNotFoundException(Spex.class, id);
