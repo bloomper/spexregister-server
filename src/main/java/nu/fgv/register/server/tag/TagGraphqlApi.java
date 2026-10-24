@@ -24,7 +24,7 @@ import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -53,7 +53,7 @@ public class TagGraphqlApi {
     private final JobService jobService;
 
     @QueryMapping("tagPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public CountedWindow<TagDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
@@ -73,7 +73,7 @@ public class TagGraphqlApi {
     }
 
     @QueryMapping("tag")
-    @RequiresAdminOrEditorOrUser
+    @RequiresReferenceDataReader
     public TagDto retrieve(@Argument final Long id) {
         return service.findById(id);
     }

@@ -287,7 +287,7 @@ class SettingsApiIntegrationTest extends AbstractIntegrationTest {
                             .getResponseBody())
                     .getList("types");
 
-            assertThat(result).hasSize(17);
+            assertThat(result).hasSize(18);
         }
 
         @Test

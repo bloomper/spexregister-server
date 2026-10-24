@@ -646,6 +646,61 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Retrieve by ids")
+    class RetrieveByIdsTests {
+
+        private static final String DOCUMENT = "query spexareByIds($ids: [ID!]!) { spexareByIds(ids: $ids) { id published } }";
+
+        @Test
+        void should_return_only_those_a_user_may_read() {
+            final var published = persistSpexare(randomizeSpexare(true));
+            final var unpublished = persistSpexare(randomizeSpexare(false));
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .document(DOCUMENT)
+                    .variable("ids", List.of(published.getId(), unpublished.getId()))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareByIds[*].id").entityList(Long.class).containsExactly(published.getId());
+        }
+
+        @Test
+        void should_return_all_to_an_admin() {
+            final var published = persistSpexare(randomizeSpexare(true));
+            final var unpublished = persistSpexare(randomizeSpexare(false));
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .document(DOCUMENT)
+                    .variable("ids", List.of(published.getId(), unpublished.getId()))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareByIds[*].id").entityList(Long.class).hasSize(2).contains(published.getId(), unpublished.getId());
+        }
+
+        @Test
+        void should_return_BAD_REQUEST_when_too_many_ids() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .document(DOCUMENT)
+                    .variable("ids", IntStream.rangeClosed(1, SpexareService.MAX_IDS + 1).boxed().toList())
+                    .execute()
+                    .errors()
+                    .satisfy(errors -> assertThat(errors)
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.BAD_REQUEST.toString())));
+        }
+    }
+
+    @Nested
     @DisplayName("Create")
     class CreateTests {
 

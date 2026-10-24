@@ -28,9 +28,10 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.WindowWithFacets;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -65,13 +66,13 @@ public class SpexareGraphqlApi {
     private final SpexareRemovalRequestService removalRequestService;
 
     @QueryMapping("spexarePaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @QueryMapping("spexareSearchPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public WindowWithFacets<SpexareDto> retrieve(final ScrollSubrange subrange, @Argument final String q, @Nullable @Argument final List<AggregationFilter> aggregationFilters, final Optional<Sort> sort) {
         return service.search(q, Optional.ofNullable(aggregationFilters).orElse(Collections.emptyList()), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
@@ -97,15 +98,27 @@ public class SpexareGraphqlApi {
     }
 
     @MutationMapping("spexareCreate")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrRevival
     public SpexareDto create(@Valid @Argument final SpexareCreateDto input) {
         return service.create(input);
     }
 
     @QueryMapping("spexare")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexareDto retrieve(@Argument final Long id) {
         return service.findById(id);
+    }
+
+    @QueryMapping("spexareByIds")
+    @RequiresAdminOrEditorOrUserOrRevival
+    public List<SpexareDto> retrieveByIds(@Argument final List<Long> ids) {
+        return service.findByIds(ids);
+    }
+
+    @QueryMapping("spexareBySpex")
+    @RequiresAdminOrEditorOrUserOrRevival
+    public List<SpexareDto> retrieveBySpex(@Argument final Long spexId) {
+        return service.findBySpex(spexId);
     }
 
     @QueryMapping("spexareMe")

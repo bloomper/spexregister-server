@@ -16,11 +16,10 @@
 
 package nu.fgv.register.server.util.security;
 
+import nu.fgv.register.server.audit.Auditor;
 import org.springframework.data.domain.AuditorAware;
 
 import java.util.Optional;
-
-import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserEmailClaim;
 
 /**
  * @author Anders Jacobsson
@@ -30,7 +29,7 @@ public class JwtAuditorAwareImpl implements AuditorAware<String> {
 
     @Override
     public Optional<String> getCurrentAuditor() {
-        return Optional.of(getCurrentUserEmailClaim());
+        return Optional.of(Auditor.current());
     }
 
 }

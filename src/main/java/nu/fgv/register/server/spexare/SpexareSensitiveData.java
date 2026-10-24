@@ -16,9 +16,11 @@
 
 package nu.fgv.register.server.spexare;
 
+import nu.fgv.register.server.security.policy.Caller;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
@@ -31,6 +33,8 @@ import static org.springframework.util.StringUtils.hasText;
 public final class SpexareSensitiveData {
 
     public static final String FIELD = Spexare_.SOCIAL_SECURITY_NUMBER;
+
+    public static final Set<String> RESTRICTED_FIELDS = Set.of(Spexare_.MEMBERSHIPS, Spexare_.USER);
 
     private static final int BIRTH_DATE_LENGTH = 8;
 
@@ -53,6 +57,16 @@ public final class SpexareSensitiveData {
 
     public static boolean isSensitivePath(final String path) {
         return Arrays.asList(path.split("\\.")).contains(FIELD);
+    }
+
+    public static boolean isLimitedToRevival() {
+        final Caller caller = Caller.current();
+
+        return caller.hasRole(Caller.REVIVAL) && !caller.hasAnyRole(Set.of(Caller.ADMIN, Caller.EDITOR, Caller.USER));
+    }
+
+    public static boolean isRestrictedPath(final String path) {
+        return Arrays.stream(path.split("\\.")).anyMatch(RESTRICTED_FIELDS::contains);
     }
 
     private static boolean isOwnRecord(final Spexare spexare) {

@@ -35,7 +35,7 @@ public class SpexPolicy implements AccessPolicy<Spex> {
 
     private static final RoleRules RULES = RoleRules.builder()
             .read(USER, EDITOR, ADMIN, REVIVAL)
-            .write(EDITOR)
+            .write(EDITOR, REVIVAL)
             .administer(ADMIN)
             .build();
 

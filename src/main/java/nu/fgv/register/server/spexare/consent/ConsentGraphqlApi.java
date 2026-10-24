@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
@@ -50,13 +51,13 @@ public class ConsentGraphqlApi {
     private final ConsentService service;
 
     @MutationMapping("consentCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentCreateDto input) {
         return service.create(spexareId, typeId, input);
     }
 
     @MutationMapping("consentUpdate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentUpdateDto input) {
         return service.update(spexareId, typeId, input.id(), input);
     }
@@ -68,13 +69,13 @@ public class ConsentGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Spexare", field = "consentsPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ConsentDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         return service.findBySpexare(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @BatchMapping(typeName = "Spexare", field = "consents")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public Map<SpexareDto, List<ConsentDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
         final Map<Long, List<ConsentDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 

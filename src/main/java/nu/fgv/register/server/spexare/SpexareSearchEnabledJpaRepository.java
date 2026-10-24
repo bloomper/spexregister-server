@@ -52,6 +52,7 @@ import java.util.regex.Pattern;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
+import static nu.fgv.register.server.util.security.SecurityUtil.isRevival;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -186,7 +187,7 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
 
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
-        final boolean readsUnpublished = isAdministratorOrEditor();
+        final boolean readsUnpublished = isAdministratorOrEditor() || isRevival();
         final Set<Long> grantedIds = readsUnpublished ? Set.of() : ApplicationContextHolder.getBean(PermissionGrants.class).readableSpexareIds(Caller.current());
         final boolean sensitiveReadable = SpexareSensitiveData.isReadableForAll();
         var search = searchSession

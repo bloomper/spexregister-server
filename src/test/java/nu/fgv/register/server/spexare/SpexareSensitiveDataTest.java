@@ -28,6 +28,7 @@ import java.util.List;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_EDITOR;
+import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_REVIVAL;
 import static nu.fgv.register.server.util.security.SecurityUtil.ROLE_USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -77,6 +78,33 @@ class SpexareSensitiveDataTest {
 
         assertThat(dto.getSocialSecurityNumber(), is(equalTo(SOCIAL_SECURITY_NUMBER)));
         assertThat(dto.getComment(), is(equalTo(COMMENT)));
+    }
+
+    @Test
+    void should_show_only_the_birth_date_to_nyuppsattning() {
+        authenticate("service-account-fgv-revival-service", ROLE_REVIVAL);
+
+        final SpexareDto dto = SPEXARE_MAPPER.toDto(spexare("owner"));
+
+        assertThat(dto.getSocialSecurityNumber(), is(equalTo("19850101")));
+        assertThat(SpexareSensitiveData.isReadableForAll(), is(false));
+    }
+
+    @Test
+    void should_limit_nyuppsattning_but_not_a_user_who_also_holds_revival() {
+        authenticate("service-account-fgv-revival-service", ROLE_REVIVAL);
+        assertThat(SpexareSensitiveData.isLimitedToRevival(), is(true));
+
+        authenticate("someone", ROLE_USER);
+        assertThat(SpexareSensitiveData.isLimitedToRevival(), is(false));
+    }
+
+    @Test
+    void should_recognise_restricted_paths() {
+        assertThat(SpexareSensitiveData.isRestrictedPath("memberships.type.id"), is(true));
+        assertThat(SpexareSensitiveData.isRestrictedPath("user.externalId"), is(true));
+        assertThat(SpexareSensitiveData.isRestrictedPath("activities.spexActivity.spex.id"), is(false));
+        assertThat(SpexareSensitiveData.isRestrictedPath("firstName"), is(false));
     }
 
     @Test

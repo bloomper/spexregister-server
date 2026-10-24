@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
@@ -50,13 +51,13 @@ public class AddressGraphqlApi {
     private final AddressService service;
 
     @MutationMapping("addressCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final AddressCreateDto input) {
         return service.create(spexareId, typeId, input);
     }
 
     @MutationMapping("addressUpdate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final AddressUpdateDto input) {
         return service.update(spexareId, typeId, input.id(), input);
     }
@@ -68,13 +69,13 @@ public class AddressGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Spexare", field = "addressesPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<AddressDto> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.findBySpexare(dto.getId(), filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @BatchMapping(typeName = "Spexare", field = "addresses")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public Map<SpexareDto, List<AddressDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
         final Map<Long, List<AddressDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 

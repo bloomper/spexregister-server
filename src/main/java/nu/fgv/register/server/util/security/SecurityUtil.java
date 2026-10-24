@@ -38,6 +38,7 @@ public class SecurityUtil {
     public static final String ROLE_ADMIN = "ROLE_spexregister_ADMIN";
     public static final String ROLE_EDITOR = "ROLE_spexregister_EDITOR";
     public static final String ROLE_USER = "ROLE_spexregister_USER";
+    public static final String ROLE_REVIVAL = "ROLE_spexregister_REVIVAL";
     public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
 
     private SecurityUtil() {
@@ -51,6 +52,18 @@ public class SecurityUtil {
 
     public static String getCurrentUserEmailClaim() {
         return getCurrentUserClaim("email")
+                .map(String.class::cast)
+                .orElse("");
+    }
+
+    public static String getCurrentUserPreferredUsernameClaim() {
+        return getCurrentUserClaim("preferred_username")
+                .map(String.class::cast)
+                .orElse("");
+    }
+
+    public static String getCurrentAuthorizedPartyClaim() {
+        return getCurrentUserClaim("azp")
                 .map(String.class::cast)
                 .orElse("");
     }
@@ -71,6 +84,10 @@ public class SecurityUtil {
 
     public static boolean isAdministratorOrEditor() {
         return isAdministrator() || isEditor();
+    }
+
+    public static boolean isRevival() {
+        return hasRole(SecurityUtil.ROLE_REVIVAL);
     }
 
     private static boolean hasRole(final String role) {

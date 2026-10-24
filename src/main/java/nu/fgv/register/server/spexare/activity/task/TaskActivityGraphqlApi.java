@@ -23,6 +23,7 @@ import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -52,7 +53,7 @@ public class TaskActivityGraphqlApi {
     private final TaskActivityService service;
 
     @MutationMapping("taskActivityCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<TaskActivityDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskId) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, taskId),
@@ -82,7 +83,7 @@ public class TaskActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Activity", field = "taskActivitiesPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<CountedWindow<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                                                 final ActivityDto dto,
                                                                                 final ScrollSubrange subrange,
@@ -97,7 +98,7 @@ public class TaskActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Activity", field = "taskActivities")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<List<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                                        final ActivityDto dto) {
         return buildDataFetcherResult(
@@ -110,7 +111,7 @@ public class TaskActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "TaskActivity", field = "task")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public TaskDto retrieveTask(@LocalContextValue("spexareId") final Long spexareId,
                                 @LocalContextValue("activityId") final Long activityId,
                                 final TaskActivityDto dto) {

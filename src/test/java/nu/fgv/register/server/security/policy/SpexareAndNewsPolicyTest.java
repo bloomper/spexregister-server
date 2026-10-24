@@ -49,8 +49,8 @@ class SpexareAndNewsPolicyTest {
             "EDITOR,   false,     RW--",
             "USER,     true,      R---",
             "USER,     false,     ----",
-            "REVIVAL,  true,      ----",
-            "REVIVAL,  false,     ----",
+            "REVIVAL,  true,      RW--",
+            "REVIVAL,  false,     RW--",
             "NONE,     true,      ----"
     })
     void should_decide_spexare(final String role, final boolean published, final String flags) {

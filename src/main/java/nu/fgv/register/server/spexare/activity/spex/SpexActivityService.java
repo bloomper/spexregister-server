@@ -31,6 +31,7 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,7 +58,7 @@ public class SpexActivityService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexActivityDto findByActivity(final Long spexareId, final Long activityId) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return spexareRepository
@@ -97,7 +98,7 @@ public class SpexActivityService {
                 .isPresent();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexActivityDto create(final Long spexareId, final Long activityId, final Long spexId) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId)) {
             return spexareRepository
@@ -185,7 +186,7 @@ public class SpexActivityService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto findSpexBySpexActivity(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {
             return spexareRepository

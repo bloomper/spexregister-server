@@ -16,7 +16,15 @@
 
 package nu.fgv.register.server.spexare;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import lombok.Getter;
+import nu.fgv.register.server.spex.Spex;
+import nu.fgv.register.server.spex.Spex_;
+import nu.fgv.register.server.spexare.activity.Activity_;
+import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
+import nu.fgv.register.server.spexare.activity.spex.SpexActivity_;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -41,6 +49,22 @@ public class SpexareSpecification extends BaseSpecification<Spexare> {
 
     public static Specification<Spexare> hasIds(final List<Long> ids) {
         return (root, query, criteriaBuilder) -> root.get(Spexare_.id).in(ids);
+    }
+
+    public static Specification<Spexare> hasSpexActivityInSpexOrRevivals(final Long spexId) {
+        return (root, query, criteriaBuilder) -> {
+            final Subquery<Long> participants = query.subquery(Long.class);
+            final Root<SpexActivity> spexActivity = participants.from(SpexActivity.class);
+            final Join<SpexActivity, Spex> spex = spexActivity.join(SpexActivity_.spex);
+
+            participants
+                    .select(spexActivity.get(SpexActivity_.activity).get(Activity_.spexare).get(Spexare_.id))
+                    .where(criteriaBuilder.or(
+                            criteriaBuilder.equal(spex.get(Spex_.id), spexId),
+                            criteriaBuilder.equal(spex.get(Spex_.parent).get(Spex_.id), spexId)));
+
+            return root.get(Spexare_.id).in(participants);
+        };
     }
 
 }

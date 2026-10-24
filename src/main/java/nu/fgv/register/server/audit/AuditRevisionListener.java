@@ -18,7 +18,6 @@ package nu.fgv.register.server.audit;
 
 import org.hibernate.envers.RevisionListener;
 
-import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserEmailClaim;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -39,12 +38,12 @@ public class AuditRevisionListener implements RevisionListener {
     }
 
     private String resolveCurrentUser() {
-        final String currentUserEmail = getCurrentUserEmailClaim();
+        final String auditor = Auditor.current();
 
-        if (!hasText(currentUserEmail)) {
+        if (!hasText(auditor)) {
             return "system";
         }
 
-        return currentUserEmail;
+        return auditor;
     }
 }

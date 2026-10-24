@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
+import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
@@ -39,8 +40,8 @@ import static nu.fgv.register.server.security.policy.Caller.USER;
 public class SpexarePolicy implements AccessPolicy<Spexare> {
 
     private static final RoleRules RULES = RoleRules.builder()
-            .read(EDITOR, ADMIN)
-            .write(EDITOR)
+            .read(EDITOR, ADMIN, REVIVAL)
+            .write(EDITOR, REVIVAL)
             .administer(ADMIN)
             .build();
 

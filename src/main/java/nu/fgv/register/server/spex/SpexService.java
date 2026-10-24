@@ -36,8 +36,8 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -345,7 +345,7 @@ public class SpexService {
         );
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto addRevival(final Long id, final String year) {
         if (doesSpexExist(id)) {
             return repository

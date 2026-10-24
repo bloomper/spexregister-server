@@ -35,6 +35,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -71,7 +72,7 @@ public class AddressService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public Map<Long, List<AddressDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
                 .filter(permissionService::hasReadPermission)
@@ -99,7 +100,7 @@ public class AddressService {
         );
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<AddressDto> findBySpexare(final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(id, spexare ->
                         repository
@@ -155,7 +156,7 @@ public class AddressService {
                 .isPresent();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
@@ -178,12 +179,12 @@ public class AddressService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto update(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         return partialUpdate(spexareId, typeId, id, dto);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto partialUpdate(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
             return typeRepository

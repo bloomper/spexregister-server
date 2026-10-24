@@ -38,6 +38,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -70,7 +71,7 @@ public class ActorService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public List<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
                         repository
@@ -82,7 +83,7 @@ public class ActorService {
         );
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
                         repository
@@ -140,7 +141,7 @@ public class ActorService {
                 .isPresent();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public ActorDto create(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final ActorCreateDto dto) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId)) {
             return spexareRepository

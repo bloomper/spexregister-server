@@ -1,0 +1,1 @@
+INSERT INTO type (id, type, labels, created_by, created_at, version) VALUES ('REGISTER', 'CONSENT', '{ "en": "Contact details in the register", "sv": "Kontaktuppgifter i registret" }', 'system', CURRENT_DATE(), 0);

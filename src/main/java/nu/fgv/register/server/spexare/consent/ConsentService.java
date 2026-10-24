@@ -33,6 +33,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -68,7 +69,7 @@ public class ConsentService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public Map<Long, List<ConsentDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
                 .filter(permissionService::hasReadPermission)
@@ -96,7 +97,7 @@ public class ConsentService {
         );
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ConsentDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
                         repository
@@ -145,7 +146,7 @@ public class ConsentService {
                 .isPresent();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto create(final Long spexareId, final String typeId, final ConsentCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
@@ -169,7 +170,7 @@ public class ConsentService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto update(final Long spexareId, final String typeId, final Long id, final ConsentUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             return typeRepository

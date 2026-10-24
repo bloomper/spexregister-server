@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 public class AuditContextFilter extends OncePerRequestFilter {
 
     static final String REASON_HEADER = "X-Audit-Reason";
+    static final String ACTING_PERSON_HEADER = "X-Acting-Person";
 
     private static @Nullable String operationOf(final HttpServletRequest request) {
         final String uri = request.getRequestURI();
@@ -44,16 +45,24 @@ public class AuditContextFilter extends OncePerRequestFilter {
     }
 
     private static @Nullable String reasonOf(final HttpServletRequest request) {
-        final String reason = request.getHeader(REASON_HEADER);
+        return decodedHeader(request, REASON_HEADER);
+    }
 
-        if (reason == null) {
+    private static @Nullable String actingPersonOf(final HttpServletRequest request) {
+        return decodedHeader(request, ACTING_PERSON_HEADER);
+    }
+
+    private static @Nullable String decodedHeader(final HttpServletRequest request, final String name) {
+        final String value = request.getHeader(name);
+
+        if (value == null) {
             return null;
         }
 
         try {
-            return UriUtils.decode(reason, StandardCharsets.UTF_8);
+            return UriUtils.decode(value, StandardCharsets.UTF_8);
         } catch (final IllegalArgumentException _) {
-            return reason;
+            return value;
         }
     }
 
@@ -61,7 +70,7 @@ public class AuditContextFilter extends OncePerRequestFilter {
     protected void doFilterInternal(final HttpServletRequest request,
                                     final HttpServletResponse response,
                                     final FilterChain chain) throws ServletException, IOException {
-        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, operationOf(request), reasonOf(request)));
+        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, operationOf(request), reasonOf(request), actingPersonOf(request)));
 
         try {
             chain.doFilter(request, response);

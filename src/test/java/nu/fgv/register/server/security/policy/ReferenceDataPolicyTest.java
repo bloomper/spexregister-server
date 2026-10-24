@@ -61,7 +61,7 @@ class ReferenceDataPolicyTest {
             "SPEX,            ADMIN,   RWDA",
             "SPEX,            EDITOR,  RW--",
             "SPEX,            USER,    R---",
-            "SPEX,            REVIVAL, R---",
+            "SPEX,            REVIVAL, RW--",
             "SPEX,            NONE,    ----",
             "SPEX_CATEGORY,   ADMIN,   RWDA",
             "SPEX_CATEGORY,   EDITOR,  R---",
@@ -81,7 +81,7 @@ class ReferenceDataPolicyTest {
             "TAG,             ADMIN,   RWDA",
             "TAG,             EDITOR,  RWD-",
             "TAG,             USER,    R---",
-            "TAG,             REVIVAL, ----",
+            "TAG,             REVIVAL, R---",
             "TAG,             NONE,    ----"
     })
     @SuppressWarnings("unchecked")

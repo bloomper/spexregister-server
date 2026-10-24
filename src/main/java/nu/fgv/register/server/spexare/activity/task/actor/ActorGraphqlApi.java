@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.activity.task.TaskActivityDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
@@ -50,7 +51,7 @@ public class ActorGraphqlApi {
     private final ActorService service;
 
     @MutationMapping("actorCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<ActorDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, taskActivityId, vocalId, input),
@@ -84,7 +85,7 @@ public class ActorGraphqlApi {
     }
 
     @SchemaMapping(typeName = "TaskActivity", field = "actorsPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                           @LocalContextValue("activityId") final Long activityId,
                                                           final TaskActivityDto dto,
@@ -102,7 +103,7 @@ public class ActorGraphqlApi {
     }
 
     @SchemaMapping(typeName = "TaskActivity", field = "actors")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public List<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                  @LocalContextValue("activityId") final Long activityId,
                                                  final TaskActivityDto dto) {

@@ -45,7 +45,7 @@ public abstract class AbstractAuditable {
     private Long version;
 
     @CreatedBy
-    @Column(name = "created_by", nullable = false, length = 50, updatable = false)
+    @Column(name = "created_by", nullable = false, length = 255, updatable = false)
     @NotAudited
     private String createdBy;
 
@@ -55,7 +55,7 @@ public abstract class AbstractAuditable {
     private Instant createdAt = Instant.now();
 
     @LastModifiedBy
-    @Column(name = "last_modified_by", length = 50)
+    @Column(name = "last_modified_by", length = 255)
     @NotAudited
     private String lastModifiedBy;
 

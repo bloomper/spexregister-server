@@ -219,7 +219,7 @@ class SettingsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .verify()
                     .path("types")
                     .entityList(TypeDto.class)
-                    .hasSize(17);
+                    .hasSize(18);
         }
 
         @Test

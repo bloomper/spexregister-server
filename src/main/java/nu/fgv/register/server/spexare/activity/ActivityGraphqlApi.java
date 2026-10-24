@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -50,7 +51,7 @@ public class ActivityGraphqlApi {
     private final ActivityService service;
 
     @MutationMapping("activityCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<ActivityDto> create(@Argument final Long spexareId) {
         return buildDataFetcherResult(
                 service.create(spexareId),
@@ -67,7 +68,7 @@ public class ActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Spexare", field = "activitiesPaged")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<CountedWindow<ActivityDto>> retrieveBySpexare(final SpexareDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         return buildDataFetcherResult(
                 service.findBySpexare(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted())),
@@ -78,7 +79,7 @@ public class ActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Spexare", field = "activities")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<List<ActivityDto>> retrieveBySpexare(final SpexareDto dto) {
         return buildDataFetcherResult(
                 service.findBySpexare(dto.getId()),

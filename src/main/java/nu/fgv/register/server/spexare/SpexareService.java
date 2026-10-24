@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.permission.PermissionGrantService;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.spex.Spex;
+import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
@@ -40,9 +42,9 @@ import nu.fgv.register.server.util.search.PageWithFacets;
 import nu.fgv.register.server.util.search.PageWithFacetsImpl;
 import nu.fgv.register.server.util.search.WindowWithFacets;
 import nu.fgv.register.server.util.search.WindowWithFacetsImpl;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.util.common.SearchException;
@@ -62,6 +64,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,14 +75,18 @@ import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATIONS;
+import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.AGGREGATION_DATA_QUALITY;
 import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.FACET_COUNTRIES;
+import static nu.fgv.register.server.spexare.SpexareSearchEnabledJpaRepository.FACET_MEMBERSHIPS;
 import static nu.fgv.register.server.spexare.SpexareSpecification.NO_FILTER;
 import static nu.fgv.register.server.spexare.SpexareSpecification.hasIds;
+import static nu.fgv.register.server.spexare.SpexareSpecification.hasSpexActivityInSpexOrRevivals;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorOrEditor;
+import static nu.fgv.register.server.util.security.SecurityUtil.isRevival;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -92,13 +99,18 @@ import static org.springframework.util.StringUtils.hasText;
 @Transactional
 public class SpexareService {
 
+    public static final int MAX_IDS = 500;
+
     private final SpexareRepository repository;
+    private final SpexRepository spexRepository;
     private final PermissionService permissionService;
     private final PermissionGrantService permissionGrantService;
     private final MessageSource messageSource;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final ScrollRequest scroll, final Sort sort) {
+        requirePermittedAggregationFilters(aggregationFilters);
+
         final int limit = scroll.limit();
         final long knownTotal = scroll.lastPage() ? repository.search(query, aggregationFilters, 0, 1, sort).total().hitCount() : 0L;
         final int offset = Math.toIntExact(scroll.offsetFor(knownTotal));
@@ -128,7 +140,7 @@ public class SpexareService {
         return repository.countByDataQualityIssue(issue);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<SpexareDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
@@ -156,7 +168,36 @@ public class SpexareService {
                         .map(SPEXARE_MAPPER::toDto);
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
+    public List<SpexareDto> findByIds(final Collection<Long> ids) {
+        if (ids.size() > MAX_IDS) {
+            throw new BadRequestException("At most %d ids can be fetched at once".formatted(MAX_IDS));
+        }
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        return repository
+                .findAll(hasIds(List.copyOf(new LinkedHashSet<>(ids))), Permission.READ)
+                .stream()
+                .map(SPEXARE_MAPPER::toDto)
+                .toList();
+    }
+
+    @RequiresAdminOrEditorOrUserOrRevival
+    public List<SpexareDto> findBySpex(final Long spexId) {
+        final Spex spex = spexRepository
+                .findById0(spexId)
+                .orElseThrow(() -> new ResourceNotFoundException(Spex.class, spexId));
+
+        return repository
+                .findAll(hasSpexActivityInSpexOrRevivals(spex.getId()), Sort.by(Spexare_.LAST_NAME, Spexare_.FIRST_NAME, Spexare_.ID), Permission.READ)
+                .stream()
+                .map(SPEXARE_MAPPER::toDto)
+                .toList();
+    }
+
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexareDto findById(final Long id) {
         return repository
                 .findById0(id)
@@ -201,9 +242,9 @@ public class SpexareService {
         };
     }
 
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrRevival
     public SpexareDto create(final SpexareCreateDto dto) {
-        return Optional.of(SPEXARE_MAPPER.toModel(dto))
+        return Optional.of(SPEXARE_MAPPER.toModel(SpexareSensitiveData.isReadableForAll() ? dto : dto.toBuilder().socialSecurityNumber(null).build()))
                 .map(repository::save)
                 .map(SPEXARE_MAPPER::toDto)
                 .orElseThrow(() -> new InternalErrorException("Could not create spexare"));
@@ -359,8 +400,23 @@ public class SpexareService {
                 .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.key()))) {
             throw new BadRequestException("Filtering on %s is not permitted".formatted(SpexareSensitiveData.FIELD));
         }
+        if (SpexareSensitiveData.isLimitedToRevival() && parsed.stream()
+                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isRestrictedPath(criteria.key()))) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(String.join(" or ", SpexareSensitiveData.RESTRICTED_FIELDS)));
+        }
 
         return parsed;
+    }
+
+    private static void requirePermittedAggregationFilters(final List<AggregationFilter> aggregationFilters) {
+        if (SpexareSensitiveData.isLimitedToRevival() && aggregationFilters.stream().anyMatch(SpexareService::isMembershipFilter)) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(FACET_MEMBERSHIPS));
+        }
+    }
+
+    private static boolean isMembershipFilter(final AggregationFilter filter) {
+        return FACET_MEMBERSHIPS.equals(filter.name())
+                || (AGGREGATION_DATA_QUALITY.equals(filter.name()) && DataQualityIssue.fromKey(filter.value()).filter(DataQualityIssue.NO_MEMBERSHIP::equals).isPresent());
     }
 
     private static SpexareUpdateDto withoutSensitiveData(final SpexareUpdateDto dto) {
@@ -377,11 +433,15 @@ public class SpexareService {
     }
 
     private List<Facet> getFacets(final SearchResult<Spexare> searchResult) {
-        final boolean readsUnpublished = isAdministratorOrEditor();
+        final boolean readsUnpublished = isAdministratorOrEditor() || isRevival();
+        final boolean readsMemberships = !SpexareSensitiveData.isLimitedToRevival();
 
         return AGGREGATIONS.stream()
                 .filter(a -> {
                     if (Spexare_.PUBLISHED.equals(a) && !readsUnpublished) {
+                        return false;
+                    }
+                    if (a.endsWith(AGGREGATION_COMPOSITE_DELIMITER + FACET_MEMBERSHIPS) && !readsMemberships) {
                         return false;
                     }
                     try {

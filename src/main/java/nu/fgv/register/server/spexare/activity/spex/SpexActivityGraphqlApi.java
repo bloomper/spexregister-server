@@ -23,6 +23,7 @@ import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.jspecify.annotations.Nullable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
@@ -47,7 +48,7 @@ public class SpexActivityGraphqlApi {
     private final SpexActivityService service;
 
     @MutationMapping("spexActivityCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<SpexActivityDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long spexId) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, spexId),
@@ -77,7 +78,7 @@ public class SpexActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Activity", field = "spexActivity")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     @Nullable
     public DataFetcherResult<SpexActivityDto> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
                                                                  final ActivityDto dto) {
@@ -95,7 +96,7 @@ public class SpexActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "SpexActivity", field = "spex")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto retrieveSpex(@LocalContextValue("spexareId") final Long spexareId,
                                 @LocalContextValue("activityId") final Long activityId,
                                 final SpexActivityDto dto) {

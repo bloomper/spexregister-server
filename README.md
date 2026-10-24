@@ -16,7 +16,7 @@ Roles are client roles on `spexregister` in Keycloak:
 | `USER`    | Every user                           | Reads the register; changes their own and their partner's record |
 | `EDITOR`  | Editors                              | Also changes it                                            |
 | `ADMIN`   | Administrators                       | Everything, including users, settings and permission grants |
-| `REVIVAL` | Nyuppsättning's service account only | Reads spex, tasks and task categories, nothing else      |
+| `REVIVAL` | Nyuppsättning's service account only | See below                                                  |
 
 Which records a caller may read, write, delete or administer is decided by one access policy per kind of record, in
 `nu.fgv.register.server.security.policy`. A policy answers from the caller's roles, the record's own data (published
@@ -28,8 +28,14 @@ Admins can grant a user or a role extra rights on one spexare, on everyone with 
 optionally until a date (`permissionGrant*` in GraphQL, *Permissions* under admin in the web). Grants only add rights,
 and they are in the change log.
 
-`REVIVAL` is checked with `@RequiresReferenceDataReader` on the operations it may call. It is not an `authority`, so
-the user sync never imports the service account as a user. Its tokens must come from an authorized party: set
+`REVIVAL` reads spex, tasks, task categories and tags, and every spexare, published or not, with their addresses,
+consents and activities, but only the birth date of the personal identity number and never their memberships or user
+account. It creates spexare, addresses, consents, memberships, revivals, activities, spex and task activities, actors
+and taggings, and updates addresses and consents. It deletes nothing. It is checked with `@RequiresReferenceDataReader`,
+`@RequiresAdminOrEditorOrUserOrRevival` and `@RequiresAdminOrEditorOrRevival` on the operations it may call, and the
+policies decide which records. It is not an `authority`, so the user sync never imports the service account as a user.
+Its changes are recorded as `<service account> on behalf of <X-Acting-Person>` when it sends that header
+(percent-encoded UTF-8, at most 255 characters); the header is ignored for everyone else. Its tokens must come from an authorized party: set
 `SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES` to include `fgv-revival-service`.
 
 ## Learning more

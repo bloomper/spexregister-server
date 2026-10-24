@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
@@ -50,7 +51,7 @@ public class MembershipGraphqlApi {
     private final MembershipService service;
 
     @MutationMapping("membershipCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public MembershipDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final MembershipCreateDto input) {
         return service.create(spexareId, typeId, input);
     }

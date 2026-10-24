@@ -34,6 +34,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -66,7 +67,7 @@ public class TaskActivityService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public List<TaskActivityDto> findByActivity(final Long spexareId, final Long id) {
         return findBySpexareByActivity(spexareId, id, activity ->
                         repository
@@ -78,7 +79,7 @@ public class TaskActivityService {
         );
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByActivity(spexareId, id, activity ->
                         repository
@@ -128,7 +129,7 @@ public class TaskActivityService {
                 .isPresent();
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public TaskActivityDto create(final Long spexareId, final Long activityId, final Long taskId) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId)) {
             return spexareRepository
@@ -210,7 +211,7 @@ public class TaskActivityService {
         }
     }
 
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public TaskDto findTaskByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
             return spexareRepository

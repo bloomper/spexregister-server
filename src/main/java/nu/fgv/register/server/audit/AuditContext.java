@@ -17,6 +17,8 @@
 package nu.fgv.register.server.audit;
 
 import org.jspecify.annotations.Nullable;
+
+import java.util.regex.Pattern;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -28,6 +30,9 @@ public final class AuditContext {
 
     static final int MAX_OPERATION_LENGTH = 255;
     static final int MAX_COMMENT_LENGTH = 512;
+    static final int MAX_ACTING_PERSON_LENGTH = 255;
+
+    private static final Pattern CONTROL_CHARACTERS = Pattern.compile("[\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]");
 
     private static final ThreadLocal<@Nullable Origin> CURRENT = new ThreadLocal<>();
 
@@ -85,23 +90,46 @@ public final class AuditContext {
         return trimmed.length() <= max ? trimmed : trimmed.substring(0, max);
     }
 
-    public record Origin(AuditSource source, @Nullable String operation, @Nullable String comment) {
+    private static @Nullable String withoutControlCharacters(final @Nullable String value) {
+        return value == null ? null : CONTROL_CHARACTERS.matcher(value).replaceAll(" ");
+    }
+
+    /**
+     * Where a change comes from.
+     *
+     * @param source        what kind of client made it
+     * @param operation     the GraphQL operation or HTTP request
+     * @param comment       why, as the client gave it
+     * @param actingPerson  who a service account acted for, as the client gave it; only {@link Auditor} may decide
+     *                      whether to believe it. Control characters become spaces. It is personal data: never log it.
+     */
+    public record Origin(AuditSource source, @Nullable String operation, @Nullable String comment, @Nullable String actingPerson) {
 
         public Origin {
             operation = truncate(operation, MAX_OPERATION_LENGTH);
             comment = truncate(comment, MAX_COMMENT_LENGTH);
+            actingPerson = truncate(withoutControlCharacters(actingPerson), MAX_ACTING_PERSON_LENGTH);
+        }
+
+        public Origin(final AuditSource source, final @Nullable String operation, final @Nullable String comment) {
+            this(source, operation, comment, null);
         }
 
         public Origin withSource(final AuditSource source) {
-            return new Origin(source, operation, comment);
+            return new Origin(source, operation, comment, actingPerson);
         }
 
         public Origin withOperation(final @Nullable String operation) {
-            return new Origin(source, operation, comment);
+            return new Origin(source, operation, comment, actingPerson);
         }
 
         public Origin withCommentIfAbsent(final @Nullable String fallback) {
-            return comment == null ? new Origin(source, operation, fallback) : this;
+            return comment == null ? new Origin(source, operation, fallback, actingPerson) : this;
+        }
+
+        @Override
+        public String toString() {
+            return "Origin[source=%s, operation=%s, comment=%s, actingPerson=%s]".formatted(source, operation, comment, actingPerson == null ? null : "<redacted>");
         }
     }
 }

@@ -27,6 +27,7 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
@@ -136,7 +137,7 @@ public class SpexGraphqlApi {
     }
 
     @MutationMapping("spexRevivalCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto createRevival(@Argument final Long spexId, @Argument final String year) {
         return service.addRevival(spexId, year);
     }

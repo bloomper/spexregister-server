@@ -22,6 +22,7 @@ import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
@@ -50,7 +51,7 @@ public class TaggingGraphqlApi {
     private final TaggingService service;
 
     @MutationMapping("taggingCreate")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrRevival
     public void create(@Argument final Long spexareId, @Argument final Long tagId) {
         service.create(spexareId, tagId);
     }

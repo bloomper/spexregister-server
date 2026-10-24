@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
+import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
@@ -32,7 +33,7 @@ public class TagPolicy extends ReferenceDataPolicy<Tag> {
 
     public TagPolicy() {
         super(Tag.class, RoleRules.builder()
-                .read(USER, EDITOR, ADMIN)
+                .read(USER, EDITOR, ADMIN, REVIVAL)
                 .write(EDITOR)
                 .delete(EDITOR)
                 .administer(ADMIN)
