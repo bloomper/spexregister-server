@@ -21,6 +21,7 @@ import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Anders Jacobsson
@@ -92,7 +95,7 @@ public class JobApi {
         return service.getJobOutputFile(id)
                 .map(resource -> ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(Objects.requireNonNullElse(resource.getFilename(), "result"), StandardCharsets.UTF_8).build().toString())
                         .body(resource));
     }
 }

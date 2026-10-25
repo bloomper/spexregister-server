@@ -49,6 +49,10 @@ import java.util.regex.Pattern;
 public class FileUtil {
 
     public static final String IMAGE_SVG_VALUE = "image/svg+xml";
+    /**
+     * For a stored image served as is: an SVG opened on its own runs no script and loads nothing.
+     */
+    public static final String IMAGE_CONTENT_SECURITY_POLICY = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
 
     private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = Set.of("image/png", "image/jpeg", "image/gif", IMAGE_SVG_VALUE);
 

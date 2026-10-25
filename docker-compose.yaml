@@ -19,8 +19,8 @@ services:
       start_period: 30s
     labels:
       org.springframework.boot.ignore: true
-    #ports:
-    #  - "3306:3306"
+    ports:
+      - "3306:3306"
     volumes:
       - spexregister_mysql_data:/var/lib/mysql
       - spexregister_mysql_log:/var/log/mysql

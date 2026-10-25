@@ -192,6 +192,8 @@ public class SpexCategoryApi {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(logo.getSecond()))
+                .header("Content-Security-Policy", FileUtil.IMAGE_CONTENT_SECURITY_POLICY)
+                .header("X-Content-Type-Options", "nosniff")
                 .body(new ByteArrayResource(logo.getFirst()));
     }
 

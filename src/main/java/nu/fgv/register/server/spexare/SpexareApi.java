@@ -265,6 +265,8 @@ public class SpexareApi {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(image.getSecond()))
+                .header("Content-Security-Policy", FileUtil.IMAGE_CONTENT_SECURITY_POLICY)
+                .header("X-Content-Type-Options", "nosniff")
                 .body(new ByteArrayResource(image.getFirst()));
     }
 

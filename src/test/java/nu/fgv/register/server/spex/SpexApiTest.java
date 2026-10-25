@@ -21,6 +21,7 @@ import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.spex.category.SpexCategoryApi;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.AbstractApiTest;
+import nu.fgv.register.server.util.FileUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -418,6 +419,7 @@ class SpexApiTest extends AbstractApiTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, poster.getSecond()))
                 .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, poster.getFirst().length))
+                .andExpect(header().string("Content-Security-Policy", FileUtil.IMAGE_CONTENT_SECURITY_POLICY))
                 .andDo(print())
                 .andDo(
                         document(
