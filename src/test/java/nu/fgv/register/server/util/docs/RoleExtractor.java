@@ -18,7 +18,10 @@ package nu.fgv.register.server.util.docs;
 
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
+import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -47,6 +50,24 @@ public class RoleExtractor {
 
         if (requiresAdminOrEditorOrUser != null) {
             return List.of("ADMIN", "EDITOR", "USER");
+        }
+
+        final RequiresAdminOrEditorOrRevival requiresAdminOrEditorOrRevival = method.getAnnotation(RequiresAdminOrEditorOrRevival.class);
+
+        if (requiresAdminOrEditorOrRevival != null) {
+            return List.of("ADMIN", "EDITOR", "REVIVAL");
+        }
+
+        final RequiresAdminOrEditorOrUserOrRevival requiresAdminOrEditorOrUserOrRevival = method.getAnnotation(RequiresAdminOrEditorOrUserOrRevival.class);
+
+        if (requiresAdminOrEditorOrUserOrRevival != null) {
+            return List.of("ADMIN", "EDITOR", "USER", "REVIVAL");
+        }
+
+        final RequiresReferenceDataReader requiresReferenceDataReader = method.getAnnotation(RequiresReferenceDataReader.class);
+
+        if (requiresReferenceDataReader != null) {
+            return List.of("ADMIN", "EDITOR", "USER", "REVIVAL");
         }
 
         return Collections.emptyList();

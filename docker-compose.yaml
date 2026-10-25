@@ -30,7 +30,6 @@ services:
 
   spexregister-api:
     image: 'bloomper/spexregister-server:develop'
-    profiles: [ api ]
     #platform: linux/arm64
     environment:
       SPRING_PROFILES_ACTIVE: local

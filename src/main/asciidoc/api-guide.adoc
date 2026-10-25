@@ -111,8 +111,19 @@ Spexregister Server uses the following roles:
 |USER|ROLE_USER|User with no administrative privileges
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
+|REVIVAL|ROLE_REVIVAL|Nyuppsättning's service account only
 
 |===
+
+REVIVAL works through the xref:graphql-api-guide.adoc#roles[GraphQL API]; of the REST API it may only download spex posters.
+
+[[acting_person]]
+=== Acting person
+
+A REVIVAL caller can send the header `X-Acting-Person` to name the person it acts for.
+Its changes are then recorded as `<service account> on behalf of <X-Acting-Person>`.
+Percent-encode the value (UTF-8); anything longer than 255 characters is truncated.
+The header is ignored for every other caller.
 
 [[filtering]]
 == Filtering

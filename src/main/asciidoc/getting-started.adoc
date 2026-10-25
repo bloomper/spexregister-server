@@ -81,6 +81,9 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 
 |===
 
+Access tokens are only accepted from the Keycloak clients listed in ``SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES``, which defaults to ``API_KEYCLOAK_CLIENT_CLIENT_ID``.
+For Nyuppsättning's service account to be let in, the list must include ``fgv-revival-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service``.
+
 Add the following to `/etc/hosts` (or the Windows equivalent):
 
 [source,bash]

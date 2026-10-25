@@ -48,8 +48,21 @@ Spexregister Server uses the following roles:
 |USER|ROLE_USER|User with no administrative privileges
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
+|REVIVAL|ROLE_REVIVAL|Nyuppsättning's service account only
 
 |===
+
+REVIVAL reads spex, tasks, task categories and tags, and every spexare, published or not, with their addresses, consents and activities, but only the birth date of the personal identity number and never their memberships or user account.
+It creates spexare, addresses, consents, memberships, revivals, activities, spex and task activities, actors and taggings, and updates addresses and consents.
+It deletes nothing.
+
+[[acting_person]]
+=== Acting person
+
+A REVIVAL caller can send the HTTP header `X-Acting-Person` to name the person it acts for.
+Its changes are then recorded as `<service account> on behalf of <X-Acting-Person>`.
+Percent-encode the value (UTF-8); anything longer than 255 characters is truncated.
+The header is ignored for every other caller.
 
 [[filtering]]
 == Filtering
