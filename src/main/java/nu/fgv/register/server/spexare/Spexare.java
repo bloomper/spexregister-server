@@ -83,6 +83,11 @@ import java.util.stream.Stream;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * A person who has taken part in spex. Only published spexare are visible to users without a grant. The social security
+ * number is stored encrypted and indexed only as a keyed hash and a birth date, so the index never holds it in clear
+ * text. A spexare may be linked to a {@link nu.fgv.register.server.user.User}, whose account then reads and changes it,
+ * and to a partner, who is another spexare and is linked back.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

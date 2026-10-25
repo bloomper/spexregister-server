@@ -52,6 +52,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code Spexare} queries and mutations, the caller's own spexare and the partner.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -1,9 +1,16 @@
 extend type Mutation {
+    """
+    ADMIN, EDITOR or USER with WRITE on the spexare. typeId is a TOGGLE type such as CHALMERS_STUDENT; a spexare has at
+    most one toggle of each.
+    """
     toggleCreate(spexareId: ID!, typeId: ID!, input: ToggleCreate!): Toggle
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     toggleUpdate(spexareId: ID!, typeId: ID!, input: ToggleUpdate!): Toggle
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     toggleDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 
+"A yes-or-no fact of one toggle type about a spexare."
 type Toggle {
     id: ID!
     value: Boolean!

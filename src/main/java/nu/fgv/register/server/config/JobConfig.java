@@ -40,6 +40,9 @@ import org.springframework.transaction.annotation.Isolation;
 import javax.sql.DataSource;
 
 /**
+ * Spring Batch: one export and one import job, each a single tasklet step run as the caller who started it, and
+ * scheduling.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

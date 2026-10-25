@@ -39,6 +39,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * Resolves {@code permissions} on spexare, spex and news: what the caller may do with each, so the client can show only
+ * the actions the server will allow.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

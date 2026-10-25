@@ -23,6 +23,9 @@ import java.io.Serializable;
 import java.util.Locale;
 
 /**
+ * Lets {@code hasPermission(object, 'READ')} in security expressions use the entity's {@link AccessPolicy}. Only the
+ * object form is supported; checks by id are always denied.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

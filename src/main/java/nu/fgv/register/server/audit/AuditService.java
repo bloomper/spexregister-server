@@ -64,6 +64,10 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
+ * Reads the history of audited entities, and restores an entity to a revision. Reading needs read access to the entity,
+ * or to the spexare it belongs to; restoring needs administration and write access. The social security number in a
+ * spexare's history is shown as the birth date to those who may not see it.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -113,6 +117,16 @@ public class AuditService {
         return "Restored from revision %d%s".formatted(revision, cascade ? " including related records" : "");
     }
 
+    /**
+     * The revisions of the entity, merged with those of the entities it points at such as a spex's details, newest
+     * first.
+     *
+     * @param type  the entity type
+     * @param rawId the entity id
+     * @return the revisions
+     * @throws org.springframework.security.access.AccessDeniedException when the caller may not read the entity, or it
+     *     is gone and the caller is not an administrator
+     */
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRevisions(final AuditedType type, final String rawId) {
         final AuditedEntityDescriptor descriptor = registry.require(type);
@@ -222,6 +236,15 @@ public class AuditService {
                 .toList();
     }
 
+    /**
+     * The revisions of the records of a type that belong to the entity, and of those that belong to them in turn,
+     * newest first; for example the activities of a spexare with their spex and task activities.
+     *
+     * @param type        the entity type
+     * @param rawId       the entity id
+     * @param relatedType the type of the records
+     * @return the revisions
+     */
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRelatedRevisions(final AuditedType type, final String rawId, final AuditedType relatedType) {
         final AuditedEntityDescriptor descriptor = registry.require(type);
@@ -273,6 +296,13 @@ public class AuditService {
         return byId;
     }
 
+    /**
+     * @param type     the entity type
+     * @param rawId    the entity id
+     * @param revision the revision number
+     * @return the revision as {@link #findRevisions} gives it
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the entity has no such revision
+     */
     @RequiresAdminOrEditorOrUser
     public RevisionDto findRevision(final AuditedType type, final String rawId, final long revision) {
         return findRevisions(type, rawId).stream()
@@ -281,6 +311,16 @@ public class AuditService {
                 .orElseThrow(() -> new BadRequestException("Unknown revision %d for %s %s".formatted(revision, type, rawId)));
     }
 
+    /**
+     * A binary value as it was in the revision, such as a spexare's image or a spex's poster.
+     *
+     * @param type     the entity type
+     * @param rawId    the entity id
+     * @param revision the revision number
+     * @param field    the binary attribute's name
+     * @return the bytes and content type
+     * @throws nu.fgv.register.server.util.error.BadRequestException when there is no such revision or binary attribute
+     */
     @RequiresAdminOrEditorOrUser
     public BinaryValueDto findBinary(final AuditedType type, final String rawId, final long revision, final String field) {
         final AuditedEntityDescriptor descriptor = registry.require(type);
@@ -336,6 +376,13 @@ public class AuditService {
         return value;
     }
 
+    /**
+     * The revisions matching the filter, newest first.
+     *
+     * @param filter the filter
+     * @param scroll the window to read
+     * @return the window with the total count
+     */
     @RequiresAdmin
     public CountedWindow<RevisionFeedEntryDto> findFeed(final RevisionFeedFilter filter, final GraphqlUtil.ScrollRequest scroll) {
         final FeedCriteria criteria = criteriaFor(filter);
@@ -356,6 +403,13 @@ public class AuditService {
         return CountedWindow.of(Window.from(content, OffsetScrollPosition.positionFunction(offset), hasNext), total);
     }
 
+    /**
+     * The revisions matching the filter, newest first, for the REST API.
+     *
+     * @param filter   the filter
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdmin
     public Page<RevisionFeedEntryDto> findFeedPaged(final RevisionFeedFilter filter, final Pageable pageable) {
         final FeedCriteria criteria = criteriaFor(filter);
@@ -372,6 +426,9 @@ public class AuditService {
         return new PageImpl<>(content, pageable, total);
     }
 
+    /**
+     * @return everyone who has made a revision, by name
+     */
     @RequiresAdmin
     public List<String> findAuthors() {
         return entityManager.createQuery("""
@@ -432,6 +489,14 @@ public class AuditService {
         return query.getResultList();
     }
 
+    /**
+     * Everything changed in a revision, with how many entities of each type changed.
+     *
+     * @param revision     the revision number
+     * @param limitPerType the most entities of each type to return
+     * @return the revision's changes
+     * @throws nu.fgv.register.server.util.error.BadRequestException when limitPerType is less than one
+     */
     @RequiresAdmin
     public RevisionDetailDto findDetail(final long revision, final int limitPerType) {
         if (limitPerType < 1) {
@@ -549,6 +614,15 @@ public class AuditService {
                 .build();
     }
 
+    /**
+     * What {@link #restore} would change, without changing anything.
+     *
+     * @param type     the entity type
+     * @param rawId    the entity id
+     * @param revision the revision to restore
+     * @param cascade  whether to restore the records that belong to the entity too
+     * @return the changes and warnings
+     */
     @RequiresAdmin
     public RestorePreviewDto preview(final AuditedType type, final String rawId, final long revision, final boolean cascade) {
         final AuditedEntityDescriptor descriptor = registry.require(type);
@@ -578,6 +652,19 @@ public class AuditService {
                 .build();
     }
 
+    /**
+     * Restores the entity's audited fields, and those of the entities it points at, to the revision. With cascade, the
+     * records that belong to it are restored too: those changed are put back, those added since are removed and those
+     * removed since are re-created under new ids. The entity itself must still exist. Recorded as a
+     * {@link AuditSource#RESTORE} revision.
+     *
+     * @param type     the entity type
+     * @param rawId    the entity id
+     * @param revision the revision to restore
+     * @param cascade  whether to restore the records that belong to the entity too
+     * @return how many entities were updated, created and deleted, and warnings such as references that no longer exist
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the entity no longer exists
+     */
     @RequiresAdmin
     public RestoreResultDto restore(final AuditedType type, final String rawId, final long revision, final boolean cascade) {
         AuditContext.stamp(AuditContext.currentOrSystem()

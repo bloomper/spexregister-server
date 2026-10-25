@@ -39,6 +39,9 @@ import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSu
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Lets a user ask to be removed from the register, by mail to the administrators named in
+ * {@code spexregister.mail.admin-recipients}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -69,6 +72,12 @@ public class SpexareRemovalRequestService {
         this.locale = Locale.forLanguageTag(language);
     }
 
+    /**
+     * Mails the request with the user's name, email, Keycloak subject and spexare, replying to the user's email.
+     *
+     * @param reason why, at most {@value #REASON_MAX_LENGTH} characters, or null
+     * @throws nu.fgv.register.server.util.error.InternalErrorException when mail is not configured or could not be sent
+     */
     @RequiresAdminOrEditorOrUser
     public void request(final @Nullable String reason) {
         if (reason != null && reason.length() > REASON_MAX_LENGTH) {

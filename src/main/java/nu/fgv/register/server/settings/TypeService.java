@@ -29,6 +29,8 @@ import static nu.fgv.register.server.settings.TypeSpecification.hasIds;
 import static nu.fgv.register.server.settings.TypeSpecification.hasType;
 
 /**
+ * The types.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -39,6 +41,9 @@ public class TypeService {
 
     private final TypeRepository repository;
 
+    /**
+     * @return every type
+     */
     public List<TypeDto> findAll() {
         return repository
                 .findAll()
@@ -47,6 +52,10 @@ public class TypeService {
                 .toList();
     }
 
+    /**
+     * @param type what the types are kinds of
+     * @return the types of it
+     */
     public List<TypeDto> findByType(final TypeType type) {
         return repository
                 .findAll(hasType(type))
@@ -55,6 +64,11 @@ public class TypeService {
                 .toList();
     }
 
+    /**
+     * @param id the type id, such as {@code HOME}
+     * @return the type
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is none
+     */
     public TypeDto findById(final String id) {
         return repository
                 .findById(id)
@@ -62,17 +76,31 @@ public class TypeService {
                 .orElseThrow(() -> new ResourceNotFoundException(Type.class, id));
     }
 
+    /**
+     * @param id the type id
+     * @return whether there is such a type
+     */
     public boolean exists(final String id) {
         return repository
                 .findById(id)
                 .isPresent();
     }
 
+    /**
+     * @param ids  the type ids, or empty for all
+     * @param sort the order
+     * @return the types, streamed when iterated, so it must be consumed inside a transaction
+     */
     public Iterable<Type> streamByIds(final List<String> ids, final Sort sort) {
         return () -> repository.findAllBy(ids.isEmpty() ? null : hasIds(ids), sort)
                 .iterator();
     }
 
+    /**
+     * @param id   the type id
+     * @param type what it should be a kind of
+     * @return whether there is such a type of that kind
+     */
     public boolean existsByIdAndType(final String id, final TypeType type) {
         return repository
                 .findOne(TypeSpecification.hasId(id).and(TypeSpecification.hasType(type)))

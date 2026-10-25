@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Writes an export as an Excel workbook, xlsx or xls, one sheet per
+ * {@link nu.fgv.register.server.impex.exporting.ExportHolder}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

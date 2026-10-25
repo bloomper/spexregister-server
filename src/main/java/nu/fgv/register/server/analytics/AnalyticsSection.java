@@ -23,6 +23,8 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
+ * The sections of {@code Analytics}, so that only those a query selects are computed.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -47,6 +49,10 @@ public enum AnalyticsSection {
         this.field = field;
     }
 
+    /**
+     * @param selectedFields the field names selected under {@code analytics}
+     * @return the sections they name
+     */
     public static Set<AnalyticsSection> from(final Set<String> selectedFields) {
         final Set<AnalyticsSection> sections = EnumSet.noneOf(AnalyticsSection.class);
 

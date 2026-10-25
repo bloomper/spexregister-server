@@ -36,6 +36,9 @@ import java.util.function.Function;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * What the MCP tools share: paging with at most {@value #MAX_PAGE_SIZE} items, the filter syntax, validation and
+ * auditing.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

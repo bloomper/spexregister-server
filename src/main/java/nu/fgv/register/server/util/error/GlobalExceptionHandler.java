@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Turns exceptions into problem details for the REST API: access denied and failed authentication as 403, and
+ * optimistic locking failures as 409.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

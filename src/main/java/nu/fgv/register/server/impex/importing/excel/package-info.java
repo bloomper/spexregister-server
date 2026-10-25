@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Reading Excel workbooks with Apache POI.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.importing.excel;

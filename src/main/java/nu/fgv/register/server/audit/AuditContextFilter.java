@@ -29,6 +29,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
+ * Sets the {@link AuditContext} of each HTTP request: from the web, named after the method and path, with the reason in
+ * {@value #REASON_HEADER} and the person a service account acts for in {@value #ACTING_PERSON_HEADER}, both
+ * URL-encoded.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

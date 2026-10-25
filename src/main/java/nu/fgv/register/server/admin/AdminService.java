@@ -24,6 +24,8 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import org.springframework.stereotype.Service;
 
 /**
+ * Administrative tasks.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -34,6 +36,9 @@ public class AdminService {
 
     private final IndexingService indexingService;
 
+    /**
+     * Rebuilds the spexare search index in the background.
+     */
     @RequiresAdmin
     public void indexSpexare() {
         indexingService.initiateIndexingFor(Spexare.class, true)

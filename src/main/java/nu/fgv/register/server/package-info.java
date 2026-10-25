@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Spexregister, the address register of Chalmersspexet and FGV: spex, spexare and the reference data around them,
+ * served over GraphQL, a REST API documented by Spring REST Docs, and MCP. Callers authenticate with Keycloak tokens.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server;

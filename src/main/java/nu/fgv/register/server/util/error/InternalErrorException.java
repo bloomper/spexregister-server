@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
+ * Something failed on the server: 500, and {@code INTERNAL_ERROR} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

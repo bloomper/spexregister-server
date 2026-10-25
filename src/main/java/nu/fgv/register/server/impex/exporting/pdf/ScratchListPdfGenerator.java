@@ -40,6 +40,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
+ * A list of the names of the spexare exported, with empty columns to tick off.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

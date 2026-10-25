@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Yes-or-no facts about a spexare, one per toggle type such as being a student at Chalmers.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.toggle;

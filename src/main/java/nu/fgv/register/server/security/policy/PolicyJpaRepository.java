@@ -30,6 +30,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
+ * A JPA repository whose queries can be limited to what the current caller has a permission on, through the entity's
+ * {@link AccessPolicy}. The methods without a {@link Permission} are not limited.
+ *
  * @param <T>  the entity type
  * @param <ID> the id type
  * @author Anders Jacobsson

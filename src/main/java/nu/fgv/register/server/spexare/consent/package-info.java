@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * What a spexare has agreed to or declined, one answer per consent type such as circulars.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.consent;

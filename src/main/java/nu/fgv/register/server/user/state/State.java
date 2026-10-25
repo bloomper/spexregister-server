@@ -37,6 +37,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * A state a user can be in. New users get the state marked {@code initial}, and a user's Keycloak account is
+ * enabled only in a state marked {@code enabled}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

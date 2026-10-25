@@ -4,30 +4,44 @@ schema {
     subscription: Subscription
 }
 
+"""
+Queries named *Paged return a Relay connection: page with first and after, or last and before. Their filter is an
+expression of criteria such as year:2024, title:*Ali* or parent!NULL combined with AND, OR and parentheses. The
+operators are : (equals), ! (not equals), >, < and ~ (SQL LIKE); an asterisk at the start or end of a value of : makes
+it ends with, starts with or contains, and NULL, TRUE and FALSE compare as such. Nested attributes such as details.title
+can be filtered on only where the type allows it. sort names attributes, ordered by direction.
+
+Lists only ever contain what the caller may read.
+"""
 type Query
 
 type Mutation
 
+"Subscriptions run over the GraphQL WebSocket, authenticated with the same token as the queries."
 type Subscription
 
+"A facet of a search result: a field and the counts of its values among the hits."
 type Facet {
     id: String!
     label: String!
     groups: [FacetGroup]!
 }
 
+"The values of a facet under one parent value, for hierarchical facets."
 type FacetGroup {
     id: String!
     label: String!
     values: [FacetValue]!
 }
 
+"A value and how many hits have it."
 type FacetValue {
     id: String!
     label: String!
     count: Int!
 }
 
+"Narrows a search to hits with a facet value, as named by Facet.id and FacetValue.id."
 input AggregationFilterInput {
     name: String!
     value: String!
@@ -45,12 +59,14 @@ enum SortDirection {
     DESC
 }
 
+"File formats of import and export."
 enum ImpexType {
     EXCEL
     EXCEL_XLS
     PDF
 }
 
+"Reports produced as PDF from a spexare export."
 enum ReportType {
     PDF_ADDRESS_LABELS
     PDF_SCRATCH_LIST
@@ -59,12 +75,17 @@ enum ReportType {
 
 scalar Date @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
 scalar DateTime @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
+"Returned as an ISO-8601 instant in UTC. Given as a date, read as its start in UTC."
 scalar Instant @specifiedBy(url:"https://tools.ietf.org/html/rfc3339")
 scalar Locale @specifiedBy(url:"https://tools.ietf.org/html/bcp47")
 scalar CountryCode @specifiedBy(url:"https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2")
 scalar Email
+"A four-digit year, 1900 to 2199."
 scalar Year
+"A Swedish social security number as YYYYMMDD-NNNN, or only the birth date YYYYMMDD."
 scalar SocialSecurityNumber
+"No value: the mutation returns null when it succeeds."
 scalar Void
 scalar Long
+"Any JSON value."
 scalar JSON

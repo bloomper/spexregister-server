@@ -39,6 +39,8 @@ import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Imports users from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

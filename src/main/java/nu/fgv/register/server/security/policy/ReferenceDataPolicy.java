@@ -19,6 +19,8 @@ package nu.fgv.register.server.security.policy;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * A policy that depends on role only, for reference data where every row is treated alike.
+ *
  * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0

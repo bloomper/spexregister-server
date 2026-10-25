@@ -1,17 +1,40 @@
 extend type Query {
+    """
+    ADMIN, EDITOR or USER who may read the entity. Its revisions with those of what it points at, such as a spex's
+    details, newest first.
+    """
     revisions(type: AuditedType!, id: ID!): [Revision]
+    "ADMIN, EDITOR or USER who may read the entity. One of its revisions, as revisions gives it."
     revision(type: AuditedType!, id: ID!, revision: Long!): Revision
+    """
+    ADMIN, EDITOR or USER who may read the entity. The revisions of the records of relatedType that belong to it, and of
+    those that belong to them in turn, newest first; for example the activities of a spexare.
+    """
     relatedRevisions(type: AuditedType!, id: ID!, relatedType: AuditedType!): [Revision]
+    """
+    ADMIN. All revisions, newest first, narrowed by the entity type that changed, the authors, the sources and a period
+    from and to, both inclusive. Without from, the period starts sinceInDays days before to, or today.
+    """
     revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, modifiedBy: [String!], sources: [AuditSource!], from: Date, to: Date, sinceInDays: Int = 90): RevisionFeedConnection
+    "ADMIN. Everything changed in a revision, at most limitPerType entities of each type."
     revisionDetail(revision: Long!, limitPerType: Int! = 20): RevisionDetail
+    "ADMIN. Everyone who has made a revision, by name."
     revisionAuthors: [String!]!
+    "ADMIN. What restore would change, without changing anything."
     restorePreview(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestorePreview
 }
 
 extend type Mutation {
+    """
+    ADMIN, with WRITE on the entity. Puts its audited fields, and those of what it points at, back as they were in the
+    revision. With cascade, the records that belong to it are restored too: changed ones are put back, ones added since
+    are removed and ones removed since are re-created under new ids. The entity must still exist. The reason given in
+    the X-Audit-Reason header is kept with the new revision.
+    """
     restore(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestoreResult
 }
 
+"A change to one entity in one revision."
 type Revision {
     revision: Long!
     type: AuditedType!
@@ -19,29 +42,39 @@ type Revision {
     entityLabel: String
     revisionType: RevisionType!
     modifiedAt: Instant!
+    "Who made it, by email; for the revival service, its account on behalf of the person it acted for."
     modifiedBy: String!
+    "The audited fields that changed. A social security number is shown as the birth date to those who may not see it."
     changes: [FieldChange!]!
 }
 
+"One field's value before and after a revision. Associations show the label of what they point at."
 type FieldChange {
     field: String!
     oldValue: String
     newValue: String
+    "Whether the field holds a binary value such as an image; the values are then content types."
     binary: Boolean!
+    "The type of the entity the field belongs to, when it is not the revision's own, as in merged revisions."
     type: AuditedType
     entityId: Long
 }
 
+"A revision in the feed."
 type RevisionFeedEntry {
     revision: Long!
     modifiedAt: Instant!
     modifiedBy: String!
+    "The entity types that changed."
     types: [AuditedType!]!
     source: AuditSource
+    "The GraphQL operation, or the HTTP method and path, that made it."
     operation: String
+    "Why, as given in the X-Audit-Reason header or by a restore."
     comment: String
 }
 
+"Everything changed in a revision."
 type RevisionDetail {
     revision: Long!
     modifiedAt: Instant!
@@ -53,21 +86,25 @@ type RevisionDetail {
     entities: [RevisionEntityChange!]!
 }
 
+"How many entities of a type changed in a revision, and how many of them are returned."
 type RevisionTypeSummary {
     type: AuditedType!
     count: Long!
     returned: Int!
 }
 
+"One entity changed in a revision."
 type RevisionEntityChange {
     type: AuditedType!
     entityId: Long
     entityLabel: String
     revisionType: RevisionType!
     changes: [FieldChange!]!
+    "What to open to see the change, such as the spexare an address belongs to."
     target: RevisionTarget
 }
 
+"The entity whose history a change belongs to."
 type RevisionTarget {
     type: AuditedType!
     id: Long!
@@ -85,6 +122,7 @@ type RevisionFeedEdge {
     node: RevisionFeedEntry!
 }
 
+"What a restore would do to one entity."
 type RestorePreviewEntry {
     type: AuditedType!
     id: Long
@@ -92,11 +130,13 @@ type RestorePreviewEntry {
     changes: [FieldChange!]!
 }
 
+"What a restore would change, and what it could not do."
 type RestorePreview {
     entries: [RestorePreviewEntry!]!
     warnings: [RestoreWarning!]!
 }
 
+"How many entities a restore updated, created and deleted."
 type RestoreResult {
     revision: Long!
     updated: Int!
@@ -105,25 +145,33 @@ type RestoreResult {
     warnings: [RestoreWarning!]!
 }
 
+"Something a restore could not do as asked."
 type RestoreWarning {
+    """
+    ID_REASSIGNED when a removed record was re-created under a new id, REFERENCE_MISSING when it pointed at something
+    that no longer exists.
+    """
     code: String!
     message: String!
     previousId: Long
     newId: Long
 }
 
+"Whether the entity was added, modified or deleted."
 enum RevisionType {
     ADD
     MOD
     DEL
 }
 
+"What a restore does to one entity."
 enum RestoreAction {
     UPDATE
     CREATE
     DELETE
 }
 
+"What kind of client a change came from."
 enum AuditSource {
     WEB
     IMPORT
@@ -132,6 +180,7 @@ enum AuditSource {
     MCP
 }
 
+"The entity types that have an audit history."
 enum AuditedType {
     NEWS
     SPEX

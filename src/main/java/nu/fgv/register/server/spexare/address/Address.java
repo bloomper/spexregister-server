@@ -63,6 +63,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * A spexare's postal address, phone numbers and email of one address type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

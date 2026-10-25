@@ -29,6 +29,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Who is calling: the Spexregister roles from the Keycloak token, without the {@code ROLE_spexregister_} prefix, and
+ * the token's subject, which links the caller to their {@link nu.fgv.register.server.user.User}.
+ *
+ * @param roles   the caller's Spexregister roles, such as {@value #ADMIN}
+ * @param subject the Keycloak subject, or null when not authenticated with a JWT
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -41,6 +46,11 @@ public record Caller(Set<String> roles, @Nullable String subject) {
     private static final String ROLE_PREFIX = "ROLE_spexregister_";
     private static final Caller NOBODY = new Caller(Set.of(), null);
 
+    /**
+     * The caller of the current request or job.
+     *
+     * @return the caller, or one with no roles and no subject when there is no authentication
+     */
     public static Caller current() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

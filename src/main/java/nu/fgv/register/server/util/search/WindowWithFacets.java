@@ -21,6 +21,9 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import java.util.List;
 
 /**
+ * A window of search hits with the total count and the facets of all hits.
+ *
+ * @param <T> the hit type
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -19,6 +19,8 @@ package nu.fgv.register.server.spexare.activity.task.actor;
 import nu.fgv.register.server.util.search.LabelTypeBinder;
 
 /**
+ * Indexes an actor's vocal part with its labels, for the {@code actorVocals} facet.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

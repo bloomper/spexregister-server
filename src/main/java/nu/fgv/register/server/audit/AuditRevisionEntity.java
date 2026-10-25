@@ -49,6 +49,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * An Envers revision: when, by whom, from what kind of client, the operation and the reason, and which entity types
+ * changed.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -101,6 +104,9 @@ public class AuditRevisionEntity {
     @ModifiedEntityNames
     private Set<String> modifiedEntityNames = new HashSet<>();
 
+    /**
+     * @return when the revision was made, in UTC
+     */
     @Transient
     public LocalDateTime getModifiedAt() {
         return Instant.ofEpochMilli(modifiedAt).atOffset(ZoneOffset.UTC).toLocalDateTime();

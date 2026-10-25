@@ -52,6 +52,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code User} queries and mutations, with roles, state and spexare.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

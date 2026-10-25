@@ -53,6 +53,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Membership of an association in one year.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

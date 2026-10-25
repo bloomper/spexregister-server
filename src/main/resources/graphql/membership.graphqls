@@ -1,8 +1,14 @@
 extend type Mutation {
+    """
+    Every role, with WRITE on the spexare. typeId is a MEMBERSHIP type such as FGV; fails when the spexare already is a
+    member that year.
+    """
     membershipCreate(spexareId: ID!, typeId: ID!, input: MembershipCreate!): Membership
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     membershipDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 
+"Membership of an association in one year."
 type Membership {
     id: ID!
     year: Year!

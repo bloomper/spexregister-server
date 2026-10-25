@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Statistics of the register: totals, participation, demographics, how spexare come and go, data quality and the
+ * register's own operations. Most figures come from the facets of the spexare search, so they count only the spexare
+ * the caller may see.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.analytics;

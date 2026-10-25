@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * The {@code Authority} queries.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

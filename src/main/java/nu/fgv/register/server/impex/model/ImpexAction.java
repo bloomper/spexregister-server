@@ -21,6 +21,8 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
+ * What an import does with a row.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -36,6 +38,10 @@ public enum ImpexAction {
         this.marker = marker;
     }
 
+    /**
+     * @param marker {@code C}, {@code U} or {@code D}
+     * @return the action
+     */
     public static ImpexAction fromMarker(final String marker) {
         return Arrays.stream(values())
                 .filter(a -> a.getMarker().equalsIgnoreCase(marker))

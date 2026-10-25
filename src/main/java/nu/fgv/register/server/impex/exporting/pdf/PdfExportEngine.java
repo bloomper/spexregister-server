@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Writes an export as the PDF report asked for, through the {@link PdfGenerator} that supports it.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

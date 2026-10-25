@@ -33,6 +33,10 @@ import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
+ * Editors and the revival service read and change every spexare, administrators administer them, and users read the
+ * published ones. A user also reads and changes their own spexare and their partner's. Permission grants add rights on
+ * one spexare or on everyone who took part in a spex.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Writing Excel workbooks with Apache POI.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.exporting.excel;

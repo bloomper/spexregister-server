@@ -32,6 +32,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 /**
+ * Who created and last changed an entity and when, and its version for optimistic locking.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

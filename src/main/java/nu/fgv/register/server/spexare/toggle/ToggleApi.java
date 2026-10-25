@@ -47,6 +47,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The toggle REST API under {@code /api/spexare/{spexareId}/toggles}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

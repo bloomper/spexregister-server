@@ -17,6 +17,8 @@
 package nu.fgv.register.server.spexare.bulk;
 
 /**
+ * What a bulk operation did, or would do, to one spexare.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

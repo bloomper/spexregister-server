@@ -32,6 +32,8 @@ import java.util.Map;
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 
 /**
+ * Imports task categories from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

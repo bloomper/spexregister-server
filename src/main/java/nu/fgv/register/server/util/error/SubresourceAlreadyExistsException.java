@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * The resource already has such a subresource, such as an address of the type: 409, and {@code CONFLICT} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

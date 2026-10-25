@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Filters on tasks for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}, with
+ * {@code category.id} and {@code category.name} reachable.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

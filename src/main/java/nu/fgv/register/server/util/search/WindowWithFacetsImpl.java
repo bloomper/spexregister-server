@@ -28,6 +28,9 @@ import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 /**
+ * A window of search hits with the total count and the facets of all hits.
+ *
+ * @param <T> the hit type
  * @author Anders Jacobsson
  * @since 2.0
  */

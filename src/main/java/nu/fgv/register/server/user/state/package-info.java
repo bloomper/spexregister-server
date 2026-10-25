@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The states a user can be in, such as inactive and active.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.user.state;

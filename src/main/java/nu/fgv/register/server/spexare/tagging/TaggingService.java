@@ -54,6 +54,8 @@ import static nu.fgv.register.server.spexare.tagging.TaggingSpecification.hasTag
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 
 /**
+ * The tags of a spexare. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -67,6 +69,10 @@ public class TaggingService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
+    /**
+     * @param ids spexare ids
+     * @return the tags of each spexare, by spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, List<TagDto>> findBySpexareIds(final Collection<Long> ids) {
         return spexareRepository.findWithTagsByIdIn(ids).stream()
@@ -79,6 +85,10 @@ public class TaggingService {
                         .toList()));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's tags
+     */
     @RequiresAdminOrEditorOrUser
     public List<TagDto> findBySpexare(final Long id) {
         return findBySpexare(id, () ->
@@ -90,6 +100,12 @@ public class TaggingService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param scroll    the window to read
+     * @param sort      the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<TagDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, () -> tagRepository
@@ -104,6 +120,11 @@ public class TaggingService {
                 }));
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<TagDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, () -> tagRepository
@@ -111,6 +132,13 @@ public class TaggingService {
                 .map(TAG_MAPPER::toDto));
     }
 
+    /**
+     * Tags the spexare.
+     *
+     * @param spexareId the spexare id
+     * @param tagId     the tag id
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has the tag
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public void create(final Long spexareId, final Long tagId) {
         if (doSpexareAndTagExist(spexareId, tagId)) {
@@ -138,6 +166,12 @@ public class TaggingService {
         }
     }
 
+    /**
+     * Removes the tag from the spexare.
+     *
+     * @param spexareId the spexare id
+     * @param tagId     the tag id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long tagId) {
         if (doSpexareAndTagExist(spexareId, tagId)) {

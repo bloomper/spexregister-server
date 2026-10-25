@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Removes the audit history of a spexare for good, with that of everything that belonged to it, and the revisions left
+ * empty. References to it from other spexare's and users' history are cleared.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -63,6 +66,9 @@ public class AuditPurgeService {
 
     private final JdbcClient jdbcClient;
 
+    /**
+     * @param id the spexare id, usually of one just removed
+     */
     @RequiresAdmin
     @Transactional
     public void purgeSpexare(final Long id) {

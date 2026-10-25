@@ -32,6 +32,8 @@ import java.util.Map;
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 
 /**
+ * Imports news from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

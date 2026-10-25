@@ -76,6 +76,9 @@ import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 import static nu.fgv.register.server.util.security.SecurityUtil.isEditor;
 
 /**
+ * Computes the selected sections of the statistics. Data quality is computed only for administrators and editors and
+ * operations only for administrators; otherwise those sections are null.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -99,6 +102,10 @@ public class AnalyticsService {
     private final EntityManager entityManager;
     private final MessageSource messageSource;
 
+    /**
+     * @param sections the sections to compute
+     * @return the statistics, with the sections not asked for or not permitted as null
+     */
     @RequiresAdminOrEditorOrUser
     public AnalyticsDto getAnalytics(final Set<AnalyticsSection> sections) {
         final boolean needsFacets = sections.stream().anyMatch(AnalyticsSection.FACET_BACKED::contains);

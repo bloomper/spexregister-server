@@ -1,8 +1,11 @@
 extend type Mutation {
+    "Every role, with WRITE on the spexare. Adds an empty activity, to be given a spex and tasks."
     activityCreate(spexareId: ID!): Activity
+    "ADMIN, EDITOR or USER with WRITE on the spexare. Removes the activity with its spex and task activities."
     activityDelete(spexareId: ID!, id: ID!): Void
 }
 
+"A spexare's participation in one spex: the spex activity names the spex and the task activities the tasks."
 type Activity {
     id: ID!
     spexActivity: SpexActivity

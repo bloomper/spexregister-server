@@ -41,6 +41,9 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
+ * A news item. {@code published} follows from {@code visibleFrom} and {@code visibleTo}: without a
+ * start date it is never published, and without an end date it stays published.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

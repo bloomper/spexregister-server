@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Filters on spex for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}, with
+ * title and category reachable through {@code details}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

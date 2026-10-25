@@ -38,6 +38,8 @@ import static nu.fgv.register.server.util.FileUtil.isLocalUrl;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Imports spex, and their revivals from a second sheet, from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

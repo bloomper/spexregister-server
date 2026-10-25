@@ -44,6 +44,8 @@ import java.util.Objects;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Address labels of the home addresses of the spexare exported, three to a row.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

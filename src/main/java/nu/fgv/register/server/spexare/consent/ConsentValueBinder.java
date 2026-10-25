@@ -19,6 +19,8 @@ package nu.fgv.register.server.spexare.consent;
 import nu.fgv.register.server.util.search.BooleanTypeBinder;
 
 /**
+ * Indexes a consent's type and answer with labels, for the {@code consents} facet.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

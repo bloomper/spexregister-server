@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code Toggle} mutations and the toggles of a spexare, batched.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

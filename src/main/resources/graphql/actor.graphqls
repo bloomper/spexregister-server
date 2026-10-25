@@ -1,12 +1,18 @@
 extend type Mutation {
+    "Every role, with WRITE on the spexare. vocalId is a VOCAL type such as B1."
     actorCreate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorCreate!): Actor
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     actorUpdate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorUpdate!): Actor
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     actorDelete(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, id: ID!): Void
 }
 
+"A role played on stage in a task activity."
 type Actor {
     id: ID!
+    "The name of the part played."
     role: String
+    "The vocal part sung, a VOCAL type."
     vocal: Type
     createdBy: String!
     createdAt: Instant!

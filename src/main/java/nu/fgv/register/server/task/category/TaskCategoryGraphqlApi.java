@@ -42,6 +42,8 @@ import java.util.Optional;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code TaskCategory} queries and mutations.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

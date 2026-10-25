@@ -41,6 +41,9 @@ import java.util.Map;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The step of an export job: gathers the sheets, counts the rows written as the job's progress, writes the file and
+ * records where it is.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

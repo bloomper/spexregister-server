@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 
 /**
+ * Reads a field of a row by reflection, converted to the type asked for.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

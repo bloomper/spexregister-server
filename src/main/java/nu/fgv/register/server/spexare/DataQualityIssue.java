@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * What a spexare's record lacks, searchable as the {@code quality} facet to find records to complete.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -44,6 +46,10 @@ public enum DataQualityIssue {
         this.key = key;
     }
 
+    /**
+     * @param key the issue's key, such as {@code noAddress}, in any case
+     * @return the issue, or empty for an unknown key
+     */
     public static Optional<DataQualityIssue> fromKey(final String key) {
         return Arrays.stream(values())
                 .filter(issue -> issue.key.equalsIgnoreCase(key))

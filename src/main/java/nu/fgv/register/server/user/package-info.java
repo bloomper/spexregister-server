@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * The users who sign in to Spexregister. Accounts live in Keycloak; a {@link nu.fgv.register.server.user.User} links
+ * the Keycloak subject to a state and, optionally, to the user's own spexare. Roles are Keycloak client roles, kept as
+ * {@link nu.fgv.register.server.user.authority.Authority}s.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.user;

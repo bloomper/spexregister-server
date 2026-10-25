@@ -44,6 +44,9 @@ import java.security.cert.X509Certificate;
 import java.util.Locale;
 
 /**
+ * Web MVC: ETags, forwarded headers, the messages and validator, the locale from {@code Accept-Language} among the
+ * languages offered, and versioning of the REST API by the {@code X-API-Version} header.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

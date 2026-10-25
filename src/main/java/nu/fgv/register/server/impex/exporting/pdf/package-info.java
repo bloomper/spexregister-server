@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The PDF reports of a spexare export.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.exporting.pdf;

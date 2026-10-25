@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The exceptions services throw, each with its HTTP status, and how they reach REST and GraphQL clients.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.error;

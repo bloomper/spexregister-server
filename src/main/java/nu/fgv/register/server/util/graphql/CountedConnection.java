@@ -23,6 +23,12 @@ import graphql.relay.PageInfo;
 import java.util.List;
 
 /**
+ * A Relay connection with the total count of the whole list.
+ *
+ * @param edges      the edges of the window
+ * @param pageInfo   the page info
+ * @param totalCount the size of the whole list
+ * @param <T>        the node type
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -23,6 +23,10 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * Where the changes of the current thread come from, recorded on each Envers revision. Set per HTTP request by
+ * {@link AuditContextFilter}, named after the GraphQL operation by {@link AuditOperationInstrumentation}, and carried
+ * across threads by {@link AuditContextAccessor}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -39,10 +43,16 @@ public final class AuditContext {
     private AuditContext() {
     }
 
+    /**
+     * @return the origin of the current thread, or null when none is set
+     */
     public static @Nullable Origin current() {
         return CURRENT.get();
     }
 
+    /**
+     * @return the origin of the current thread, or {@link AuditSource#SYSTEM} without operation and comment
+     */
     public static Origin currentOrSystem() {
         final Origin current = CURRENT.get();
 
@@ -57,6 +67,12 @@ public final class AuditContext {
         CURRENT.remove();
     }
 
+    /**
+     * Sets the origin until the current transaction completes, then restores the previous one. Outside a transaction it
+     * stays set.
+     *
+     * @param origin the origin of the changes to come
+     */
     public static void stamp(final Origin origin) {
         final Origin previous = CURRENT.get();
 

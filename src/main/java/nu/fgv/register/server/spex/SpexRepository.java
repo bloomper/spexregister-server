@@ -30,12 +30,23 @@ import java.util.Optional;
 @Repository
 public interface SpexRepository extends PolicyJpaRepository<Spex, Long>, JpaSpecificationExecutor<Spex> {
 
+    /**
+     * {@link #findById}, refused when the caller may not read the spex.
+     *
+     * @param id the spex id
+     * @return the spex, or empty when there is none
+     * @throws org.springframework.security.access.AccessDeniedException when the spex exists but may not be read
+     */
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Spex> findById0(final Long id) {
         return this
                 .findById(id);
     }
 
+    /**
+     * @param details shared details
+     * @return the original spex of the details, without its revivals
+     */
     Optional<Spex> findByDetailsAndParentIsNull(SpexDetails details);
 
     long countByParentIsNull();

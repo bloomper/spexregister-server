@@ -70,6 +70,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The spex category REST API under {@code /api/spex/categories}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

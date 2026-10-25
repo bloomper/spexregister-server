@@ -28,6 +28,8 @@ import java.util.List;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 
 /**
+ * Exports spex categories to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -33,6 +33,8 @@ import java.util.List;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 
 /**
+ * The Spexregister roles.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -48,6 +50,10 @@ public class AuthorityService {
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
+    /**
+     * @param sort the order
+     * @return the authorities
+     */
     @RequiresAdminOrEditorOrUser
     public List<AuthorityDto> findAll(final Sort sort) {
         return repository
@@ -56,6 +62,10 @@ public class AuthorityService {
                 .toList();
     }
 
+    /**
+     * @param id the authority id
+     * @return the authority
+     */
     @RequiresAdminOrEditorOrUser
     public AuthorityDto findById(final String id) {
         return repository
@@ -64,6 +74,10 @@ public class AuthorityService {
                 .orElseThrow(() -> new ResourceNotFoundException(Authority.class, id));
     }
 
+    /**
+     * @param id the authority id
+     * @return whether the authority exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final String id) {
         return repository
@@ -71,6 +85,10 @@ public class AuthorityService {
                 .isPresent();
     }
 
+    /**
+     * @param id the authority id
+     * @return the Keycloak client role of that name
+     */
     @Cacheable("roleRepresentations")
     public RoleRepresentation getRoleRepresentationById(final String id) {
         final List<RoleRepresentation> roles = keycloakAdminClient.realm(keycloakRealm).clients().get(keycloakClientId).roles().list();

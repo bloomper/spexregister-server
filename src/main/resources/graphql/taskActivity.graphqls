@@ -1,13 +1,18 @@
 extend type Mutation {
+    "Every role, with WRITE on the spexare. Fails when the activity already has the task."
     taskActivityCreate(spexareId: ID!, activityId: ID!, taskId: ID!): TaskActivity
+    "ADMIN, EDITOR or USER with WRITE on the spexare. Changes the task."
     taskActivityUpdate(spexareId: ID!, activityId: ID!, taskId: ID!, id: ID!): TaskActivity
+    "ADMIN, EDITOR or USER with WRITE on the spexare. Removes it with its actors."
     taskActivityDelete(spexareId: ID!, activityId: ID!, id: ID!): Void
 }
 
+"A task a spexare had in the spex of an activity."
 type TaskActivity {
     id: ID!
     task: Task!
     actorsPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): ActorConnection
+    "The roles played, for tasks on stage."
     actors: [Actor]
     createdBy: String!
     createdAt: Instant!

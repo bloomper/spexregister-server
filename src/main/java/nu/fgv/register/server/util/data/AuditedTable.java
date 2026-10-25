@@ -19,6 +19,8 @@ package nu.fgv.register.server.util.data;
 import java.util.List;
 
 /**
+ * An audited table the audit seeder writes a baseline revision for.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

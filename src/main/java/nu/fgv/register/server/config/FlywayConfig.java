@@ -26,6 +26,9 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 /**
+ * Migrates the database at start-up with the SQL migrations, the Java migrations and the callbacks that are beans, such
+ * as {@link nu.fgv.register.server.util.data.DataSeedingCallback}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -1,14 +1,22 @@
 extend type Mutation {
+    """
+    Every role, with WRITE on the spexare. typeId is an ADDRESS type such as HOME; a spexare has at most one address of
+    each.
+    """
     addressCreate(spexareId: ID!, typeId: ID!, input: AddressCreate!): Address
+    "Every role, with WRITE on the spexare. Omitted values are left unchanged."
     addressUpdate(spexareId: ID!, typeId: ID!, input: AddressUpdate!): Address
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     addressDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 
+"A spexare's address, phone numbers and email of one address type."
 type Address {
     id: ID!
     streetAddress: String
     postalCode: String
     city: String
+    "An ISO 3166-1 alpha-2 code, such as SE."
     country: CountryCode
     phone: String
     phoneMobile: String

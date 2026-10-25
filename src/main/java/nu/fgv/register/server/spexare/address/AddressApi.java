@@ -49,6 +49,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The address REST API under {@code /api/spexare/{spexareId}/addresses}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

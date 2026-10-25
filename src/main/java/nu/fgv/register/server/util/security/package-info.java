@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Security helpers: the role annotations put on services and resolvers, reading the Keycloak token, and encrypting and
+ * hashing personal data.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.security;

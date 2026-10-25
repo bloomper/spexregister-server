@@ -1,11 +1,19 @@
 extend type Mutation {
+    """
+    Every role, with WRITE on the spexare. typeId is a CONSENT type such as CIRCULARS; a spexare has at most one consent
+    of each.
+    """
     consentCreate(spexareId: ID!, typeId: ID!, input: ConsentCreate!): Consent
+    "Every role, with WRITE on the spexare."
     consentUpdate(spexareId: ID!, typeId: ID!, input: ConsentUpdate!): Consent
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     consentDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 
+"A spexare's answer to one consent type."
 type Consent {
     id: ID!
+    "Whether the spexare agreed."
     value: Boolean!
     type: Type!
     createdBy: String!

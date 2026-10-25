@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
+ * Gives Hibernate Search the hasher of social security numbers, keyed by the encryption key.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

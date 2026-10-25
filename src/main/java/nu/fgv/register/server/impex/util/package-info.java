@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Helpers of the import and export jobs.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.util;

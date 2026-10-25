@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The Spexregister roles, as Keycloak client roles with labels.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.user.authority;

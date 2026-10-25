@@ -42,6 +42,8 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherRe
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code TaskActivity} mutations and fields.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

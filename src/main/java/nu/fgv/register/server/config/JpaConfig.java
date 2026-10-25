@@ -42,6 +42,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         },
         repositoryBaseClass = SimplePolicyJpaRepository.class,
         excludeFilters = {
+/**
+ * JPA repositories with {@link nu.fgv.register.server.security.policy.SimplePolicyJpaRepository} as base class, the
+ * spexare repository with search as its own, auditing of who created and changed what, and Envers repositories.
+ */
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
                         classes = {

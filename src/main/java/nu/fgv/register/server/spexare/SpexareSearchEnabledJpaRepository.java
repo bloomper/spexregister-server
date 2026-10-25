@@ -56,6 +56,12 @@ import static nu.fgv.register.server.util.security.SecurityUtil.isRevival;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The free-text and facet search of spexare. Names and nick names weigh most, then tags, spex titles and actor roles,
+ * then exact matches on graduation, postal code, country, phone and email, and last the comment and the address. A term
+ * of eight digits matches the birth date, and one of twelve digits the full number for callers who may see it. Callers
+ * other than administrators, editors and the revival service find only the published spexare and those a grant lets
+ * them read.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -185,6 +191,16 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         super(entityInformation, entityManager);
     }
 
+    /**
+     * @param searchSession the search session
+     * @param query         the free text, blank for all, and the facet values to narrow to; year facets also take a
+     *     range such as {@code 1990..1999}, and {@code quality} a {@link DataQualityIssue}
+     * @param offset        the first hit to return
+     * @param limit         the most hits to return
+     * @param sort          the order, by relevance when unsorted
+     * @return the hits, their total and the aggregations of every facet
+     * @throws nu.fgv.register.server.util.error.BadRequestException for an unknown facet
+     */
     @Override
     public SearchResult<Spexare> search(final SearchSession searchSession, final SearchQuery query, final int offset, final int limit, final Sort sort) {
         final boolean readsUnpublished = isAdministratorOrEditor() || isRevival();
@@ -292,6 +308,10 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         }
     }
 
+    /**
+     * @param issue what the records lack
+     * @return how many of the spexare the caller may see lack it
+     */
     public long countByDataQualityIssue(final DataQualityIssue issue) {
         final boolean readsUnpublished = isAdministratorOrEditor();
 

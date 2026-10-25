@@ -25,6 +25,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.Collection;
 
 /**
+ * Query restrictions on consents.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

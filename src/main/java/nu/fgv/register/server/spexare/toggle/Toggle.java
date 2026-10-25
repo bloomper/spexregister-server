@@ -50,6 +50,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A yes-or-no fact of one toggle type about a spexare.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

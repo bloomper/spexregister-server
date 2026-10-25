@@ -50,6 +50,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A spexare's answer to one consent type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

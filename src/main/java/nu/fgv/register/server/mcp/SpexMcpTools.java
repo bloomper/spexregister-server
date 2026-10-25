@@ -48,6 +48,8 @@ import static nu.fgv.register.server.mcp.McpToolSupport.pageable;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The MCP tools for spex, their revivals and spex categories.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

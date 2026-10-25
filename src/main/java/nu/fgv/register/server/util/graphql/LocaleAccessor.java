@@ -22,6 +22,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import java.util.Locale;
 
 /**
+ * Carries the caller's locale into the threads that run GraphQL data fetchers.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

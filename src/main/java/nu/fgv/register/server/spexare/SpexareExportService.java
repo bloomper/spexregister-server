@@ -67,6 +67,9 @@ import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 /**
+ * Exports spexare to Excel, with their addresses, consents, memberships, toggles, activities and taggings on sheets of
+ * their own, or as one of the PDF reports.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

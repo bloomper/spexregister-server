@@ -27,6 +27,9 @@ import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 /**
+ * Builds one specification from a parsed filter.
+ *
+ * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -39,6 +42,15 @@ public class SpecificationsBuilder<T> {
         return new SpecificationsBuilder<>();
     }
 
+    /**
+     * Consumes the deque.
+     *
+     * @param postFixedExpressionStack the output of {@link FilterParser#parse}
+     * @param converter                makes a specification of each criterion, usually the entity's specification
+     *     constructor
+     * @return the specification of the whole filter
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the filter is malformed
+     */
     public Specification<T> build(final Deque<?> postFixedExpressionStack, final Function<FilterCriteria, Specification<T>> converter) {
         try {
             return build0(postFixedExpressionStack, converter);

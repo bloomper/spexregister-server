@@ -30,6 +30,9 @@ import org.springframework.core.env.Profiles;
 import java.util.Arrays;
 
 /**
+ * Logs the calls of services and APIs at debug level and their exceptions as errors, with the full stack trace in the
+ * {@code local} profile.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

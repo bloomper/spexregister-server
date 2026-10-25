@@ -48,6 +48,8 @@ import java.util.Optional;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * A contact list of the spexare exported: task, name, social security number, street address, email and mobile phone.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

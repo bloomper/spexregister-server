@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
+ * Filters on news for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

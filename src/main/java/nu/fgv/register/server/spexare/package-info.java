@@ -14,5 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * The spexare, the people who have taken part in spex, with what belongs to each: activities, addresses, consents,
+ * memberships, taggings and toggles. The social security number is encrypted in the database and shown in full only to
+ * administrators, editors and the spexare themself; everyone else sees the birth date only. Spexare are searched
+ * through a Hibernate Search index with facets.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare;

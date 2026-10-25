@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Reads and validates the sheets of an import file in one file format.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

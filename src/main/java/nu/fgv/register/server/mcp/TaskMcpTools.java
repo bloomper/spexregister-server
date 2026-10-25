@@ -44,6 +44,8 @@ import static nu.fgv.register.server.mcp.McpToolSupport.orElse;
 import static nu.fgv.register.server.mcp.McpToolSupport.pageable;
 
 /**
+ * The MCP tools for tasks and task categories.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

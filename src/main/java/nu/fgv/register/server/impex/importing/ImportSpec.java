@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * A sheet an import file may have: its row type, optionally its name, and checks that the ids a row refers to exist.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

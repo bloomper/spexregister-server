@@ -28,6 +28,8 @@ import java.util.List;
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 
 /**
+ * Exports task categories to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

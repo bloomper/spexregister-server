@@ -44,6 +44,8 @@ import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasI
 import static nu.fgv.register.server.spexare.activity.ActivitySpecification.hasSpexare;
 
 /**
+ * A spexare's activities. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -57,6 +59,10 @@ public class ActivityService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's activities
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public List<ActivityDto> findBySpexare(final Long id) {
         return findBySpexare(id, spexare ->
@@ -69,6 +75,12 @@ public class ActivityService {
         );
     }
 
+    /**
+     * @param id     the spexare id
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ActivityDto> findBySpexare(final Long id, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(id, spexare ->
@@ -86,6 +98,11 @@ public class ActivityService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<ActivityDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
@@ -96,6 +113,11 @@ public class ActivityService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the activity id
+     * @return the activity
+     */
     @RequiresAdminOrEditorOrUser
     public ActivityDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
@@ -111,6 +133,10 @@ public class ActivityService {
         }
     }
 
+    /**
+     * @param id the activity id
+     * @return whether the activity exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -118,6 +144,10 @@ public class ActivityService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @return the created activity
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public ActivityDto create(final Long spexareId) {
         if (doesSpexareExist(spexareId)) {
@@ -137,6 +167,10 @@ public class ActivityService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the activity id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId) && doesActivityExist(id)) {

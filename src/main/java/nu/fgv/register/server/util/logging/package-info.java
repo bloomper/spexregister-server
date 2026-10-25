@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Logging of service and API calls.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.logging;

@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code Consent} mutations and the consents of a spexare, batched.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

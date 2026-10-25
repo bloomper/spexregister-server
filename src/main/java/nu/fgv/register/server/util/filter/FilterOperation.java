@@ -17,6 +17,8 @@
 package nu.fgv.register.server.util.filter;
 
 /**
+ * The operations of a filter criterion.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -33,6 +35,11 @@ public enum FilterOperation {
     static final String LEFT_PARENTHESIS = "(";
     static final String RIGHT_PARENTHESIS = ")";
 
+    /**
+     * @param input one of {@code : ! > < ~}
+     * @return the operation
+     * @throws IllegalArgumentException for any other character
+     */
     public static FilterOperation getSimpleOperation(final char input) {
         return switch (input) {
             case ':' -> EQUALITY;

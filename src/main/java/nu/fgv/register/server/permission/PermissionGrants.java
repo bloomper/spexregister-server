@@ -51,6 +51,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * Evaluates the permission grants that apply to a caller: those to their user or one of their roles, still valid and
+ * giving the permission asked for. The caller's grants are read once per request.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -72,6 +75,14 @@ public class PermissionGrants {
         this.clock = clock;
     }
 
+    /**
+     * The spexare a grant covers: those granted directly, and everyone with a spex activity in a spex granted for its
+     * participants.
+     *
+     * @param caller     who is asking
+     * @param permission the permission asked for
+     * @return a restriction to add to a spexare query
+     */
     public Specification<Spexare> coveringSpexare(final Caller caller, final Permission permission) {
         return (root, query, criteriaBuilder) -> {
             if (!holdsAny(caller, permission)) {
@@ -104,6 +115,13 @@ public class PermissionGrants {
         };
     }
 
+    /**
+     * The spex granted directly.
+     *
+     * @param caller     who is asking
+     * @param permission the permission asked for
+     * @return a restriction to add to a spex query
+     */
     public Specification<Spex> coveringSpex(final Caller caller, final Permission permission) {
         return (root, query, criteriaBuilder) -> {
             if (!holdsAny(caller, permission)) {
@@ -123,6 +141,14 @@ public class PermissionGrants {
         };
     }
 
+    /**
+     * Whether a grant covers the spexare, as {@link #coveringSpexare} does for queries.
+     *
+     * @param caller     who is asking
+     * @param spexare    the loaded spexare
+     * @param permission the permission asked for
+     * @return whether a grant covers it
+     */
     public boolean covers(final Caller caller, final Spexare spexare, final Permission permission) {
         if (!mayHoldGrants(caller) || spexare.getId() == null) {
             return false;
@@ -154,6 +180,14 @@ public class PermissionGrants {
         return false;
     }
 
+    /**
+     * Whether a grant covers the spex, as {@link #coveringSpex} does for queries.
+     *
+     * @param caller     who is asking
+     * @param spex       the loaded spex
+     * @param permission the permission asked for
+     * @return whether a grant covers it
+     */
     public boolean covers(final Caller caller, final Spex spex, final Permission permission) {
         if (!mayHoldGrants(caller) || spex.getId() == null) {
             return false;
@@ -164,6 +198,13 @@ public class PermissionGrants {
                         && grant.getSpex() != null && spex.getId().equals(grant.getSpex().getId()));
     }
 
+    /**
+     * The spexare the caller may read through grants alone, for filtering a search index that cannot run
+     * {@link #coveringSpexare}.
+     *
+     * @param caller who is asking
+     * @return the ids of those spexare
+     */
     public Set<Long> readableSpexareIds(final Caller caller) {
         if (!holdsAny(caller, Permission.READ)) {
             return Set.of();

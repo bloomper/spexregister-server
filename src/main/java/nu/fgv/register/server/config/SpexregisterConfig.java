@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The {@code spexregister} settings, such as the languages offered.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

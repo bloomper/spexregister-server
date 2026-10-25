@@ -67,6 +67,10 @@ import static nu.fgv.register.server.settings.TypeMapper.TYPE_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Applies one {@link SpexareBulkOperation} to at most {@value #MAX_TARGET_SIZE} spexare, named by ids or by a filter.
+ * Everything the operation needs is looked up before any spexare is touched, so an unknown id fails the whole request;
+ * spexare the caller may not change are reported as {@link BulkOutcome#NOT_PERMITTED} and left alone.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -114,11 +118,25 @@ public class SpexareBulkService {
         return "%s %s".formatted(spex.getYear(), spex.getDetails().getTitle());
     }
 
+    /**
+     * What {@link #apply} would do, without changing anything.
+     *
+     * @param input the targets, the operation and what it needs
+     * @return the outcome for each target
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the targets are not exactly one of ids and a
+     *     filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
+     */
     @RequiresAdminOrEditorOrUser
     public BulkResultDto preview(final SpexareBulkInputDto input) {
         return run(input, true);
     }
 
+    /**
+     * @param input the targets, the operation and what it needs
+     * @return the outcome for each target
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the targets are not exactly one of ids and a
+     *     filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
+     */
     @RequiresAdminOrEditorOrUser
     public BulkResultDto apply(final SpexareBulkInputDto input) {
         return run(input, false);

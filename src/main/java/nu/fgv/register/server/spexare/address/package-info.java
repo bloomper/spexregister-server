@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * A spexare's addresses, at most one of each address type such as home or work.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.address;

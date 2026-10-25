@@ -30,6 +30,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
+ * Runs a job's step as the caller who started it, with the roles they had then.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

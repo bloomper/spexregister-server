@@ -17,6 +17,8 @@
 package nu.fgv.register.server.graph;
 
 /**
+ * How two nodes of the graph are related.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

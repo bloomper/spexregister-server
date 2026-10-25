@@ -1,10 +1,14 @@
 extend type Query {
+    "ADMIN, EDITOR or USER."
     authorities(sort: [String]! = ["id"], direction: SortDirection = ASC): [Authority]
+    "ADMIN, EDITOR or USER."
     authority(id: ID!): Authority
 }
 
+"A Spexregister role, a Keycloak client role."
 type Authority {
     id: ID!
+    "In the caller's language."
     label: String!
     createdBy: String!
     createdAt: Instant!

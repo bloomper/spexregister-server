@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * The {@code analytics} query, computing only the sections the query selects.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

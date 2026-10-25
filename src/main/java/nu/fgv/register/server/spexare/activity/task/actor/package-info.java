@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The roles played on stage in a task activity, with the vocal part sung.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.activity.task.actor;

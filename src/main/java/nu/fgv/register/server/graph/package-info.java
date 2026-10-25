@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * The register as a graph to explore: spexare, spex, tasks, tags and categories as nodes, and participation, tasks
+ * held, tags, partners and revivals as edges.
+ */
 @NullMarked
 package nu.fgv.register.server.graph;
 

@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Imports: an engine reads and validates the sheets of a file, and the import service creates, updates or removes a
+ * record for each row as its action column says. Each row is applied in its own transaction, so a failing row is
+ * reported without undoing the others.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.importing;

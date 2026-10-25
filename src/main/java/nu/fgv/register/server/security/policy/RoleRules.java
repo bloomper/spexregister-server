@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Which roles hold which {@link Permission}. Roles given {@link Permission#ADMINISTRATION} hold every permission.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -38,14 +40,27 @@ public final class RoleRules {
         return new Builder();
     }
 
+    /**
+     * @param <T> the entity type
+     * @return a restriction that matches every row
+     */
     public static <T> Specification<T> all() {
         return (_, _, criteriaBuilder) -> criteriaBuilder.conjunction();
     }
 
+    /**
+     * @param <T> the entity type
+     * @return a restriction that matches no row
+     */
     public static <T> Specification<T> none() {
         return (_, _, criteriaBuilder) -> criteriaBuilder.disjunction();
     }
 
+    /**
+     * @param caller     who is asking
+     * @param permission the permission asked for
+     * @return whether one of the caller's roles holds the permission or administration
+     */
     public boolean allows(final Caller caller, final Permission permission) {
         return caller.hasAnyRole(roles.getOrDefault(permission, Set.of()))
                 || caller.hasAnyRole(roles.getOrDefault(Permission.ADMINISTRATION, Set.of()));

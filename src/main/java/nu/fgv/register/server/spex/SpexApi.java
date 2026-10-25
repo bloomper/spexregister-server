@@ -74,6 +74,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The spex REST API under {@code /api/spex}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

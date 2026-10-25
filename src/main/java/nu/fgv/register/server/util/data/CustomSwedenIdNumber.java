@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
+ * Generates valid Swedish social security numbers for the sample spexare.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -28,6 +28,9 @@ import java.util.regex.Pattern;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Parses a filter expression into postfix order, so that {@code AND} binds tighter than {@code OR} and parentheses
+ * group.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -47,6 +50,11 @@ public class FilterParser {
         return (OPERATIONS.containsKey(previousOperation) && OPERATIONS.get(previousOperation).precedence >= OPERATIONS.get(currentOperation).precedence);
     }
 
+    /**
+     * @param filter the filter expression
+     * @return the criteria and operators in postfix order, for {@link SpecificationsBuilder}; empty for a blank filter
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the parentheses do not balance
+     */
     public static Deque<?> parse(final String filter) {
         final Deque<Object> output = new LinkedList<>();
         final Deque<String> stack = new LinkedList<>();

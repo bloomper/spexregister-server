@@ -1,14 +1,23 @@
 extend type Query {
+    "ADMIN."
     permissionGrantPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["createdAt"], direction: SortDirection = DESC): PermissionGrantConnection
+    "ADMIN."
     permissionGrant(id: ID!): PermissionGrant
 }
 
 extend type Mutation {
+    """
+    ADMIN. Names exactly one of userId and role (USER, EDITOR or ADMIN). A SPEXARE grant names spexareId; the other
+    scopes name spexId. validUntil may not be in the past.
+    """
     permissionGrantCreate(input: PermissionGrantCreate!): PermissionGrant
+    "ADMIN. Changes the permission and validUntil; who and what the grant applies to are fixed."
     permissionGrantUpdate(input: PermissionGrantUpdate!): PermissionGrant
+    "ADMIN."
     permissionGrantDelete(id: ID!): Void
 }
 
+"What a caller may do. ADMINISTRATION includes the others, and any permission includes READ."
 enum Permission {
     READ
     WRITE
@@ -16,12 +25,14 @@ enum Permission {
     ADMINISTRATION
 }
 
+"What a grant applies to: one spexare, everyone with a spex activity in a spex, or a spex."
 enum PermissionGrantScope {
     SPEXARE
     SPEX_PARTICIPANTS
     SPEX
 }
 
+"What the caller may do with the object, so a client shows only the actions the server allows."
 type Permissions {
     read: Boolean!
     write: Boolean!
@@ -29,15 +40,19 @@ type Permissions {
     administer: Boolean!
 }
 
+"A permission given to a user, or to everyone with a role, on top of what their role allows."
 type PermissionGrant {
     id: ID!
     user: User
+    "The role granted to, when not a user."
     role: String
     permission: Permission!
     scope: PermissionGrantScope!
     spexare: Spexare
     spex: Spex
+    "The last day the grant applies. Without it, it never ends."
     validUntil: Date
+    "Whether validUntil has passed."
     expired: Boolean!
     createdBy: String!
     createdAt: Instant!
@@ -73,13 +88,16 @@ input PermissionGrantUpdate {
 }
 
 extend type Spexare {
+    "What the caller may do with the spexare."
     permissions: Permissions!
 }
 
 extend type Spex {
+    "What the caller may do with the spex."
     permissions: Permissions!
 }
 
 extend type News {
+    "What the caller may do with the news item."
     permissions: Permissions!
 }

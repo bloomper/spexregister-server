@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Sample data for development and test: generated spexare, users and history, imported after migration when
+ * {@code spexregister.data.import-sample-data} or {@code spexregister.data.seed-audit-data} is set.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.data;

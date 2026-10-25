@@ -1,17 +1,24 @@
 extend type Query {
+    "ADMIN, EDITOR or USER. The caller's saved searches, by name."
     savedSearches: [SavedSearch]
+    "ADMIN, EDITOR or USER. One of the caller's saved searches."
     savedSearch(id: ID!): SavedSearch
 }
 
 extend type Mutation {
+    "ADMIN, EDITOR or USER. Saves a search as the caller's."
     savedSearchCreate(input: SavedSearchCreate!): SavedSearch
+    "ADMIN, EDITOR or USER. Changes one of the caller's saved searches."
     savedSearchUpdate(input: SavedSearchUpdate!): SavedSearch
+    "ADMIN, EDITOR or USER. Removes one of the caller's saved searches."
     savedSearchDelete(id: ID!): Void
 }
 
+"A spexare search saved by name, visible only to the user who saved it."
 type SavedSearch {
     id: ID!
     name: String!
+    "The search as the client keeps it, at most 2000 characters. The server does not read it."
     query: String!
     createdBy: String!
     createdAt: Instant!

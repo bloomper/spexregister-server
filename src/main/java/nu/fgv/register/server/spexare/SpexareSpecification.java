@@ -32,6 +32,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 /**
+ * Filters on spexare for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -51,6 +53,10 @@ public class SpexareSpecification extends BaseSpecification<Spexare> {
         return (root, query, criteriaBuilder) -> root.get(Spexare_.id).in(ids);
     }
 
+    /**
+     * @param spexId an original spex id
+     * @return the spexare with a spex activity in the spex or in one of its revivals
+     */
     public static Specification<Spexare> hasSpexActivityInSpexOrRevivals(final Long spexId) {
         return (root, query, criteriaBuilder) -> {
             final Subquery<Long> participants = query.subquery(Long.class);

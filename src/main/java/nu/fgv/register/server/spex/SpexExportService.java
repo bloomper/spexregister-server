@@ -32,6 +32,8 @@ import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 
 /**
+ * Exports spex, and their revivals on a second sheet, to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -78,6 +78,8 @@ import java.util.stream.IntStream;
 
 
 /**
+ * Generates sample news, tags, spexare with their records and partners, and users, also in Keycloak.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -127,6 +129,9 @@ public class SampleDataImporter {
         cryptoConverter = new CryptoConverter(secretKey);
     }
 
+    /**
+     * @param connection the migrated database
+     */
     public void importSampleData(final Connection connection) {
         final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(connection, true));
 

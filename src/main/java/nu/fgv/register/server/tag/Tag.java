@@ -45,6 +45,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A label put on spexare through {@link nu.fgv.register.server.spexare.tagging.TaggingService}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

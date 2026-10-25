@@ -20,6 +20,9 @@ import io.micrometer.context.ThreadLocalAccessor;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * Carries the {@link AuditContext} into the threads that run GraphQL data fetchers and subscriptions, through
+ * Micrometer's context propagation.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

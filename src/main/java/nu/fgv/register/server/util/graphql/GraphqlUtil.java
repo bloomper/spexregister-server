@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Scrolling by offset for the {@code *Paged} queries.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -40,10 +42,18 @@ public class GraphqlUtil {
     private GraphqlUtil() {
     }
 
+    /**
+     * @param <T> the item type
+     * @return an empty window with a total of zero
+     */
     public static <T> CountedWindow<T> emptyWindow() {
         return CountedWindow.of(Window.from(Collections.emptyList(), _ -> ScrollPosition.offset(0), false), 0L);
     }
 
+    /**
+     * @param subrange the window the client asked for
+     * @return the window to read, at most {@value #MAX_LIMIT} items and 10 when not given
+     */
     public static ScrollRequest extractScrollRequest(final ScrollSubrange subrange) {
         return new ScrollRequest(
                 subrange.position(),
@@ -52,6 +62,12 @@ public class GraphqlUtil {
         );
     }
 
+    /**
+     * @param data            the result
+     * @param localContextMap the local context for the fields below
+     * @param <T>             the result type
+     * @return the result with the local context
+     */
     public static <T> DataFetcherResult<T> buildDataFetcherResult(final T data, final Map<Object, Object> localContextMap) {
         return DataFetcherResult.<T>newResult()
                 .data(data)

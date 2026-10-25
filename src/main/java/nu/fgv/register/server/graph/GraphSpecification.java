@@ -34,6 +34,8 @@ import nu.fgv.register.server.task.category.TaskCategory_;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * The queries behind the graph's search and neighbourhoods.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

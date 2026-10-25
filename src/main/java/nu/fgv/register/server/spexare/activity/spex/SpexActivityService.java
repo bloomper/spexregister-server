@@ -43,6 +43,8 @@ import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecifica
 import static nu.fgv.register.server.spexare.activity.spex.SpexActivitySpecification.hasSpex;
 
 /**
+ * The spex of an activity. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -58,6 +60,11 @@ public class SpexActivityService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @return the spex activity
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public SpexActivityDto findByActivity(final Long spexareId, final Long activityId) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
@@ -75,6 +82,12 @@ public class SpexActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the spex activity id
+     * @return the spex activity
+     */
     @RequiresAdminOrEditorOrUser
     public SpexActivityDto findById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
@@ -91,6 +104,10 @@ public class SpexActivityService {
         }
     }
 
+    /**
+     * @param id the spex activity id
+     * @return whether the spex activity exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -98,6 +115,12 @@ public class SpexActivityService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param spexId     the spex id
+     * @return the created spex activity
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public SpexActivityDto create(final Long spexareId, final Long activityId, final Long spexId) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId)) {
@@ -124,6 +147,13 @@ public class SpexActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param spexId     the spex id
+     * @param id         the spex activity id
+     * @return the updated spex activity
+     */
     @RequiresAdminOrEditorOrUser
     public SpexActivityDto update(final Long spexareId, final Long activityId, final Long spexId, final Long id) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId) && doesSpexActivityExist(id)) {
@@ -155,6 +185,11 @@ public class SpexActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the spex activity id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {
@@ -186,6 +221,12 @@ public class SpexActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the spex activity id
+     * @return the spex
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto findSpexBySpexActivity(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {

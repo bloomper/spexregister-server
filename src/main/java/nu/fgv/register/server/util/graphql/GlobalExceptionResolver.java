@@ -50,6 +50,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Turns the application's exceptions into GraphQL errors of the matching type with a message in the caller's language.
+ * Optimistic locking failures become {@link CustomErrorType#CONFLICT}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

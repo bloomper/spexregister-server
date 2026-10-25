@@ -24,6 +24,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Only {@code ADMIN} and {@code EDITOR} may call.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

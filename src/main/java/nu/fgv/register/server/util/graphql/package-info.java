@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * GraphQL support: scalars, connections with a total count, scrolling by offset, error mapping and authentication of
+ * subscriptions.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.graphql;

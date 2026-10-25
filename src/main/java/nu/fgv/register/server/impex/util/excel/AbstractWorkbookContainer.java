@@ -24,6 +24,8 @@ import org.springframework.context.MessageSource;
 import java.util.Locale;
 
 /**
+ * A workbook with the messages and locale of its headers.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

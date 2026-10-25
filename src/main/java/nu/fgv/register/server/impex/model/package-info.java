@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The row types and file formats of import and export.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.model;

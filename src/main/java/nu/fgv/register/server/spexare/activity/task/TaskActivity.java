@@ -53,6 +53,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * A task a spexare had in the spex of an activity, with the roles played when it was on stage.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

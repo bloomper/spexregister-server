@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Spex categories, the ensembles that stage spex such as Gamla Chalmersspexet and Bobspexet, each with a first year and
+ * a logo.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spex.category;

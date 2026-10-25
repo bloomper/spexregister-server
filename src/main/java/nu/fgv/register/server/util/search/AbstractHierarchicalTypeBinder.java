@@ -31,6 +31,8 @@ import java.util.Map;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 
 /**
+ * Binds the per-language hierarchical index fields of a facet.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

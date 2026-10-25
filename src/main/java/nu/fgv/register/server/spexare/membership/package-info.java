@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The years a spexare was a member of an association such as FGV or CING.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.membership;

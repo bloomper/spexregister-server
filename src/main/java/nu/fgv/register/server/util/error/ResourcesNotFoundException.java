@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * One of several resources a request names is missing: 404, and {@code NOT_FOUND} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Makes one kind of PDF report from the sheets of a spexare export.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

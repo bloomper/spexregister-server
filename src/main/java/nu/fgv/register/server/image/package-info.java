@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Images kept in the database, such as posters, logos and spexare portraits.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.image;

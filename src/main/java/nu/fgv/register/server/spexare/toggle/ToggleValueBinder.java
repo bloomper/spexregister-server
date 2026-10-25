@@ -19,6 +19,8 @@ package nu.fgv.register.server.spexare.toggle;
 import nu.fgv.register.server.util.search.BooleanTypeBinder;
 
 /**
+ * Indexes a toggle's type and value with labels, for the {@code toggles} facet.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

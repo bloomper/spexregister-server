@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Task categories, which group tasks and say whether they are performed on stage.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.task.category;

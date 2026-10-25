@@ -24,6 +24,13 @@ import nu.fgv.register.server.util.graphql.TotalCountAware;
 import java.util.List;
 
 /**
+ * A Relay connection with the total count and the facets of the search.
+ *
+ * @param edges      the edges of the window
+ * @param pageInfo   the page info
+ * @param totalCount the number of hits
+ * @param facets     the facets of all hits
+ * @param <T>        the node type
  * @author Anders Jacobsson
  * @since 2.0
  */

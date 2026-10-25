@@ -14,5 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * The change history of the register, kept by Hibernate Envers. Every revision records who made it, from which kind of
+ * client, the GraphQL operation or HTTP request and an optional reason. The history of an entity can be read, a
+ * revision restored, with or without the records that belong to it, and the history of a removed spexare purged for
+ * good.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.audit;

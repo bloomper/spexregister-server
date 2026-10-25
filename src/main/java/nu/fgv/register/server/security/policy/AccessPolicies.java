@@ -28,6 +28,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * The registry of every {@link AccessPolicy}, keyed by entity type. Also reachable statically through {@link #get()}
+ * for code Spring does not create, such as {@link PolicyPermissionEvaluator} and {@link SimplePolicyJpaRepository}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -43,6 +46,12 @@ public class AccessPolicies {
         instance = this;
     }
 
+    /**
+     * The instance Spring created.
+     *
+     * @return the registry
+     * @throws IllegalStateException when called before the application context has started
+     */
     public static AccessPolicies get() {
         final AccessPolicies current = instance;
 
@@ -53,6 +62,15 @@ public class AccessPolicies {
         return current;
     }
 
+    /**
+     * The policy for the type or its nearest superclass with one, so Hibernate proxies and subclasses resolve.
+     *
+     * @param type the entity type
+     * @param <T>  the entity type
+     * @return the policy
+     * @throws org.springframework.security.access.AccessDeniedException when the type has no policy, so it is denied
+     *     rather than allowed
+     */
     @SuppressWarnings("unchecked")
     public <T> AccessPolicy<T> forType(final Class<T> type) {
         for (Class<?> candidate = type; candidate != null && candidate != Object.class; candidate = candidate.getSuperclass()) {
@@ -66,10 +84,26 @@ public class AccessPolicies {
         throw new AccessDeniedException("No access policy for " + type.getSimpleName());
     }
 
+    /**
+     * What the current caller may access with the permission, to combine with any other query criteria.
+     *
+     * @param type       the entity type
+     * @param permission the permission asked for
+     * @param <T>        the entity type
+     * @return the restriction to add to a query
+     */
     public <T> Specification<T> permitted(final Class<T> type, final Permission permission) {
         return forType(type).permitted(Caller.current(), permission);
     }
 
+    /**
+     * Whether the current caller has the permission on the entity, unproxied first so the right policy is used.
+     *
+     * @param entity     the entity, possibly a Hibernate proxy
+     * @param permission the permission asked for
+     * @param <T>        the entity type
+     * @return whether the caller has the permission
+     */
     @SuppressWarnings("unchecked")
     public <T> boolean permits(final T entity, final Permission permission) {
         final T target = (T) Hibernate.unproxy(entity);

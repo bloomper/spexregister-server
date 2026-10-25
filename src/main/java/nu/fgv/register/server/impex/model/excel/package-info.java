@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * How a row type maps to an Excel sheet.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.model.excel;

@@ -23,6 +23,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
+ * Column positions of a row type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -31,6 +33,10 @@ public class ImpexUtil {
     private ImpexUtil() {
     }
 
+    /**
+     * @param annotatedFields the {@link nu.fgv.register.server.impex.model.excel.ExcelCell} fields of a row type
+     * @return the first position after its own columns, where the audit columns start
+     */
     public static int determinePositionBeforeAuditableFields(final List<Field> annotatedFields) {
         return annotatedFields.stream()
                 .filter(f -> !f.getDeclaringClass().equals(AbstractAuditableDto.class))
@@ -40,6 +46,12 @@ public class ImpexUtil {
                 .orElse(-1) + 1;
     }
 
+    /**
+     * @param field       an {@link nu.fgv.register.server.impex.model.excel.ExcelCell} field
+     * @param maxPosition the first position of the audit columns
+     * @param readOnly    whether the sheet is read-only, without the action column
+     * @return the field's column, or -1 when it is left out
+     */
     public static int determinePosition(final Field field, final int maxPosition, final boolean readOnly) {
         final ExcelCell excelCell = field.getAnnotation(ExcelCell.class);
         final String fieldName = field.getName();

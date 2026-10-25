@@ -25,6 +25,8 @@ import org.springframework.data.util.Lazy;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
 
 /**
+ * The HATEOAS assembler of the REST API's faceted search results.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

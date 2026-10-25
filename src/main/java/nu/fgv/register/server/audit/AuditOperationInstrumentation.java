@@ -28,6 +28,8 @@ import io.micrometer.context.ContextRegistry;
 import org.springframework.stereotype.Component;
 
 /**
+ * Names the {@link AuditContext} after the GraphQL operation being executed, when it has a name.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

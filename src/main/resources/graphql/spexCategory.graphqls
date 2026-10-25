@@ -1,20 +1,30 @@
 extend type Query {
+    "ADMIN, EDITOR or USER."
     spexCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): SpexCategoryConnection
+    "ADMIN, EDITOR or USER."
     spexCategory(id: ID!): SpexCategory
+    "ADMIN or EDITOR."
     spexCategoryExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN."
     spexCategoryCreate(input: SpexCategoryCreate!): SpexCategory
+    "ADMIN."
     spexCategoryUpdate(input: SpexCategoryUpdate!): SpexCategory
+    "ADMIN."
     spexCategoryDelete(id: ID!): Void
+    "ADMIN."
     spexCategoryLogoDelete(id: ID!): Void
 }
 
+"An ensemble that stages spex, such as Gamla Chalmersspexet or Bobspexet."
 type SpexCategory {
     id: ID!
     name: String!
+    "The year of its first spex."
     firstYear: Year!
+    "Where to fetch the logo from the REST API, when there is one."
     logoUrl: String
     createdBy: String!
     createdAt: Instant!

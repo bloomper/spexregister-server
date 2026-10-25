@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Administration of the application itself, such as rebuilding the search index.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.admin;

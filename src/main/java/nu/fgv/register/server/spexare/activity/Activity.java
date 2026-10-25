@@ -51,6 +51,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * A spexare's participation in one spex: the {@link nu.fgv.register.server.spexare.activity.spex.SpexActivity} names
+ * the spex and the {@link nu.fgv.register.server.spexare.activity.task.TaskActivity}s the tasks.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

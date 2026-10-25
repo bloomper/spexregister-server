@@ -1,26 +1,39 @@
 extend type Query {
+    "ADMIN, EDITOR or USER. What spexareBulkApply would do, without changing anything."
     spexareBulkPreview(input: SpexareBulkInput!): BulkResult
 }
 
 extend type Mutation {
+    """
+    ADMIN, EDITOR or USER. Applies one operation to at most 500 spexare. Ids that do not exist, and a missing payload,
+    fail the whole request before anything changes; spexare the caller may not change are reported as NOT_PERMITTED and
+    left alone.
+    """
     spexareBulkApply(input: SpexareBulkInput!): BulkResult
 }
 
+"The spexare to change: either ids or a filter, not both."
 input BulkTarget {
     ids: [ID!]
     filter: String
 }
 
+"A consent or toggle type and the value to set."
 input TypeValue {
     typeId: ID!
     value: Boolean!
 }
 
+"The fields of FIELDS_SET; omitted ones are left unchanged."
 input SpexareBulkFields {
     published: Boolean
     deceased: Boolean
 }
 
+"""
+The operation and what it needs: tags for TAG_ADD and TAG_REMOVE, spex for SPEX_ADD and SPEX_REMOVE, spexId and tasks
+for TASK_ADD and TASK_REMOVE, values for CONSENT_SET and TOGGLE_SET, and fields for FIELDS_SET.
+"""
 input SpexareBulkInput {
     target: BulkTarget!
     operation: SpexareBulkOperation!
@@ -32,6 +45,10 @@ input SpexareBulkInput {
     fields: SpexareBulkFields
 }
 
+"""
+SPEX_ADD adds an activity in each spex the spexare lacks, and SPEX_REMOVE removes the activity with its tasks. TASK_ADD
+adds the tasks to the activity in spexId, adding the activity when needed.
+"""
 enum SpexareBulkOperation {
     TAG_ADD
     TAG_REMOVE
@@ -44,19 +61,23 @@ enum SpexareBulkOperation {
     FIELDS_SET
 }
 
+"What happened to each target, and the count of each outcome."
 type BulkResult {
     operation: SpexareBulkOperation!
     requested: Int!
     applied: Int!
     unchanged: Int!
+    "The spexare the caller may not change."
     blocked: Int!
     entries: [BulkEntry!]!
 }
 
+"One target and what happened to it."
 type BulkEntry {
     id: ID!
     label: String!
     outcome: BulkOutcome!
+    "What was or would be changed, such as the names of the tags added."
     detail: String
 }
 

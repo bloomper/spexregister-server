@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 import static nu.fgv.register.server.settings.CountryMapper.COUNTRY_MAPPER;
 
 /**
+ * The countries of ISO 3166-1, labelled in the caller's language.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -37,6 +39,9 @@ import static nu.fgv.register.server.settings.CountryMapper.COUNTRY_MAPPER;
 @Service
 public class CountryService {
 
+    /**
+     * @return every country, by label
+     */
     public List<CountryDto> findAll() {
         return Stream.of(Locale.getISOCountries())
                 .map(COUNTRY_MAPPER::toDto)
@@ -44,6 +49,11 @@ public class CountryService {
                 .toList();
     }
 
+    /**
+     * @param isoCode an ISO 3166-1 alpha-2 code, in any case
+     * @return the country
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is none
+     */
     public CountryDto findByIsoCode(final String isoCode) {
         return Stream.of(Locale.getISOCountries())
                 .filter(c -> c.equalsIgnoreCase(isoCode))
@@ -52,6 +62,10 @@ public class CountryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Country", isoCode));
     }
 
+    /**
+     * @param isoCode an ISO 3166-1 alpha-2 code, in any case
+     * @return whether there is such a country
+     */
     public boolean exists(final String isoCode) {
         return Stream.of(Locale.getISOCountries())
                 .anyMatch(c -> c.equalsIgnoreCase(isoCode));

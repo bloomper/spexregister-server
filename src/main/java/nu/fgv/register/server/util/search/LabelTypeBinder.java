@@ -29,6 +29,10 @@ import java.util.function.Function;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 
 /**
+ * Indexes the {@link nu.fgv.register.server.settings.Type} of an entity as a hierarchical facet value, labelled per
+ * language.
+ *
+ * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0
  */

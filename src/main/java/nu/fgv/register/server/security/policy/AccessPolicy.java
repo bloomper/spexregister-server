@@ -19,14 +19,36 @@ package nu.fgv.register.server.security.policy;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * The access rules for one entity type, in two forms that must agree: a query restriction for lists and a check for a
+ * single entity.
+ *
+ * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0
  */
 public interface AccessPolicy<T> {
 
+    /**
+     * @return the entity type the policy is for
+     */
     Class<T> type();
 
+    /**
+     * The entities the caller has the permission on.
+     *
+     * @param caller     who is asking
+     * @param permission the permission asked for
+     * @return a restriction to add to a query
+     */
     Specification<T> permitted(Caller caller, Permission permission);
 
+    /**
+     * Whether the caller has the permission on this entity.
+     *
+     * @param caller     who is asking
+     * @param entity     the loaded entity
+     * @param permission the permission asked for
+     * @return whether the caller has the permission
+     */
     boolean permits(Caller caller, T entity, Permission permission);
 }

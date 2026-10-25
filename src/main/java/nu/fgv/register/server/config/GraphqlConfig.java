@@ -37,6 +37,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
+ * The GraphQL scalars, connections with {@code totalCount}, sorting by the {@code sort} and {@code direction}
+ * arguments, and limits of 15 levels and a complexity of 1000 per query.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

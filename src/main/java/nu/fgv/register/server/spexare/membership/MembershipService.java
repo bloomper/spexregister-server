@@ -58,6 +58,9 @@ import static nu.fgv.register.server.spexare.membership.MembershipSpecification.
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * A spexare's memberships, one per type and year. Not readable by the revival service. Reading needs read access to the
+ * spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -73,6 +76,10 @@ public class MembershipService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
+    /**
+     * @param ids spexare ids
+     * @return the memberships of each spexare, by spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, List<MembershipDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
@@ -89,6 +96,10 @@ public class MembershipService {
                 .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(MEMBERSHIP_MAPPER::toDto, Collectors.toList())));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's memberships
+     */
     @RequiresAdminOrEditorOrUser
     public List<MembershipDto> findBySpexare(final Long id) {
         return findBySpexare(id, spexare ->
@@ -101,6 +112,13 @@ public class MembershipService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param filter    a filter expression, or blank for all
+     * @param scroll    the window to read
+     * @param sort      the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<MembershipDto> findBySpexare(final Long spexareId, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
@@ -121,6 +139,12 @@ public class MembershipService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param filter    a filter expression, or blank for all
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<MembershipDto> findBySpexare(final Long spexareId, final String filter, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
@@ -135,6 +159,11 @@ public class MembershipService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the membership id
+     * @return the membership
+     */
     @RequiresAdminOrEditorOrUser
     public MembershipDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
@@ -150,6 +179,10 @@ public class MembershipService {
         }
     }
 
+    /**
+     * @param id the membership id
+     * @return whether the membership exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -157,6 +190,14 @@ public class MembershipService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the association, such as {@code FGV}
+     * @param dto       the year
+     * @return the created membership
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already is a member
+     *     that year
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public MembershipDto create(final Long spexareId, final String typeId, final MembershipCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
@@ -181,6 +222,11 @@ public class MembershipService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the membership type, such as {@code FGV}
+     * @param id        the membership id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesMembershipExist(id)) {

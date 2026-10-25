@@ -45,6 +45,8 @@ import static nu.fgv.register.server.tag.TagSpecification.hasIds;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Tags. Editors change and remove them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -57,6 +59,14 @@ public class TagService {
     private final TagRepository repository;
     private final PermissionService permissionService;
 
+    /**
+     * The tags the caller may read that match the filter.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresReferenceDataReader
     public CountedWindow<TagDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -74,6 +84,13 @@ public class TagService {
                         });
     }
 
+    /**
+     * The tags the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<TagDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -85,6 +102,11 @@ public class TagService {
                         .map(TAG_MAPPER::toDto);
     }
 
+    /**
+     * @param id the tag id
+     * @return the tag
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such tag
+     */
     @RequiresReferenceDataReader
     public TagDto findById(final Long id) {
         return repository
@@ -93,6 +115,11 @@ public class TagService {
                 .orElseThrow(() -> new ResourceNotFoundException(Tag.class, id));
     }
 
+    /**
+     * @param id the tag id
+     * @return whether the tag exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -100,6 +127,14 @@ public class TagService {
                 .isPresent();
     }
 
+    /**
+     * The tags to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the tags to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the tags the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<Tag> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -119,6 +154,10 @@ public class TagService {
         };
     }
 
+    /**
+     * @param dto the new tag
+     * @return the created tag
+     */
     @RequiresAdminOrEditor
     public TagDto create(final TagCreateDto dto) {
         return Optional.of(TAG_MAPPER.toModel(dto))
@@ -130,11 +169,24 @@ public class TagService {
                 .orElseThrow(() -> new InternalErrorException("Could not create tag"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the tag id and new values
+     * @return the updated tag
+     */
     @RequiresAdminOrEditor
     public TagDto update(final TagUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged.
+     *
+     * @param dto the tag id and new values
+     * @return the updated tag
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such tag
+     */
     @RequiresAdminOrEditor
     public TagDto partialUpdate(final TagUpdateDto dto) {
         return repository
@@ -149,6 +201,10 @@ public class TagService {
                 .orElseThrow(() -> new ResourceNotFoundException(Tag.class, dto.id()));
     }
 
+    /**
+     * @param id the tag id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such tag
+     */
     @RequiresAdminOrEditor
     public void deleteById(final Long id) {
         if (doesTagExist(id)) {

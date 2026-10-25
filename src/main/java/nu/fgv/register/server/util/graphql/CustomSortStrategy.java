@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * Sorts by the {@code sort} and {@code direction} arguments of a query.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

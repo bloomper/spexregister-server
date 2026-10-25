@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * What a spexare did in a spex: an activity holds one spex activity, the spex, and the task activities, the tasks, with
+ * the roles played as actors for tasks on stage.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.activity;

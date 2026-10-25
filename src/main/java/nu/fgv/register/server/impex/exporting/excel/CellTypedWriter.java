@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.function.BiConsumer;
 
 /**
+ * Writes a value to a cell as its Java type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

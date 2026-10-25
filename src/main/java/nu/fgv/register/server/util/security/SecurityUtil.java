@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Reads the current authentication and the claims of its Keycloak token. Missing claims read as an empty string.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -98,6 +100,12 @@ public class SecurityUtil {
                 .anyMatch(grantedAuthority -> role.equals(grantedAuthority.getAuthority()));
     }
 
+    /**
+     * Runs as an administrator named {@code system}, for work without a caller such as start-up and scheduled jobs, and
+     * restores the previous authentication afterwards.
+     *
+     * @param runnable the work
+     */
     public static void runAsSystem(final Runnable runnable) {
         final Authentication originalAuth = SecurityContextHolder.getContext().getAuthentication();
         try {

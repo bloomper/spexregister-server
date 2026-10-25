@@ -26,6 +26,8 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Component;
 
 /**
+ * After Flyway has migrated, imports the sample data and seeds a baseline audit history when asked to.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

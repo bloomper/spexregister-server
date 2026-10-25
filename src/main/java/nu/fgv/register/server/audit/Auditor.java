@@ -25,6 +25,9 @@ import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserPr
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Who to record as having made a change: the caller's email. For the revival service, its account on behalf of the
+ * person given in {@code X-Acting-Person}, cut to the column's {@value #MAX_LENGTH} characters.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -36,6 +39,10 @@ public final class Auditor {
     private Auditor() {
     }
 
+    /**
+     * @return the email of the caller, or for the revival service its account and the person it acts for; empty when
+     *     there is no caller
+     */
     public static String current() {
         final boolean revival = Caller.current().hasRole(Caller.REVIVAL);
         final String account = accountOf(revival);

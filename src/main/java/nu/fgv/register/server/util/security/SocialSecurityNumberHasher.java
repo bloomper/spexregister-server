@@ -25,6 +25,9 @@ import java.security.GeneralSecurityException;
 import java.util.Base64;
 
 /**
+ * A keyed HMAC of the digits of a Swedish social security number (12 digits) or a birth date (8 digits), so the search
+ * index can match a number without holding it in clear text. The key is derived from the encryption key.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -37,18 +40,33 @@ public final class SocialSecurityNumberHasher {
 
     private final SecretKeySpec key;
 
+    /**
+     * @param secretKey the encryption key, from which the HMAC key is derived
+     */
     public SocialSecurityNumberHasher(final String secretKey) {
         this.key = new SecretKeySpec(hmac(new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM), KEY_LABEL), ALGORITHM);
     }
 
+    /**
+     * @param value a search term
+     * @return whether it has the 12 digits of a full number
+     */
     public static boolean isNumber(final String value) {
         return digitsOf(value).length() == NUMBER_LENGTH;
     }
 
+    /**
+     * @param value a search term
+     * @return whether it has the 8 digits of a birth date
+     */
     public static boolean isBirthDate(final String value) {
         return digitsOf(value).length() == BIRTH_DATE_LENGTH;
     }
 
+    /**
+     * @param value a number or birth date, with or without separators
+     * @return the hash of its digits, or null when they are neither a full number nor a birth date
+     */
     public @Nullable String hashNumber(@Nullable final String value) {
         final String digits = digitsOf(value);
 

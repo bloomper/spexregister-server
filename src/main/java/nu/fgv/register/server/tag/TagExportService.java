@@ -28,6 +28,8 @@ import java.util.List;
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 
 /**
+ * Exports tags to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

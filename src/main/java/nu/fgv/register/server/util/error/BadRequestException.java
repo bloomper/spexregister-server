@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
+ * The request is invalid: 400, and {@code BAD_REQUEST} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

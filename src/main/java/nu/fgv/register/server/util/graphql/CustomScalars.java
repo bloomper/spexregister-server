@@ -34,6 +34,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
+ * The {@code Instant} and {@code Void} scalars.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

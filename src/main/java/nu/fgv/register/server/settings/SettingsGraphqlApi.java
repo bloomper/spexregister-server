@@ -25,6 +25,8 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 
 /**
+ * The settings queries, open to everyone.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

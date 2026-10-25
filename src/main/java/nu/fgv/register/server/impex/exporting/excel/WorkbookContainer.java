@@ -21,6 +21,8 @@ import lombok.Setter;
 import nu.fgv.register.server.impex.util.excel.AbstractWorkbookContainer;
 
 /**
+ * The workbook an export writes to.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

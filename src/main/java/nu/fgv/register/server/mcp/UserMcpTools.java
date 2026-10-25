@@ -24,6 +24,8 @@ import org.springframework.ai.mcp.annotation.McpTool.McpAnnotations;
 import org.springframework.stereotype.Component;
 
 /**
+ * The MCP tool for user statistics. Users themselves are not available over MCP.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

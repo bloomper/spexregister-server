@@ -38,6 +38,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
+ * A HAL page of search hits with the facets of all hits.
+ *
+ * @param <T> the resource type
  * @author Anders Jacobsson
  * @since 2.0
  */

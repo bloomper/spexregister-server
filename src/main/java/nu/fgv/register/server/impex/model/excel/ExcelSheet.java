@@ -23,6 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * The sheet of a row type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -31,6 +33,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelSheet {
 
+    /**
+     * @return the message key of the sheet's name
+     */
     String name() default "";
 }
 

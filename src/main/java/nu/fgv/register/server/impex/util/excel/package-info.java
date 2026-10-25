@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Helpers shared by reading and writing Excel.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.util.excel;

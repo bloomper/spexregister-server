@@ -30,6 +30,8 @@ import java.util.function.Consumer;
 
 
 /**
+ * Thin access to the Envers {@link AuditReader} of the current entity manager.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -43,6 +45,14 @@ public class EnversAuditSupport {
         return AuditReaderFactory.get(entityManager);
     }
 
+    /**
+     * @param entityType            the entity type
+     * @param selectEntitiesOnly    whether to return the snapshots only
+     * @param selectDeletedEntities whether to include removals
+     * @param customize             adds criteria and order to the query
+     * @param <E>                   the entity type
+     * @return Envers' rows of snapshot, revision entity and revision type, or the snapshots only
+     */
     @SuppressWarnings("unchecked")
     public <E> List<Object[]> revisionTriples(
             final Class<E> entityType,
@@ -59,6 +69,12 @@ public class EnversAuditSupport {
         return (List<Object[]>) q.getResultList();
     }
 
+    /**
+     * @param entityType the entity type
+     * @param customize  adds criteria to the query
+     * @param <E>        the entity type
+     * @return how many revisions match, removals included
+     */
     public <E> long countRevisionsOfEntity(final Class<E> entityType, final Consumer<AuditQuery> customize) {
         final AuditQuery q = auditReader()
                 .createQuery()
@@ -70,6 +86,13 @@ public class EnversAuditSupport {
         return ((Number) q.getSingleResult()).longValue();
     }
 
+    /**
+     * @param entityType            the entity type
+     * @param selectDeletedEntities whether to include removals
+     * @param customize             adds criteria and order to the query
+     * @param <E>                   the entity type
+     * @return the snapshots
+     */
     @SuppressWarnings("unchecked")
     public <E> List<E> revisionEntities(
             final Class<E> entityType,
@@ -83,10 +106,25 @@ public class EnversAuditSupport {
         return (List<E>) q.getResultList();
     }
 
+    /**
+     * @param entityType the entity type
+     * @param id         the entity id
+     * @param <E>        the entity type
+     * @param <ID>       the id type
+     * @return the entity's revision numbers, oldest first
+     */
     public <E, ID> List<Number> revisionNumbers(final Class<E> entityType, final ID id) {
         return auditReader().getRevisions(entityType, id);
     }
 
+    /**
+     * @param entityType the entity type
+     * @param id         the entity id
+     * @param revision   the revision number
+     * @param <E>        the entity type
+     * @param <ID>       the id type
+     * @return the entity as it was at the revision, or null when it did not exist
+     */
     public <E, ID> @Nullable E findAtRevision(final Class<E> entityType, final ID id, final Number revision) {
         return auditReader().find(entityType, id, revision);
     }

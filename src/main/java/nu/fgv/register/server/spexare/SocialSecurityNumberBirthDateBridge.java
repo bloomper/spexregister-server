@@ -21,6 +21,8 @@ import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValue
 import org.jspecify.annotations.Nullable;
 
 /**
+ * Indexes the birth date of a social security number, the first eight digits, so spexare can be found by it.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

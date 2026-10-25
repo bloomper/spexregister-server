@@ -17,6 +17,10 @@
 package nu.fgv.register.server.spexare.bulk;
 
 /**
+ * The changes a bulk request can make. {@link #SPEX_ADD} adds an activity in each spex a spexare lacks and
+ * {@link #SPEX_REMOVE} removes the activity with its tasks; {@link #TASK_ADD} adds tasks to the activity in one spex,
+ * adding the activity when needed.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

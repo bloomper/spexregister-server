@@ -61,10 +61,19 @@ public record AuditedEntityDescriptor(
         );
     }
 
+    /**
+     * @param references entities the root points at whose history belongs in its timeline
+     * @return a copy with the references
+     */
     public AuditedEntityDescriptor withReferences(final AuditedReferenceDescriptor... references) {
         return new AuditedEntityDescriptor(type, entityClass, idParser, findCurrent, accessRoot, children, label, List.of(references));
     }
 
+    /**
+     * @param label how to name an entity of the type in the history
+     * @param <E>   the entity type
+     * @return a copy with the label
+     */
     @SuppressWarnings("unchecked")
     public <E> AuditedEntityDescriptor withLabel(final Function<E, @Nullable String> label) {
         return new AuditedEntityDescriptor(
@@ -79,6 +88,11 @@ public record AuditedEntityDescriptor(
         );
     }
 
+    /**
+     * @param id the id as given by a client
+     * @return the id as the entity's id type
+     * @throws NumberFormatException when it is not one
+     */
     public Object parseId(final String id) {
         return idParser.apply(id);
     }

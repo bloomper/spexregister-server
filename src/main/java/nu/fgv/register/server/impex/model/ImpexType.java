@@ -19,6 +19,8 @@ package nu.fgv.register.server.impex.model;
 import lombok.Getter;
 
 /**
+ * The file formats of import and export.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -34,6 +36,10 @@ public enum ImpexType {
         this.value = value;
     }
 
+    /**
+     * @param value the format as named in a request, such as {@code excel}
+     * @return the format
+     */
     public static ImpexType fromValue(final String value) {
         for (final ImpexType type : ImpexType.values()) {
             if (type.value.equalsIgnoreCase(value)) {

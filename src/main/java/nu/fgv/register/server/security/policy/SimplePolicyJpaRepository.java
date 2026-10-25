@@ -35,6 +35,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
+ * The implementation behind every {@link PolicyJpaRepository}, set as the repository base class.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -100,6 +102,14 @@ public class SimplePolicyJpaRepository<T, ID extends Serializable> extends Simpl
         return getQuery(permitted(spec, permission), sort).getResultStream();
     }
 
+    /**
+     * The policy's restriction for the current caller, and the given one when there is one.
+     *
+     * @param spec       the query's own restriction, or null
+     * @param permission the permission asked for
+     * @return the combined restriction
+     * @throws IllegalStateException for an anonymous caller, rather than return what anonymous may see
+     */
     protected Specification<T> permitted(@Nullable final Specification<T> spec, final Permission permission) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

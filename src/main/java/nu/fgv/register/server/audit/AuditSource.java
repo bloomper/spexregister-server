@@ -17,6 +17,8 @@
 package nu.fgv.register.server.audit;
 
 /**
+ * What kind of client a change came from.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

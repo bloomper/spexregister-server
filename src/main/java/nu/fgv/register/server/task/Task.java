@@ -51,6 +51,9 @@ import java.util.Objects;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * A role a spexare can have in a spex, such as director or musician, optionally in a
+ * {@link nu.fgv.register.server.task.category.TaskCategory}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -222,6 +222,11 @@ public class AuditRegistry {
         typesByEntityName.put(descriptor.entityClass().getName(), descriptor.type());
     }
 
+    /**
+     * @param type an audited type
+     * @return its descriptor
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the type has none
+     */
     public AuditedEntityDescriptor require(final AuditedType type) {
         final AuditedEntityDescriptor descriptor = descriptors.get(type);
 
@@ -232,6 +237,10 @@ public class AuditRegistry {
         return descriptor;
     }
 
+    /**
+     * @param entity an entity or a snapshot of one
+     * @return how to name it in the history, or null when its type has no label
+     */
     public @Nullable String labelFor(final Object entity) {
         final AuditedEntityDescriptor descriptor = descriptors.get(typesByEntityName.get(Hibernate.getClass(entity).getName()));
 
@@ -246,10 +255,18 @@ public class AuditRegistry {
         }
     }
 
+    /**
+     * @param entityName an entity's class name, as Envers records it
+     * @return its audited type, or null
+     */
     public @Nullable AuditedType byEntityName(final String entityName) {
         return typesByEntityName.get(entityName);
     }
 
+    /**
+     * @param type an audited type
+     * @return its descriptor, or empty
+     */
     public Optional<AuditedEntityDescriptor> find(final AuditedType type) {
         return Optional.ofNullable(descriptors.get(type));
     }

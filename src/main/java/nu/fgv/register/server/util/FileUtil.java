@@ -43,6 +43,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
+ * Images: detecting and checking their type, and downloading them for imports. SVG with scripts or other active content
+ * is refused, and downloads are limited to public http and https addresses.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -74,6 +77,10 @@ public class FileUtil {
     private FileUtil() {
     }
 
+    /**
+     * @param file the bytes
+     * @return the media type detected from the content
+     */
     public static String detectMimeType(final byte[] file) {
         if (isSvg(file)) {
             return IMAGE_SVG_VALUE;
@@ -88,6 +95,11 @@ public class FileUtil {
         }
     }
 
+    /**
+     * @param file the bytes
+     * @return the media type, PNG, JPEG, GIF or SVG
+     * @throws nu.fgv.register.server.util.error.BadRequestException for any other type, or SVG with active content
+     */
     public static String requireSupportedImageMimeType(final byte[] file) {
         final String mimeType = detectMimeType(file);
 
@@ -106,6 +118,12 @@ public class FileUtil {
         return SVG_ROOT.matcher(new String(file, 0, Math.min(file.length, SVG_SNIFF_BYTES), StandardCharsets.UTF_8)).find();
     }
 
+    /**
+     * @param url a public http or https address
+     * @return the image's bytes, at most 15 MB
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the address is not public http or https, the
+     *     server does not answer 200 or the image is too large
+     */
     public static byte[] downloadImage(final String url) {
         final URI uri = requirePublicHttpUri(url);
 
@@ -168,6 +186,11 @@ public class FileUtil {
         return address instanceof Inet6Address && (address.getAddress()[0] & 0xfe) == 0xfc;
     }
 
+    /**
+     * @param url     an address, or null
+     * @param baseUrl the application's base address
+     * @return whether the address is relative or points at the application itself, such as an image exported from it
+     */
     public static boolean isLocalUrl(final @Nullable String url, final String baseUrl) {
         if (url == null) {
             return false;
@@ -190,10 +213,19 @@ public class FileUtil {
         }
     }
 
+    /**
+     * @param url an address of the application
+     * @return the same path and query on the public base address
+     */
     public static String toPublicUrl(final String url) {
         return toPublicUrl(url, ApplicationContextHolder.getBean(SpexregisterConfig.class).getBaseUrl());
     }
 
+    /**
+     * @param url     an address of the application
+     * @param baseUrl the public base address
+     * @return the same path and query on the base address
+     */
     public static String toPublicUrl(final String url, final String baseUrl) {
         final URI uri = URI.create(url);
 

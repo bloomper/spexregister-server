@@ -26,6 +26,8 @@ import static nu.fgv.register.server.security.policy.Caller.EDITOR;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
+ * Editors read and change all news and administrators administer it; users read only published news.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

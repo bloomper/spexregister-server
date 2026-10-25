@@ -45,6 +45,9 @@ public class SavedSearchService {
 
     private final SavedSearchRepository repository;
 
+    /**
+     * @return the caller's saved searches, by name
+     */
     @RequiresAdminOrEditorOrUser
     public List<SavedSearchDto> findAll() {
         return repository
@@ -54,6 +57,11 @@ public class SavedSearchService {
                 .toList();
     }
 
+    /**
+     * @param id the saved search id
+     * @return the caller's saved search
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the caller has no such saved search
+     */
     @RequiresAdminOrEditorOrUser
     public SavedSearchDto findById(final Long id) {
         return findOwnedById(id)
@@ -61,6 +69,12 @@ public class SavedSearchService {
                 .orElseThrow(() -> new ResourceNotFoundException(SavedSearch.class, id));
     }
 
+    /**
+     * Saves a search as the caller's.
+     *
+     * @param dto the name and the search
+     * @return the created saved search
+     */
     @RequiresAdminOrEditorOrUser
     public SavedSearchDto create(final SavedSearchCreateDto dto) {
         final String owner = getCurrentUserSubClaim();
@@ -78,6 +92,11 @@ public class SavedSearchService {
                 .orElseThrow(() -> new InternalErrorException("Could not create saved search"));
     }
 
+    /**
+     * @param dto the id and the new name and search
+     * @return the updated saved search
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the caller has no such saved search
+     */
     @RequiresAdminOrEditorOrUser
     public SavedSearchDto update(final SavedSearchUpdateDto dto) {
         final String owner = getCurrentUserSubClaim();
@@ -96,6 +115,10 @@ public class SavedSearchService {
                 .orElseThrow(() -> new ResourceNotFoundException(SavedSearch.class, dto.id()));
     }
 
+    /**
+     * @param id the saved search id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the caller has no such saved search
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long id) {
         repository.delete(findOwnedById(id)

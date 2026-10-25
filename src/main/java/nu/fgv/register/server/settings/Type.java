@@ -41,6 +41,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
+ * A kind of address, consent, membership, vocal part or toggle, such as {@code HOME}, with labels per language.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

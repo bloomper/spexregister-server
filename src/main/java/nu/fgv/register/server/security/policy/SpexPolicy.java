@@ -27,6 +27,9 @@ import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
+ * Every role reads spex; editors and the revival service change them and administrators administer them. Permission
+ * grants on a spex add rights on that spex.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

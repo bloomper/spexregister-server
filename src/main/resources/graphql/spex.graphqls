@@ -1,30 +1,59 @@
 extend type Query {
+    "Every role. Only original spex by default; filter on parent!NULL for the revivals."
     spexPaged(first: Int, after: String, last: Int, before: String, filter: String! = "parent:NULL", sort: [String]! = ["year"], direction: SortDirection = ASC): SpexConnection
+    "Every role."
     spex(id: ID!): Spex
+    "Every role. A revival of another spex is not found."
     spexRevival(spexId: ID!, id: ID!): Spex
+    """
+    ADMIN or EDITOR. Starts an export of the given spex, or of the original spex matching the filter, with their
+    revivals.
+    """
     spexExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN."
     spexCreate(input: SpexCreate!): Spex
+    """
+    Changes the year and the title, which is shared with the original and all its revivals. Requires WRITE on the spex.
+    """
     spexUpdate(input: SpexUpdate!): Spex
+    "ADMIN. Removes the spex with its revivals."
     spexDelete(id: ID!): Void
+    "Removes the poster, shared with the original and all its revivals. Requires WRITE on the spex."
     spexPosterDelete(id: ID!): Void
+    """
+    Every role. Adds a revival of the spex in the year. Requires WRITE on the spex; fails when there already is one that
+    year.
+    """
     spexRevivalCreate(spexId: ID!, year: Year!): SpexRevival
+    "Requires WRITE on the original spex."
     spexRevivalDelete(spexId: ID!, id: ID!): Void
+    "ADMIN. Sets the category of the spex and of all that share its title."
     spexCategoryAdd(spexId: ID!, id: ID!): Void
+    "ADMIN. Clears the category of the spex and of all that share its title."
     spexCategoryRemove(spexId: ID!): Void
 }
 
+"""
+A spex in a year: an original production, or a revival of one when parent is set. Title, poster and category are shared
+by an original and its revivals.
+"""
 type Spex {
     id: ID!
     year: Year!
     title: String!
+    "Whether this is a revival."
     revival: Boolean
+    "The original, for a revival. Not for the REVIVAL role."
     parent: SpexParent
+    "Where to fetch the poster from the REST API, when there is one."
     posterUrl: String
+    "Not for the REVIVAL role."
     category: SpexCategory
     revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
+    "By year."
     revivals: [SpexRevival]
     createdBy: String!
     createdAt: Instant!
@@ -32,6 +61,7 @@ type Spex {
     lastModifiedAt: Instant
 }
 
+"The original of a revival."
 type SpexParent {
     id: ID!
     year: Year!
@@ -41,6 +71,7 @@ type SpexParent {
     lastModifiedAt: Instant
 }
 
+"A revival of a spex."
 type SpexRevival {
     id: ID!
     year: Year!

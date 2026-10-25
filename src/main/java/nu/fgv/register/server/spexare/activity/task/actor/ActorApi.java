@@ -51,6 +51,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The actor REST API under
+ * {@code /api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors}, documented by the
+ * REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -20,6 +20,8 @@ import lombok.Getter;
 import org.apache.poi.ss.usermodel.Cell;
 
 /**
+ * A cell whose value cannot be read as its column's type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

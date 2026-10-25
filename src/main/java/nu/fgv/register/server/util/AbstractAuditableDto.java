@@ -28,6 +28,9 @@ import org.springframework.hateoas.RepresentationModel;
 import java.time.Instant;
 
 /**
+ * The audit fields of an entity in a REST resource.
+ *
+ * @param <T> the resource type
  * @author Anders Jacobsson
  * @since 2.0
  */

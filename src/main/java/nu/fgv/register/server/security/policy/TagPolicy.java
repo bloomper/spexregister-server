@@ -25,6 +25,8 @@ import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
+ * Every role reads tags, editors change and delete them and administrators administer them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -53,6 +53,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A role played on stage in a task activity, with the vocal part sung.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

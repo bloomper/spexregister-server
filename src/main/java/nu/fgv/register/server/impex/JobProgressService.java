@@ -24,6 +24,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 /**
+ * Broadcasts the status of each job as it starts and ends. The latest status is replayed to a new subscriber.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -54,6 +56,10 @@ public class JobProgressService implements JobExecutionListener {
                 emissionException == Sinks.EmitResult.FAIL_NON_SERIALIZED);
     }
 
+    /**
+     * @param jobId the job id
+     * @return the job's status changes
+     */
     public Flux<JobStatusDto> getStream(final Long jobId) {
         return sink.asFlux()
                 .filter(u -> u.getId().equals(jobId));

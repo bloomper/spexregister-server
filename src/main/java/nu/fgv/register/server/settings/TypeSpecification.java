@@ -21,6 +21,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 /**
+ * Query restrictions on types.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

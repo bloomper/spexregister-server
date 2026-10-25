@@ -1,3 +1,4 @@
 extend type Mutation {
+    "ADMIN. Rebuilds the spexare search index in the background."
     indexSpexare: Void
 }

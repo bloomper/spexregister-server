@@ -33,6 +33,8 @@ import java.util.concurrent.CompletableFuture;
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 
 /**
+ * Builds the search index.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -43,6 +45,13 @@ public class IndexingService {
 
     private final EntityManager entityManager;
 
+    /**
+     * Rebuilds the index of the entity type in the background.
+     *
+     * @param clazz the entity type
+     * @param force whether to rebuild an index that already has documents
+     * @return completes when the index is built
+     */
     @Async
     @Transactional
     public CompletableFuture<Void> initiateIndexingFor(final Class<?> clazz, final boolean force) {
@@ -80,6 +89,9 @@ public class IndexingService {
     }
 
 
+    /**
+     * Rebuilds the spexare index on the {@code spexregister.jobs.full-index.cron-expression} schedule.
+     */
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
     @Transactional
     public void scheduledRun() {

@@ -47,6 +47,9 @@ import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Checks a sheet before it is read: that it is there, that its headers match the columns of its row type, and that the
+ * ids rows refer to exist.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

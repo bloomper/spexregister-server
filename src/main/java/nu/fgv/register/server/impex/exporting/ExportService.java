@@ -19,6 +19,8 @@ package nu.fgv.register.server.impex.exporting;
 import java.util.List;
 
 /**
+ * What an export job calls to gather what to write.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

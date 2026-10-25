@@ -1,29 +1,40 @@
 extend type Query {
+    "Open to everyone. The languages Spexregister is available in."
     languages: [Language]
+    "Open to everyone."
     language(isoCode: Locale!): Language
+    "Open to everyone. The countries of ISO 3166-1, by label."
     countries: [Country]
+    "Open to everyone."
     country(isoCode: CountryCode!): Country
+    "Open to everyone."
     types: [Type]
+    "Open to everyone. The types of one kind, such as the address types."
     typesOfType(type: TypeType!): [Type]
+    "Open to everyone."
     type(id: ID!): Type
 }
 
+"A language Spexregister is available in, labelled in the caller's language."
 type Language {
     isoCode: Locale!
     label: String
 }
 
+"A country, labelled in the caller's language."
 type Country {
     isoCode: CountryCode!
     label: String
 }
 
+"A kind of address, consent, membership, vocal part or toggle, such as HOME, labelled in the caller's language."
 type Type {
     id: ID!
     label: String!
     type: TypeType!
 }
 
+"What a Type is a kind of."
 enum TypeType {
     ADDRESS
     CONSENT

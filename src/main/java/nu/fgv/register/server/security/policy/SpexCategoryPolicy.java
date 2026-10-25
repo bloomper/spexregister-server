@@ -24,6 +24,8 @@ import static nu.fgv.register.server.security.policy.Caller.EDITOR;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
+ * Everyone with a role reads spex categories; only administrators change them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

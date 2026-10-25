@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Spexare searches saved by name, each visible only to the user who saved it.
+ */
 @NullMarked
 package nu.fgv.register.server.savedsearch;
 

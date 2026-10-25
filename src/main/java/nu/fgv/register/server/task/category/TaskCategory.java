@@ -46,6 +46,8 @@ import java.util.Objects;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * A group of tasks. {@code actorPresent} tells whether the tasks are performed on stage as an actor.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

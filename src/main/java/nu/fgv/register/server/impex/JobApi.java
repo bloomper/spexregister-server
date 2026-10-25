@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * The job REST API under {@code /api/jobs}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -26,6 +26,8 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 /**
+ * The {@code spexareBulkPreview} query and {@code spexareBulkApply} mutation.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

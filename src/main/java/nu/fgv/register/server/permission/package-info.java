@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Rights beyond the caller's role: a grant gives a user, or everyone with a role, a
+ * {@link nu.fgv.register.server.security.policy.Permission} on one spexare, on everyone who took part in a spex, or on
+ * a spex, optionally until a date. The policies in {@link nu.fgv.register.server.security.policy} consult them.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.permission;

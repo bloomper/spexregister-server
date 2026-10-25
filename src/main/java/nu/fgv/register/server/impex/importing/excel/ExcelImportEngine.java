@@ -42,6 +42,8 @@ import java.util.Objects;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Reads an Excel workbook, xlsx or xls, validating each sheet before reading its rows.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

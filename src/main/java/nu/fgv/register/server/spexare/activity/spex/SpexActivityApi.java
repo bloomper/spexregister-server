@@ -43,6 +43,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The spex activity REST API under {@code /api/spexare/{spexareId}/activities/{activityId}/spex-activity}, documented
+ * by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

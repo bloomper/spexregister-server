@@ -19,6 +19,8 @@ package nu.fgv.register.server.impex.model;
 import lombok.Getter;
 
 /**
+ * The PDF reports of a spexare export.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -34,6 +36,10 @@ public enum ReportType {
         this.value = value;
     }
 
+    /**
+     * @param value the report as named in a request, such as {@code pdf-address-labels}
+     * @return the report
+     */
     public static ReportType fromValue(final String value) {
         for (final ReportType type : ReportType.values()) {
             if (type.value.equalsIgnoreCase(value)) {

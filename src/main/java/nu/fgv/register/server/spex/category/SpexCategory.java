@@ -53,6 +53,8 @@ import java.util.Objects;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * An ensemble that stages spex, with the year of its first spex and an optional logo.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

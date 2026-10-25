@@ -17,6 +17,8 @@
 package nu.fgv.register.server.settings;
 
 /**
+ * What a {@link Type} is a kind of.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

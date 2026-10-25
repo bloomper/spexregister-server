@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The Spring configuration of the application.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.config;

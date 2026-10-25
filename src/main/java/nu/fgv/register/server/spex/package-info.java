@@ -14,5 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * The spex, the productions Chalmersspexet has staged, and their revivals. A revival is a
+ * {@link nu.fgv.register.server.spex.Spex} with a parent; it shares the parent's
+ * {@link nu.fgv.register.server.spex.SpexDetails}, so title, poster and category are kept once for the original and all
+ * its revivals.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spex;

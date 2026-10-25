@@ -21,6 +21,9 @@ import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 
 /**
+ * Filters on permission grants for the {@code filter} expressions of
+ * {@link nu.fgv.register.server.util.filter.FilterParser}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

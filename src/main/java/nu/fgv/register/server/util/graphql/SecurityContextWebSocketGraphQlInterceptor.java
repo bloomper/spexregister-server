@@ -43,6 +43,9 @@ import java.util.concurrent.TimeoutException;
 import static org.springframework.security.core.context.ReactiveSecurityContextHolder.withSecurityContext;
 
 /**
+ * Authenticates a GraphQL WebSocket with the bearer token in the {@code Authorization} field of the connection's init
+ * payload, and ends the session's streams when the token expires.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

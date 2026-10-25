@@ -48,6 +48,8 @@ import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Spex categories and their logos. Only administrators change them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -60,6 +62,14 @@ public class SpexCategoryService {
     private final SpexCategoryRepository repository;
     private final PermissionService permissionService;
 
+    /**
+     * The spex categories the caller may read that match the filter.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<SpexCategoryDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -77,6 +87,13 @@ public class SpexCategoryService {
                         });
     }
 
+    /**
+     * The spex categories the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -88,6 +105,11 @@ public class SpexCategoryService {
                         .map(SPEX_CATEGORY_MAPPER::toDto);
     }
 
+    /**
+     * @param id the spex category id
+     * @return the spex category
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
+     */
     @RequiresAdminOrEditorOrUser
     public SpexCategoryDto findById(final Long id) {
         return repository
@@ -96,6 +118,11 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
+    /**
+     * @param id the spex category id
+     * @return whether the spex category exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -103,6 +130,14 @@ public class SpexCategoryService {
                 .isPresent();
     }
 
+    /**
+     * The spex categories to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the spex categories to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the spex categories the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<SpexCategory> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -122,6 +157,10 @@ public class SpexCategoryService {
         };
     }
 
+    /**
+     * @param dto the new spex category
+     * @return the created spex category
+     */
     @RequiresAdmin
     public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
         return Optional.of(SPEX_CATEGORY_MAPPER.toModel(dto))
@@ -132,11 +171,24 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new InternalErrorException("Could not create spex category"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the spex category id and new values
+     * @return the updated spex category
+     */
     @RequiresAdmin
     public SpexCategoryDto update(final SpexCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged.
+     *
+     * @param dto the spex category id and new values
+     * @return the updated spex category
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
+     */
     @RequiresAdmin
     public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
@@ -151,6 +203,10 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, dto.id()));
     }
 
+    /**
+     * @param id the spex category id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
+     */
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesSpexCategoryExist(id)) {
@@ -164,6 +220,11 @@ public class SpexCategoryService {
         }
     }
 
+    /**
+     * @param id   the category id
+     * @param logo a PNG, JPEG, GIF or SVG image
+     * @return the category
+     */
     @RequiresAdmin
     public SpexCategoryDto saveLogo(final Long id, final byte[] logo) {
         return repository
@@ -177,6 +238,10 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
+    /**
+     * @param id the category id
+     * @return the category
+     */
     @RequiresAdmin
     public SpexCategoryDto deleteLogo(final Long id) {
         return repository
@@ -190,6 +255,11 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
+    /**
+     * @param id the category id
+     * @return the logo's bytes and content type
+     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the category has no logo
+     */
     @RequiresAdminOrEditorOrUser
     public Pair<byte[], String> getLogo(final Long id) {
         if (!doesSpexCategoryExist(id)) {

@@ -17,6 +17,8 @@
 package nu.fgv.register.server.security.policy;
 
 /**
+ * What a caller may do with an entity. {@link #ADMINISTRATION} includes all the others.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -26,6 +28,13 @@ public enum Permission {
     DELETE,
     ADMINISTRATION;
 
+    /**
+     * Whether holding a permission gives this one: the same one, {@link #ADMINISTRATION}, or any permission at all when
+     * this is {@link #READ}.
+     *
+     * @param granted the permission held
+     * @return whether it gives this permission
+     */
     public boolean isMetBy(final Permission granted) {
         return granted == this || granted == ADMINISTRATION || this == READ;
     }

@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * The job queries, the {@code jobDelete} mutation and the {@code jobProgress} subscription.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

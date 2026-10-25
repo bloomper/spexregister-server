@@ -21,6 +21,8 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
+ * There already is such a resource: 409, and {@code CONFLICT} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

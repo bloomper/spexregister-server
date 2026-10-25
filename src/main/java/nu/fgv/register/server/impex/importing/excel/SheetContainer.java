@@ -21,6 +21,8 @@ import lombok.Setter;
 import nu.fgv.register.server.impex.util.excel.AbstractSheetContainer;
 
 /**
+ * A sheet of an import file: its index, the row type it holds and the column of the primary key.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

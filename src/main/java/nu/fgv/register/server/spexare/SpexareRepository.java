@@ -33,18 +33,37 @@ import java.util.Optional;
 @Repository
 public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, Long>, JpaSpecificationExecutor<Spexare> {
 
+    /**
+     * {@link #findById}, refused when the caller may not read the spexare.
+     *
+     * @param id the spexare id
+     * @return the spexare, or empty when there is none
+     * @throws org.springframework.security.access.AccessDeniedException when the spexare exists but may not be read
+     */
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     default Optional<Spexare> findById0(final Long id) {
         return this
                 .findById(id);
     }
 
+    /**
+     * @param externalId the Keycloak subject of a user
+     * @return the user's spexare, or empty when the user has none
+     */
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
     Optional<Spexare> findByUserExternalId(final String externalId);
 
+    /**
+     * @param ids spexare ids
+     * @return those of the spexare that have a partner, with the partner fetched
+     */
     @Query("SELECT s FROM Spexare s JOIN FETCH s.partner WHERE s.id IN :ids")
     List<Spexare> findWithPartnerByIdIn(Collection<Long> ids);
 
+    /**
+     * @param ids spexare ids
+     * @return the spexare with their tags fetched
+     */
     @Query("SELECT DISTINCT s FROM Spexare s LEFT JOIN FETCH s.tags WHERE s.id IN :ids")
     List<Spexare> findWithTagsByIdIn(Collection<Long> ids);
 

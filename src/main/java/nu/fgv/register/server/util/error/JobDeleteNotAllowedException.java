@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
+ * A job cannot be removed before it has finished: 409, and {@code CONFLICT} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

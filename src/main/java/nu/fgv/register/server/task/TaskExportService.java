@@ -32,6 +32,8 @@ import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 
 /**
+ * Exports tasks to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

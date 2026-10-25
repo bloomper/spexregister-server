@@ -53,6 +53,8 @@ import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasSpexa
 import static nu.fgv.register.server.spexare.toggle.ToggleSpecification.hasType;
 
 /**
+ * A spexare's toggles, one per type. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -68,6 +70,10 @@ public class ToggleService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
+    /**
+     * @param ids spexare ids
+     * @return the toggles of each spexare, by spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, List<ToggleDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
@@ -84,6 +90,10 @@ public class ToggleService {
                 .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(TOGGLE_MAPPER::toDto, Collectors.toList())));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's toggles
+     */
     @RequiresAdminOrEditorOrUser
     public List<ToggleDto> findBySpexare(final Long id) {
         return findBySpexare(id, spexare ->
@@ -96,6 +106,12 @@ public class ToggleService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param scroll    the window to read
+     * @param sort      the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<ToggleDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
@@ -113,6 +129,11 @@ public class ToggleService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<ToggleDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
@@ -123,6 +144,11 @@ public class ToggleService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the toggle id
+     * @return the toggle
+     */
     @RequiresAdminOrEditorOrUser
     public ToggleDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
@@ -138,6 +164,10 @@ public class ToggleService {
         }
     }
 
+    /**
+     * @param id the toggle id
+     * @return whether the toggle exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -145,6 +175,14 @@ public class ToggleService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the toggle type, such as {@code CHALMERS_STUDENT}
+     * @param dto       the value
+     * @return the created toggle
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has a toggle
+     *     of the type
+     */
     @RequiresAdminOrEditorOrUser
     public ToggleDto create(final Long spexareId, final String typeId, final ToggleCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
@@ -169,6 +207,13 @@ public class ToggleService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the toggle type, such as {@code CHALMERS_STUDENT}
+     * @param id        the toggle id
+     * @param dto       the new values
+     * @return the updated toggle
+     */
     @RequiresAdminOrEditorOrUser
     public ToggleDto update(final Long spexareId, final String typeId, final Long id, final ToggleUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {
@@ -192,6 +237,11 @@ public class ToggleService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the toggle type, such as {@code CHALMERS_STUDENT}
+     * @param id        the toggle id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {

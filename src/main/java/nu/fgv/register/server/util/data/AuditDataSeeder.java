@@ -39,6 +39,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 /**
+ * Seeds an audit history of the sample data, so the history views have something to show.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -102,10 +104,19 @@ public class AuditDataSeeder {
         return String.join(", ", ids.stream().map(_ -> "?").toList());
     }
 
+    /**
+     * @param jdbcClient the database
+     * @return whether there is any revision yet
+     */
     public boolean hasRevisions(final JdbcClient jdbcClient) {
         return jdbcClient.sql("SELECT COUNT(*) FROM revinfo").query(Long.class).single() > 0;
     }
 
+    /**
+     * Records the current rows as their first revision.
+     *
+     * @param jdbcClient the database
+     */
     public void seedBaseline(final JdbcClient jdbcClient) {
         purge(jdbcClient);
 
@@ -118,6 +129,12 @@ public class AuditDataSeeder {
         log.info("Seeded baseline audit data across {} tables", TABLES.size());
     }
 
+    /**
+     * Adds a history of changes by the editors.
+     *
+     * @param jdbcClient the database
+     * @param editors    who to record as having made the changes
+     */
     public void seedSampleHistory(final JdbcClient jdbcClient, final List<String> editors) {
         purge(jdbcClient);
 

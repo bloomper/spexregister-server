@@ -45,6 +45,8 @@ import static nu.fgv.register.server.task.category.TaskCategorySpecification.has
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Task categories. Only administrators change them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -57,6 +59,14 @@ public class TaskCategoryService {
     private final TaskCategoryRepository repository;
     private final PermissionService permissionService;
 
+    /**
+     * The task categories the caller may read that match the filter.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresReferenceDataReader
     public CountedWindow<TaskCategoryDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -74,6 +84,13 @@ public class TaskCategoryService {
                         });
     }
 
+    /**
+     * The task categories the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -85,6 +102,11 @@ public class TaskCategoryService {
                         .map(TASK_CATEGORY_MAPPER::toDto);
     }
 
+    /**
+     * @param id the task category id
+     * @return the task category
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task category
+     */
     @RequiresReferenceDataReader
     public TaskCategoryDto findById(final Long id) {
         return repository
@@ -93,6 +115,11 @@ public class TaskCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, id));
     }
 
+    /**
+     * @param id the task category id
+     * @return whether the task category exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -100,6 +127,14 @@ public class TaskCategoryService {
                 .isPresent();
     }
 
+    /**
+     * The task categories to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the task categories to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the task categories the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<TaskCategory> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -119,6 +154,10 @@ public class TaskCategoryService {
         };
     }
 
+    /**
+     * @param dto the new task category
+     * @return the created task category
+     */
     @RequiresAdmin
     public TaskCategoryDto create(final TaskCategoryCreateDto dto) {
         return Optional.of(TASK_CATEGORY_MAPPER.toModel(dto))
@@ -129,11 +168,24 @@ public class TaskCategoryService {
                 .orElseThrow(() -> new InternalErrorException("Could not create task category"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the task category id and new values
+     * @return the updated task category
+     */
     @RequiresAdmin
     public TaskCategoryDto update(final TaskCategoryUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged.
+     *
+     * @param dto the task category id and new values
+     * @return the updated task category
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task category
+     */
     @RequiresAdmin
     public TaskCategoryDto partialUpdate(final TaskCategoryUpdateDto dto) {
         return repository
@@ -148,6 +200,10 @@ public class TaskCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, dto.id()));
     }
 
+    /**
+     * @param id the task category id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task category
+     */
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesTaskCategoryExist(id)) {

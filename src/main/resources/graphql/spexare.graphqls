@@ -1,34 +1,75 @@
 extend type Query {
+    """
+    Every role. Published spexare by default; the social security number can be filtered on only by ADMIN and EDITOR,
+    and memberships and user not by REVIVAL alone.
+    """
     spexarePaged(first: Int, after: String, last: Int, before: String, filter: String! = "published:true", sort: [String]! = ["firstName"], direction: SortDirection = ASC): SpexareConnection
+    """
+    Every role. Free-text search, by relevance unless sorted, with facets to narrow by through aggregationFilters. Year
+    facets also take a range such as 1990..1999, and the quality facet finds records that lack something, such as
+    noAddress. Eight digits match a birth date, and a full social security number matches for ADMIN and EDITOR.
+    """
     spexareSearchPaged(first: Int, after: String, last: Int, before: String, q: String!, aggregationFilters: [AggregationFilterInput], sort: [String]! = ["score"], direction: SortDirection = DESC): SpexareWithFacetsConnection
+    "Every role."
     spexare(id: ID!): Spexare
+    "Every role. At most 500 ids; those the caller may not read are left out, and the order is not kept."
     spexareByIds(ids: [ID!]!): [Spexare!]!
+    "Every role. Those with a spex activity in the spex or one of its revivals, by last name and first name."
     spexareBySpex(spexId: ID!): [Spexare!]!
+    "ADMIN, EDITOR or USER. The caller's own spexare, or null when their user has none."
     spexareMe: Spexare
+    """
+    ADMIN or EDITOR. Starts an export of the given spexare, or of those matching the filter, as a spreadsheet or the PDF
+    report.
+    """
     spexareExport(ids: [ID], filter: String, type: ImpexType!, reportType: ReportType): JobReference
+    "ADMIN, EDITOR or USER. Starts an export of the caller's own spexare. Fails when their user has none."
     spexareMeExport(type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN, EDITOR or REVIVAL. The social security number is kept only for ADMIN and EDITOR."
     spexareCreate(input: SpexareCreate!): Spexare
+    """
+    ADMIN, EDITOR or USER with WRITE on the spexare: their own, their partner's or one granted. Omitted values are left
+    unchanged, and so is the social security number for a caller who may not see it.
+    """
     spexareUpdate(input: SpexareUpdate!): Spexare
+    """
+    Requires DELETE on the spexare, held by ADMIN and by grants. Removes everything that belongs to it. purge also
+    removes its audit history, which only ADMIN may do.
+    """
     spexareDelete(id: ID!, purge: Boolean! = false): Void
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     spexareImageDelete(id: ID!): Void
+    "ADMIN, EDITOR or USER with WRITE on both. Makes them each other's partner, parting either from a previous one."
     spexarePartnerAdd(spexareId: ID!, id: ID!): Void
+    "ADMIN, EDITOR or USER with WRITE on both. Parts the spexare and its partner."
     spexarePartnerRemove(spexareId: ID!): Void
+    """
+    ADMIN, EDITOR or USER. Mails a request to remove the caller from the register to the administrators. reason is at
+    most 2000 characters.
+    """
     spexareMeRemovalRequest(reason: String): Void
 }
 
+"""
+A person who has taken part in spex. ADMIN, EDITOR and REVIVAL see every spexare; USER sees the published ones, their
+own, their partner's and those a grant covers.
+"""
 type Spexare {
     id: ID!
     firstName: String!
     lastName: String!
     nickName: String
+    "In full for ADMIN, EDITOR and the spexare themself; for anyone else only the birth date."
     socialSecurityNumber: SocialSecurityNumber
     deceased: Boolean!
+    "Whether users without a grant see the spexare."
     published: Boolean!
     graduation: String
     comment: String
+    "Where to fetch the image from the REST API, when there is one."
     imageUrl: String
     activitiesPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ActivityConnection
     activities: [Activity]
@@ -36,12 +77,19 @@ type Spexare {
     addresses: [Address]
     consentsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ConsentConnection
     consents: [Consent]
+    "Not for the REVIVAL role."
     membershipsPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): MembershipConnection
+    "Not for the REVIVAL role."
     memberships: [Membership]
+    "Not for the REVIVAL role."
     taggingsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): TagConnection
+    "Not for the REVIVAL role."
     taggings: [Tag]
+    "Not for the REVIVAL role."
     togglesPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["id"], direction: SortDirection = ASC): ToggleConnection
+    "Not for the REVIVAL role."
     toggles: [Toggle]
+    "The partner, when the caller may read them. Not for the REVIVAL role."
     partner: SpexarePartner
     createdBy: String!
     createdAt: Instant!
@@ -49,6 +97,7 @@ type Spexare {
     lastModifiedAt: Instant
 }
 
+"A new spexare."
 input SpexareCreate {
     firstName: String!
     lastName: String!
@@ -60,6 +109,7 @@ input SpexareCreate {
     comment: String
 }
 
+"Omitted values are left unchanged."
 input SpexareUpdate {
     id: ID!
     firstName: String!
@@ -73,6 +123,7 @@ input SpexareUpdate {
     imageUrl: String
 }
 
+"A spexare's partner, another spexare who has the first as partner in turn."
 type SpexarePartner {
     id: ID!
     firstName: String!
@@ -101,6 +152,7 @@ type SpexareEdge {
     node: Spexare!
 }
 
+"Search hits with the facets of all hits, not only the window."
 type SpexareWithFacetsConnection {
     edges: [SpexareEdge]
     pageInfo: PageInfo

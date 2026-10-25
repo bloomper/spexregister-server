@@ -52,6 +52,9 @@ import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Writes one sheet: a header row from the {@link nu.fgv.register.server.impex.model.excel.ExcelCell} headers, a row per
+ * item, and protection so that only updatable columns can be edited. A read-only sheet is protected in full.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

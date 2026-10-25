@@ -71,6 +71,9 @@ import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Spex and their revivals. Changes to the shared {@link SpexDetails} touch the original spex's last modified time, so
+ * that lists sorted by it see the change.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -86,6 +89,10 @@ public class SpexService {
     private final PermissionService permissionService;
     private final PermissionGrantService permissionGrantService;
 
+    /**
+     * @param sort the order
+     * @return the original spex the caller may read, without revivals
+     */
     @RequiresAdminOrEditorOrUser
     public List<SpexDto> findAll(final Sort sort) {
         return repository
@@ -94,6 +101,14 @@ public class SpexService {
                 .toList();
     }
 
+    /**
+     * The spex the caller may read that match the filter, revivals included unless the filter leaves them out.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresReferenceDataReader
     public CountedWindow<SpexDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -111,6 +126,13 @@ public class SpexService {
                         });
     }
 
+    /**
+     * The spex the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<SpexDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -122,6 +144,11 @@ public class SpexService {
                         .map(SPEX_MAPPER::toDto);
     }
 
+    /**
+     * @param id the spex id
+     * @return the spex
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex
+     */
     @RequiresReferenceDataReader
     public SpexDto findById(final Long id) {
         return repository
@@ -130,6 +157,11 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
 
+    /**
+     * @param id the spex id
+     * @return whether the spex exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -137,6 +169,14 @@ public class SpexService {
                 .isPresent();
     }
 
+    /**
+     * The spex to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the spex to export, or empty to use the filter
+     * @param filter a filter expression on the original spex when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the spex the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<Spex> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -156,6 +196,15 @@ public class SpexService {
         };
     }
 
+    /**
+     * The revivals to export alongside {@link #streamByIds}, streamed when iterated, so it must be consumed inside a
+     * transaction.
+     *
+     * @param parentIds the spex to export, or empty to use the filter
+     * @param filter    a filter expression on the revivals when no ids are given, or blank for all
+     * @param sort      the order
+     * @return the spex the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<Spex> streamRevivalsByParentIds(final List<Long> parentIds, final String filter, final Sort sort) {
         return () -> {
@@ -175,6 +224,10 @@ public class SpexService {
         };
     }
 
+    /**
+     * @param dto the new spex
+     * @return the created spex
+     */
     @RequiresAdmin
     public SpexDto create(final SpexCreateDto dto) {
         return Optional.of(SPEX_MAPPER.toModel(dto))
@@ -187,11 +240,23 @@ public class SpexService {
                 .orElseThrow(() -> new InternalErrorException("Could not create spex"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the spex id and new values
+     * @return the updated spex
+     */
     @RequiresAdminOrEditorOrUser
     public SpexDto update(final SpexUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the year and the shared title, which changes the title of the parent and all its revivals too.
+     *
+     * @param dto the spex id and new values
+     * @return the updated spex
+     */
     @RequiresAdminOrEditorOrUser
     public SpexDto partialUpdate(final SpexUpdateDto dto) {
         return repository
@@ -210,6 +275,11 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, dto.id()));
     }
 
+    /**
+     * Removes the spex with its revivals, their permission grants and the shared details.
+     *
+     * @param id the spex id
+     */
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesSpexExist(id)) {
@@ -230,6 +300,13 @@ public class SpexService {
         }
     }
 
+    /**
+     * Replaces the poster of the spex and all that share its details.
+     *
+     * @param id     the spex id
+     * @param poster a PNG, JPEG, GIF or SVG image
+     * @return the spex
+     */
     @RequiresAdminOrEditorOrUser
     public SpexDto savePoster(final Long id, final byte[] poster) {
         return repository
@@ -244,6 +321,12 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
 
+    /**
+     * Removes the poster of the spex and all that share its details.
+     *
+     * @param id the spex id
+     * @return the spex
+     */
     @RequiresAdminOrEditorOrUser
     public SpexDto deletePoster(final Long id) {
         return repository
@@ -258,6 +341,11 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
 
+    /**
+     * @param id the spex id
+     * @return the poster's bytes and content type
+     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex has no poster
+     */
     @RequiresReferenceDataReader
     public Pair<byte[], String> getPoster(final Long id) {
         if (!doesSpexExist(id)) {
@@ -271,6 +359,11 @@ public class SpexService {
                 .orElseThrow(() -> new ResourceNoValueException(Spex.class, SpexDetails_.POSTER, id));
     }
 
+    /**
+     * @param id the id of a revival
+     * @return the original it revives
+     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex is not a revival
+     */
     @RequiresAdminOrEditorOrUser
     public SpexDto findParentById(final Long id) {
         if (doesSpexExist(id)) {
@@ -285,6 +378,12 @@ public class SpexService {
         }
     }
 
+    /**
+     * @param spexId the original spex id
+     * @param id     the revival id
+     * @return the revival
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when it is not a revival of that spex
+     */
     @RequiresReferenceDataReader
     public SpexDto findRevivalById(final Long spexId, final Long id) {
         if (doSpexAndRevivalExist(spexId, id)) {
@@ -298,6 +397,10 @@ public class SpexService {
         }
     }
 
+    /**
+     * @param id the original spex id
+     * @return the revivals the caller may read by year, or none when the spex is itself a revival
+     */
     @RequiresAdminOrEditorOrUser
     public List<SpexDto> findRevivalsByParent(final Long id) {
         if (doesSpexExist(id)) {
@@ -345,6 +448,15 @@ public class SpexService {
         );
     }
 
+    /**
+     * Adds a revival in the year, sharing the original's details.
+     *
+     * @param id   the original spex id
+     * @param year the revival's year
+     * @return the revival
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spex already has a revival
+     *     that year
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public SpexDto addRevival(final Long id, final String year) {
         if (doesSpexExist(id)) {
@@ -370,6 +482,12 @@ public class SpexService {
         }
     }
 
+    /**
+     * Removes a revival and its permission grants. The shared details stay with the original.
+     *
+     * @param spexId the original spex id
+     * @param id     the revival id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteRevival(final Long spexId, final Long id) {
         if (doSpexAndRevivalExist(spexId, id)) {
@@ -394,6 +512,12 @@ public class SpexService {
         }
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids spex ids
+     * @return the originals of those that are revivals and readable, by revival id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, SpexDto> findParentsBySpex(final Collection<Long> ids) {
         return findReadable(ids).stream()
@@ -401,6 +525,12 @@ public class SpexService {
                 .collect(Collectors.toMap(Spex::getId, spex -> SPEX_MAPPER.toDto(spex.getParent())));
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids spex ids
+     * @return the revivals by year of those that are originals and readable, by original id
+     */
     @RequiresReferenceDataReader
     public Map<Long, List<SpexDto>> findRevivalsByParents(final Collection<Long> ids) {
         final List<Long> parentIds = findReadable(ids).stream()
@@ -418,6 +548,12 @@ public class SpexService {
                 .collect(Collectors.groupingBy(revival -> revival.getParent().getId(), Collectors.mapping(SPEX_MAPPER::toDto, Collectors.toList())));
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids spex ids
+     * @return the categories of those that have one and are readable, by spex id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, SpexCategoryDto> findCategoriesBySpex(final Collection<Long> ids) {
         return findReadable(ids).stream()
@@ -439,6 +575,12 @@ public class SpexService {
         }
     }
 
+    /**
+     * Sets the category of the spex and all that share its details.
+     *
+     * @param spexId the spex id
+     * @param id     the category id
+     */
     @RequiresAdmin
     public void addCategory(final Long spexId, final Long id) {
         if (doSpexAndCategoryExist(spexId, id)) {
@@ -458,6 +600,11 @@ public class SpexService {
         }
     }
 
+    /**
+     * Clears the category of the spex and all that share its details.
+     *
+     * @param id the spex id
+     */
     @RequiresAdmin
     public void removeCategory(final Long id) {
         if (doesSpexExist(id)) {

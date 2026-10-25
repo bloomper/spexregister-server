@@ -19,6 +19,12 @@ package nu.fgv.register.server.impex.exporting;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * One sheet of an export.
+ *
+ * @param name     the sheet's name, or null for the row type's
+ * @param data     the rows
+ * @param clazz    the row type, whose {@link nu.fgv.register.server.impex.model.excel.ExcelCell} fields are the columns
+ * @param readOnly whether the sheet is for reference and cannot be imported back
  * @author Anders Jacobsson
  * @since 2.0
  */

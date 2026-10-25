@@ -29,6 +29,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.Collection;
 
 /**
+ * Query restrictions on the spexare by their tags.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

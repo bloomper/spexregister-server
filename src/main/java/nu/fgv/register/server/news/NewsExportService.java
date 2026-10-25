@@ -28,6 +28,8 @@ import java.util.List;
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 
 /**
+ * Exports news to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

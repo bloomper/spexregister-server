@@ -43,6 +43,9 @@ import java.util.Optional;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 
 /**
+ * Turns a {@link PageWithFacets} into a {@link PagedWithFacetsModel} with paging links.
+ *
+ * @param <T> the hit type
  * @author Anders Jacobsson
  * @since 2.0
  */

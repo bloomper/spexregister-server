@@ -22,6 +22,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Marks an association to an {@link nu.fgv.register.server.image.Image} whose content belongs in the history as a
+ * binary value, such as a poster, rather than as the id of the image.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

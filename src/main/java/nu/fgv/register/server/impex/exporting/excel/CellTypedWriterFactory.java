@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.function.BiConsumer;
 
 /**
+ * Picks the {@link CellTypedWriter} of a value's type, writing unknown types as strings.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

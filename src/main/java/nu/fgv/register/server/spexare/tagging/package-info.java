@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The tags put on spexare.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.tagging;

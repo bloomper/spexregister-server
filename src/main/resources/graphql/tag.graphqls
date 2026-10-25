@@ -1,15 +1,22 @@
 extend type Query {
+    "Every role."
     tagPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): TagConnection
+    "Every role."
     tag(id: ID!): Tag
+    "ADMIN or EDITOR."
     tagExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN or EDITOR."
     tagCreate(input: TagCreate!): Tag
+    "ADMIN or EDITOR."
     tagUpdate(input: TagUpdate!): Tag
+    "ADMIN or EDITOR."
     tagDelete(id: ID!): Void
 }
 
+"A label put on spexare."
 type Tag {
     id: ID!
     name: String!

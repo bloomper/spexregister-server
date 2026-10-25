@@ -28,6 +28,9 @@ import java.util.regex.PatternSyntaxException;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Validates {@link Luhn}. Blank values and values without the existence group are valid; values that do not match the
+ * expression are not.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

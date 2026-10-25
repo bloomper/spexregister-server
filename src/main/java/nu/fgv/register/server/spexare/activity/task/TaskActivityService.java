@@ -52,6 +52,8 @@ import static nu.fgv.register.server.spexare.activity.task.TaskActivitySpecifica
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
 /**
+ * The tasks of an activity. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -67,6 +69,11 @@ public class TaskActivityService {
     private final SpexareRepository spexareRepository;
     private final PermissionService permissionService;
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the activity id
+     * @return the activity's task activities
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public List<TaskActivityDto> findByActivity(final Long spexareId, final Long id) {
         return findBySpexareByActivity(spexareId, id, activity ->
@@ -79,6 +86,13 @@ public class TaskActivityService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the activity id
+     * @param scroll    the window to read
+     * @param sort      the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByActivity(spexareId, id, activity ->
@@ -96,6 +110,12 @@ public class TaskActivityService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the activity id
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final Pageable pageable) {
         return findBySpexareByActivity(spexareId, id, activity ->
@@ -106,6 +126,12 @@ public class TaskActivityService {
         );
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     * @return the task activity
+     */
     @RequiresAdminOrEditorOrUser
     public TaskActivityDto findById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
@@ -122,6 +148,10 @@ public class TaskActivityService {
         }
     }
 
+    /**
+     * @param id the task activity id
+     * @return whether the task activity exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -129,6 +159,12 @@ public class TaskActivityService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param taskId     the task id
+     * @return the created task activity
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public TaskActivityDto create(final Long spexareId, final Long activityId, final Long taskId) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId)) {
@@ -155,6 +191,13 @@ public class TaskActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param taskId     the task id
+     * @param id         the task activity id
+     * @return the updated task activity
+     */
     @RequiresAdminOrEditorOrUser
     public TaskActivityDto update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId) && doesTaskActivityExist(id)) {
@@ -184,6 +227,11 @@ public class TaskActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
@@ -211,6 +259,12 @@ public class TaskActivityService {
         }
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     * @return the task
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public TaskDto findTaskByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {

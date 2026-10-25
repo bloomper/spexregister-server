@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * The settings clients need: the languages, the countries and the types of addresses, consents, memberships, vocal
+ * parts and toggles. Readable without signing in.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.settings;

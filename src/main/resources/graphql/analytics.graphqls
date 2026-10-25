@@ -1,21 +1,32 @@
 extend type Query {
+    """
+    ADMIN, EDITOR or USER. Only the sections selected are computed. Figures from the spexare count only those the caller
+    may see.
+    """
     analytics: Analytics
 }
 
+"Statistics of the register."
 type Analytics {
     totals: Totals!
     participation: Participation!
     demographics: Demographics!
     lifecycle: Lifecycle!
+    "ADMIN or EDITOR; null for others."
     dataQuality: DataQuality
+    "ADMIN; null for others."
     operations: Operations
 }
 
+"How much the register holds, with how it grew per year."
 type Totals {
+    "The published spexare."
     spexareCount: Long!
+    "Spexare by the year of their first spex."
     spexareCountHistory: [History!]!
     userCount: Long!
     userCountHistory: [History!]!
+    "Original spex, without revivals."
     spexCount: Long!
     spexCountHistory: [History!]!
     spexRevivalCount: Long!
@@ -24,18 +35,23 @@ type Totals {
     taskCountByCategory: [Bucket!]!
 }
 
+"A count for a year."
 type History {
     label: String!
     count: Long!
 }
 
+"A count for a value, such as a country or a task."
 type Bucket {
+    "The value, to narrow a spexare search by in the facet named by facet."
     key: String!
     label: String!
     count: Long!
+    "The spexare search facet the bucket narrows by, when there is one."
     facet: String
 }
 
+"Who took part in what. All lists but bySpexYear hold at most 15 buckets."
 type Participation {
     bySpexYear: [Bucket!]!
     bySpexCategory: [Bucket!]!
@@ -45,6 +61,7 @@ type Participation {
     byVocal: [Bucket!]!
 }
 
+"Who the spexare are. The lists by country, address type, membership, tag and toggle hold at most 15 buckets."
 type Demographics {
     byCountry: [Bucket!]!
     byAddressType: [Bucket!]!
@@ -55,6 +72,7 @@ type Demographics {
     consentCompletion: [ConsentCompletion!]!
 }
 
+"How many spexare have agreed to, declined or not answered a consent type."
 type ConsentCompletion {
     key: String!
     label: String!
@@ -63,28 +81,43 @@ type ConsentCompletion {
     missing: Long!
 }
 
+"How spexare come and go."
 type Lifecycle {
     newcomersByYear: [Bucket!]!
     lastActiveByYear: [Bucket!]!
+    "Spexare by the number of spex they took part in."
     byEngagement: [Bucket!]!
+    """
+    Spexare by how long since their last spex: active within 3 years, lapsing within 10, dormant before that, and never
+    active.
+    """
     byDormancy: [Bucket!]!
+    "Spexare in one spex."
     oneTimers: Long!
+    "Spexare in two to four spex."
     returning: Long!
+    "Spexare in five spex or more."
     veterans: Long!
+    "Spexare in no spex."
     neverActive: Long!
 }
 
+"What spexare records lack."
 type DataQuality {
     total: Long!
     issues: [Bucket!]!
+    "The spexare that lack nothing."
     complete: Long!
 }
 
+"How the register itself is used."
 type Operations {
     usersByState: [Bucket!]!
     usersWithoutSpexare: Long!
     spexareWithoutUser: Long!
+    "Revisions per month over the last 24 months."
     revisionsByMonth: [Bucket!]!
     revisionsBySource: [Bucket!]!
+    "The 10 who made the most revisions."
     topEditors: [Bucket!]!
 }

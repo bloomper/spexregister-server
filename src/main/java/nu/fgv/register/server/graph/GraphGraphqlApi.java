@@ -32,6 +32,8 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.MAX_LIMIT;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The graph queries.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

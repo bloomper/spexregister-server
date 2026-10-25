@@ -24,6 +24,8 @@ import org.springframework.boot.security.autoconfigure.actuate.web.servlet.Manag
 import reactor.core.publisher.Hooks;
 
 /**
+ * Starts Spexregister.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

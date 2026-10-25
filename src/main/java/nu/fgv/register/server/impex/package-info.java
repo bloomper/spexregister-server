@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Import and export as Spring Batch jobs. A request starts a job under the caller's name and roles and returns its id;
+ * the caller follows its progress, downloads an export's file when it is done, and sees an import's result. Only the
+ * caller who started a job may see or remove it. Old jobs and their files are removed by a scheduled job.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex;

@@ -1,18 +1,26 @@
 extend type Query {
+    "Every role."
     taskCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): TaskCategoryConnection
+    "Every role."
     taskCategory(id: ID!): TaskCategory
+    "ADMIN or EDITOR."
     taskCategoryExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN."
     taskCategoryCreate(input: TaskCategoryCreate!): TaskCategory
+    "ADMIN."
     taskCategoryUpdate(input: TaskCategoryUpdate!): TaskCategory
+    "ADMIN."
     taskCategoryDelete(id: ID!): Void
 }
 
+"A group of tasks."
 type TaskCategory {
     id: ID!
     name: String!
+    "Whether the tasks are performed on stage as an actor."
     actorPresent: Boolean!
     createdBy: String!
     createdAt: Instant!

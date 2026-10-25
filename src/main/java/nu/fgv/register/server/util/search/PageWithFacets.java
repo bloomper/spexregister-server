@@ -21,6 +21,9 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 /**
+ * A page of search hits with the facets of all hits.
+ *
+ * @param <T> the hit type
  * @author Anders Jacobsson
  * @since 2.0
  */

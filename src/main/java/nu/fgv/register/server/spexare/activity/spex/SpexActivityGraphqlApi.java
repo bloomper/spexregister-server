@@ -37,6 +37,8 @@ import java.util.Map;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 
 /**
+ * The {@code SpexActivity} mutations and fields.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

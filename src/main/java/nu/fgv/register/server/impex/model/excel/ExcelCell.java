@@ -23,6 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * A column of a sheet. Exported cells are colored and locked by whether the column is updatable and mandatory.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -31,18 +33,39 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelCell {
 
+    /**
+     * @return the column, from zero; audit columns are placed after the others
+     */
     int position();
 
+    /**
+     * @return whether the column identifies the record
+     */
     boolean primaryKey() default false;
 
+    /**
+     * @return whether an imported row must have a value
+     */
     boolean mandatory() default false;
 
+    /**
+     * @return whether an import may change the value, and the exported cell is unlocked
+     */
     boolean updatable() default false;
 
+    /**
+     * @return whether the column is left out of an export where no row has a value
+     */
     boolean ignoreIfNull() default false;
 
+    /**
+     * @return the message key of the header
+     */
     String header() default "";
 
+    /**
+     * @return a SpEL expression applied to the value when it is exported, or blank for none
+     */
     String transform() default "";
 
     @Target(ElementType.FIELD)

@@ -30,6 +30,11 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
+ * A specification for one {@link FilterCriteria}. Subclasses list the nested attribute paths that may be filtered on in
+ * {@link #nestedPaths()}; any other dotted path is refused, so a filter cannot reach into related entities it was not
+ * meant to.
+ *
+ * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -103,6 +108,9 @@ public class BaseSpecification<T> implements Specification<T> {
         };
     }
 
+    /**
+     * @return the dotted attribute paths, such as {@code details.title}, that may be filtered on
+     */
     protected Set<String> nestedPaths() {
         return Set.of();
     }

@@ -25,6 +25,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Arrays;
 
 /**
+ * In-memory caches, holding the Keycloak client roles.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

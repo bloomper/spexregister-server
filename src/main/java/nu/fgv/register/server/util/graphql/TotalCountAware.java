@@ -17,6 +17,8 @@
 package nu.fgv.register.server.util.graphql;
 
 /**
+ * Something that knows the size of the whole list it is a window of.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

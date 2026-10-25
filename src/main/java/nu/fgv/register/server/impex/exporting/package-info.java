@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Exports: each export service gathers the sheets of what it exports, and an engine writes them as Excel or as a PDF
+ * report.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.impex.exporting;

@@ -40,6 +40,8 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherRe
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code Activity} mutations and the activities of a spexare.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -58,6 +58,9 @@ import java.util.Objects;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * What an original spex and its revivals have in common: the title, the poster and the category. Changing it changes
+ * them all.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

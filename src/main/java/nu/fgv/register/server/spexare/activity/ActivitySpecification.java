@@ -20,6 +20,8 @@ import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * Query restrictions on activities.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

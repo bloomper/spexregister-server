@@ -40,6 +40,8 @@ import java.util.Optional;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code PermissionGrant} queries and mutations, for administrators.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

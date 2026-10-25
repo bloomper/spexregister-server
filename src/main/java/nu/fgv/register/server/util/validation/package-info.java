@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Bean validation constraints.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.validation;

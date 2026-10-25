@@ -52,6 +52,8 @@ import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEG
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Tasks and their categories.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -65,6 +67,14 @@ public class TaskService {
     private final TaskCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
+    /**
+     * The tasks the caller may read that match the filter.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresReferenceDataReader
     public CountedWindow<TaskDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -82,6 +92,13 @@ public class TaskService {
                         });
     }
 
+    /**
+     * The tasks the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<TaskDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -93,6 +110,11 @@ public class TaskService {
                         .map(TASK_MAPPER::toDto);
     }
 
+    /**
+     * @param id the task id
+     * @return the task
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
+     */
     @RequiresReferenceDataReader
     public TaskDto findById(final Long id) {
         return repository
@@ -101,6 +123,11 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException(Task.class, id));
     }
 
+    /**
+     * @param id the task id
+     * @return whether the task exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -108,6 +135,14 @@ public class TaskService {
                 .isPresent();
     }
 
+    /**
+     * The tasks to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the tasks to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the tasks the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<Task> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -127,6 +162,10 @@ public class TaskService {
         };
     }
 
+    /**
+     * @param dto the new task
+     * @return the created task
+     */
     @RequiresAdmin
     public TaskDto create(final TaskCreateDto dto) {
         return Optional.of(TASK_MAPPER.toModel(dto))
@@ -138,11 +177,24 @@ public class TaskService {
                 .orElseThrow(() -> new InternalErrorException("Could not create task"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the task id and new values
+     * @return the updated task
+     */
     @RequiresAdminOrEditor
     public TaskDto update(final TaskUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged.
+     *
+     * @param dto the task id and new values
+     * @return the updated task
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
+     */
     @RequiresAdminOrEditor
     public TaskDto partialUpdate(final TaskUpdateDto dto) {
         return repository
@@ -157,6 +209,10 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.id()));
     }
 
+    /**
+     * @param id the task id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
+     */
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesTaskExist(id)) {
@@ -170,6 +226,11 @@ public class TaskService {
         }
     }
 
+    /**
+     * @param id the task id
+     * @return the task's category
+     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the task has no category
+     */
     @RequiresReferenceDataReader
     public TaskCategoryDto findCategoryByTask(final Long id) {
         if (doesTaskExist(id)) {
@@ -184,6 +245,12 @@ public class TaskService {
         }
     }
 
+    /**
+     * Puts the task in the category.
+     *
+     * @param taskId the task id
+     * @param id     the category id
+     */
     @RequiresAdmin
     public void addCategory(final Long taskId, final Long id) {
         if (doTaskAndCategoryExist(taskId, id)) {
@@ -202,6 +269,11 @@ public class TaskService {
         }
     }
 
+    /**
+     * Takes the task out of its category.
+     *
+     * @param id the task id
+     */
     @RequiresAdmin
     public void removeCategory(final Long id) {
         if (doesTaskExist(id)) {

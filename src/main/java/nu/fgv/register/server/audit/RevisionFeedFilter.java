@@ -22,6 +22,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
+ * Which revisions to list: of an entity type, by some authors, from some sources, within a period. Without a start
+ * date, the period starts {@code sinceInDays} days, 90 by default, before the end date or today.
+ *
+ * @param type        the entity type that changed, or null for all
+ * @param modifiedBy  the authors, or empty for all
+ * @param sources     the sources, or empty for all
+ * @param from        the first day, or null
+ * @param to          the last day, or null for today
+ * @param sinceInDays how many days back to start when there is no first day, or null or -1 for the default
  * @author Anders Jacobsson
  * @since 2.0
  */

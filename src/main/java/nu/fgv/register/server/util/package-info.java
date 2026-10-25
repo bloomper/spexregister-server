@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Helpers used across the application.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util;

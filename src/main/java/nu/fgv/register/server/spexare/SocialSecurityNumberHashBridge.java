@@ -22,6 +22,9 @@ import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValue
 import org.jspecify.annotations.Nullable;
 
 /**
+ * Indexes the keyed hash of a social security number, so a spexare can be found by the full number without the index
+ * holding it.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

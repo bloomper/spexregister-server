@@ -1,10 +1,14 @@
 extend type Query {
+    "ADMIN, EDITOR or USER."
     states(sort: [String]! = ["id"], direction: SortDirection = ASC): [State]
+    "ADMIN, EDITOR or USER."
     state(id: ID!): State
 }
 
+"A state a user can be in. The Keycloak account is enabled only in some states."
 type State {
     id: ID!
+    "In the caller's language."
     label: String!
     createdBy: String!
     createdAt: Instant!

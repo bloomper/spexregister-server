@@ -44,6 +44,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A Keycloak account known to Spexregister, by its subject in {@code externalId}. Email, names and roles are read
+ * from Keycloak and not stored here.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

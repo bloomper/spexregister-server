@@ -33,6 +33,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The settings REST API under {@code /api/settings}, open to everyone and documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

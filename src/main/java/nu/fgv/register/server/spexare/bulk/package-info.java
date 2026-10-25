@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * One change applied to many spexare at once, with a preview that reports what would happen without changing anything.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.bulk;

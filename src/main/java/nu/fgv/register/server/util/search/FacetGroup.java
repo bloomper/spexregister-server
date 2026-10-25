@@ -23,6 +23,8 @@ import lombok.Getter;
 import java.util.List;
 
 /**
+ * The values of a facet under one parent value.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

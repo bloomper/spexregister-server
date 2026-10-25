@@ -19,11 +19,26 @@ package nu.fgv.register.server.util.filter;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * One criterion of a filter: an attribute, an operation and a value.
+ *
+ * @param key       the attribute path
+ * @param operation the operation
+ * @param value     the value to compare with
  * @author Anders Jacobsson
  * @since 2.0
  */
 public record FilterCriteria(String key, FilterOperation operation, Object value) {
 
+    /**
+     * A criterion as parsed, where asterisks before or after the value of an equality make it a contains, ends with or
+     * starts with.
+     *
+     * @param key       the attribute path
+     * @param operation the operator character
+     * @param prefix    the asterisks before the value, if any
+     * @param value     the value
+     * @param suffix    the asterisks after the value, if any
+     */
     public FilterCriteria(final String key, final String operation, @Nullable final String prefix, final String value, @Nullable final String suffix) {
         FilterOperation op = FilterOperation.getSimpleOperation(operation.charAt(0));
 

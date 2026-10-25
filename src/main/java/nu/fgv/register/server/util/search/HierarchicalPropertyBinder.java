@@ -35,6 +35,8 @@ import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMI
 import static nu.fgv.register.server.util.Constants.AGGREGATION_HIERARCHICAL_MARKER;
 
 /**
+ * Indexes a string property as a hierarchical facet value, the same in every language.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

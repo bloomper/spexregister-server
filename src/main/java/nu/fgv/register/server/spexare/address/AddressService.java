@@ -57,6 +57,8 @@ import static nu.fgv.register.server.spexare.address.AddressSpecification.hasTyp
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * A spexare's addresses, at most one of each type. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -72,6 +74,10 @@ public class AddressService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
+    /**
+     * @param ids spexare ids
+     * @return the addresses of each spexare, by spexare id
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public Map<Long, List<AddressDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
@@ -88,6 +94,10 @@ public class AddressService {
                 .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(ADDRESS_MAPPER::toDto, Collectors.toList())));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's addresses
+     */
     @RequiresAdminOrEditorOrUser
     public List<AddressDto> findBySpexare(final Long id) {
         return findBySpexare(id, spexare ->
@@ -100,6 +110,13 @@ public class AddressService {
         );
     }
 
+    /**
+     * @param id     the spexare id
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<AddressDto> findBySpexare(final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(id, spexare ->
@@ -120,6 +137,12 @@ public class AddressService {
         );
     }
 
+    /**
+     * @param id       the spexare id
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<AddressDto> findBySpexare(final Long id, final String filter, final Pageable pageable) {
         return findBySpexare(id, spexare ->
@@ -134,6 +157,11 @@ public class AddressService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the address id
+     * @return the address
+     */
     @RequiresAdminOrEditorOrUser
     public AddressDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId) && doesAddressExist(id)) {
@@ -149,6 +177,10 @@ public class AddressService {
         }
     }
 
+    /**
+     * @param id the address id
+     * @return whether the address exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -156,6 +188,14 @@ public class AddressService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the address type, such as {@code HOME}
+     * @param dto       the address
+     * @return the created address
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has an
+     *     address of the type
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto create(final Long spexareId, final String typeId, final AddressCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
@@ -179,11 +219,25 @@ public class AddressService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the address type, such as {@code HOME}
+     * @param id        the address id
+     * @param dto       the new values
+     * @return the updated address
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto update(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         return partialUpdate(spexareId, typeId, id, dto);
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the address type, such as {@code HOME}
+     * @param id        the address id
+     * @param dto       the new values
+     * @return the updated address
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public AddressDto partialUpdate(final Long spexareId, final String typeId, final Long id, final AddressUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {
@@ -208,6 +262,11 @@ public class AddressService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the address type, such as {@code HOME}
+     * @param id        the address id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesAddressExist(id)) {

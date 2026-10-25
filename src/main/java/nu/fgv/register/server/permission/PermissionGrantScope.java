@@ -17,6 +17,8 @@
 package nu.fgv.register.server.permission;
 
 /**
+ * What a {@link PermissionGrant} applies to.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

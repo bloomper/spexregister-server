@@ -20,6 +20,8 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
 
 /**
+ * String helpers.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -28,6 +30,10 @@ public class StringUtil {
     private StringUtil() {
     }
 
+    /**
+     * @param camelCaseString a name such as {@code firstName}
+     * @return the words, such as {@code First Name}
+     */
     public static String parseCamelCase(final String camelCaseString) {
         return capitalize(String.join(" ", splitByCharacterTypeCamelCase(camelCaseString)));
     }

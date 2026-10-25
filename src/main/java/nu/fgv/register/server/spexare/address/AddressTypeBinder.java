@@ -19,6 +19,8 @@ package nu.fgv.register.server.spexare.address;
 import nu.fgv.register.server.util.search.LabelTypeBinder;
 
 /**
+ * Indexes an address's type with its labels, for the {@code addressTypes} facet.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

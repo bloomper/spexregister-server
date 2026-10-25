@@ -54,6 +54,8 @@ import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasSpe
 import static nu.fgv.register.server.spexare.consent.ConsentSpecification.hasType;
 
 /**
+ * A spexare's consents, one per type. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -69,6 +71,10 @@ public class ConsentService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
+    /**
+     * @param ids spexare ids
+     * @return the consents of each spexare, by spexare id
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public Map<Long, List<ConsentDto>> findBySpexareIds(final Collection<Long> ids) {
         final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
@@ -85,6 +91,10 @@ public class ConsentService {
                 .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(CONSENT_MAPPER::toDto, Collectors.toList())));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare's consents
+     */
     @RequiresAdminOrEditorOrUser
     public List<ConsentDto> findBySpexare(final Long id) {
         return findBySpexare(id, spexare ->
@@ -97,6 +107,12 @@ public class ConsentService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param scroll    the window to read
+     * @param sort      the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ConsentDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
@@ -114,6 +130,11 @@ public class ConsentService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param pageable  the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<ConsentDto> findBySpexare(final Long spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
@@ -124,6 +145,11 @@ public class ConsentService {
         );
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param id        the consent id
+     * @return the consent
+     */
     @RequiresAdminOrEditorOrUser
     public ConsentDto findById(final Long spexareId, final Long id) {
         if (doesSpexareExist(spexareId)) {
@@ -139,6 +165,10 @@ public class ConsentService {
         }
     }
 
+    /**
+     * @param id the consent id
+     * @return whether the consent exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -146,6 +176,14 @@ public class ConsentService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the consent type, such as {@code CIRCULARS}
+     * @param dto       the answer
+     * @return the created consent
+     * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has a
+     *     consent of the type
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto create(final Long spexareId, final String typeId, final ConsentCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
@@ -170,6 +208,13 @@ public class ConsentService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the consent type, such as {@code CIRCULARS}
+     * @param id        the consent id
+     * @param dto       the new values
+     * @return the updated consent
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public ConsentDto update(final Long spexareId, final String typeId, final Long id, final ConsentUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
@@ -193,6 +238,11 @@ public class ConsentService {
         }
     }
 
+    /**
+     * @param spexareId the spexare id
+     * @param typeId    the id of the consent type, such as {@code CIRCULARS}
+     * @param id        the consent id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final String typeId, final Long id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {

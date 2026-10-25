@@ -27,6 +27,8 @@ import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 
 /**
+ * Resolves the {@code totalCount} field of every {@code *Connection} type from a {@link TotalCountAware} source.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

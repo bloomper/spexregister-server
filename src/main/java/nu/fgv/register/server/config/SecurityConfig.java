@@ -60,6 +60,10 @@ import java.util.List;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
+ * Two filter chains: one for MCP, an OAuth 2 protected resource that takes Keycloak access tokens meant for it from the
+ * authorized MCP clients only, and one for the rest, where GraphQL and the settings are open and the resolvers decide,
+ * and the REST API needs a token from an authorized client. Also the Keycloak admin client used to manage users.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

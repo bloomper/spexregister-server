@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 /**
+ * The application context, for code Spring does not create.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -32,6 +34,11 @@ public class ApplicationContextHolder implements ApplicationContextAware {
 
     private static @Nullable ApplicationContext context;
 
+    /**
+     * @param beanClass the bean's type
+     * @param <T>       the bean's type
+     * @return the bean
+     */
     public static <T> T getBean(final Class<T> beanClass) {
         return Objects.requireNonNull(context, "Application context is not initialized").getBean(beanClass);
     }

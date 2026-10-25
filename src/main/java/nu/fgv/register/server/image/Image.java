@@ -33,6 +33,8 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
+ * An image's bytes and content type.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -61,6 +63,11 @@ public class Image implements Serializable {
     @Column(name = "content_type", nullable = false)
     private String contentType;
 
+    /**
+     * @param data        the bytes
+     * @param contentType the media type, such as {@code image/png}
+     * @return a new image
+     */
     public static Image of(final byte[] data, final String contentType) {
         final Image image = new Image();
 

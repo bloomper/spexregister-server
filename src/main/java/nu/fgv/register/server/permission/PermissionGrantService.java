@@ -44,6 +44,8 @@ import static nu.fgv.register.server.permission.PermissionGrantSpecification.NO_
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Administers permission grants.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -59,6 +61,12 @@ public class PermissionGrantService {
     private final SpexareRepository spexareRepository;
     private final SpexRepository spexRepository;
 
+    /**
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdmin
     public CountedWindow<PermissionGrantDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -84,6 +92,16 @@ public class PermissionGrantService {
                 .orElseThrow(() -> new ResourceNotFoundException(PermissionGrant.class, id));
     }
 
+    /**
+     * Creates a grant to exactly one of a user and a grantable role ({@code USER}, {@code EDITOR} or {@code ADMIN}). A
+     * {@link PermissionGrantScope#SPEXARE} grant names a spexare and no spex; the other scopes name a spex and no
+     * spexare.
+     *
+     * @param dto the grant
+     * @return the created grant
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the grant breaks these rules, names an unknown
+     *     user, spexare or spex, or ends in the past
+     */
     @RequiresAdmin
     public PermissionGrantDto create(final PermissionGrantCreateDto dto) {
         if ((dto.userId() == null) == (dto.role() == null)) {
@@ -120,6 +138,13 @@ public class PermissionGrantService {
         return PERMISSION_GRANT_MAPPER.toDto(repository.save(grant));
     }
 
+    /**
+     * Changes only the permission and the last valid day. Who and what a grant applies to are fixed.
+     *
+     * @param dto the grant's id, permission and last valid day
+     * @return the updated grant
+     * @throws nu.fgv.register.server.util.error.BadRequestException when it would end in the past
+     */
     @RequiresAdmin
     public PermissionGrantDto update(final PermissionGrantUpdateDto dto) {
         requireNotInThePast(dto.validUntil());
@@ -143,14 +168,29 @@ public class PermissionGrantService {
         repository.delete(grant);
     }
 
+    /**
+     * Removes the grants on the spexare, before it is removed.
+     *
+     * @param spexare the spexare being removed
+     */
     public void deleteBySpexare(final Spexare spexare) {
         repository.deleteAll(repository.findBySpexareId(spexare.getId()));
     }
 
+    /**
+     * Removes the grants on the spex, before it is removed.
+     *
+     * @param spex the spex being removed
+     */
     public void deleteBySpex(final Spex spex) {
         repository.deleteAll(repository.findBySpexId(spex.getId()));
     }
 
+    /**
+     * Removes the grants to the user, before the user is removed.
+     *
+     * @param user the user being removed
+     */
     public void deleteByUser(final User user) {
         repository.deleteAll(repository.findByUserId(user.getId()));
     }

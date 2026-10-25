@@ -24,6 +24,8 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * Filters on actors for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

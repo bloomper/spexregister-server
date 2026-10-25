@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * The spex of an activity.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spexare.activity.spex;

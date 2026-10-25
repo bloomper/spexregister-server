@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * What an engine read from an import file.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -32,6 +32,8 @@ import java.util.Map;
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 
 /**
+ * Imports tags from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -90,6 +90,10 @@ import static nu.fgv.register.server.util.security.SecurityUtil.isRevival;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Spexare, their images and partners, and the search. What a caller sees is limited by
+ * {@link nu.fgv.register.server.security.policy.SpexarePolicy}, and the social security number by
+ * {@link SpexareSensitiveData}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -107,6 +111,18 @@ public class SpexareService {
     private final PermissionGrantService permissionGrantService;
     private final MessageSource messageSource;
 
+    /**
+     * Free-text search with facets. Facets the caller may not use are left out: published for those who see only
+     * published spexare, and memberships for a caller limited to the revival service.
+     *
+     * @param query              the search text, blank for all
+     * @param aggregationFilters facet values to narrow the search to
+     * @param scroll             the window to read
+     * @param sort               the order, by relevance when unsorted
+     * @return the window with the total count and the facets
+     * @throws nu.fgv.register.server.util.error.BadRequestException when a caller limited to the revival service
+     *     narrows on memberships
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final ScrollRequest scroll, final Sort sort) {
         requirePermittedAggregationFilters(aggregationFilters);
@@ -122,6 +138,14 @@ public class SpexareService {
         return new WindowWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), index -> ScrollPosition.offset(offset + index), total > offset + limit, facets, total);
     }
 
+    /**
+     * Free-text search with facets, for the REST API.
+     *
+     * @param query              the search text, blank for all
+     * @param aggregationFilters facet values to narrow the search to
+     * @param pageable           the page to read
+     * @return the page with the facets
+     */
     @RequiresAdminOrEditorOrUser
     public PageWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final Pageable pageable) {
         final SearchResult<Spexare> searchResult = repository.search(query, aggregationFilters, pageable);
@@ -130,16 +154,31 @@ public class SpexareService {
         return new PageWithFacetsImpl<>(SPEXARE_MAPPER.toDtos(searchResult.hits()), pageable, searchResult.total(), facets);
     }
 
+    /**
+     * @return every facet with its value counts over all the spexare the caller may see
+     */
     @RequiresAdminOrEditorOrUser
     public List<Facet> facets() {
         return getFacets(repository.search("", Collections.emptyList(), 0, 1, Sort.unsorted()));
     }
 
+    /**
+     * @param issue what the records lack
+     * @return how many of the spexare the caller may see lack it
+     */
     @RequiresAdminOrEditorOrUser
     public long countByDataQualityIssue(final DataQualityIssue issue) {
         return repository.countByDataQualityIssue(issue);
     }
 
+    /**
+     * @param filter a filter expression, or blank for all; the social security number only for those who may see it
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     * @throws nu.fgv.register.server.util.error.BadRequestException when the filter reaches what the caller may not
+     *     filter on
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<SpexareDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -157,6 +196,11 @@ public class SpexareService {
                         });
     }
 
+    /**
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<SpexareDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -168,6 +212,11 @@ public class SpexareService {
                         .map(SPEXARE_MAPPER::toDto);
     }
 
+    /**
+     * @param ids at most {@value #MAX_IDS} spexare ids
+     * @return those of the spexare the caller may read, unordered; ids of others are left out
+     * @throws nu.fgv.register.server.util.error.BadRequestException for more than {@value #MAX_IDS} ids
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public List<SpexareDto> findByIds(final Collection<Long> ids) {
         if (ids.size() > MAX_IDS) {
@@ -184,6 +233,11 @@ public class SpexareService {
                 .toList();
     }
 
+    /**
+     * @param spexId an original spex id
+     * @return the spexare with a spex activity in the spex or one of its revivals that the caller may read, by last
+     *     name and first name
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public List<SpexareDto> findBySpex(final Long spexId) {
         final Spex spex = spexRepository
@@ -197,6 +251,10 @@ public class SpexareService {
                 .toList();
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public SpexareDto findById(final Long id) {
         return repository
@@ -205,6 +263,9 @@ public class SpexareService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
+    /**
+     * @return the spexare of the caller's user, or empty when there is none
+     */
     @RequiresAdminOrEditorOrUser
     public Optional<SpexareDto> findByCurrentUser() {
         final String externalId = getCurrentUserSubClaim();
@@ -216,6 +277,11 @@ public class SpexareService {
                 Optional.empty();
     }
 
+    /**
+     * @param id the spexare id
+     * @return whether the spexare exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -223,6 +289,12 @@ public class SpexareService {
                 .isPresent();
     }
 
+    /**
+     * @param ids    the ids of the spexare, or empty to use the filter
+     * @param filter a filter expression, or blank for all
+     * @param sort   the order
+     * @return the spexare the caller may read, streamed when iterated, so it must be consumed inside a transaction
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<Spexare> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -242,6 +314,12 @@ public class SpexareService {
         };
     }
 
+    /**
+     * Adds a spexare. The social security number is kept only when the caller may set it.
+     *
+     * @param dto the new spexare
+     * @return the created spexare
+     */
     @RequiresAdminOrEditorOrRevival
     public SpexareDto create(final SpexareCreateDto dto) {
         return Optional.of(SPEXARE_MAPPER.toModel(SpexareSensitiveData.isReadableForAll() ? dto : dto.toBuilder().socialSecurityNumber(null).build()))
@@ -250,11 +328,22 @@ public class SpexareService {
                 .orElseThrow(() -> new InternalErrorException("Could not create spexare"));
     }
 
+    /**
+     * @param dto the new values
+     * @return the updated spexare
+     */
     @RequiresAdminOrEditorOrUser
     public SpexareDto update(final SpexareUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged, and so is the social security number when the caller
+     * may not set it.
+     *
+     * @param dto the spexare id and new values
+     * @return the updated spexare
+     */
     @RequiresAdminOrEditorOrUser
     public SpexareDto partialUpdate(final SpexareUpdateDto dto) {
         return repository
@@ -269,6 +358,12 @@ public class SpexareService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, dto.id()));
     }
 
+    /**
+     * Removes the spexare with everything that belongs to it and the permission grants on it. The audit history stays
+     * unless it is purged with {@link nu.fgv.register.server.audit.AuditPurgeService}.
+     *
+     * @param id the spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long id) {
         if (doesSpexareExist(id)) {
@@ -283,6 +378,11 @@ public class SpexareService {
         }
     }
 
+    /**
+     * @param id    the spexare id
+     * @param image a PNG, JPEG, GIF or SVG image
+     * @return the spexare
+     */
     @RequiresAdminOrEditorOrUser
     public SpexareDto saveImage(final Long id, final byte[] image) {
         return repository
@@ -296,6 +396,10 @@ public class SpexareService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the spexare
+     */
     @RequiresAdminOrEditorOrUser
     public SpexareDto deleteImage(final Long id) {
         return repository
@@ -309,6 +413,11 @@ public class SpexareService {
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the image's bytes and content type
+     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spexare has no image
+     */
     @RequiresAdminOrEditorOrUser
     public Pair<byte[], String> getImage(final Long id) {
         if (!doesSpexareExist(id)) {
@@ -321,6 +430,10 @@ public class SpexareService {
                 .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.IMAGE, id));
     }
 
+    /**
+     * @param id the spexare id
+     * @return the partner, or empty when there is none or the caller may not read it
+     */
     @RequiresAdminOrEditorOrUser
     public Optional<SpexareDto> findPartnerBySpexare(final Long id) {
         if (doesSpexareExist(id)) {
@@ -335,6 +448,12 @@ public class SpexareService {
         }
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids spexare ids
+     * @return the partners the caller may read, by spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public Map<Long, SpexareDto> findPartnersBySpexare(final Collection<Long> ids) {
         return repository.findWithPartnerByIdIn(ids).stream()
@@ -342,6 +461,13 @@ public class SpexareService {
                 .collect(Collectors.toMap(Spexare::getId, spexare -> SPEXARE_MAPPER.toDto(spexare.getPartner())));
     }
 
+    /**
+     * Makes the two spexare each other's partner, after parting either from a previous partner. The caller must be
+     * allowed to change both.
+     *
+     * @param spexareId the spexare id
+     * @param id        the partner's spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public void addPartner(final Long spexareId, final Long id) {
         if (doSpexareAndPartnerExist(spexareId, id)) {
@@ -370,6 +496,11 @@ public class SpexareService {
         }
     }
 
+    /**
+     * Parts the spexare and its partner. The caller must be allowed to change both.
+     *
+     * @param id the spexare id
+     */
     @RequiresAdminOrEditorOrUser
     public void removePartner(final Long id) {
         if (doesSpexareExist(id)) {

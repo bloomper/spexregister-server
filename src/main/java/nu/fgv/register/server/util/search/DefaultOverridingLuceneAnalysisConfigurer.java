@@ -21,6 +21,8 @@ import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer;
 import org.hibernate.search.engine.backend.analysis.AnalyzerNames;
 
 /**
+ * The Lucene analysers, with the {@value #NORMALIZER_LOWERCASE} normalizer for case-insensitive keyword fields.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

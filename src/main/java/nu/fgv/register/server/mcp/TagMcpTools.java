@@ -37,6 +37,8 @@ import static nu.fgv.register.server.mcp.McpToolSupport.filter;
 import static nu.fgv.register.server.mcp.McpToolSupport.pageable;
 
 /**
+ * The MCP tools for tags.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

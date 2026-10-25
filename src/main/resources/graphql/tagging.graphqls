@@ -1,4 +1,6 @@
 extend type Mutation {
+    "Every role, with WRITE on the spexare. Fails when the spexare already has the tag."
     taggingCreate(spexareId: ID!, tagId: ID!): Void
+    "ADMIN, EDITOR or USER with WRITE on the spexare."
     taggingDelete(spexareId: ID!, tagId: ID!): Void
 }

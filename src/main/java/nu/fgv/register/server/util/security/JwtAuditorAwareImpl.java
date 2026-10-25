@@ -22,6 +22,9 @@ import org.springframework.data.domain.AuditorAware;
 import java.util.Optional;
 
 /**
+ * Supplies {@link nu.fgv.register.server.audit.Auditor#current()} as the {@code createdBy} and {@code lastModifiedBy}
+ * of audited entities.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

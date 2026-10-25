@@ -54,6 +54,8 @@ import static nu.fgv.register.server.spexare.activity.task.actor.ActorSpecificat
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The roles played in a task activity. Reading needs read access to the spexare and changing write access.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -71,6 +73,12 @@ public class ActorService {
     private final TypeService typeService;
     private final PermissionService permissionService;
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     * @return the task activity's actors
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public List<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
@@ -83,6 +91,15 @@ public class ActorService {
         );
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     * @param filter     a filter expression, or blank for all
+     * @param scroll     the window to read
+     * @param sort       the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
@@ -103,6 +120,14 @@ public class ActorService {
         );
     }
 
+    /**
+     * @param spexareId  the spexare id
+     * @param activityId the activity id
+     * @param id         the task activity id
+     * @param filter     a filter expression, or blank for all
+     * @param pageable   the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<ActorDto> findByTaskActivity(final Long spexareId, final Long activityId, final Long id, final String filter, final Pageable pageable) {
         return findBySpexareByTaskActivity(spexareId, activityId, id, taskActivity ->
@@ -117,6 +142,13 @@ public class ActorService {
         );
     }
 
+    /**
+     * @param spexareId      the spexare id
+     * @param activityId     the activity id
+     * @param taskActivityId the task activity id
+     * @param id             the actor id
+     * @return the actor
+     */
     @RequiresAdminOrEditorOrUser
     public ActorDto findById(final Long spexareId, final Long activityId, final Long taskActivityId, final Long id) {
         if (doSpexareAndActivityAndTaskActivityExist(spexareId, activityId, taskActivityId)) {
@@ -134,6 +166,10 @@ public class ActorService {
         }
     }
 
+    /**
+     * @param id the actor id
+     * @return whether the actor exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -141,6 +177,14 @@ public class ActorService {
                 .isPresent();
     }
 
+    /**
+     * @param spexareId      the spexare id
+     * @param activityId     the activity id
+     * @param taskActivityId the task activity id
+     * @param vocalId        the id of the vocal type, such as {@code B1}
+     * @param dto            the new actor
+     * @return the created actor
+     */
     @RequiresAdminOrEditorOrUserOrRevival
     public ActorDto create(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final ActorCreateDto dto) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId)) {
@@ -166,11 +210,29 @@ public class ActorService {
         }
     }
 
+    /**
+     * @param spexareId      the spexare id
+     * @param activityId     the activity id
+     * @param taskActivityId the task activity id
+     * @param vocalId        the id of the vocal type, such as {@code B1}
+     * @param id             the actor id
+     * @param dto            the new values
+     * @return the updated actor
+     */
     @RequiresAdminOrEditorOrUser
     public ActorDto update(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id, final ActorUpdateDto dto) {
         return partialUpdate(spexareId, activityId, taskActivityId, vocalId, id, dto);
     }
 
+    /**
+     * @param spexareId      the spexare id
+     * @param activityId     the activity id
+     * @param taskActivityId the task activity id
+     * @param vocalId        the id of the vocal type, such as {@code B1}
+     * @param id             the actor id
+     * @param dto            the new values
+     * @return the updated actor
+     */
     @RequiresAdminOrEditorOrUser
     public ActorDto partialUpdate(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id, final ActorUpdateDto dto) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId) && doesActorExist(id)) {
@@ -198,6 +260,13 @@ public class ActorService {
         }
     }
 
+    /**
+     * @param spexareId      the spexare id
+     * @param activityId     the activity id
+     * @param taskActivityId the task activity id
+     * @param vocalId        the id of the vocal type, such as {@code B1}
+     * @param id             the actor id
+     */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final Long spexareId, final Long activityId, final Long taskActivityId, final String vocalId, final Long id) {
         if (doSpexareAndActivityAndTaskActivityAndTypeExist(spexareId, activityId, taskActivityId, vocalId) && doesActorExist(id)) {

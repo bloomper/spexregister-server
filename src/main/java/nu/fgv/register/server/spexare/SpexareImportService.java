@@ -72,6 +72,9 @@ import static nu.fgv.register.server.util.FileUtil.isLocalUrl;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Imports spexare from Excel, with their addresses, consents, memberships, toggles, activities and taggings on sheets
+ * of their own. A spexare that fails to import is reported with its row and does not stop the others.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

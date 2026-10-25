@@ -85,6 +85,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The spexare REST API under {@code /api/spexare}, documented by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

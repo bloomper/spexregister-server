@@ -19,6 +19,8 @@ package nu.fgv.register.server.util.graphql;
 import graphql.ErrorClassification;
 
 /**
+ * Error types beyond Spring GraphQL's: {@link #CONFLICT} for what already exists or was changed by someone else.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

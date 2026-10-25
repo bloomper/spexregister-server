@@ -67,6 +67,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * The nodes matching a search and the neighbourhood of a node, limited to what the caller may read.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -157,6 +159,14 @@ public class GraphService {
         return image == null ? null : linkTo(endpoint.get()).toUri().toString();
     }
 
+    /**
+     * Spexare, spex, tasks and tags matching the text, by label. A blank text gives the caller's own spexare, or else a
+     * random one, as a place to start.
+     *
+     * @param q     the search text
+     * @param first how many of each type to look for
+     * @return at most twice {@code first} nodes
+     */
     @RequiresAdminOrEditorOrUser
     public List<GraphNodeDto> search(final String q, final int first) {
         final String term = q.trim();
@@ -182,6 +192,12 @@ public class GraphService {
                 .toList();
     }
 
+    /**
+     * @param type  the node's type
+     * @param id    the entity id
+     * @param first the most nodes of each group
+     * @return the node with its neighbours grouped by edge type, or empty when there is no such entity
+     */
     @RequiresAdminOrEditorOrUser
     public Optional<GraphNeighbourhoodDto> findNeighbourhood(final GraphNodeType type, final Long id, final int first) {
         return switch (type) {
@@ -196,6 +212,13 @@ public class GraphService {
         };
     }
 
+    /**
+     * @param type   the node's type
+     * @param id     the entity id
+     * @param edge   the edge type to follow
+     * @param scroll the window to read
+     * @return the window of neighbours with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<GraphNodeDto> findNeighbours(final GraphNodeType type, final Long id,
                                                       final GraphEdgeType edge, final GraphqlUtil.ScrollRequest scroll) {

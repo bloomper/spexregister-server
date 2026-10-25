@@ -14,5 +14,12 @@
  * limitations under the License.
  */
 
+/**
+ * The {@code filter} expressions of list queries, turned into JPA specifications. A filter is a space-separated
+ * expression of criteria such as {@code year:2024}, {@code title:*Ali*} or {@code parent!NULL}, combined with
+ * {@code AND}, {@code OR} and parentheses. The operators are {@code :} (equals), {@code !} (not equals), {@code >},
+ * {@code <} and {@code ~} (SQL {@code LIKE}); an asterisk at the start or end of a value of {@code :} makes it ends
+ * with, starts with or contains. {@code NULL}, {@code TRUE} and {@code FALSE} compare as such.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.filter;

@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * The administrative REST API under {@code /api/admin}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

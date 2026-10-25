@@ -28,6 +28,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * A {@link nu.fgv.register.server.security.policy.PolicyJpaRepository} that can also search the index.
+ *
+ * @param <T>  the entity type
+ * @param <ID> the id type
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -93,6 +93,10 @@ import static org.passay.rule.AllowedCharacterRule.ERROR_CODE;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Users, kept in step with Keycloak. Creating, changing and removing a user also changes the Keycloak account, and
+ * roles are Keycloak client roles. A scheduled job adds users who have been given a role in Keycloak and removes those
+ * deleted there.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -119,6 +123,12 @@ public class UserService {
     @Value("${spexregister.keycloak.pending-approval-group}")
     private String pendingApprovalGroup;
 
+    /**
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdmin
     public CountedWindow<UserDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -136,6 +146,11 @@ public class UserService {
                         });
     }
 
+    /**
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdmin
     public Page<UserDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -147,6 +162,10 @@ public class UserService {
                         .map(this::joinModelWithRepresentation);
     }
 
+    /**
+     * @param id the user id
+     * @return the user
+     */
     @RequiresAdmin
     public UserDto findById(final Long id) {
         return repository
@@ -158,6 +177,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
     }
 
+    /**
+     * @param externalId the Keycloak subject
+     * @return the user, or null when no user has the subject or its Keycloak account is gone
+     */
     @RequiresAdminOrEditorOrUser
     @Nullable
     public UserDto findByExternalId(final String externalId) {
@@ -170,6 +193,10 @@ public class UserService {
                 .orElse(null);
     }
 
+    /**
+     * @param user the user
+     * @return the user's Keycloak account and Spexregister roles
+     */
     @RequiresAdmin
     @Nullable
     public UserKeycloakData getKeycloakDataByUser(final User user) {
@@ -186,6 +213,11 @@ public class UserService {
                 .orElse(null);
     }
 
+    /**
+     * @param id the user id
+     * @return whether the user exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdmin
     public boolean exists(final Long id) {
         return repository
@@ -193,6 +225,12 @@ public class UserService {
                 .isPresent();
     }
 
+    /**
+     * @param ids    the ids of the users, or empty to use the filter
+     * @param filter a filter expression, or blank for all
+     * @param sort   the order
+     * @return the users the caller may read, streamed when iterated, so it must be consumed inside a transaction
+     */
     @RequiresAdmin
     public Iterable<User> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -212,6 +250,15 @@ public class UserService {
         };
     }
 
+    /**
+     * Creates the Keycloak account with a temporary password, enabled as the initial state says, and the user in that
+     * state.
+     *
+     * @param dto the email
+     * @return the created user, with the temporary password, which is not kept
+     * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the email is taken
+     * @throws nu.fgv.register.server.util.error.InternalErrorException when Keycloak refuses the account
+     */
     @RequiresAdmin
     public UserDto create(final UserCreateDto dto) {
         if (!doesUserWithEmailExist(dto.email(), null)) {
@@ -243,11 +290,23 @@ public class UserService {
         }
     }
 
+    /**
+     * @param dto the new values
+     * @return the updated user
+     */
     @RequiresAdmin
     public UserDto update(final UserUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the email, in Keycloak too.
+     *
+     * @param dto the user id and new values
+     * @return the updated user
+     * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the email is taken by another
+     *     account
+     */
     @RequiresAdmin
     public UserDto partialUpdate(final UserUpdateDto dto) {
         return repository
@@ -278,6 +337,11 @@ public class UserService {
 
     }
 
+    /**
+     * Removes the Keycloak account, then the user and the permission grants to it. The user's spexare stays.
+     *
+     * @param id the user id
+     */
     @RequiresAdmin
     public void deleteById(final Long id) {
         if (doesUserExist(id)) {
@@ -297,6 +361,10 @@ public class UserService {
         }
     }
 
+    /**
+     * @return how many users are in each state, and how many accounts in the Keycloak group of those pending approval
+     *     are not users yet
+     */
     @RequiresAdmin
     public UserStatisticsDto getStatistics() {
         final Map<String, Long> usersByState = repository.countByState().stream()
@@ -310,6 +378,10 @@ public class UserService {
         return new UserStatisticsDto(usersByState, pendingApproval);
     }
 
+    /**
+     * @param id the user id
+     * @return the Spexregister client roles of the user's Keycloak account
+     */
     @RequiresAdmin
     public Set<AuthorityDto> getAuthoritiesByUser(final Long id) {
         if (doesUserExist(id)) {
@@ -329,6 +401,12 @@ public class UserService {
         }
     }
 
+    /**
+     * Gives the user's Keycloak account the client roles it lacks.
+     *
+     * @param userId the user id
+     * @param ids    authority ids, such as {@code ADMIN}
+     */
     @RequiresAdmin
     public void addAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
@@ -367,11 +445,23 @@ public class UserService {
         }
     }
 
+    /**
+     * Gives the user's Keycloak account the client role.
+     *
+     * @param userId the user id
+     * @param id     the authority id, such as {@code ADMIN}
+     */
     @RequiresAdmin
     public void addAuthority(final Long userId, final String id) {
         addAuthorities(userId, List.of(id));
     }
 
+    /**
+     * Takes the client roles from the user's Keycloak account.
+     *
+     * @param userId the user id
+     * @param ids    authority ids, such as {@code ADMIN}
+     */
     @RequiresAdmin
     public void removeAuthorities(final Long userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
@@ -405,11 +495,23 @@ public class UserService {
         }
     }
 
+    /**
+     * Takes the client role from the user's Keycloak account.
+     *
+     * @param userId the user id
+     * @param id     the authority id, such as {@code ADMIN}
+     */
     @RequiresAdmin
     public void removeAuthority(final Long userId, final String id) {
         removeAuthorities(userId, List.of(id));
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids user ids
+     * @return the state of each user, by user id
+     */
     @RequiresAdmin
     public Map<Long, StateDto> getStatesByUsers(final Collection<Long> ids) {
         return findReadable(ids).stream()
@@ -417,6 +519,12 @@ public class UserService {
                 .collect(Collectors.toMap(User::getId, user -> STATE_MAPPER.toDto(user.getState())));
     }
 
+    /**
+     * For batch loading.
+     *
+     * @param ids user ids
+     * @return the spexare of those users that have one, by user id
+     */
     @RequiresAdmin
     public Map<Long, SpexareDto> findSpexareByUsers(final Collection<Long> ids) {
         return findReadable(ids).stream()
@@ -430,6 +538,10 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * @param id the user id
+     * @return the user's state
+     */
     @RequiresAdmin
     public StateDto getStateByUser(final Long id) {
         return repository
@@ -439,6 +551,12 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
     }
 
+    /**
+     * Moves the user to the state, enabling or disabling the Keycloak account when the state's enabled flag differs.
+     *
+     * @param userId the user id
+     * @param id     the state id
+     */
     @RequiresAdmin
     public void setState(final Long userId, final String id) {
         if (doUserAndStateExist(userId, id)) {
@@ -466,6 +584,10 @@ public class UserService {
         }
     }
 
+    /**
+     * @param id the user id
+     * @return the user's spexare, or empty when there is none
+     */
     @RequiresAdmin
     public Optional<SpexareDto> findSpexareByUser(final Long id) {
         if (doesUserExist(id)) {
@@ -478,6 +600,14 @@ public class UserService {
         }
     }
 
+    /**
+     * Links the user to their spexare, and fills in the first and last name of the Keycloak account from it when
+     * missing.
+     *
+     * @param userId the user id
+     * @param id     the spexare id
+     * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the spexare belongs to another user
+     */
     @RequiresAdmin
     public void addSpexare(final Long userId, final Long id) {
         if (doUserAndSpexareExist(userId, id)) {
@@ -500,6 +630,11 @@ public class UserService {
         }
     }
 
+    /**
+     * Unlinks the user from their spexare.
+     *
+     * @param id the user id
+     */
     @RequiresAdmin
     public void removeSpexare(final Long id) {
         if (doesUserExist(id)) {
@@ -516,6 +651,12 @@ public class UserService {
         }
     }
 
+    /**
+     * Adds a user for each Keycloak account with a Spexregister role that is not one yet, removes the users whose
+     * accounts are gone from Keycloak, and fills in missing names from linked spexare. Each user is synced in its own
+     * transaction, so one failure does not stop the rest. Runs on the
+     * {@code spexregister.jobs.sync-users.cron-expression} schedule.
+     */
     @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
     @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void scheduledSync() {

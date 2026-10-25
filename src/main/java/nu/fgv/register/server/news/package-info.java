@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * News shown on the start page. A news item is published while today is within its visibility period, set when it is
+ * saved and kept up to date by a scheduled job.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.news;

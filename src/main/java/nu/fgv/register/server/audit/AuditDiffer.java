@@ -65,6 +65,11 @@ public class AuditDiffer {
         return byte[].class.equals(attribute.getJavaType()) || isAuditedBinary(entityClass, attribute);
     }
 
+    /**
+     * @param entityClass the entity type
+     * @param attribute   one of its attributes
+     * @return whether the attribute is marked {@link AuditedBinary}
+     */
     public static boolean isAuditedBinary(final Class<?> entityClass, final SingularAttribute<?, ?> attribute) {
         final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
 
@@ -89,6 +94,15 @@ public class AuditDiffer {
         return String.valueOf(value);
     }
 
+    /**
+     * The audited fields that differ, by name. Associations compare by id and are shown by their label, and binary
+     * values by content type.
+     *
+     * @param entityClass the entity type
+     * @param before      the earlier snapshot, or null when it was added
+     * @param after       the later snapshot, or null when it was removed
+     * @return the changes
+     */
     public List<FieldChangeDto> diff(final Class<?> entityClass, final @Nullable Object before, final @Nullable Object after) {
         if (before == null && after == null) {
             return List.of();
@@ -140,6 +154,10 @@ public class AuditDiffer {
         return List.copyOf(changes);
     }
 
+    /**
+     * @param entityClass the entity type
+     * @return its audited attributes, without id and version, by name
+     */
     public List<SingularAttribute<?, ?>> attributesOf(final Class<?> entityClass) {
         return auditedAttributes.computeIfAbsent(entityClass, this::resolveAttributes);
     }
@@ -156,12 +174,23 @@ public class AuditDiffer {
                 .toList();
     }
 
+    /**
+     * @param entityClass the entity type
+     * @param name        an attribute name
+     * @return whether the attribute holds a binary value
+     */
     public boolean isBinaryProperty(final Class<?> entityClass, final String name) {
         return attributesOf(entityClass).stream()
                 .filter(a -> a.getName().equals(name))
                 .anyMatch(attribute -> isBinary(entityClass, attribute));
     }
 
+    /**
+     * @param entityClass the entity type
+     * @param name        a binary attribute's name
+     * @param entity      a snapshot, or null
+     * @return the bytes and content type, or null when there are none
+     */
     public @Nullable BinaryValueDto binaryValueOf(final Class<?> entityClass, final String name, final @Nullable Object entity) {
         final SingularAttribute<?, ?> attribute = attributesOf(entityClass).stream()
                 .filter(a -> a.getName().equals(name))
@@ -201,6 +230,12 @@ public class AuditDiffer {
         return contentType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : String.valueOf(contentType);
     }
 
+    /**
+     * @param entityClass the entity type
+     * @param name        an audited attribute's name
+     * @param entity      a snapshot, or null
+     * @return the attribute's value, or null
+     */
     public @Nullable Object readProperty(final Class<?> entityClass, final String name, final @Nullable Object entity) {
         return attributesOf(entityClass).stream()
                 .filter(a -> a.getName().equals(name))
@@ -209,6 +244,11 @@ public class AuditDiffer {
                 .orElse(null);
     }
 
+    /**
+     * @param attribute an attribute
+     * @param entity    a snapshot, or null
+     * @return the field's value, or null
+     */
     public @Nullable Object read(final SingularAttribute<?, ?> attribute, final @Nullable Object entity) {
         if (entity == null) {
             return null;

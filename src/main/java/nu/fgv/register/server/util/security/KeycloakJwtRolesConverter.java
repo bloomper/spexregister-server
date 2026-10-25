@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Turns Keycloak's realm roles into {@value #PREFIX_REALM_ROLE} authorities and its client roles into
+ * {@code ROLE_<client>_<role>}, so the Spexregister roles become {@code ROLE_spexregister_ADMIN} and so on.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

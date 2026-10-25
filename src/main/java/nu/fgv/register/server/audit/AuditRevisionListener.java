@@ -21,6 +21,8 @@ import org.hibernate.envers.RevisionListener;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Fills in a new revision from {@link Auditor} and the {@link AuditContext}, as {@code system} when there is no caller.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

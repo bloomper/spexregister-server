@@ -19,6 +19,8 @@ package nu.fgv.register.server.impex.model;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * A row type of import and export, with the action an import takes and the row it came from.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

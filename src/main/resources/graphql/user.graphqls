@@ -1,28 +1,48 @@
 extend type Query {
+    "ADMIN."
     userPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): UserConnection
+    "ADMIN."
     user(id: ID!): User
     me: User
+    "ADMIN."
     userExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN. Creates the Keycloak account with a temporary password, returned once, and the user in the initial state."
     userCreate(input: UserCreate!): User
+    "ADMIN. Changes the email, in Keycloak too."
     userUpdate(input: UserUpdate!): User
+    "ADMIN. Removes the Keycloak account and the user. The user's spexare stays."
     userDelete(id: ID!): Void
+    "ADMIN. Gives the user's Keycloak account the role."
     userAuthorityAdd(userId: ID!, id: ID!): Void
+    "ADMIN. Gives the user's Keycloak account the roles it lacks."
     userAuthoritiesAdd(userId: ID!, ids: [ID]!): Void
+    "ADMIN. Takes the role from the user's Keycloak account."
     userAuthorityRemove(userId: ID!, id: ID!): Void
+    "ADMIN. Takes the roles from the user's Keycloak account."
     userAuthoritiesRemove(userId: ID!, ids: [ID]!): Void
+    "ADMIN. Moves the user to the state, enabling or disabling the Keycloak account to match."
     userStateSet(userId: ID!, id: ID!): Void
+    """
+    ADMIN. Links the user to their spexare, which then reads and changes it. Fails when the spexare belongs to another
+    user.
+    """
     userSpexareAdd(userId: ID!, id: ID!): Void
+    "ADMIN. Unlinks the user from their spexare."
     userSpexareRemove(userId: ID!): Void
 }
 
+"A Keycloak account known to Spexregister."
 type User {
     id: ID!
+    "The Keycloak subject."
     externalId: ID!
     email: Email!
+    "Only in the result of userCreate."
     temporaryPassword: String
+    "The Spexregister roles of the Keycloak account."
     authorities: [Authority]
     state: State
     spexare: Spexare

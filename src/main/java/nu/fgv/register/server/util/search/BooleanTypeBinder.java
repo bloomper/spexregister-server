@@ -33,6 +33,10 @@ import java.util.function.Function;
 import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMITER;
 
 /**
+ * Indexes a type and a yes-or-no value of an entity, such as a consent, as a hierarchical facet value labelled per
+ * language.
+ *
+ * @param <T> the entity type
  * @author Anders Jacobsson
  * @since 2.0
  */

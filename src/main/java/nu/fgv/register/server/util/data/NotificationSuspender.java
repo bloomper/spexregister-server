@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
+ * Turns off the Keycloak event listener {@value #NOTIFICATION_LISTENER} while sample users are created, so they are not
+ * emailed, and turns it back on afterwards.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -48,6 +48,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
+ * The task activity REST API under {@code /api/spexare/{spexareId}/activities/{activityId}/task-activities}, documented
+ * by the REST Docs tests.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

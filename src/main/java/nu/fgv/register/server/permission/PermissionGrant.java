@@ -42,6 +42,9 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
+ * A permission given to one user or to one role, on the target its {@link PermissionGrantScope} names, valid through
+ * {@code validUntil} when set.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -83,6 +86,10 @@ public class PermissionGrant extends AbstractAuditable implements Serializable {
     @Column(name = "valid_until")
     private @Nullable LocalDate validUntil;
 
+    /**
+     * @param today the current date
+     * @return whether the last valid day has passed
+     */
     public boolean isExpired(final LocalDate today) {
         return validUntil != null && validUntil.isBefore(today);
     }

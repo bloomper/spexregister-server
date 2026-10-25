@@ -39,6 +39,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
+ * An import service: reads the file with an engine for its format, then applies each row with {@link #processImport}.
+ * Nothing is applied when the file fails validation.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -58,10 +61,22 @@ public abstract class AbstractImportService {
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    /**
+     * Runs in a new transaction, so a failure undoes only this work.
+     *
+     * @param work the work
+     */
     protected void inTransaction(final Runnable work) {
         transactionTemplate.executeWithoutResult(_ -> work.run());
     }
 
+    /**
+     * @param file   the file
+     * @param type   the file format
+     * @param locale the language of the headers and of the result's messages
+     * @return what was created, updated and removed, and the errors; or the validation errors when nothing was applied
+     * @throws nu.fgv.register.server.util.error.ImportException when the file cannot be read
+     */
     public ImportResultDto doImport(final byte[] file, final ImpexType type, final Locale locale) {
         final ImportEngine engine = engines.stream()
                 .filter(e -> e.supports(type))
@@ -84,10 +99,29 @@ public abstract class AbstractImportService {
         }
     }
 
+    /**
+     * @return the sheets the file may have
+     */
     protected abstract List<ImportSpec> getImportSpecs();
 
+    /**
+     * @param data   the rows read, by row type
+     * @param locale the language of the result's messages
+     * @return what was created, updated and removed, and the errors
+     */
     protected abstract ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale);
 
+    /**
+     * Applies each row in its own transaction, counting it or recording its error.
+     *
+     * @param dtos    the rows, or null
+     * @param summary where to count and record errors
+     * @param entity  the message key of the entity's name
+     * @param creator creates from a row
+     * @param updater updates from a row
+     * @param deleter removes as a row says
+     * @param <T>     the row type
+     */
     protected <T extends HasImpexAction> void handleImport(@Nullable final List<T> dtos,
                                                            final ImportSummary summary,
                                                            final String entity,

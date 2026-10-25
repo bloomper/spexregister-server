@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
+ * Enables {@code @Async}, used to index in the background.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

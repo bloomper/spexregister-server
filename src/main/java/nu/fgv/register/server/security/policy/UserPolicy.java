@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 
 /**
+ * Administrators manage every user; anyone else reads only their own.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

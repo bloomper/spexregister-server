@@ -38,6 +38,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
+ * The step of an import job: imports the stored file as an {@link nu.fgv.register.server.audit.AuditSource#IMPORT},
+ * records the result and fails the job when there were errors.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

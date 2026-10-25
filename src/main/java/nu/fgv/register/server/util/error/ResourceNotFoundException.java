@@ -21,6 +21,8 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
+ * There is no such resource: 404, and {@code NOT_FOUND} in GraphQL.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

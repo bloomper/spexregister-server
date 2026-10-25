@@ -28,6 +28,10 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
 
 /**
+ * The control digit of a value is valid by the Luhn algorithm, as in a Swedish social security number. The regular
+ * expression splits the value into groups: the input groups are the digits checked, the control group the control digit
+ * and the existence group the part that must be present for the check to apply.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -37,12 +41,24 @@ import static java.lang.annotation.ElementType.PARAMETER;
 @Constraint(validatedBy = LuhnValidator.class)
 public @interface Luhn {
 
+    /**
+     * @return the expression whose groups split the value
+     */
     String regexp();
 
+    /**
+     * @return the groups of the digits checked
+     */
     int[] inputGroups();
 
+    /**
+     * @return the group of the control digit
+     */
     int controlGroup();
 
+    /**
+     * @return the group that must match for the value to be checked
+     */
     int existenceGroup();
 
     String message() default "Invalid control number";

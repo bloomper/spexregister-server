@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * The workbook an import reads from.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

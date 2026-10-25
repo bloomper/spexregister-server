@@ -26,6 +26,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 /**
+ * Builds the spexare search index when the application has started, if it is empty, or always when sample data is
+ * imported.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

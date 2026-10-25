@@ -21,6 +21,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
+ * A facet value and how many hits have it.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

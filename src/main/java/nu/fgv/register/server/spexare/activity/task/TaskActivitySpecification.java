@@ -21,6 +21,8 @@ import nu.fgv.register.server.task.Task;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
+ * Query restrictions on task activities.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

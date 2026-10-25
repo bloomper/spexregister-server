@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * A Spexregister role, such as {@code ADMIN}, with its labels per language. Its id is the Keycloak client role's name.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

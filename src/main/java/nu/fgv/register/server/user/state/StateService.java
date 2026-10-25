@@ -29,6 +29,8 @@ import java.util.List;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 
 /**
+ * The user states.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -40,6 +42,10 @@ public class StateService {
 
     private final StateRepository repository;
 
+    /**
+     * @param sort the order
+     * @return the states
+     */
     @RequiresAdminOrEditorOrUser
     public List<StateDto> findAll(final Sort sort) {
         return repository
@@ -48,6 +54,10 @@ public class StateService {
                 .toList();
     }
 
+    /**
+     * @param id the state id
+     * @return the state
+     */
     @RequiresAdminOrEditorOrUser
     public StateDto findById(final String id) {
         return repository
@@ -56,6 +66,10 @@ public class StateService {
                 .orElseThrow(() -> new ResourceNotFoundException(State.class, id));
     }
 
+    /**
+     * @param id the state id
+     * @return whether the state exists
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final String id) {
         return repository

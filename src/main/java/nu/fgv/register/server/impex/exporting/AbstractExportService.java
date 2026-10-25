@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * An export service that gathers its sheets from {@link #getReports}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -40,8 +42,20 @@ public abstract class AbstractExportService implements ExportService {
         return getReports(ids, filter);
     }
 
+    /**
+     * @param ids    what to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @return the sheets, the first one the main entity
+     */
     protected abstract List<ExportHolder<?>> getReports(final List<Long> ids, final String filter);
 
+    /**
+     * @param entities the entities, read lazily
+     * @param mapper   makes the row of an entity
+     * @param <T>      the entity type
+     * @param <R>      the row type
+     * @return the rows, mapped as they are read
+     */
     protected <T, R> Iterable<R> toImpexDto(final Iterable<T> entities, final Function<T, R> mapper) {
         return () -> {
             final var iterator = entities.iterator();

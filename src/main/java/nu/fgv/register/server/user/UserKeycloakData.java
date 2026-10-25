@@ -22,6 +22,10 @@ import org.keycloak.representations.idm.UserRepresentation;
 import java.util.Set;
 
 /**
+ * A user's Keycloak account and Spexregister roles.
+ *
+ * @param representation the Keycloak account
+ * @param authorities    the Spexregister client roles it has
  * @author Anders Jacobsson
  * @since 2.0
  */

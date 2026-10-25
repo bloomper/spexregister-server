@@ -28,6 +28,8 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 
 /**
+ * The {@code SavedSearch} queries and mutations.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

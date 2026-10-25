@@ -1,33 +1,43 @@
 extend type Query {
+    "ADMIN or EDITOR. One of the caller's own jobs."
     jobStatus(id: ID!): JobStatus
+    "ADMIN or EDITOR. One of the caller's own jobs, with an import's result."
     job(id: ID!): Job
+    "ADMIN or EDITOR. The caller's own jobs, newest first."
     jobs: [Job]
 }
 
 extend type Mutation {
+    "ADMIN or EDITOR. Removes one of the caller's finished jobs with its files."
     jobDelete(id: ID!): Void
 }
 
 extend type Subscription {
+    "The status of a job as it starts and ends, the latest one first."
     jobProgress(id: ID!): JobStatus
 }
 
+"A started import or export job, to follow with jobProgress or job."
 type JobReference {
     id: ID!
 }
 
+"An import or export job."
 type Job {
     id: ID!
     name: String!
+    "The Spring Batch status, such as STARTED, COMPLETED or FAILED."
     status: String!
     exitStatus: String
     createdAt: Instant
     startedAt: Instant
     finishedAt: Instant
+    "Whether the export's file can be downloaded from the REST API."
     hasDownload: Boolean
     importResult: ImportResult
 }
 
+"The status of an import or export job."
 type JobStatus {
     id: ID!
     name: String!
@@ -35,9 +45,12 @@ type JobStatus {
     exitStatus: String
 }
 
+"What an import did."
 type ImportResult {
     success: Boolean!
+    "A message for each row that failed, in the language of the import."
     errors: [String]
+    "How many records of each kind were created, updated and removed."
     messages: [String]
     data: JSON
 }

@@ -27,6 +27,11 @@ import static nu.fgv.register.server.util.security.SecurityUtil.isAdministratorO
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Who sees the social security number, and what callers limited to the revival service may filter on. Administrators
+ * and editors see every number and the spexare themself sees their own; for anyone else only the birth date is shown,
+ * and the number can neither be set nor filtered on. A caller with only the {@code REVIVAL} role may not filter on
+ * memberships or users.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -41,30 +46,53 @@ public final class SpexareSensitiveData {
     private SpexareSensitiveData() {
     }
 
+    /**
+     * @param socialSecurityNumber a social security number, or null
+     * @return its first eight characters, the birth date, or the value unchanged when it is no longer
+     */
     public static @Nullable String birthDateOf(@Nullable final String socialSecurityNumber) {
         return socialSecurityNumber != null && socialSecurityNumber.length() > BIRTH_DATE_LENGTH
                 ? socialSecurityNumber.substring(0, BIRTH_DATE_LENGTH)
                 : socialSecurityNumber;
     }
 
+    /**
+     * @param spexare the spexare
+     * @return whether the caller may see and set its full social security number
+     */
     public static boolean isReadable(final Spexare spexare) {
         return isAdministratorOrEditor() || isOwnRecord(spexare);
     }
 
+    /**
+     * @return whether the caller may see and set every spexare's full social security number
+     */
     public static boolean isReadableForAll() {
         return isAdministratorOrEditor();
     }
 
+    /**
+     * @param path a filter attribute path
+     * @return whether it reaches the social security number
+     */
     public static boolean isSensitivePath(final String path) {
         return Arrays.asList(path.split("\\.")).contains(FIELD);
     }
 
+    /**
+     * @return whether the caller has the {@code REVIVAL} role and no other Spexregister role
+     */
     public static boolean isLimitedToRevival() {
         final Caller caller = Caller.current();
 
         return caller.hasRole(Caller.REVIVAL) && !caller.hasAnyRole(Set.of(Caller.ADMIN, Caller.EDITOR, Caller.USER));
     }
 
+    /**
+     * @param path a filter attribute path
+     * @return whether it reaches memberships or the user, which a caller limited to the revival service may not filter
+     *     on
+     */
     public static boolean isRestrictedPath(final String path) {
         return Arrays.stream(path.split("\\.")).anyMatch(RESTRICTED_FIELDS::contains);
     }

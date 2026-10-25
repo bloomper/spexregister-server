@@ -51,6 +51,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * The spex of an activity.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

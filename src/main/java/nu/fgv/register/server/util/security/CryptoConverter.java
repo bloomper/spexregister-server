@@ -34,6 +34,9 @@ import java.util.Base64;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Encrypts a column with AES-GCM and a random IV per value, stored as Base64 of the IV and the cipher text. Blank
+ * values are stored as null.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

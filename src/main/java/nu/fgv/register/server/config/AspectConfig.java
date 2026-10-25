@@ -23,6 +23,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.env.Environment;
 
 /**
+ * Enables the {@link nu.fgv.register.server.util.logging.LoggingAspect}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

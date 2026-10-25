@@ -28,6 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
+ * The languages Spexregister is available in, labelled in the caller's language.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -40,6 +42,9 @@ public class LanguageService {
 
     private final MessageSource messageSource;
 
+    /**
+     * @return the languages Spexregister is available in
+     */
     public List<LanguageDto> findAll() {
         return spexregisterConfig.getLanguages()
                 .stream()
@@ -48,6 +53,10 @@ public class LanguageService {
                 .toList();
     }
 
+    /**
+     * @param isoCode a BCP 47 language tag, such as {@code sv}
+     * @return the language
+     */
     public LanguageDto findByIsoCode(final String isoCode) {
         return spexregisterConfig.getLanguages()
                 .stream()

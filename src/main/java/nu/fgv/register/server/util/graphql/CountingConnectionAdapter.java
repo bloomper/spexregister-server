@@ -30,6 +30,8 @@ import org.springframework.graphql.data.query.WindowConnectionAdapter;
 import java.util.List;
 
 /**
+ * Turns a {@link CountedWindow} into a {@link CountedConnection}, so the total count reaches the client.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

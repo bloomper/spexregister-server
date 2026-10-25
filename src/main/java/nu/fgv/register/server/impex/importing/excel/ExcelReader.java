@@ -45,6 +45,10 @@ import static nu.fgv.register.server.util.StringUtil.parseCamelCase;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Reads the rows of a sheet into their row type by the {@link nu.fgv.register.server.impex.model.excel.ExcelCell}
+ * positions. The action column takes {@code C} or {@code N} to create, {@code D} or {@code R} to remove, and {@code U}
+ * or nothing to update. Empty rows are skipped.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

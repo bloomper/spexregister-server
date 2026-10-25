@@ -1,17 +1,26 @@
 extend type Query {
+    "Every role."
     taskPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): TaskConnection
+    "Every role."
     task(id: ID!): Task
+    "ADMIN or EDITOR."
     taskExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN."
     taskCreate(input: TaskCreate!): Task
+    "ADMIN or EDITOR."
     taskUpdate(input: TaskUpdate!): Task
+    "ADMIN."
     taskDelete(id: ID!): Void
+    "ADMIN. Puts the task in the category."
     taskCategoryAdd(taskId: ID!, id: ID!): Void
+    "ADMIN. Takes the task out of its category."
     taskCategoryRemove(taskId: ID!): Void
 }
 
+"A role a spexare can have in a spex, such as director or musician."
 type Task {
     id: ID!
     name: String!

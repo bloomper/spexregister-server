@@ -24,6 +24,8 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 
 /**
+ * Lets {@code hasPermission} in method security expressions use the access policies.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

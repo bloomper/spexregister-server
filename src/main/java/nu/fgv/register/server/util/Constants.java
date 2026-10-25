@@ -17,6 +17,8 @@
 package nu.fgv.register.server.util;
 
 /**
+ * Constants of the search index's hierarchical facets.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

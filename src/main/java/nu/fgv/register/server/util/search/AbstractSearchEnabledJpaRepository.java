@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * A {@link nu.fgv.register.server.security.policy.SimplePolicyJpaRepository} that can also search the index.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -59,16 +61,33 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         this.entityManager = entityManager;
     }
 
+    /**
+     * @param query              the search text, blank for all
+     * @param aggregationFilters facet values to narrow to, or null
+     * @param pageable           the page to read
+     * @return the hits and aggregations
+     */
     @Override
     public SearchResult<T> search(final String query, final @Nullable List<AggregationFilter> aggregationFilters, final Pageable pageable) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), pageable);
     }
 
+    /**
+     * @param query              the search text, blank for all
+     * @param aggregationFilters facet values to narrow to, or null
+     * @param offset             the first hit
+     * @param limit              the most hits
+     * @param sort               the order, by relevance when unsorted
+     * @return the hits and aggregations
+     */
     @Override
     public SearchResult<T> search(final String query, final @Nullable List<AggregationFilter> aggregationFilters, final int offset, final int limit, final Sort sort) {
         return search(Search.session(entityManager), parseQuery(query, aggregationFilters), offset, limit, sort);
     }
 
+    /**
+     * @return the search session of the current entity manager
+     */
     protected SearchSession searchSession() {
         return Search.session(entityManager);
     }
@@ -79,6 +98,12 @@ public abstract class AbstractSearchEnabledJpaRepository<T, ID extends Serializa
         return new SearchQuery(freeTextQuery, aggregationFilters);
     }
 
+    /**
+     * @param clazz the entity type
+     * @param f     the sort factory
+     * @param sort  the order asked for, where {@code score} is relevance
+     * @return the sort of the search
+     */
     protected CompositeSortComponentsStep<?, ?> determineSort(final Class<T> clazz, final SearchSortFactory f, final Sort sort) {
         final CompositeSortComponentsStep<?, ?> composite = f.composite();
         final AtomicBoolean atLeastOneStepAdded = new AtomicBoolean(false);

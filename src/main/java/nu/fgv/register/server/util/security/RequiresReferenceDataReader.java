@@ -24,6 +24,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Every role that reads reference data, the revival service included, may call. The same roles as
+ * {@link RequiresAdminOrEditorOrUserOrRevival}, named for what the caller does.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -40,6 +40,8 @@ import static java.util.Collections.singletonList;
 import static reactor.core.publisher.Mono.just;
 
 /**
+ * Turns the exceptions of subscriptions into GraphQL errors, as {@link GlobalExceptionResolver} does for queries.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -52,6 +52,8 @@ import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * News. Users read only what is published; editors manage it all.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -64,6 +66,14 @@ public class NewsService {
     private final NewsRepository repository;
     private final PermissionService permissionService;
 
+    /**
+     * The news the caller may read that match the filter.
+     *
+     * @param filter a filter expression, or blank for all
+     * @param scroll the window to read
+     * @param sort   the order
+     * @return the window with the total count
+     */
     @RequiresAdminOrEditorOrUser
     public CountedWindow<NewsDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
@@ -81,6 +91,13 @@ public class NewsService {
                         });
     }
 
+    /**
+     * The news the caller may read that match the filter, for the REST API.
+     *
+     * @param filter   a filter expression, or blank for all
+     * @param pageable the page to read
+     * @return the page
+     */
     @RequiresAdminOrEditorOrUser
     public Page<NewsDto> find(final String filter, final Pageable pageable) {
         return hasText(filter) ?
@@ -92,6 +109,11 @@ public class NewsService {
                         .map(NEWS_MAPPER::toDto);
     }
 
+    /**
+     * @param id the news item id
+     * @return the news item
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such news item
+     */
     @RequiresAdminOrEditorOrUser
     public NewsDto findById(final Long id) {
         return repository.findById0(id)
@@ -99,6 +121,11 @@ public class NewsService {
                 .orElseThrow(() -> new ResourceNotFoundException(News.class, id));
     }
 
+    /**
+     * @param id the news item id
+     * @return whether the news item exists
+     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
+     */
     @RequiresAdminOrEditorOrUser
     public boolean exists(final Long id) {
         return repository
@@ -106,6 +133,14 @@ public class NewsService {
                 .isPresent();
     }
 
+    /**
+     * The news to export, streamed when iterated, so it must be consumed inside a transaction.
+     *
+     * @param ids    the news to export, or empty to use the filter
+     * @param filter a filter expression when no ids are given, or blank for all
+     * @param sort   the order
+     * @return the news the caller may read
+     */
     @RequiresAdminOrEditorOrUser
     public Iterable<News> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
         return () -> {
@@ -125,6 +160,10 @@ public class NewsService {
         };
     }
 
+    /**
+     * @param dto the new news item
+     * @return the created news item
+     */
     @RequiresAdminOrEditor
     public NewsDto create(final NewsCreateDto dto) {
         return Optional.of(NEWS_MAPPER.toModel(dto))
@@ -135,11 +174,24 @@ public class NewsService {
                 .orElseThrow(() -> new InternalErrorException("Could not create news"));
     }
 
+    /**
+     * The same as {@link #partialUpdate}.
+     *
+     * @param dto the news item id and new values
+     * @return the updated news item
+     */
     @RequiresAdminOrEditor
     public NewsDto update(final NewsUpdateDto dto) {
         return partialUpdate(dto);
     }
 
+    /**
+     * Changes the values given; null values are left unchanged.
+     *
+     * @param dto the news item id and new values
+     * @return the updated news item
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such news item
+     */
     @RequiresAdminOrEditor
     public NewsDto partialUpdate(final NewsUpdateDto dto) {
         return repository
@@ -154,6 +206,10 @@ public class NewsService {
                 .orElseThrow(() -> new ResourceNotFoundException(News.class, dto.id()));
     }
 
+    /**
+     * @param id the news item id
+     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such news item
+     */
     @RequiresAdminOrEditor
     public void deleteById(final Long id) {
         if (doesNewsExist(id)) {
@@ -167,6 +223,10 @@ public class NewsService {
         }
     }
 
+    /**
+     * Publishes the news whose visibility period has started and unpublishes the news whose period has ended, on the
+     * {@code spexregister.jobs.publish-unpublish-news.cron-expression} schedule.
+     */
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
     public void publishAndUnpublishNews() {
         log.info("Starting scheduled news publish/unpublish job");

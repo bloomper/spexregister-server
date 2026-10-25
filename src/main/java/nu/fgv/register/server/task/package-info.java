@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Tasks, the roles a spexare can have in a spex such as director or musician, and their categories.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.task;

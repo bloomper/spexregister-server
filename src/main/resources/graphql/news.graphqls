@@ -1,21 +1,31 @@
 extend type Query {
+    "ADMIN, EDITOR or USER. USER sees published news only."
     newsPaged(first: Int, after: String, last: Int, before: String, filter: String! = "published:TRUE", sort: [String]! = ["visibleFrom"], direction: SortDirection = ASC): NewsConnection
+    "ADMIN, EDITOR or USER. USER sees published news only."
     news(id: ID!): News
+    "ADMIN or EDITOR."
     newsExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 extend type Mutation {
+    "ADMIN or EDITOR. Published at once when today is within the visibility period."
     newsCreate(input: NewsCreate!): News
+    "ADMIN or EDITOR. Omitted values are left unchanged; published follows the visibility period."
     newsUpdate(input: NewsUpdate!): News
+    "ADMIN or EDITOR."
     newsDelete(id: ID!): Void
 }
 
+"A news item for the start page."
 type News {
     id: ID!
     subject: String!
     text: String!
+    "The first day it is published. Without it, it is never published."
     visibleFrom: Date
+    "The last day it is published. Without it, it stays published."
     visibleTo: Date
+    "Whether today is within the visibility period, kept up to date by a daily job."
     published: Boolean
     createdBy: String!
     createdAt: Instant!

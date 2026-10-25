@@ -22,6 +22,8 @@ import org.springframework.batch.core.step.StepExecution;
 import java.util.Iterator;
 
 /**
+ * Counts the items read as the read count of a batch step, the progress of an export.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

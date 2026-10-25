@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Tags, free labels that editors put on spexare.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.tag;

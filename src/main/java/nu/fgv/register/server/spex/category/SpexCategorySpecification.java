@@ -24,6 +24,9 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 /**
+ * Filters on spex categories for the {@code filter} expressions of
+ * {@link nu.fgv.register.server.util.filter.FilterParser}.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -49,6 +49,9 @@ import java.util.Objects;
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
 /**
+ * A spex in a year: the original production, or a revival of one when it has a parent. Title, poster and category are
+ * in the {@link SpexDetails} it shares with its parent and the parent's other revivals.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

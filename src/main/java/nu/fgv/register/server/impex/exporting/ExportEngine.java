@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Writes the sheets of an export in a file format.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

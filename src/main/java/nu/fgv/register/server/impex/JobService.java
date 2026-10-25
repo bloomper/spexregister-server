@@ -67,6 +67,8 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
+ * Starts, reads and removes the import and export jobs of the current caller.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -87,10 +89,33 @@ public class JobService {
     @Value("${spexregister.impex.storage-path}")
     private String storagePath;
 
+    /**
+     * Starts an export without a PDF report.
+     *
+     * @param serviceClass the export service of what to export
+     * @param ids          what to export, or empty to use the filter
+     * @param filter       a filter expression when no ids are given, or blank for all
+     * @param type         the file format
+     * @param locale       the language of headers and labels
+     * @return the job id
+     */
     public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, final Locale locale) {
         return createExportJob(serviceClass, ids, filter, type, null, locale);
     }
 
+    /**
+     * Starts an export. It runs with the caller's name and roles, so it exports only what the caller may read.
+     *
+     * @param serviceClass the export service of what to export
+     * @param ids          what to export, or empty to use the filter
+     * @param filter       a filter expression when no ids are given, or blank for all
+     * @param type         the file format
+     * @param reportType   the PDF report, or null
+     * @param locale       the language of headers and labels
+     * @return the job id
+     * @throws nu.fgv.register.server.util.error.InternalErrorException when there is no caller or the job could not
+     *     start
+     */
     public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, @Nullable final ReportType reportType, final Locale locale) {
         final String serviceBeanName = getServiceBeanName(serviceClass);
         final String requestor = getRequestor();
@@ -121,6 +146,17 @@ public class JobService {
         }
     }
 
+    /**
+     * Stores the file and starts an import of it, run with the caller's name and roles.
+     *
+     * @param serviceClass the import service of what to import
+     * @param file         the file
+     * @param type         the file format
+     * @param locale       the language of the headers and of the result's messages
+     * @return the job id
+     * @throws nu.fgv.register.server.util.error.InternalErrorException when there is no caller or the job could not
+     *     start
+     */
     public Long createImportJob(final Class<? extends AbstractImportService> serviceClass, final byte[] file, final ImpexType type, final Locale locale) {
         final String serviceBeanName = getServiceBeanName(serviceClass);
         final String requestor = getRequestor();
@@ -153,6 +189,10 @@ public class JobService {
         }
     }
 
+    /**
+     * @param jobId the id of a completed export job of the caller
+     * @return the exported file
+     */
     public Mono<Resource> getJobOutputFile(final Long jobId) {
         return getJobExecution(jobId)
                 .flatMap(execution -> {
@@ -170,16 +210,27 @@ public class JobService {
                 });
     }
 
+    /**
+     * @param jobId the id of a job of the caller
+     * @return its status
+     */
     public Mono<JobStatusDto> getJobStatus(final Long jobId) {
         return getJobExecution(jobId)
                 .map(this::mapToJobStatus);
     }
 
+    /**
+     * @param jobId the id of a job of the caller
+     * @return the job, with an import's result
+     */
     public Mono<JobDto> getJob(final Long jobId) {
         return getJobExecution(jobId)
                 .map(this::mapToJob);
     }
 
+    /**
+     * @return the caller's jobs, newest first
+     */
     public Mono<List<JobDto>> getJobs() {
         return currentAuthentication()
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
@@ -197,6 +248,12 @@ public class JobService {
                 });
     }
 
+    /**
+     * Removes a finished job of the caller with its files.
+     *
+     * @param jobId the job id
+     * @return completion
+     */
     @Transactional
     public Mono<Void> deleteJob(final Long jobId) {
         return getJobExecution(jobId)
@@ -321,6 +378,11 @@ public class JobService {
         }
     }
 
+    /**
+     * Removes the jobs and the import and export files older than
+     * {@code spexregister.jobs.job-cleanup.purge-threshold-in-days}, on the
+     * {@code spexregister.jobs.job-cleanup.cron-expression} schedule.
+     */
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")
     public void scheduledCleanup() {
         log.info("Starting job metadata and files cleanup job");

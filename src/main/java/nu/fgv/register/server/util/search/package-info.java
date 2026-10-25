@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Hibernate Search support: the search repositories, the index fields of the facets, and faceted results. Hierarchical
+ * facets are indexed per language as {@code id|||label}, so a facet value carries its id and its label.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.search;

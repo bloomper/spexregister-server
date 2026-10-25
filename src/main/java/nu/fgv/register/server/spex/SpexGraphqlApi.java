@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
+ * The {@code Spex} queries and mutations and the fields that need loading, batched where a list is resolved.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

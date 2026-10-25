@@ -22,6 +22,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * A sheet with its heading and, when it differs from the row type's, its name.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

@@ -14,5 +14,12 @@
  * limitations under the License.
  */
 
+/**
+ * Who may do what with which entity. Every protected entity type has one
+ * {@link nu.fgv.register.server.security.policy.AccessPolicy} that answers both as a JPA {@code Specification}, so
+ * lists only ever contain what the caller may see, and for a single loaded entity, so service methods and
+ * {@code @PreAuthorize} expressions agree with the lists. Roles come from Keycloak;
+ * {@link nu.fgv.register.server.permission.PermissionGrant}s add rights on single spexare or spex on top of them.
+ */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.security.policy;

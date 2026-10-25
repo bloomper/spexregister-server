@@ -22,6 +22,8 @@ import lombok.Getter;
 import java.util.List;
 
 /**
+ * A facet of a search result and the counts of its values.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

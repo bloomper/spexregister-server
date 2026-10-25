@@ -36,6 +36,8 @@ import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MA
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 
 /**
+ * Exports users to Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

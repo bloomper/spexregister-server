@@ -17,6 +17,8 @@
 package nu.fgv.register.server.graph;
 
 /**
+ * What a node of the graph is.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

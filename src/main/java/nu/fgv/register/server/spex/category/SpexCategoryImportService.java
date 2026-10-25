@@ -37,6 +37,8 @@ import static nu.fgv.register.server.util.FileUtil.isLocalUrl;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
+ * Imports spex categories from Excel.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
