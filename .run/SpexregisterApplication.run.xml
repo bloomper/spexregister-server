@@ -5,22 +5,22 @@
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="API_BASE_URL" />
-        <option name="value" value="http://localhost:8080/api" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="API_SECRET_KEY" />
-        <option name="value" value="fTjWnZr4u7x!A%D*G-KaPdSgVkXp2s5v" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_SECRET" />
-        <option name="value" value="YGXDSS5oiZFf4fnTWfX4LImOToPlVOhF" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="API_KEYCLOAK_URL" />
-        <option name="value" value="https://auth.fgv.local.nu:8443/auth" />
+        <option name="value" value="FILL_ME_IN" />
       </param>
       <param>
         <option name="enabled" value="true" />
