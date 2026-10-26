@@ -23,6 +23,7 @@ import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
@@ -70,7 +71,7 @@ public class TaskCategoryGraphqlApi {
     }
 
     @MutationMapping("taskCategoryCreate")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public TaskCategoryDto create(@Valid @Argument final TaskCategoryCreateDto input) {
         return service.create(input);
     }
@@ -82,13 +83,13 @@ public class TaskCategoryGraphqlApi {
     }
 
     @MutationMapping("taskCategoryUpdate")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public TaskCategoryDto update(@Valid @Argument final TaskCategoryUpdateDto input) {
         return service.update(input);
     }
 
     @MutationMapping("taskCategoryDelete")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public void delete(@Argument final Long id) {
         service.deleteById(id);
     }

@@ -96,7 +96,7 @@ public class SpexGraphqlApi {
     }
 
     @MutationMapping("spexDelete")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public void delete(@Argument final Long id) {
         service.deleteById(id);
     }

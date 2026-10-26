@@ -375,6 +375,94 @@ class UserGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Search")
+    class SearchTests {
+
+        @Test
+        void should_find_by_email() {
+            final var state = persistState(randomizeState());
+            final var user = persistUser(randomizeUser(state));
+            persistUser(randomizeUser(state));
+            final String email = keycloakAdminClient.realm(keycloakRealm).users().get(user.getExternalId()).toRepresentation().getEmail();
+
+            final List<UserDto> result = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("user/userSearch")
+                    .variable("query", email)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("userSearch")
+                    .entityList(UserDto.class)
+                    .get();
+
+            assertThat(result).extracting(UserDto::getId).containsExactly(user.getId());
+        }
+
+        @Test
+        void should_find_by_spexare_name() {
+            final var state = persistState(randomizeState());
+            final var spexare = randomizeSpexare();
+            spexare.setFirstName("Zebulon");
+            final var user = persistUser(randomizeUser(state));
+            user.setSpexare(persistSpexare(spexare));
+            repository.save(user);
+            persistUser(randomizeUser(state));
+
+            final List<UserDto> result = httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("user/userSearch")
+                    .variable("query", "Zebulon")
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("userSearch")
+                    .entityList(UserDto.class)
+                    .get();
+
+            assertThat(result).extracting(UserDto::getId).containsExactly(user.getId());
+        }
+
+        @Test
+        void should_return_the_first_users_when_blank() {
+            final var state = persistState(randomizeState());
+            IntStream.range(0, 3).forEach(_ -> persistUser(randomizeUser(state)));
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("user/userSearch")
+                    .variable("first", 2)
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("userSearch")
+                    .entityList(UserDto.class)
+                    .hasSize(2);
+        }
+
+        @Test
+        void should_return_FORBIDDEN_when_not_permitted() {
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken()))
+                    .build()
+                    .documentName("user/userSearch")
+                    .variable("query", "anything")
+                    .execute()
+                    .errors()
+                    .satisfy((errors) -> assertThat(errors)
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
+                    );
+        }
+    }
+
+    @Nested
     @DisplayName("Retrieve paged backwards")
     class RetrievePagedBackwardsTests {
 

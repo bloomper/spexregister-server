@@ -19,6 +19,7 @@ package nu.fgv.register.server.task;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,7 +50,7 @@ public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
     @ExcelCell(header = "task.impex.name.columnName", position = 2, updatable = true, mandatory = true)
     private String name;
 
-    @NotBlank(message = "{task.category.notEmpty}")
+    @NotNull(message = "{task.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "task.impex.category.id.columnName", position = 3, updatable = true)
     private Long categoryId;

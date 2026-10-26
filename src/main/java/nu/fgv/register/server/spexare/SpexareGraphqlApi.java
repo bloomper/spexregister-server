@@ -39,6 +39,7 @@ import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collections;
@@ -50,6 +51,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
+import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 
 /**
  * The {@code Spexare} queries and mutations, the caller's own spexare and the partner.
@@ -139,6 +141,9 @@ public class SpexareGraphqlApi {
     @MutationMapping("spexareDelete")
     @RequiresAdminOrEditorOrUser
     public void delete(@Argument final Long id, @Argument final boolean purge) {
+        if (purge && !isAdministrator()) {
+            throw new AccessDeniedException("Access denied");
+        }
         service.deleteById(id);
         if (purge) {
             auditPurgeService.purgeSpexare(id);

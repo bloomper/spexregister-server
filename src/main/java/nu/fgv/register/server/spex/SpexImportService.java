@@ -21,6 +21,7 @@ import nu.fgv.register.server.impex.importing.AbstractImportService;
 import nu.fgv.register.server.impex.importing.ImportEngine;
 import nu.fgv.register.server.impex.importing.ImportSpec;
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,13 +71,14 @@ public class SpexImportService extends AbstractImportService {
                         .clazz(SpexImpexDto.class)
                         .existenceCheckers(Map.of(
                                 "id", v -> service.exists((Long) v),
-                                "categoryId", v -> service.exists((Long) v)
+                                "categoryId", v -> categoryService.exists((Long) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(SpexRevivalImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> categoryService.exists((Long) v)
+                                "id", v -> service.exists((Long) v),
+                                "parentId", v -> service.exists((Long) v)
                         ))
                         .build()
         );
@@ -100,7 +102,7 @@ public class SpexImportService extends AbstractImportService {
                 dto -> {
                     final SpexDto spex = service.partialUpdate(SPEX_MAPPER.toUpdateDto(dto));
 
-                    if (!service.findCategoryBySpex(spex.getId()).getId().equals(dto.getCategoryId())) {
+                    if (!dto.getCategoryId().equals(currentCategoryId(spex.getId()))) {
                         service.addCategory(spex.getId(), dto.getCategoryId());
                     }
                     processPoster(spex.getId(), dto.getPosterUrl());
@@ -118,6 +120,12 @@ public class SpexImportService extends AbstractImportService {
         );
 
         return summary.toResult();
+    }
+
+    private @Nullable Long currentCategoryId(final Long id) {
+        final SpexCategoryDto category = service.findCategoriesBySpex(List.of(id)).get(id);
+
+        return category != null ? category.getId() : null;
     }
 
     private void processPoster(final Long id, @Nullable final String url) {

@@ -47,7 +47,6 @@ import java.util.Objects;
 public class JobGraphqlApi {
 
     private final JobService jobService;
-    private final JobProgressService progressService;
 
     @QueryMapping("jobStatus")
     @RequiresAdminOrEditor
@@ -79,13 +78,7 @@ public class JobGraphqlApi {
                 .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
                 .filter(this::hasRequiredAdminOrEditor)
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
-                .flatMapMany(auth -> progressService.getStream(id)
-                        .flatMap(dto -> {
-                            if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
-                                return jobService.getJobStatus(id);
-                            }
-                            return Mono.just(dto);
-                        }));
+                .flatMapMany(_ -> jobService.getJobProgress(id));
     }
 
     private boolean hasRequiredAdminOrEditor(final Authentication auth) {

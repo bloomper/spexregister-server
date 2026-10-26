@@ -1,0 +1,9 @@
+query userSearch ($query: String! = "", $first: Int! = 20) {
+    userSearch (query: $query, first: $first) {
+        id
+        email
+        spexare {
+            id
+        }
+    }
+}

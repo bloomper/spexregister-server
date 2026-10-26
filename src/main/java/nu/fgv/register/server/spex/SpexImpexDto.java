@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -64,7 +65,7 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
     @ExcelCell(header = "spex.impex.posterUrl.columnName", position = 4, updatable = true)
     private String posterUrl;
 
-    @NotBlank(message = "{spex.category.notEmpty}")
+    @NotNull(message = "{spex.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "spex.impex.category.id.columnName", position = 5, updatable = true)
     private Long categoryId;

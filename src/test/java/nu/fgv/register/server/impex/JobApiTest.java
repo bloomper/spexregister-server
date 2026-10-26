@@ -63,8 +63,6 @@ class JobApiTest extends AbstractApiTest {
 
     @MockitoBean
     private JobService service;
-    @MockitoBean
-    private JobProgressService progressService;
 
     @Test
     void should_get_status() throws Exception {
@@ -239,8 +237,7 @@ class JobApiTest extends AbstractApiTest {
         final JobStatusDto statusDto = JobStatusDto.builder().id(1L).name("export").status("COMPLETED").exitStatus("COMPLETED").build();
         final JobStatusDto pulse = JobStatusDto.builder().id(1L).name("export").status("STARTED").exitStatus("UNKNOWN").build();
 
-        when(service.getJobStatus(anyLong())).thenReturn(Mono.just(statusDto));
-        when(progressService.getStream(anyLong())).thenReturn(Flux.just(pulse));
+        when(service.getJobProgress(anyLong())).thenReturn(Flux.just(pulse, statusDto));
 
         mockMvc
                 .perform(

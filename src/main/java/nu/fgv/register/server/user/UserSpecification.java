@@ -17,6 +17,7 @@
 package nu.fgv.register.server.user;
 
 import lombok.Getter;
+import nu.fgv.register.server.spexare.Spexare_;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -43,5 +44,13 @@ public class UserSpecification extends BaseSpecification<User> {
 
     public static Specification<User> hasIds(final List<Long> ids) {
         return (root, query, criteriaBuilder) -> root.get(User_.id).in(ids);
+    }
+
+    public static Specification<User> hasExternalIds(final List<String> externalIds) {
+        return (root, query, criteriaBuilder) -> root.get(User_.externalId).in(externalIds);
+    }
+
+    public static Specification<User> hasSpexareIds(final List<Long> spexareIds) {
+        return (root, query, criteriaBuilder) -> root.get(User_.spexare).get(Spexare_.id).in(spexareIds);
     }
 }

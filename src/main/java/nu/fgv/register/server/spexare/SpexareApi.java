@@ -59,6 +59,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -80,6 +81,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
+import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.util.StringUtils.hasText;
@@ -252,6 +254,9 @@ public class SpexareApi {
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<Object> delete(@PathVariable final Long id, @RequestParam(defaultValue = "false") final boolean purge) {
+        if (purge && !isAdministrator()) {
+            throw new AccessDeniedException("Access denied");
+        }
         service.deleteById(id);
         if (purge) {
             auditPurgeService.purgeSpexare(id);

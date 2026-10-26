@@ -58,6 +58,7 @@ import org.passay.rule.CharacterRule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -71,8 +72,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +88,9 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.spexare.SpexareMapper.SPEXARE_MAPPER;
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static nu.fgv.register.server.user.UserSpecification.NO_FILTER;
+import static nu.fgv.register.server.user.UserSpecification.hasExternalIds;
 import static nu.fgv.register.server.user.UserSpecification.hasIds;
+import static nu.fgv.register.server.user.UserSpecification.hasSpexareIds;
 import static nu.fgv.register.server.user.authority.AuthorityMapper.AUTHORITY_MAPPER;
 import static nu.fgv.register.server.user.state.StateMapper.STATE_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
@@ -107,6 +112,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class UserService {
 
     private static final int SYNC_PAGE_SIZE = 100;
+    private static final int KEYCLOAK_SEARCH_FACTOR = 5;
 
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
@@ -160,6 +166,55 @@ public class UserService {
                 repository
                         .findAll(pageable, Permission.READ)
                         .map(this::joinModelWithRepresentation);
+    }
+
+    /**
+     * Finds users to pick from by the email, username or name of their Keycloak account, or by the name of their
+     * spexare.
+     *
+     * @param query the search text, blank for the first users
+     * @param limit the most users to return
+     * @return the users found, those matching in Keycloak first
+     */
+    @RequiresAdmin
+    public List<UserDto> search(final String query, final int limit) {
+        if (!hasText(query)) {
+            return repository
+                    .findAll(PageRequest.of(0, limit, Sort.by(User_.ID)), Permission.READ)
+                    .map(this::joinModelWithRepresentation)
+                    .getContent();
+        }
+
+        final List<String> externalIds = keycloakAdminClient
+                .realm(keycloakRealm)
+                .users()
+                .search(query.trim(), 0, limit * KEYCLOAK_SEARCH_FACTOR, true)
+                .stream()
+                .map(UserRepresentation::getId)
+                .toList();
+        final List<Long> spexareIds = spexareRepository
+                .search(query.trim(), List.of(), 0, limit, Sort.unsorted())
+                .hits()
+                .stream()
+                .map(Spexare::getId)
+                .toList();
+        final Map<Long, User> found = new LinkedHashMap<>();
+
+        if (!externalIds.isEmpty()) {
+            repository.findAll(hasExternalIds(externalIds), Permission.READ).stream()
+                    .sorted(Comparator.comparingInt(user -> externalIds.indexOf(user.getExternalId())))
+                    .forEach(user -> found.putIfAbsent(user.getId(), user));
+        }
+        if (!spexareIds.isEmpty()) {
+            repository.findAll(hasSpexareIds(spexareIds), Permission.READ).stream()
+                    .sorted(Comparator.comparingInt(user -> spexareIds.indexOf(user.getSpexare().getId())))
+                    .forEach(user -> found.putIfAbsent(user.getId(), user));
+        }
+
+        return found.values().stream()
+                .limit(limit)
+                .map(this::joinModelWithRepresentation)
+                .toList();
     }
 
     /**

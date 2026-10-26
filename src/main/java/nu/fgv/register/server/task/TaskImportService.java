@@ -21,6 +21,8 @@ import nu.fgv.register.server.impex.importing.AbstractImportService;
 import nu.fgv.register.server.impex.importing.ImportEngine;
 import nu.fgv.register.server.impex.importing.ImportSpec;
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.util.error.ResourceNoValueException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -80,7 +82,7 @@ public class TaskImportService extends AbstractImportService {
                 dto -> {
                     final TaskDto task = service.partialUpdate(TASK_MAPPER.toUpdateDto(dto));
 
-                    if (!service.findCategoryByTask(task.getId()).getId().equals(dto.getCategoryId())) {
+                    if (!dto.getCategoryId().equals(currentCategoryId(task.getId()))) {
                         service.addCategory(task.getId(), dto.getCategoryId());
                     }
                 },
@@ -88,5 +90,13 @@ public class TaskImportService extends AbstractImportService {
         );
 
         return summary.toResult();
+    }
+
+    private @Nullable Long currentCategoryId(final Long id) {
+        try {
+            return service.findCategoryByTask(id).getId();
+        } catch (final ResourceNoValueException _) {
+            return null;
+        }
     }
 }

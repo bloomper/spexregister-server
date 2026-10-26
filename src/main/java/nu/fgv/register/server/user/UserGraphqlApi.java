@@ -62,6 +62,8 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 @Controller
 public class UserGraphqlApi {
 
+    private static final int MAX_SEARCH_RESULTS = 100;
+
     private final UserService service;
     private final JobService jobService;
 
@@ -69,6 +71,12 @@ public class UserGraphqlApi {
     @RequiresAdmin
     public CountedWindow<UserDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
+    }
+
+    @QueryMapping("userSearch")
+    @RequiresAdmin
+    public List<UserDto> search(@Argument final String query, @Argument final int first) {
+        return service.search(query, Math.clamp(first, 1, MAX_SEARCH_RESULTS));
     }
 
     @QueryMapping("userExport")

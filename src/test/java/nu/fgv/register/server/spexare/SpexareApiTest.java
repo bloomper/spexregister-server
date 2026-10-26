@@ -31,6 +31,7 @@ import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -557,6 +560,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
+    @WithMockUser(roles = "spexregister_ADMIN")
     void should_delete() throws Exception {
         final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
 
@@ -588,6 +592,23 @@ class SpexareApiTest extends AbstractApiTest {
                                 security(getRolesFromMethod(SpexareApi.class, "delete", Long.class, boolean.class))
                         )
                 );
+    }
+
+    @Test
+    @WithMockUser(roles = "spexregister_EDITOR")
+    void should_not_delete_when_purging_without_admin() throws Exception {
+        mockMvc
+                .perform(
+                        delete("/api/spexare/{id}", 1L)
+                                .queryParam("purge", "true")
+                                .apiVersion("1.0")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
+                )
+                .andExpect(status().isForbidden());
+
+        verify(service, never()).deleteById(any(Long.class));
+        verify(auditPurgeService, never()).purgeSpexare(any(Long.class));
     }
 
     @Test

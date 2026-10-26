@@ -23,6 +23,7 @@ import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
+import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -69,7 +70,7 @@ public class SpexCategoryGraphqlApi {
     }
 
     @MutationMapping("spexCategoryCreate")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public SpexCategoryDto create(@Valid @Argument final SpexCategoryCreateDto input) {
         return service.create(input);
     }
@@ -81,19 +82,19 @@ public class SpexCategoryGraphqlApi {
     }
 
     @MutationMapping("spexCategoryUpdate")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public SpexCategoryDto update(@Valid @Argument final SpexCategoryUpdateDto input) {
         return service.update(input);
     }
 
     @MutationMapping("spexCategoryDelete")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public void delete(@Argument final Long id) {
         service.deleteById(id);
     }
 
     @MutationMapping("spexCategoryLogoDelete")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public void deleteLogo(@Argument final Long id) {
         service.deleteLogo(id);
     }

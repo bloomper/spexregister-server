@@ -49,7 +49,6 @@ import java.util.Objects;
 public class JobApi {
 
     private final JobService service;
-    private final JobProgressService progressService;
 
     @GetMapping("/{id}/status")
     @RequiresAdminOrEditor
@@ -82,13 +81,7 @@ public class JobApi {
     @GetMapping(path = "/{id}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RequiresAdminOrEditor
     public Flux<JobStatusDto> progress(@PathVariable final Long id) {
-        return progressService.getStream(id)
-                .flatMap(dto -> {
-                    if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
-                        return service.getJobStatus(id);
-                    }
-                    return Mono.just(dto);
-                });
+        return service.getJobProgress(id);
     }
 
     @GetMapping("/{id}/results")

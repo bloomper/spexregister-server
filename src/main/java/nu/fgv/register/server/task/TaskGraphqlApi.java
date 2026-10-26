@@ -92,7 +92,7 @@ public class TaskGraphqlApi {
     }
 
     @MutationMapping("taskDelete")
-    @RequiresAdminOrEditor
+    @RequiresAdmin
     public void delete(@Argument final Long id) {
         service.deleteById(id);
     }

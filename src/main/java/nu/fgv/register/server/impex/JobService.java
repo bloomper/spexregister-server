@@ -52,6 +52,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tools.jackson.databind.ObjectMapper;
 
@@ -65,6 +66,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentAuthorizedPartyClaim;
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserEmailClaim;
+import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserPreferredUsernameClaim;
 
 /**
  * Starts, reads and removes the import and export jobs of the current caller.
@@ -84,6 +89,7 @@ public class JobService {
     private final ApplicationContext applicationContext;
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final JobProgressService progressService;
     @Value("${spexregister.jobs.job-cleanup.purge-threshold-in-days}")
     private int purgeThresholdInDays;
     @Value("${spexregister.impex.storage-path}")
@@ -132,6 +138,7 @@ public class JobService {
                     .addString("locale", locale.toLanguageTag())
                     .addString("requestor", requestor)
                     .addString("authorities", authorities)
+                    .addJobParameters(requestorClaims())
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
 
@@ -176,6 +183,7 @@ public class JobService {
                         .addString("locale", locale.toLanguageTag())
                         .addString("requestor", requestor)
                         .addString("authorities", authorities)
+                        .addJobParameters(requestorClaims())
                         .addLong("timestamp", System.currentTimeMillis())
                         .toJobParameters();
 
@@ -217,6 +225,21 @@ public class JobService {
     public Mono<JobStatusDto> getJobStatus(final Long jobId) {
         return getJobExecution(jobId)
                 .map(this::mapToJobStatus);
+    }
+
+    /**
+     * @param jobId the id of a job of the caller
+     * @return its status as it starts and ends, the last one read back from the job
+     */
+    public Flux<JobStatusDto> getJobProgress(final Long jobId) {
+        return getJobExecution(jobId)
+                .flatMapMany(_ -> progressService.getStream(jobId))
+                .flatMap(dto -> {
+                    if (dto.getStatus().equals("COMPLETED") || dto.getStatus().equals("FAILED")) {
+                        return getJobStatus(jobId);
+                    }
+                    return Mono.just(dto);
+                });
     }
 
     /**
@@ -426,6 +449,14 @@ public class JobService {
     private @Nullable String getRequestor() {
         return SecurityContextHolder.getContext().getAuthentication() != null ?
                 SecurityContextHolder.getContext().getAuthentication().getName() : null;
+    }
+
+    private JobParameters requestorClaims() {
+        return new JobParametersBuilder()
+                .addString("requestorEmail", getCurrentUserEmailClaim(), false)
+                .addString("requestorUsername", getCurrentUserPreferredUsernameClaim(), false)
+                .addString("requestorClient", getCurrentAuthorizedPartyClaim(), false)
+                .toJobParameters();
     }
 
     private String getAuthorities() {

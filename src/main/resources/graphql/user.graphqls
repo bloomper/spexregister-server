@@ -3,6 +3,11 @@ extend type Query {
     userPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["id"], direction: SortDirection = ASC): UserConnection
     "ADMIN."
     user(id: ID!): User
+    """
+    ADMIN. Users to pick from, found by the email, username or name of their Keycloak account or by the name of their
+    spexare, those found in Keycloak first. A blank query gives the first users. At most 100.
+    """
+    userSearch(query: String! = "", first: Int! = 20): [User!]!
     me: User
     "ADMIN."
     userExport(ids: [ID], filter: String, type: ImpexType!): JobReference

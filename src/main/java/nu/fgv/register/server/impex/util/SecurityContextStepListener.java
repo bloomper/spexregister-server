@@ -28,15 +28,25 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+
+import static org.springframework.util.StringUtils.hasText;
 
 /**
- * Runs a job's step as the caller who started it, with the roles they had then.
+ * Runs a job's step as the caller who started it, with the roles they had then and the claims the audit names them
+ * by.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Component
 public class SecurityContextStepListener implements StepExecutionListener {
+
+    private static final Map<String, String> REQUESTOR_CLAIMS = Map.of(
+            "requestorEmail", "email",
+            "requestorUsername", "preferred_username",
+            "requestorClient", "azp"
+    );
 
     @Override
     public void beforeStep(final StepExecution stepExecution) {
@@ -49,13 +59,22 @@ public class SecurityContextStepListener implements StepExecutionListener {
                     java.util.Arrays.stream(authorities.split(","))
                             .map(SimpleGrantedAuthority::new)
                             .toList();
-            final Jwt jwt = Jwt.withTokenValue("mock-token")
+            final Jwt.Builder builder = Jwt.withTokenValue("mock-token")
                     .header("alg", "none")
                     .claim("sub", requestor)
                     .issuer("mock-issuer")
                     .issuedAt(Instant.now())
-                    .expiresAt(Instant.now().plusSeconds(3600))
-                    .build();
+                    .expiresAt(Instant.now().plusSeconds(3600));
+
+            REQUESTOR_CLAIMS.forEach((parameter, claim) -> {
+                final String value = stepExecution.getJobParameters().getString(parameter);
+
+                if (hasText(value)) {
+                    builder.claim(claim, value);
+                }
+            });
+
+            final Jwt jwt = builder.build();
             final JwtAuthenticationToken auth = new JwtAuthenticationToken(jwt, authorityList, requestor);
 
             SecurityContextHolder.getContext().setAuthentication(auth);
