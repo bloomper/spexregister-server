@@ -38,7 +38,8 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
-import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
+import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -109,7 +110,7 @@ public class SpexService {
      * @param sort   the order
      * @return the window with the total count
      */
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public CountedWindow<SpexDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
         return repository
                 .findBy(hasText(filter) ?
@@ -149,7 +150,7 @@ public class SpexService {
      * @return the spex
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex
      */
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public SpexDto findById(final Long id) {
         return repository
                 .findById0(id)
@@ -346,7 +347,7 @@ public class SpexService {
      * @return the poster's bytes and content type
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex has no poster
      */
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public Pair<byte[], String> getPoster(final Long id) {
         if (!doesSpexExist(id)) {
             throw new ResourceNotFoundException(Spex.class, id);
@@ -384,7 +385,7 @@ public class SpexService {
      * @return the revival
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when it is not a revival of that spex
      */
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public SpexDto findRevivalById(final Long spexId, final Long id) {
         if (doSpexAndRevivalExist(spexId, id)) {
             return repository
@@ -419,7 +420,7 @@ public class SpexService {
         }
     }
 
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public CountedWindow<SpexDto> findRevivalsByParent(final Long id, final ScrollRequest scroll, final Sort sort) {
         return findRevivalsByParent(
                 id,
@@ -518,7 +519,7 @@ public class SpexService {
      * @param ids spex ids
      * @return the originals of those that are revivals and readable, by revival id
      */
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrMedia
     public Map<Long, SpexDto> findParentsBySpex(final Collection<Long> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getParent() != null)
@@ -531,7 +532,7 @@ public class SpexService {
      * @param ids spex ids
      * @return the revivals by year of those that are originals and readable, by original id
      */
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public Map<Long, List<SpexDto>> findRevivalsByParents(final Collection<Long> ids) {
         final List<Long> parentIds = findReadable(ids).stream()
                 .filter(parent -> !parent.isRevival())
@@ -554,7 +555,7 @@ public class SpexService {
      * @param ids spex ids
      * @return the categories of those that have one and are readable, by spex id
      */
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrMedia
     public Map<Long, SpexCategoryDto> findCategoriesBySpex(final Collection<Long> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getDetails().getCategory() != null)

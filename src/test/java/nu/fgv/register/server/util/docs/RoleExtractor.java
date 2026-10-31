@@ -21,7 +21,9 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
+import nu.fgv.register.server.util.security.RequiresSpexReader;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -68,6 +70,14 @@ public class RoleExtractor {
 
         if (requiresReferenceDataReader != null) {
             return List.of("ADMIN", "EDITOR", "USER", "REVIVAL");
+        }
+
+        if (method.getAnnotation(RequiresSpexReader.class) != null) {
+            return List.of("ADMIN", "EDITOR", "USER", "REVIVAL", "MEDIA");
+        }
+
+        if (method.getAnnotation(RequiresAdminOrEditorOrUserOrMedia.class) != null) {
+            return List.of("ADMIN", "EDITOR", "USER", "MEDIA");
         }
 
         return Collections.emptyList();

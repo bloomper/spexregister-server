@@ -41,6 +41,7 @@ public class SecurityUtil {
     public static final String ROLE_EDITOR = "ROLE_spexregister_EDITOR";
     public static final String ROLE_USER = "ROLE_spexregister_USER";
     public static final String ROLE_REVIVAL = "ROLE_spexregister_REVIVAL";
+    public static final String ROLE_MEDIA = "ROLE_spexregister_MEDIA";
     public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
 
     private SecurityUtil() {
