@@ -36,8 +36,8 @@ import java.util.Optional;
  */
 public class GraphqlUtil {
 
-    private static final int DEFAULT_LIMIT = 10;
     public static final int MAX_LIMIT = 100;
+    private static final int DEFAULT_LIMIT = 10;
 
     private GraphqlUtil() {
     }

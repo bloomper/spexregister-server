@@ -33,16 +33,16 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 public class MethodSecurityConfig {
 
     @Bean
-    public PermissionEvaluator permissionEvaluator() {
-        return new PolicyPermissionEvaluator();
-    }
-
-    @Bean
     public static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         final DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
 
         expressionHandler.setPermissionEvaluator(new PolicyPermissionEvaluator());
 
         return expressionHandler;
+    }
+
+    @Bean
+    public PermissionEvaluator permissionEvaluator() {
+        return new PolicyPermissionEvaluator();
     }
 }

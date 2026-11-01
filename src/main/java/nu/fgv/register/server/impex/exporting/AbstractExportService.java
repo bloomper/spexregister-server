@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -38,7 +39,7 @@ public abstract class AbstractExportService implements ExportService {
     }
 
     @Override
-    public List<ExportHolder<?>> doExport(final List<Long> ids, final String filter) {
+    public List<ExportHolder<?>> doExport(final List<UUID> ids, final String filter) {
         return getReports(ids, filter);
     }
 
@@ -47,7 +48,7 @@ public abstract class AbstractExportService implements ExportService {
      * @param filter a filter expression when no ids are given, or blank for all
      * @return the sheets, the first one the main entity
      */
-    protected abstract List<ExportHolder<?>> getReports(final List<Long> ids, final String filter);
+    protected abstract List<ExportHolder<?>> getReports(final List<UUID> ids, final String filter);
 
     /**
      * @param entities the entities, read lazily

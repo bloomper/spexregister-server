@@ -122,7 +122,7 @@ public class FileUtil {
      * @param url a public http or https address
      * @return the image's bytes, at most 15 MB
      * @throws nu.fgv.register.server.util.error.BadRequestException when the address is not public http or https, the
-     *     server does not answer 200 or the image is too large
+     *                                                               server does not answer 200 or the image is too large
      */
     public static byte[] downloadImage(final String url) {
         final URI uri = requirePublicHttpUri(url);

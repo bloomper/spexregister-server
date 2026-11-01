@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -70,8 +71,8 @@ public class ExportTasklet implements Tasklet {
         final Locale locale = Locale.forLanguageTag((String) params.get("locale"));
 
         final ExportService service = applicationContext.getBean(serviceBeanName, ExportService.class);
-        final List<Long> ids = (idsStr == null || idsStr.isEmpty()) ?
-                List.of() : Arrays.stream(idsStr.split(",")).map(Long::valueOf).toList();
+        final List<UUID> ids = (idsStr == null || idsStr.isEmpty()) ?
+                List.of() : Arrays.stream(idsStr.split(",")).map(UUID::fromString).toList();
 
         final List<ExportHolder<?>> holders = service.doExport(ids, filter);
         final List<ExportHolder<?>> countingHolders = holders.stream()

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -29,7 +31,7 @@ import lombok.Builder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ConsentUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotNull(message = "{consent.value.notEmpty}")
         @JsonProperty("value")

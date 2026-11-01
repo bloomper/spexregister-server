@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
@@ -80,6 +81,30 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
         super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.tagRepository = tagRepository;
         this.messageSource = messageSource;
+    }
+
+    private static TagImpexDto tag(final ImpexAction action, final UUID id, final String name) {
+        final TagImpexDto dto = new TagImpexDto();
+
+        dto.setAction(action);
+        dto.setId(id);
+        dto.setName(name);
+        return dto;
+    }
+
+    private static void dropTestAuthenticationFromReactorContext() {
+        SecurityContextHolder.getContext().setAuthentication(null);
+    }
+
+    private static List<String> cellsInColumn(final Sheet sheet, final int column) {
+        final List<String> values = new ArrayList<>();
+
+        for (final Row row : sheet) {
+            if (row.getRowNum() > 0) {
+                values.add(row.getCell(column).getStringCellValue());
+            }
+        }
+        return values;
     }
 
     @BeforeEach
@@ -143,7 +168,7 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
 
         final String token = obtainAdminAccessToken();
         final Long jobId = startTagImport(token, workbook(
-                tag(ImpexAction.UPDATE, existing.getId(), "Founder and pillar"),
+                tag(ImpexAction.UPDATE, existing.getUuid(), "Founder and pillar"),
                 tag(ImpexAction.CREATE, null, "Honorary member")
         ));
 
@@ -156,10 +181,10 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
         assertThat(jdbcClient.sql("SELECT name FROM tag ORDER BY name").query(String.class).list())
                 .containsExactly("Founder and pillar", "Honorary member");
         assertThat(jdbcClient.sql("""
-                        SELECT DISTINCT CONCAT(r.source, ' ', r.comment)
-                        FROM revinfo r JOIN tag_audit a ON a.rev = r.id
-                        WHERE a.name IN ('Founder and pillar', 'Honorary member')
-                        """).query(String.class).list())
+                SELECT DISTINCT CONCAT(r.source, ' ', r.comment)
+                FROM revinfo r JOIN tag_audit a ON a.rev = r.id
+                WHERE a.name IN ('Founder and pillar', 'Honorary member')
+                """).query(String.class).list())
                 .containsExactly("IMPORT Import job %d (EXCEL)".formatted(jobId));
     }
 
@@ -236,15 +261,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private static TagImpexDto tag(final ImpexAction action, final Long id, final String name) {
-        final TagImpexDto dto = new TagImpexDto();
-
-        dto.setAction(action);
-        dto.setId(id);
-        dto.setName(name);
-        return dto;
-    }
-
     private Long startTagExport(final String token) {
         dropTestAuthenticationFromReactorContext();
 
@@ -284,20 +300,5 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
             assertThat(Instant.now()).as("job %d did not finish in time", jobId).isBefore(deadline);
             Thread.sleep(200);
         }
-    }
-
-    private static void dropTestAuthenticationFromReactorContext() {
-        SecurityContextHolder.getContext().setAuthentication(null);
-    }
-
-    private static List<String> cellsInColumn(final Sheet sheet, final int column) {
-        final List<String> values = new ArrayList<>();
-
-        for (final Row row : sheet) {
-            if (row.getRowNum() > 0) {
-                values.add(row.getCell(column).getStringCellValue());
-            }
-        }
-        return values;
     }
 }

@@ -54,6 +54,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -171,7 +172,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -186,7 +187,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -210,7 +211,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -237,7 +238,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -265,7 +266,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                     .get()
                     .uri(uriBuilder -> uriBuilder
                             .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -285,7 +286,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -312,7 +313,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Address_.STREET_ADDRESS + ":" + address.getStreetAddress())
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -347,7 +348,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Address_.STREET_ADDRESS + ":whatever")
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -376,7 +377,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final AddressDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), address.getId())
+                    .uri("/{id}", spexare.getUuid(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -389,7 +390,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "streetAddress")
-                    .contains(address.getId(), address.getStreetAddress());
+                    .contains(address.getUuid(), address.getStreetAddress());
         }
 
         @Test
@@ -398,7 +399,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -420,7 +421,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, address.getId())
+                    .uri("/{id}", UUID.randomUUID(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -447,7 +448,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -458,7 +459,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -482,7 +483,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -492,7 +493,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -515,7 +516,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", 1L, type.getId())
+                    .uri("/{typeId}", UUID.randomUUID(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -538,7 +539,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), 1L)
+                    .uri("/{typeId}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -562,7 +563,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -586,7 +587,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -609,7 +610,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final AddressDto before = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -628,7 +629,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), before.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), before.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -639,7 +640,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> after = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -666,7 +667,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -689,7 +690,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", 1L, type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -712,7 +713,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), 1L, dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), UUID.randomUUID(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -736,12 +737,12 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare2));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -764,12 +765,12 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -793,7 +794,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -816,7 +817,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final AddressDto before = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -833,7 +834,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), before.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), before.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -844,7 +845,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> after = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -871,7 +872,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -894,7 +895,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", 1L, type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -917,7 +918,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare.getId(), 1L, dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), UUID.randomUUID(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -941,12 +942,12 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare2));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -969,12 +970,12 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -998,7 +999,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .patch()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), dto.id())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -1021,7 +1022,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1031,7 +1032,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
             final List<AddressDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -1054,7 +1055,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1077,7 +1078,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", -1L, type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1100,7 +1101,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", address.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1124,7 +1125,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1147,7 +1148,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), address.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1170,7 +1171,7 @@ class AddressApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), address.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), address.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

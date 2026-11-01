@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -97,7 +98,7 @@ public class SpexCategoryApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -122,7 +123,7 @@ public class SpexCategoryApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieve(@PathVariable final UUID id) {
         final SpexCategoryDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -157,7 +158,7 @@ public class SpexCategoryApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexCategoryUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable final UUID id, @Valid @RequestBody final SpexCategoryUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -169,7 +170,7 @@ public class SpexCategoryApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable final Long id, @RequestBody final SpexCategoryUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable final UUID id, @RequestBody final SpexCategoryUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -181,7 +182,7 @@ public class SpexCategoryApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();
@@ -189,7 +190,7 @@ public class SpexCategoryApi {
 
     @GetMapping("/{spexCategoryId}/logo")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadLogo(@PathVariable final Long spexCategoryId) {
+    public ResponseEntity<Resource> downloadLogo(@PathVariable final UUID spexCategoryId) {
         final Pair<byte[], String> logo = service.getLogo(spexCategoryId);
 
         return ResponseEntity.ok()
@@ -201,7 +202,7 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexCategoryId, @RequestBody final byte[] file) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final UUID spexCategoryId, @RequestBody final byte[] file) {
         service.saveLogo(spexCategoryId, file);
 
         return ResponseEntity.noContent().build();
@@ -209,7 +210,7 @@ public class SpexCategoryApi {
 
     @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final Long spexCategoryId, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadLogo(@PathVariable final UUID spexCategoryId, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadLogo(spexCategoryId, file.getBytes());
         } catch (final IOException e) {
@@ -219,7 +220,7 @@ public class SpexCategoryApi {
 
     @DeleteMapping("/{spexCategoryId}/logo")
     @RequiresAdmin
-    public ResponseEntity<Object> deleteLogo(@PathVariable final Long spexCategoryId) {
+    public ResponseEntity<Object> deleteLogo(@PathVariable final UUID spexCategoryId) {
         service.deleteLogo(spexCategoryId);
 
         return ResponseEntity.noContent().build();

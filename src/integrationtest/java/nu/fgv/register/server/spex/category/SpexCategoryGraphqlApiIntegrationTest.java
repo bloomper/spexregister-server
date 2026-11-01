@@ -46,6 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -291,15 +292,15 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .path("spexCategoryPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedSpexCategories(final int size) {
+        private List<UUID> persistPermittedSpexCategories(final int size) {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var category = persistSpexCategory(randomizeSpexCategory());
-                        return category.getId();
+                        return category.getUuid();
                     })
                     .toList();
         }
@@ -459,12 +460,12 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexCategory", result -> result
-                            .path("id").entity(Long.class).isEqualTo(category.getId())
+                            .path("id").entity(UUID.class).isEqualTo(category.getUuid())
                             .path("name").entity(String.class).isEqualTo(category.getName())
                             .path("firstYear").entity(String.class).isEqualTo(category.getFirstYear())
                     );
@@ -477,7 +478,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -501,7 +502,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -537,7 +538,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -609,7 +610,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -677,7 +678,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -694,7 +695,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -715,7 +716,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -734,7 +735,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -758,7 +759,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
 
             restTestClient
                     .put()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -771,7 +772,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -784,7 +785,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryLogoDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -796,7 +797,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -814,7 +815,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryLogoDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -833,7 +834,7 @@ class SpexCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/category/spexCategoryLogoDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

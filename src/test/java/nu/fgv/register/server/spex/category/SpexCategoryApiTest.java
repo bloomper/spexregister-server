@@ -36,7 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -100,8 +102,8 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var category1 = SpexCategoryDto.builder().id(1L).name("category1").build();
-        final var category2 = SpexCategoryDto.builder().id(2L).name("category2").build();
+        final var category1 = SpexCategoryDto.builder().id(uuid(1)).name("category1").build();
+        final var category2 = SpexCategoryDto.builder().id(uuid(2)).name("category2").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(category1, category2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -148,7 +150,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/spex/categories?ids=1,2,3&type=excel")
+                        get("/api/spex/categories?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -176,7 +178,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(SpexCategoryCreateDto.class);
         final var dto = SpexCategoryCreateDto.builder().firstYear("1948").name("Chalmersspexet").build();
 
-        when(service.create(any(SpexCategoryCreateDto.class))).thenReturn(SpexCategoryDto.builder().id(1L).firstYear(dto.firstYear()).name(dto.name()).build());
+        when(service.create(any(SpexCategoryCreateDto.class))).thenReturn(SpexCategoryDto.builder().id(uuid(1)).firstYear(dto.firstYear()).name(dto.name()).build());
 
         mockMvc
                 .perform(
@@ -236,13 +238,13 @@ class SpexCategoryApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(category);
+        when(service.findById(any(UUID.class))).thenReturn(category);
 
         mockMvc
                 .perform(
-                        get("/api/spex/categories/{id}", 1)
+                        get("/api/spex/categories/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -262,7 +264,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -270,14 +272,14 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SpexCategoryUpdateDto.class);
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        final var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").name("Chalmersspexet").build();
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
+        final var dto = SpexCategoryUpdateDto.builder().id(uuid(1)).firstYear("1948").name("Chalmersspexet").build();
 
         when(service.update(any(SpexCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
-                        put("/api/spex/categories/{id}", 1)
+                        put("/api/spex/categories/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -304,7 +306,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "update", Long.class, SpexCategoryUpdateDto.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "update", UUID.class, SpexCategoryUpdateDto.class))
                         )
                 );
     }
@@ -312,14 +314,14 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(SpexCategoryUpdateDto.class);
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        final var dto = SpexCategoryUpdateDto.builder().id(1L).firstYear("1948").build();
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
+        final var dto = SpexCategoryUpdateDto.builder().id(uuid(1)).firstYear("1948").build();
 
         when(service.partialUpdate(any(SpexCategoryUpdateDto.class))).thenReturn(category);
 
         mockMvc
                 .perform(
-                        patch("/api/spex/categories/{id}", 1)
+                        patch("/api/spex/categories/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -346,21 +348,21 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "partialUpdate", Long.class, SpexCategoryUpdateDto.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "partialUpdate", UUID.class, SpexCategoryUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
 
-        when(service.findById(any(Long.class))).thenReturn(category);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(category);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/spex/categories/{id}", 1)
+                        delete("/api/spex/categories/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -376,7 +378,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "delete", UUID.class))
                         )
                 );
     }
@@ -384,11 +386,11 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_download_logo() throws Exception {
         final var logo = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
-        when(service.getLogo(any(Long.class))).thenReturn(logo);
+        when(service.getLogo(any(UUID.class))).thenReturn(logo);
 
         mockMvc
                 .perform(
-                        get("/api/spex/categories/{spexId}/logo", 1)
+                        get("/api/spex/categories/{spexId}/logo", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -411,7 +413,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody(),
-                                security(getRolesFromMethod(SpexCategoryApi.class, "downloadLogo", Long.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "downloadLogo", UUID.class))
                         )
                 );
     }
@@ -419,12 +421,12 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_upload_logo() throws Exception {
         final var logo = new byte[]{10, 12};
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any())).thenReturn(category);
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
+        when(service.saveLogo(any(UUID.class), any())).thenReturn(category);
 
         mockMvc
                 .perform(
-                        put("/api/spex/categories/{spexId}/logo", 1)
+                        put("/api/spex/categories/{spexId}/logo", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -445,7 +447,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, byte[].class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", UUID.class, byte[].class))
                         )
                 );
     }
@@ -453,12 +455,12 @@ class SpexCategoryApiTest extends AbstractApiTest {
     @Test
     void should_upload_logo_via_multipart() throws Exception {
         final var logo = new MockMultipartFile("file", "logo.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.saveLogo(any(Long.class), any())).thenReturn(category);
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
+        when(service.saveLogo(any(UUID.class), any())).thenReturn(category);
 
         mockMvc
                 .perform(
-                        multipart("/api/spex/categories/{spexId}/logo", 1)
+                        multipart("/api/spex/categories/{spexId}/logo", uuid(1))
                                 .file(logo)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -478,19 +480,19 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                 requestParts(
                                         partWithName("file").description("The logo to upload")
                                 ),
-                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", Long.class, MultipartFile.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "uploadLogo", UUID.class, MultipartFile.class))
                         )
                 );
     }
 
     @Test
     void should_delete_logo() throws Exception {
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
-        when(service.deleteLogo(any(Long.class))).thenReturn(category);
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
+        when(service.deleteLogo(any(UUID.class))).thenReturn(category);
 
         mockMvc
                 .perform(
-                        delete("/api/spex/categories/{spexId}/logo", 1)
+                        delete("/api/spex/categories/{spexId}/logo", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -506,7 +508,7 @@ class SpexCategoryApiTest extends AbstractApiTest {
                                         parameterWithName("spexId").description("The id of the spex category")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexCategoryApi.class, "deleteLogo", Long.class))
+                                security(getRolesFromMethod(SpexCategoryApi.class, "deleteLogo", UUID.class))
                         )
                 );
     }

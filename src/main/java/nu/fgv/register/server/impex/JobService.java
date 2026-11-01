@@ -65,6 +65,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentAuthorizedPartyClaim;
@@ -95,6 +96,10 @@ public class JobService {
     @Value("${spexregister.impex.storage-path}")
     private String storagePath;
 
+    private static @Nullable String contextString(final JobExecution execution, final String key) {
+        return execution.getExecutionContext().get(key) instanceof final String value ? value : null;
+    }
+
     /**
      * Starts an export without a PDF report.
      *
@@ -105,7 +110,7 @@ public class JobService {
      * @param locale       the language of headers and labels
      * @return the job id
      */
-    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, final Locale locale) {
+    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<UUID> ids, final String filter, final ImpexType type, final Locale locale) {
         return createExportJob(serviceClass, ids, filter, type, null, locale);
     }
 
@@ -120,9 +125,9 @@ public class JobService {
      * @param locale       the language of headers and labels
      * @return the job id
      * @throws nu.fgv.register.server.util.error.InternalErrorException when there is no caller or the job could not
-     *     start
+     *                                                                  start
      */
-    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<Long> ids, final String filter, final ImpexType type, @Nullable final ReportType reportType, final Locale locale) {
+    public Long createExportJob(final Class<? extends ExportService> serviceClass, final List<UUID> ids, final String filter, final ImpexType type, @Nullable final ReportType reportType, final Locale locale) {
         final String serviceBeanName = getServiceBeanName(serviceClass);
         final String requestor = getRequestor();
         final String authorities = getAuthorities();
@@ -162,7 +167,7 @@ public class JobService {
      * @param locale       the language of the headers and of the result's messages
      * @return the job id
      * @throws nu.fgv.register.server.util.error.InternalErrorException when there is no caller or the job could not
-     *     start
+     *                                                                  start
      */
     public Long createImportJob(final Class<? extends AbstractImportService> serviceClass, final byte[] file, final ImpexType type, final Locale locale) {
         final String serviceBeanName = getServiceBeanName(serviceClass);
@@ -384,10 +389,6 @@ public class JobService {
                                     return Mono.just(execution);
                                 })
                 );
-    }
-
-    private static @Nullable String contextString(final JobExecution execution, final String key) {
-        return execution.getExecutionContext().get(key) instanceof final String value ? value : null;
     }
 
     private void deleteFileIfPresent(final @Nullable String path) {

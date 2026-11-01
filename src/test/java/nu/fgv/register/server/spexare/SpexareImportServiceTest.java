@@ -47,13 +47,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -78,7 +79,7 @@ class SpexareImportServiceTest {
     private final ActorService actorService = mock(ActorService.class);
     private SpexareImportService service;
 
-    private static SpexareImpexDto spexare(final Long id, final ImpexAction action, final int row) {
+    private static SpexareImpexDto spexare(final UUID id, final ImpexAction action, final int row) {
         final SpexareImpexDto dto = new SpexareImpexDto();
 
         dto.setId(id);
@@ -89,13 +90,33 @@ class SpexareImportServiceTest {
         return dto;
     }
 
-    private static AddressImpexDto address(final Long spexareId, final int row) {
+    private static AddressImpexDto address(final UUID spexareId, final int row) {
         final AddressImpexDto dto = new AddressImpexDto();
 
         dto.setSpexareId(spexareId);
         dto.setTypeId("HOME");
         dto.setStreetAddress("Kårhuset");
         dto.setAction(ImpexAction.CREATE);
+        dto.setRowNumber(row);
+        return dto;
+    }
+
+    private static boolean isPlaceholder(final UUID id) {
+        return (id.getLeastSignificantBits() & Long.MAX_VALUE) >= 1000;
+    }
+
+    private static ActivityImpexDto activity(final UUID id, final int row) {
+        final ActivityImpexDto dto = new ActivityImpexDto();
+
+        dto.setSpexareId(uuid(5));
+        dto.setId(id);
+        dto.setAction(isPlaceholder(id) ? ImpexAction.CREATE : ImpexAction.UPDATE);
+        dto.setSpexActivityAction(ImpexAction.CREATE);
+        dto.setSpexActivityId(uuid(10020));
+        dto.setSpexId(uuid(9));
+        dto.setTaskActivityAction(ImpexAction.CREATE);
+        dto.setTaskActivityId(uuid(10030));
+        dto.setTaskId(uuid(1));
         dto.setRowNumber(row);
         return dto;
     }
@@ -114,26 +135,26 @@ class SpexareImportServiceTest {
                 mock(ToggleService.class), activityService, spexActivityService, taskActivityService, actorService, mock(TagService.class),
                 taggingService, mock(SpexService.class), mock(TaskService.class), mock(TypeService.class), mock(CountryService.class),
                 messages, mock(PlatformTransactionManager.class), "https://register.example.com");
-        when(spexareService.create(any())).thenReturn(SpexareDto.builder().id(101L).build());
+        when(spexareService.create(any())).thenReturn(SpexareDto.builder().id(uuid(101)).build());
         when(spexareService.partialUpdate(any())).thenAnswer(invocation -> SpexareDto.builder().id(((SpexareUpdateDto) invocation.getArgument(0)).id()).build());
-        when(spexareService.findPartnerBySpexare(anyLong())).thenReturn(Optional.empty());
+        when(spexareService.findPartnerBySpexare(any(UUID.class))).thenReturn(Optional.empty());
     }
 
     @Test
     void should_give_rows_of_a_new_spexare_its_new_id() {
-        final ImportResultDto result = run(Map.of(SpexareImpexDto.class, List.of(spexare(-1L, ImpexAction.CREATE, 2)),
-                AddressImpexDto.class, List.of(address(-1L, 2))));
+        final ImportResultDto result = run(Map.of(SpexareImpexDto.class, List.of(spexare(uuid(1001), ImpexAction.CREATE, 2)),
+                AddressImpexDto.class, List.of(address(uuid(1001), 2))));
 
         assertThat(result.getErrors(), empty());
-        verify(addressService).create(eq(101L), eq("HOME"), any());
-        verify(spexareService).deleteImage(101L);
+        verify(addressService).create(eq(uuid(101)), eq("HOME"), any());
+        verify(spexareService).deleteImage(uuid(101));
     }
 
     @Test
     void should_keep_other_spexare_when_one_fails() {
         org.mockito.Mockito.doThrow(new IllegalStateException("Låst")).when(spexareService).partialUpdate(any());
 
-        final ImportResultDto result = run(Map.of(SpexareImpexDto.class, List.of(spexare(-1L, ImpexAction.CREATE, 2), spexare(5L, ImpexAction.UPDATE, 3))));
+        final ImportResultDto result = run(Map.of(SpexareImpexDto.class, List.of(spexare(uuid(1001), ImpexAction.CREATE, 2), spexare(uuid(5), ImpexAction.UPDATE, 3))));
 
         assertThat(result.getErrors(), hasSize(1));
         verify(spexareService).create(any());
@@ -141,105 +162,89 @@ class SpexareImportServiceTest {
 
     @Test
     void should_link_partners_once_both_exist_and_remove_a_partner_no_longer_given() {
-        final SpexareImpexDto first = spexare(-1L, ImpexAction.CREATE, 2);
-        final SpexareImpexDto second = spexare(7L, ImpexAction.UPDATE, 3);
+        final SpexareImpexDto first = spexare(uuid(1001), ImpexAction.CREATE, 2);
+        final SpexareImpexDto second = spexare(uuid(7), ImpexAction.UPDATE, 3);
 
-        first.setPartnerId(7L);
-        when(spexareService.findPartnerBySpexare(7L)).thenReturn(Optional.of(SpexareDto.builder().id(8L).build()));
+        first.setPartnerId(uuid(7));
+        when(spexareService.findPartnerBySpexare(uuid(7))).thenReturn(Optional.of(SpexareDto.builder().id(uuid(8)).build()));
 
         final ImportResultDto result = run(Map.of(SpexareImpexDto.class, List.of(first, second)));
 
         assertThat(result.getErrors(), empty());
-        verify(spexareService).addPartner(101L, 7L);
-        verify(spexareService).removePartner(7L);
+        verify(spexareService).addPartner(uuid(101), uuid(7));
+        verify(spexareService).removePartner(uuid(7));
     }
 
     @Test
     void should_not_relink_a_partner_already_linked() {
-        final SpexareImpexDto dto = spexare(5L, ImpexAction.UPDATE, 2);
+        final SpexareImpexDto dto = spexare(uuid(5), ImpexAction.UPDATE, 2);
 
-        dto.setPartnerId(6L);
-        when(spexareService.findPartnerBySpexare(5L)).thenReturn(Optional.of(SpexareDto.builder().id(6L).build()));
+        dto.setPartnerId(uuid(6));
+        when(spexareService.findPartnerBySpexare(uuid(5))).thenReturn(Optional.of(SpexareDto.builder().id(uuid(6)).build()));
 
         assertThat(run(Map.of(SpexareImpexDto.class, List.of(dto))).getErrors(), empty());
-        verify(spexareService, never()).addPartner(anyLong(), anyLong());
+        verify(spexareService, never()).addPartner(any(UUID.class), any(UUID.class));
     }
 
     @Test
     void should_delete_a_spexare_and_its_tagging() {
         final TaggingImpexDto tagging = new TaggingImpexDto();
 
-        tagging.setSpexareId(5L);
-        tagging.setTagId(3L);
+        tagging.setSpexareId(uuid(5));
+        tagging.setTagId(uuid(3));
         tagging.setAction(ImpexAction.DELETE);
         tagging.setRowNumber(4);
 
-        assertThat(run(Map.of(SpexareImpexDto.class, List.of(spexare(5L, ImpexAction.DELETE, 2)), TaggingImpexDto.class, List.of(tagging))).getErrors(),
+        assertThat(run(Map.of(SpexareImpexDto.class, List.of(spexare(uuid(5), ImpexAction.DELETE, 2)), TaggingImpexDto.class, List.of(tagging))).getErrors(),
                 empty());
-        verify(spexareService).deleteById(5L);
-        verify(taggingService).deleteById(5L, 3L);
+        verify(spexareService).deleteById(uuid(5));
+        verify(taggingService).deleteById(uuid(5), uuid(3));
     }
 
     @Test
     void should_create_an_activity_once_for_several_rows_with_spex_task_and_actor() {
-        when(activityService.create(5L)).thenReturn(ActivityDto.builder().id(50L).build());
-        when(spexActivityService.create(5L, 50L, 9L)).thenReturn(SpexActivityDto.builder().id(60L).build());
-        when(taskActivityService.create(eq(5L), eq(50L), anyLong())).thenReturn(TaskActivityDto.builder().id(70L).build(), TaskActivityDto.builder().id(71L).build());
+        when(activityService.create(uuid(5))).thenReturn(ActivityDto.builder().id(uuid(50)).build());
+        when(spexActivityService.create(uuid(5), uuid(50), uuid(9))).thenReturn(SpexActivityDto.builder().id(uuid(60)).build());
+        when(taskActivityService.create(eq(uuid(5)), eq(uuid(50)), any(UUID.class))).thenReturn(TaskActivityDto.builder().id(uuid(70)).build(), TaskActivityDto.builder().id(uuid(71)).build());
 
-        final ActivityImpexDto actor = activity(-10L, 3);
-        final ActivityImpexDto orchestra = activity(-10L, 4);
+        final ActivityImpexDto actor = activity(uuid(10010), 3);
+        final ActivityImpexDto orchestra = activity(uuid(10010), 4);
 
         actor.setActorAction(ImpexAction.CREATE);
         actor.setTypeId("VOCAL");
         actor.setActorRole("Ali Baba");
-        orchestra.setTaskActivityId(-21L);
-        orchestra.setTaskId(2L);
+        orchestra.setTaskActivityId(uuid(10021));
+        orchestra.setTaskId(uuid(2));
         orchestra.setSpexActivityAction(null);
 
         final ImportResultDto result = run(Map.of(ActivityImpexDto.class, List.of(actor, orchestra)));
 
         assertThat(result.getErrors(), empty());
-        verify(activityService).create(5L);
-        verify(spexActivityService).create(5L, 50L, 9L);
-        verify(taskActivityService).create(5L, 50L, 1L);
-        verify(taskActivityService).create(5L, 50L, 2L);
-        verify(actorService).create(eq(5L), eq(50L), eq(70L), eq("VOCAL"), any());
+        verify(activityService).create(uuid(5));
+        verify(spexActivityService).create(uuid(5), uuid(50), uuid(9));
+        verify(taskActivityService).create(uuid(5), uuid(50), uuid(1));
+        verify(taskActivityService).create(uuid(5), uuid(50), uuid(2));
+        verify(actorService).create(eq(uuid(5)), eq(uuid(50)), eq(uuid(70)), eq("VOCAL"), any());
     }
 
     @Test
     void should_delete_an_activity_without_touching_its_parts() {
-        final ActivityImpexDto dto = activity(40L, 2);
+        final ActivityImpexDto dto = activity(uuid(40), 2);
 
         dto.setAction(ImpexAction.DELETE);
 
         assertThat(run(Map.of(ActivityImpexDto.class, List.of(dto))).getErrors(), empty());
-        verify(activityService).deleteById(5L, 40L);
-        verify(spexActivityService, never()).create(anyLong(), anyLong(), anyLong());
+        verify(activityService).deleteById(uuid(5), uuid(40));
+        verify(spexActivityService, never()).create(any(UUID.class), any(UUID.class), any(UUID.class));
     }
 
     @Test
     void should_report_the_row_of_a_failing_activity() {
-        when(activityService.create(5L)).thenThrow(new IllegalArgumentException("Spexet finns inte"));
+        when(activityService.create(uuid(5))).thenThrow(new IllegalArgumentException("Spexet finns inte"));
 
-        final ImportResultDto result = run(Map.of(ActivityImpexDto.class, List.of(activity(-10L, 7))));
+        final ImportResultDto result = run(Map.of(ActivityImpexDto.class, List.of(activity(uuid(10010), 7))));
 
         assertThat(result.getErrors(), hasSize(1));
         assertThat(result.getErrors().getFirst().startsWith("Row 7, "), is(true));
-    }
-
-    private static ActivityImpexDto activity(final Long id, final int row) {
-        final ActivityImpexDto dto = new ActivityImpexDto();
-
-        dto.setSpexareId(5L);
-        dto.setId(id);
-        dto.setAction(id < 0 ? ImpexAction.CREATE : ImpexAction.UPDATE);
-        dto.setSpexActivityAction(ImpexAction.CREATE);
-        dto.setSpexActivityId(-20L);
-        dto.setSpexId(9L);
-        dto.setTaskActivityAction(ImpexAction.CREATE);
-        dto.setTaskActivityId(-30L);
-        dto.setTaskId(1L);
-        dto.setRowNumber(row);
-        return dto;
     }
 }

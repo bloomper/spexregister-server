@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Filters on spex for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}, with
@@ -43,11 +44,6 @@ public class SpexSpecification extends BaseSpecification<Spex> {
         super(criteria);
     }
 
-    @Override
-    protected Set<String> nestedPaths() {
-        return Set.of("details.title", "details.category.id", "details.category.name");
-    }
-
     public static Specification<Spex> isRevival() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(root.get(Spex_.parent));
     }
@@ -56,8 +52,8 @@ public class SpexSpecification extends BaseSpecification<Spex> {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get(Spex_.parent));
     }
 
-    public static Specification<Spex> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.id), id);
+    public static Specification<Spex> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.uuid), id);
     }
 
     public static Specification<Spex> hasParent(final Spex parent) {
@@ -68,11 +64,16 @@ public class SpexSpecification extends BaseSpecification<Spex> {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.year), year);
     }
 
-    public static Specification<Spex> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(Spex_.id).in(ids);
+    public static Specification<Spex> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(Spex_.uuid).in(ids);
     }
 
-    public static Specification<Spex> hasParentIds(final List<Long> parentIds) {
-        return (root, query, criteriaBuilder) -> root.join(Spex_.parent).get(Spex_.id).in(parentIds);
+    public static Specification<Spex> hasParentIds(final List<UUID> parentIds) {
+        return (root, query, criteriaBuilder) -> root.join(Spex_.parent).get(Spex_.uuid).in(parentIds);
+    }
+
+    @Override
+    protected Set<String> nestedPaths() {
+        return Set.of("details.title", "details.category.id", "details.category.name");
     }
 }

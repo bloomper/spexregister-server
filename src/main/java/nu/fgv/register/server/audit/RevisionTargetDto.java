@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 @Builder
 public record RevisionTargetDto(
         AuditedType type,
-        Long id,
+        String id,
         @Nullable String label
 ) {
 }

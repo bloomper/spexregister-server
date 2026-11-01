@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -69,9 +70,9 @@ public class ActorApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<ActorDto>>> retrieve(@PathVariable final Long spexareId,
-                                                                      @PathVariable final Long activityId,
-                                                                      @PathVariable final Long taskActivityId,
+    public ResponseEntity<PagedModel<EntityModel<ActorDto>>> retrieve(@PathVariable final UUID spexareId,
+                                                                      @PathVariable final UUID activityId,
+                                                                      @PathVariable final UUID taskActivityId,
                                                                       @SortDefault(sort = Actor_.ID, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                       @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<ActorDto>> paged = pagedResourcesAssembler.toModel(service.findByTaskActivity(spexareId, activityId, taskActivityId, filter, pageable));
@@ -83,7 +84,7 @@ public class ActorApi {
 
     @PostMapping(value = "/{vocalId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActorDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @Valid @RequestBody final ActorCreateDto dto) {
+    public ResponseEntity<EntityModel<ActorDto>> create(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskActivityId, @PathVariable final String vocalId, @Valid @RequestBody final ActorCreateDto dto) {
         final ActorDto createdDto = service.create(spexareId, activityId, taskActivityId, vocalId, dto);
 
         return ResponseEntity.created(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, createdDto.getId())).toUri())
@@ -92,7 +93,7 @@ public class ActorApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<ActorDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskActivityId, @PathVariable final UUID id) {
         final ActorDto dto = service.findById(spexareId, activityId, taskActivityId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId, taskActivityId)));
@@ -100,7 +101,7 @@ public class ActorApi {
 
     @PutMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActorDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
+    public ResponseEntity<EntityModel<ActorDto>> update(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskActivityId, @PathVariable final String vocalId, @PathVariable final UUID id, @Valid @RequestBody final ActorUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -112,7 +113,7 @@ public class ActorApi {
 
     @PatchMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActorDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id, @Valid @RequestBody final ActorUpdateDto dto) {
+    public ResponseEntity<EntityModel<ActorDto>> partialUpdate(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskActivityId, @PathVariable final String vocalId, @PathVariable final UUID id, @Valid @RequestBody final ActorUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -124,21 +125,21 @@ public class ActorApi {
 
     @DeleteMapping(value = "/{vocalId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskActivityId, @PathVariable final String vocalId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskActivityId, @PathVariable final String vocalId, @PathVariable final UUID id) {
         service.deleteById(spexareId, activityId, taskActivityId, vocalId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<ActorDto> entity, final Long spexareId, final Long activityId, final Long taskActivityId) {
+    private void addLinks(final EntityModel<ActorDto> entity, final UUID spexareId, final UUID activityId, final UUID taskActivityId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId, taskActivityId));
     }
 
-    void addLinks(final ActorDto dto, final Long spexareId, final Long activityId, final Long taskActivityId) {
+    void addLinks(final ActorDto dto, final UUID spexareId, final UUID activityId, final UUID taskActivityId) {
         dto.add(getLinks(dto, spexareId, activityId, taskActivityId));
     }
 
-    List<Link> getLinks(final ActorDto dto, final Long spexareId, final Long activityId, final Long taskActivityId) {
+    List<Link> getLinks(final ActorDto dto, final UUID spexareId, final UUID activityId, final UUID taskActivityId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ActorApi.class).retrieve(spexareId, activityId, taskActivityId, dto.getId())).withSelfRel());

@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -60,8 +61,8 @@ public class SpexActivityApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId,
-                                                                 @PathVariable final Long activityId) {
+    public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final UUID spexareId,
+                                                                 @PathVariable final UUID activityId) {
         final SpexActivityDto dto = service.findByActivity(spexareId, activityId);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
@@ -69,7 +70,7 @@ public class SpexActivityApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexActivityDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final SpexActivityDto dto = service.findById(spexareId, activityId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
@@ -77,7 +78,7 @@ public class SpexActivityApi {
 
     @PostMapping(value = "/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long spexId) {
+    public ResponseEntity<EntityModel<SpexActivityDto>> create(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID spexId) {
         final SpexActivityDto dto = service.create(spexareId, activityId, spexId);
 
         return ResponseEntity.created(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toUri())
@@ -86,7 +87,7 @@ public class SpexActivityApi {
 
     @PutMapping(value = "/{id}/{spexId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexActivityDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id, @PathVariable final Long spexId) {
+    public ResponseEntity<EntityModel<SpexActivityDto>> update(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id, @PathVariable final UUID spexId) {
         final SpexActivityDto dto = service.update(spexareId, activityId, spexId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
@@ -94,7 +95,7 @@ public class SpexActivityApi {
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         service.deleteById(spexareId, activityId, id);
 
         return ResponseEntity.noContent().build();
@@ -102,21 +103,21 @@ public class SpexActivityApi {
 
     @GetMapping(value = "/{id}/spex", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> retrieveSpex(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexDto>> retrieveSpex(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final SpexDto dto = service.findSpexBySpexActivity(spexareId, activityId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, spexApi.getLinks(dto, false)));
     }
 
-    private void addLinks(final EntityModel<SpexActivityDto> entity, final Long spexareId, final Long activityId) {
+    private void addLinks(final EntityModel<SpexActivityDto> entity, final UUID spexareId, final UUID activityId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId));
     }
 
-    void addLinks(final SpexActivityDto dto, final Long spexareId, final Long activityId) {
+    void addLinks(final SpexActivityDto dto, final UUID spexareId, final UUID activityId) {
         dto.add(getLinks(dto, spexareId, activityId));
     }
 
-    List<Link> getLinks(final SpexActivityDto dto, final Long spexareId, final Long activityId) {
+    List<Link> getLinks(final SpexActivityDto dto, final UUID spexareId, final UUID activityId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, dto.getId())).withSelfRel());

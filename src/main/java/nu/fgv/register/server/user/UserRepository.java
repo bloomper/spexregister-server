@@ -22,8 +22,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -32,10 +34,28 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends PolicyJpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
+    /**
+     * @param uuid the external id
+     * @return the user with that external id, or empty when there is none
+     */
+    Optional<User> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<User> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
+
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
-    default Optional<User> findById0(final Long id) {
+    default Optional<User> findByUuid0(final UUID id) {
         return this
-                .findById(id);
+                .findByUuid(id);
     }
 
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")

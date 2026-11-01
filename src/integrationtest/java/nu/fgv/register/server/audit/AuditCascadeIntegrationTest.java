@@ -167,7 +167,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             final List<RevisionDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getId(), "ADDRESS")
+                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getUuid(), "ADDRESS")
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -179,12 +179,12 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
                                     .getResponseBody())
                     .getList("revisions");
 
-            assertThat(result).extracting(RevisionDto::entityId).contains(kept.getId(), removed.getId());
+            assertThat(result).extracting(RevisionDto::entityId).contains(kept.getUuid().toString(), removed.getUuid().toString());
             assertThat(result).extracting(RevisionDto::type).containsOnly(AuditedType.ADDRESS);
             assertThat(result)
                     .filteredOn(revision -> revision.revisionType() == RevisionType.DEL)
                     .extracting(RevisionDto::entityId)
-                    .containsExactly(removed.getId());
+                    .containsExactly(removed.getUuid().toString());
             assertThat(result)
                     .extracting(RevisionDto::revision)
                     .isSortedAccordingTo(Comparator.reverseOrder());
@@ -208,7 +208,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             final List<RevisionDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getId(), "ADDRESS")
+                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getUuid(), "ADDRESS")
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -230,7 +230,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             final List<RevisionDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getId(), "ACTOR")
+                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", spexare.getUuid(), "ACTOR")
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -262,7 +262,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{type}/{id}/{revision}/restore", "ADDRESS", removed.getId(), creation)
+                    .uri("/{type}/{id}/{revision}/restore", "ADDRESS", removed.getUuid(), creation)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -291,7 +291,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             final RestorePreviewDto preview = Objects.requireNonNull(
                     restTestClient
                             .get()
-                            .uri("/{type}/{id}/{revision}/preview?cascade=true", "SPEXARE", spexare.getId(), target)
+                            .uri("/{type}/{id}/{revision}/preview?cascade=true", "SPEXARE", spexare.getUuid(), target)
                             .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .apiVersion("1.0")
@@ -304,16 +304,16 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
             assertThat(preview.entries())
                     .filteredOn(e -> e.action() == RestoreAction.CREATE)
                     .extracting(RestorePreviewEntryDto::id)
-                    .containsExactly(removed.getId());
+                    .containsExactly(removed.getUuid().toString());
             assertThat(preview.entries())
                     .filteredOn(e -> e.action() == RestoreAction.DELETE)
                     .extracting(RestorePreviewEntryDto::id)
-                    .containsExactly(added.getId());
+                    .containsExactly(added.getUuid().toString());
 
             final RestoreResultDto result = Objects.requireNonNull(
                     restTestClient
                             .post()
-                            .uri("/{type}/{id}/{revision}/restore?cascade=true", "SPEXARE", spexare.getId(), target)
+                            .uri("/{type}/{id}/{revision}/restore?cascade=true", "SPEXARE", spexare.getUuid(), target)
                             .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .apiVersion("1.0")
@@ -325,15 +325,12 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result.created()).isEqualTo(1);
             assertThat(result.deleted()).isEqualTo(1);
-            assertThat(result.warnings())
-                    .extracting(RestoreWarningDto::code, RestoreWarningDto::previousId)
-                    .contains(org.assertj.core.api.Assertions.tuple(RestoreWarningDto.ID_REASSIGNED, removed.getId()));
+            assertThat(result.warnings()).isEmpty();
 
             final var remaining = addressRepository.findAll();
 
             assertThat(remaining).hasSize(2);
-            assertThat(remaining).extracting(Address::getId).contains(kept.getId());
-            assertThat(remaining).extracting(Address::getId).doesNotContain(added.getId(), removed.getId());
+            assertThat(remaining).extracting(Address::getUuid).containsExactlyInAnyOrder(kept.getUuid(), removed.getUuid());
         }
     }
 }

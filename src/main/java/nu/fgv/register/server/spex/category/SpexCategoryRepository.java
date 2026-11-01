@@ -21,7 +21,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -30,9 +33,27 @@ import java.util.Optional;
 @Repository
 public interface SpexCategoryRepository extends PolicyJpaRepository<SpexCategory, Long>, JpaSpecificationExecutor<SpexCategory> {
 
+    /**
+     * @param uuid the external id
+     * @return the spexCategory with that external id, or empty when there is none
+     */
+    Optional<SpexCategory> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<SpexCategory> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
+
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
-    default Optional<SpexCategory> findById0(final Long id) {
+    default Optional<SpexCategory> findByUuid0(final UUID id) {
         return this
-                .findById(id);
+                .findByUuid(id);
     }
 }

@@ -39,7 +39,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -122,8 +124,8 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var spex1 = SpexDto.builder().id(1L).year("2021").build();
-        final var spex2 = SpexDto.builder().id(2L).year("2022").build();
+        final var spex1 = SpexDto.builder().id(uuid(1)).year("2021").build();
+        final var spex2 = SpexDto.builder().id(uuid(2)).year("2022").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spex1, spex2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
@@ -171,7 +173,7 @@ class SpexApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/spex?ids=1,2,3&type=excel")
+                        get("/api/spex?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -199,7 +201,7 @@ class SpexApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(SpexCreateDto.class);
         final var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
 
-        when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(1L).year(dto.year()).title(dto.title()).build());
+        when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(uuid(1)).year(dto.year()).title(dto.title()).build());
 
         mockMvc
                 .perform(
@@ -259,13 +261,13 @@ class SpexApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
 
-        when(service.findById(any(Long.class))).thenReturn(spex);
+        when(service.findById(any(UUID.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        get("/api/spex/{id}", 1L)
+                        get("/api/spex/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -285,7 +287,7 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -293,14 +295,14 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SpexUpdateDto.class);
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
-        final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
+        final var dto = SpexUpdateDto.builder().id(uuid(1)).year("1948").title("Bojan").build();
 
         when(service.update(any(SpexUpdateDto.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        put("/api/spex/{id}", 1L)
+                        put("/api/spex/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -327,7 +329,7 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "update", Long.class, SpexUpdateDto.class))
+                                security(getRolesFromMethod(SpexApi.class, "update", UUID.class, SpexUpdateDto.class))
                         )
                 );
     }
@@ -335,14 +337,14 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(SpexUpdateDto.class);
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
-        final var dto = SpexUpdateDto.builder().id(1L).year("1948").title("Bojan").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
+        final var dto = SpexUpdateDto.builder().id(uuid(1)).year("1948").title("Bojan").build();
 
         when(service.partialUpdate(any(SpexUpdateDto.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        patch("/api/spex/{id}", 1L)
+                        patch("/api/spex/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -369,21 +371,21 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "partialUpdate", Long.class, SpexUpdateDto.class))
+                                security(getRolesFromMethod(SpexApi.class, "partialUpdate", UUID.class, SpexUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
 
-        when(service.findById(any(Long.class))).thenReturn(spex);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(spex);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/spex/{id}", 1L)
+                        delete("/api/spex/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -399,7 +401,7 @@ class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "delete", UUID.class))
                         )
                 );
     }
@@ -407,11 +409,11 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_download_poster() throws Exception {
         final var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
-        when(service.getPoster(any(Long.class))).thenReturn(poster);
+        when(service.getPoster(any(UUID.class))).thenReturn(poster);
 
         mockMvc
                 .perform(
-                        get("/api/spex/{spexId}/poster", 1L)
+                        get("/api/spex/{spexId}/poster", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -435,7 +437,7 @@ class SpexApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody(),
-                                security(getRolesFromMethod(SpexApi.class, "downloadPoster", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "downloadPoster", UUID.class))
                         )
                 );
     }
@@ -443,12 +445,12 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_upload_poster() throws Exception {
         final var poster = new byte[]{10, 12};
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any())).thenReturn(spex);
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
+        when(service.savePoster(any(UUID.class), any())).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        put("/api/spex/{spexId}/poster", 1L)
+                        put("/api/spex/{spexId}/poster", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -469,7 +471,7 @@ class SpexApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", Long.class, byte[].class))
+                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", UUID.class, byte[].class))
                         )
                 );
     }
@@ -477,12 +479,12 @@ class SpexApiTest extends AbstractApiTest {
     @Test
     void should_upload_poster_via_multipart() throws Exception {
         final var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.savePoster(any(Long.class), any())).thenReturn(spex);
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
+        when(service.savePoster(any(UUID.class), any())).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        multipart("/api/spex/{spexId}/poster", 1L)
+                        multipart("/api/spex/{spexId}/poster", uuid(1))
                                 .file(poster)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -502,19 +504,19 @@ class SpexApiTest extends AbstractApiTest {
                                 requestParts(
                                         partWithName("file").description("The poster to upload")
                                 ),
-                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", Long.class, MultipartFile.class))
+                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", UUID.class, MultipartFile.class))
                         )
                 );
     }
 
     @Test
     void should_delete_poster() throws Exception {
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
-        when(service.deletePoster(any(Long.class))).thenReturn(spex);
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
+        when(service.deletePoster(any(UUID.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        delete("/api/spex/{spexId}/poster", 1L)
+                        delete("/api/spex/{spexId}/poster", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -530,20 +532,20 @@ class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("spexId").description("The id of the spex")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "deletePoster", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "deletePoster", UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_parent() throws Exception {
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
 
-        when(service.findParentById(any(Long.class))).thenReturn(spex);
+        when(service.findParentById(any(UUID.class))).thenReturn(spex);
 
         mockMvc
                 .perform(
-                        get("/api/spex/{spexId}/parent", 1L)
+                        get("/api/spex/{spexId}/parent", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -563,20 +565,20 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "retrieveParent", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieveParent", UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_revival() throws Exception {
-        final var revival = SpexDto.builder().id(1L).year("2021").build();
+        final var revival = SpexDto.builder().id(uuid(1)).year("2021").build();
 
-        when(service.findRevivalById(any(Long.class), any(Long.class))).thenReturn(revival);
+        when(service.findRevivalById(any(UUID.class), any(UUID.class))).thenReturn(revival);
 
         mockMvc
                 .perform(
-                        get("/api/spex/{spexId}/revivals/{id}", 1L, 1L)
+                        get("/api/spex/{spexId}/revivals/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -597,21 +599,21 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "retrieveRevival", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieveRevival", UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_revivals() throws Exception {
-        final var revival1 = SpexDto.builder().id(1L).year("2021").revival(true).build();
-        final var revival2 = SpexDto.builder().id(1L).year("2022").revival(true).build();
+        final var revival1 = SpexDto.builder().id(uuid(1)).year("2021").revival(true).build();
+        final var revival2 = SpexDto.builder().id(uuid(1)).year("2022").revival(true).build();
 
-        when(service.findRevivalsByParent(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(revival1, revival2), PageRequest.of(1, 2, Sort.by("year")), 10));
+        when(service.findRevivalsByParent(any(UUID.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(revival1, revival2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", 1L)
+                        get("/api/spex/{spexId}/revivals?page=1&size=2&sort=year,desc", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -645,20 +647,20 @@ class SpexApiTest extends AbstractApiTest {
                                 pagingQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "retrieveRevivalsByParent", Long.class, Pageable.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieveRevivalsByParent", UUID.class, Pageable.class))
                         )
                 );
     }
 
     @Test
     void should_add_revival() throws Exception {
-        final var revival = SpexDto.builder().id(1L).year("2021").title("Bojan").revival(true).build();
+        final var revival = SpexDto.builder().id(uuid(1)).year("2021").title("Bojan").revival(true).build();
 
-        when(service.addRevival(any(Long.class), any(String.class))).thenReturn(revival);
+        when(service.addRevival(any(UUID.class), any(String.class))).thenReturn(revival);
 
         mockMvc
                 .perform(
-                        post("/api/spex/{spexId}/revivals/{year}", 1L, "2021")
+                        post("/api/spex/{spexId}/revivals/{year}", uuid(1), "2021")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -677,7 +679,7 @@ class SpexApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "createRevival", Long.class, String.class))
+                                security(getRolesFromMethod(SpexApi.class, "createRevival", UUID.class, String.class))
                         )
                 );
     }
@@ -686,7 +688,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_delete_revival() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spex/{spexId}/revivals/{id}", 1L, 1L)
+                        delete("/api/spex/{spexId}/revivals/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -701,22 +703,22 @@ class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the revival")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "deleteRevival", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "deleteRevival", UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_category() throws Exception {
-        final var category = SpexCategoryDto.builder().id(1L).name("category").build();
+        final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
         final var realCategoryApi = new SpexCategoryApi(null, null, null);
 
-        when(service.findCategoryBySpex(any(Long.class))).thenReturn(category);
+        when(service.findCategoryBySpex(any(UUID.class))).thenReturn(category);
         when(categoryApi.getLinks(any(SpexCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
                 .perform(
-                        get("/api/spex/{spexId}/category", 1L)
+                        get("/api/spex/{spexId}/category", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -734,7 +736,7 @@ class SpexApiTest extends AbstractApiTest {
                                 categoryLinks,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "retrieveCategory", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "retrieveCategory", UUID.class))
                         )
                 );
     }
@@ -743,7 +745,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_add_category() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/spex/{spexId}/category/{id}", 1L, 1L)
+                        put("/api/spex/{spexId}/category/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -758,7 +760,7 @@ class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex category")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "addCategory", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "addCategory", UUID.class, UUID.class))
                         )
                 );
     }
@@ -767,7 +769,7 @@ class SpexApiTest extends AbstractApiTest {
     void should_remove_category() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spex/{spexId}/category", 1L)
+                        delete("/api/spex/{spexId}/category", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -781,7 +783,7 @@ class SpexApiTest extends AbstractApiTest {
                                         parameterWithName("spexId").description("The id of the spex")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "removeCategory", Long.class))
+                                security(getRolesFromMethod(SpexApi.class, "removeCategory", UUID.class))
                         )
                 );
     }

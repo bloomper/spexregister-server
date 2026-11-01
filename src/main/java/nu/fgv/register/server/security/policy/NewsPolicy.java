@@ -41,6 +41,10 @@ public class NewsPolicy implements AccessPolicy<News> {
             .administer(ADMIN)
             .build();
 
+    private static Specification<News> isPublished() {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.isTrue(root.get(News_.published));
+    }
+
     @Override
     public Class<News> type() {
         return News.class;
@@ -62,9 +66,5 @@ public class NewsPolicy implements AccessPolicy<News> {
     public boolean permits(final Caller caller, final News news, final Permission permission) {
         return RULES.allows(caller, permission)
                 || (permission == Permission.READ && caller.hasRole(USER) && Boolean.TRUE.equals(news.getPublished()));
-    }
-
-    private static Specification<News> isPublished() {
-        return (root, _, criteriaBuilder) -> criteriaBuilder.isTrue(root.get(News_.published));
     }
 }

@@ -48,7 +48,6 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -59,6 +58,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -99,7 +99,7 @@ public class SpexareBulkService {
 
     private static BulkEntryDto entry(final Spexare spexare, final BulkOutcome outcome, final @Nullable String detail) {
         return BulkEntryDto.builder()
-                .id(spexare.getId())
+                .id(spexare.getUuid())
                 .label(labelOf(spexare))
                 .outcome(outcome)
                 .detail(detail)
@@ -124,7 +124,7 @@ public class SpexareBulkService {
      * @param input the targets, the operation and what it needs
      * @return the outcome for each target
      * @throws nu.fgv.register.server.util.error.BadRequestException when the targets are not exactly one of ids and a
-     *     filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
+     *                                                               filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
      */
     @RequiresAdminOrEditorOrUser
     public BulkResultDto preview(final SpexareBulkInputDto input) {
@@ -135,7 +135,7 @@ public class SpexareBulkService {
      * @param input the targets, the operation and what it needs
      * @return the outcome for each target
      * @throws nu.fgv.register.server.util.error.BadRequestException when the targets are not exactly one of ids and a
-     *     filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
+     *                                                               filter, are more than {@value #MAX_TARGET_SIZE}, or the operation lacks what it needs
      */
     @RequiresAdminOrEditorOrUser
     public BulkResultDto apply(final SpexareBulkInputDto input) {
@@ -157,7 +157,7 @@ public class SpexareBulkService {
     }
 
     private List<Spexare> resolveTargets(final BulkTargetDto target) {
-        final List<Long> ids = Optional.ofNullable(target.ids()).orElseGet(List::of);
+        final List<UUID> ids = Optional.ofNullable(target.ids()).orElseGet(List::of);
         final String filter = Optional.ofNullable(target.filter()).orElse("");
 
         if (ids.isEmpty() && !hasText(filter)) {
@@ -182,29 +182,29 @@ public class SpexareBulkService {
     private Handler handlerFor(final SpexareBulkInputDto input) {
         return switch (input.operation()) {
             case TAG_ADD -> {
-                final List<Tag> tags = resolve(input.tags(), tagRepository::findById, Tag.class, "tags");
+                final List<Tag> tags = resolve(input.tags(), tagRepository::findByUuid, Tag.class, "tags");
                 yield (spexare, dryRun) -> handleTags(spexare, tags, true, dryRun);
             }
             case TAG_REMOVE -> {
-                final List<Tag> tags = resolve(input.tags(), tagRepository::findById, Tag.class, "tags");
+                final List<Tag> tags = resolve(input.tags(), tagRepository::findByUuid, Tag.class, "tags");
                 yield (spexare, dryRun) -> handleTags(spexare, tags, false, dryRun);
             }
             case SPEX_ADD -> {
-                final List<Spex> spex = resolve(input.spex(), spexRepository::findById, Spex.class, "spex");
+                final List<Spex> spex = resolve(input.spex(), spexRepository::findByUuid, Spex.class, "spex");
                 yield (spexare, dryRun) -> handleSpexAdd(spexare, spex, dryRun);
             }
             case SPEX_REMOVE -> {
-                final List<Spex> spex = resolve(input.spex(), spexRepository::findById, Spex.class, "spex");
+                final List<Spex> spex = resolve(input.spex(), spexRepository::findByUuid, Spex.class, "spex");
                 yield (spexare, dryRun) -> handleSpexRemove(spexare, spex, dryRun);
             }
             case TASK_ADD -> {
                 final Spex spex = requireSpex(input);
-                final List<Task> tasks = resolve(input.tasks(), taskRepository::findById, Task.class, "tasks");
+                final List<Task> tasks = resolve(input.tasks(), taskRepository::findByUuid, Task.class, "tasks");
                 yield (spexare, dryRun) -> handleTaskAdd(spexare, spex, tasks, dryRun);
             }
             case TASK_REMOVE -> {
                 final Spex spex = requireSpex(input);
-                final List<Task> tasks = resolve(input.tasks(), taskRepository::findById, Task.class, "tasks");
+                final List<Task> tasks = resolve(input.tasks(), taskRepository::findByUuid, Task.class, "tasks");
                 yield (spexare, dryRun) -> handleTaskRemove(spexare, spex, tasks, dryRun);
             }
             case CONSENT_SET -> {
@@ -488,12 +488,12 @@ public class SpexareBulkService {
             throw new BadRequestException("%s needs a spexId".formatted(input.operation()));
         }
         return spexRepository
-                .findById(input.spexId())
+                .findByUuid(input.spexId())
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, input.spexId()));
     }
 
-    private <T> List<T> resolve(final @Nullable List<Long> ids,
-                                final Function<Long, Optional<T>> lookup,
+    private <T> List<T> resolve(final @Nullable List<UUID> ids,
+                                final Function<UUID, Optional<T>> lookup,
                                 final Class<T> type,
                                 final String field) {
         if (ids == null || ids.isEmpty()) {

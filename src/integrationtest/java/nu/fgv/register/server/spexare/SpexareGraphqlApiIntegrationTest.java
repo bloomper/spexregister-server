@@ -57,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -362,15 +363,15 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("spexarePaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedSpexare(final int size) {
+        private List<UUID> persistPermittedSpexare(final int size) {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var spexare = persistSpexare(randomizeSpexare());
-                        return spexare.getId();
+                        return spexare.getUuid();
                     })
                     .toList();
         }
@@ -661,11 +662,11 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .document(DOCUMENT)
-                    .variable("ids", List.of(published.getId(), unpublished.getId()))
+                    .variable("ids", List.of(published.getUuid(), unpublished.getUuid()))
                     .execute()
                     .errors()
                     .verify()
-                    .path("spexareByIds[*].id").entityList(Long.class).containsExactly(published.getId());
+                    .path("spexareByIds[*].id").entityList(UUID.class).containsExactly(published.getUuid());
         }
 
         @Test
@@ -678,11 +679,11 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .document(DOCUMENT)
-                    .variable("ids", List.of(published.getId(), unpublished.getId()))
+                    .variable("ids", List.of(published.getUuid(), unpublished.getUuid()))
                     .execute()
                     .errors()
                     .verify()
-                    .path("spexareByIds[*].id").entityList(Long.class).hasSize(2).contains(published.getId(), unpublished.getId());
+                    .path("spexareByIds[*].id").entityList(UUID.class).hasSize(2).contains(published.getUuid(), unpublished.getUuid());
         }
 
         @Test
@@ -788,12 +789,12 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexare", result -> result
-                            .path("id").entity(Long.class).isEqualTo(spexare.getId())
+                            .path("id").entity(UUID.class).isEqualTo(spexare.getUuid())
                             .path("firstName").entity(String.class).isEqualTo(spexare.getFirstName())
                             .path("lastName").entity(String.class).isEqualTo(spexare.getLastName())
                             .path("nickName").entity(String.class).isEqualTo(spexare.getNickName())
@@ -807,7 +808,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -831,7 +832,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -871,7 +872,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -943,7 +944,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1036,7 +1037,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexareDelete")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1064,7 +1065,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexareDelete")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .variable("purge", true)
                     .execute()
                     .errors()
@@ -1088,7 +1089,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexareDelete")
-                    .variable("id", 123)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1109,7 +1110,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexareDelete")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1127,7 +1128,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/spexareDelete")
-                    .variable("id", 123)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1151,7 +1152,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -1164,7 +1165,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1177,7 +1178,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexareImageDelete")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1189,7 +1190,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1209,7 +1210,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexareImageDelete")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1227,7 +1228,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/spexareImageDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1258,12 +1259,12 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexare.partner", result -> result
-                            .path("id").entity(Long.class).isEqualTo(partner.getId())
+                            .path("id").entity(UUID.class).isEqualTo(partner.getUuid())
                             .path("firstName").entity(String.class).isEqualTo(partner.getFirstName())
                             .path("lastName").entity(String.class).isEqualTo(partner.getLastName())
                             .path("nickName").entity(String.class).isEqualTo(partner.getNickName())
@@ -1280,7 +1281,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1292,8 +1293,8 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerAdd")
-                    .variable("spexareId", spexare.getId())
-                    .variable("id", partner.getId())
+                    .variable("spexareId", spexare.getUuid())
+                    .variable("id", partner.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1305,12 +1306,12 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexare.partner", result -> result
-                            .path("id").entity(Long.class).isEqualTo(partner.getId())
+                            .path("id").entity(UUID.class).isEqualTo(partner.getUuid())
                             .path("firstName").entity(String.class).isEqualTo(partner.getFirstName())
                             .path("lastName").entity(String.class).isEqualTo(partner.getLastName())
                             .path("nickName").entity(String.class).isEqualTo(partner.getNickName())
@@ -1324,8 +1325,8 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerAdd")
-                    .variable("spexareId", 1L)
-                    .variable("id", 1L)
+                    .variable("spexareId", UUID.randomUUID())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1344,8 +1345,8 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerAdd")
-                    .variable("spexareId", spexare.getId())
-                    .variable("id", 1L)
+                    .variable("spexareId", spexare.getUuid())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1369,12 +1370,12 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexare.partner", result -> result
-                            .path("id").entity(Long.class).isEqualTo(partner.getId())
+                            .path("id").entity(UUID.class).isEqualTo(partner.getUuid())
                             .path("firstName").entity(String.class).isEqualTo(partner.getFirstName())
                             .path("lastName").entity(String.class).isEqualTo(partner.getLastName())
                             .path("nickName").entity(String.class).isEqualTo(partner.getNickName())
@@ -1385,7 +1386,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerRemove")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1397,7 +1398,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1414,7 +1415,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1426,7 +1427,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerRemove")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1438,7 +1439,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1453,7 +1454,7 @@ class SpexareGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexarePartnerRemove")
-                    .variable("spexareId", 1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

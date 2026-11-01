@@ -19,10 +19,33 @@ package nu.fgv.register.server.spex;
 import nu.fgv.register.server.security.policy.PolicyJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Repository
 public interface SpexDetailsRepository extends PolicyJpaRepository<SpexDetails, Long> {
+
+    /**
+     * @param uuid the external id
+     * @return the spexDetails with that external id, or empty when there is none
+     */
+    Optional<SpexDetails> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<SpexDetails> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
 }

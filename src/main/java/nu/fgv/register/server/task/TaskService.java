@@ -19,6 +19,7 @@ package nu.fgv.register.server.task;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
@@ -39,11 +40,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 import static nu.fgv.register.server.task.TaskSpecification.NO_FILTER;
@@ -116,9 +117,9 @@ public class TaskService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
      */
     @RequiresReferenceDataReader
-    public TaskDto findById(final Long id) {
+    public TaskDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(TASK_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Task.class, id));
     }
@@ -129,9 +130,9 @@ public class TaskService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -144,7 +145,7 @@ public class TaskService {
      * @return the tasks the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<Task> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<Task> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Task> spec;
 
@@ -198,7 +199,7 @@ public class TaskService {
     @RequiresAdminOrEditor
     public TaskDto partialUpdate(final TaskUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(task -> {
                     TASK_MAPPER.toPartialModel(dto, task);
@@ -214,9 +215,9 @@ public class TaskService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
      */
     @RequiresAdmin
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesTaskExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(task -> {
                         repository.delete(task);
@@ -232,10 +233,10 @@ public class TaskService {
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the task has no category
      */
     @RequiresReferenceDataReader
-    public TaskCategoryDto findCategoryByTask(final Long id) {
+    public TaskCategoryDto findCategoryByTask(final UUID id) {
         if (doesTaskExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .filter(task -> task.getCategory() != null)
                     .map(Task::getCategory)
                     .map(TASK_CATEGORY_MAPPER::toDto)
@@ -252,13 +253,13 @@ public class TaskService {
      * @param id     the category id
      */
     @RequiresAdmin
-    public void addCategory(final Long taskId, final Long id) {
+    public void addCategory(final UUID taskId, final UUID id) {
         if (doTaskAndCategoryExist(taskId, id)) {
             repository
-                    .findById0(taskId)
+                    .findByUuid0(taskId)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(task -> categoryRepository
-                            .findById(id)
+                            .findByUuid(id)
                             .ifPresent(category -> {
                                 task.setCategory(category);
                                 repository.save(task);
@@ -275,10 +276,10 @@ public class TaskService {
      * @param id the task id
      */
     @RequiresAdmin
-    public void removeCategory(final Long id) {
+    public void removeCategory(final UUID id) {
         if (doesTaskExist(id)) {
             repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(task -> {
                         task.setCategory(null);
@@ -289,12 +290,12 @@ public class TaskService {
         }
     }
 
-    private boolean doesTaskExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesTaskExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 
-    private boolean doTaskAndCategoryExist(final Long taskId, final Long categoryId) {
-        return doesTaskExist(taskId) && categoryRepository.findById(categoryId).isPresent();
+    private boolean doTaskAndCategoryExist(final UUID taskId, final UUID categoryId) {
+        return doesTaskExist(taskId) && categoryRepository.findByUuid(categoryId).isPresent();
     }
 
 }

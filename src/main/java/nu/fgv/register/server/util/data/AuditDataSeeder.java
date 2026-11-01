@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.data;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import nu.fgv.register.server.audit.AuditSource;
+import nu.fgv.register.server.util.Uuids;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -60,40 +61,40 @@ public class AuditDataSeeder {
     private static final List<AuditedTable> TABLES = List.of(
             AuditedTable.of("nu.fgv.register.server.settings.Type", "type", "id, type, labels"),
             AuditedTable.of("nu.fgv.register.server.user.state.State", "state", "id, labels, initial, enabled"),
-            AuditedTable.of("nu.fgv.register.server.user.User", "user", "id, external_id, state_id, spexare_id"),
-            AuditedTable.of("nu.fgv.register.server.tag.Tag", "tag", "id, name")
+            AuditedTable.of("nu.fgv.register.server.user.User", "user", "id, uuid, external_id, state_id, spexare_id"),
+            AuditedTable.of("nu.fgv.register.server.tag.Tag", "tag", "id, uuid, name")
                     .withHistory("name = LEFT(CONCAT('Preliminär ', name), 255)", "name = LEFT(CONCAT(name, ' (utkast)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.news.News", "news", "id, visible_from, visible_to, subject, text, published")
+            AuditedTable.of("nu.fgv.register.server.news.News", "news", "id, uuid, visible_from, visible_to, subject, text, published")
                     .withHistory("subject = LEFT(CONCAT('Utkast: ', subject), 255)", "published = 1 - COALESCE(published, 0)"),
             AuditedTable.of("nu.fgv.register.server.image.Image", "image", "id, data, content_type"),
-            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, name, first_year, logo_id")
+            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, uuid, name, first_year, logo_id")
                     .withHistory("name = LEFT(CONCAT(name, ' (arbetsnamn)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, title, poster_id, category_id")
+            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, poster_id, category_id")
                     .withHistory("title = LEFT(CONCAT(title, ' (arbetstitel)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, year, parent_id, details_id")
+            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id")
                     .withHistory("year = CAST(CAST(year AS UNSIGNED) - 1 AS CHAR)"),
-            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, name, actor_present")
+            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present")
                     .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, name, category_id")
+            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id")
                     .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
             AuditedTable.of("nu.fgv.register.server.spexare.Spexare", "spexare",
-                            "id, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
+                            "id, uuid, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
                     .withHistory("comment = CONCAT('(tidigare) ', COALESCE(comment, ''))", "graduation = LEFT(CONCAT('(tidigare) ', COALESCE(graduation, '')), 255)", "nick_name = LEFT(CONCAT('(tidigare) ', COALESCE(nick_name, '')), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spexare.toggle.Toggle", "toggle", "id, value, type_id, spexare_id")
+            AuditedTable.of("nu.fgv.register.server.spexare.toggle.Toggle", "toggle", "id, uuid, value, type_id, spexare_id")
                     .withHistory("value = 1 - COALESCE(value, 0)"),
             new AuditedTable("nu.fgv.register.server.spexare.tagging.Tagging", "tagging", "tagging_audit",
                     List.of("tag_id", "spexare_id"), List.of()),
-            AuditedTable.of("nu.fgv.register.server.spexare.membership.Membership", "membership", "id, year, type_id, spexare_id")
+            AuditedTable.of("nu.fgv.register.server.spexare.membership.Membership", "membership", "id, uuid, year, type_id, spexare_id")
                     .withHistory("year = CAST(CAST(year AS UNSIGNED) - 1 AS CHAR)"),
-            AuditedTable.of("nu.fgv.register.server.spexare.consent.Consent", "consent", "id, value, type_id, spexare_id")
+            AuditedTable.of("nu.fgv.register.server.spexare.consent.Consent", "consent", "id, uuid, value, type_id, spexare_id")
                     .withHistory("value = 1 - COALESCE(value, 0)"),
             AuditedTable.of("nu.fgv.register.server.spexare.address.Address", "address",
-                            "id, street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id")
+                            "id, uuid, street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id")
                     .withHistory("city = LEFT(CONCAT(COALESCE(city, 'Okänd'), 'holm'), 255)", "email_address = LEFT(CONCAT('gammal.', COALESCE(email_address, 'adress@example.com')), 255)", "phone_mobile = LEFT(CONCAT('0', COALESCE(phone_mobile, '700000000')), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spexare.activity.Activity", "activity", "id, spexare_id"),
-            AuditedTable.of("nu.fgv.register.server.spexare.activity.spex.SpexActivity", "spex_activity", "id, activity_id, spex_id"),
-            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.TaskActivity", "task_activity", "id, activity_id, task_id"),
-            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.actor.Actor", "actor", "id, role, vocal_id, task_activity_id")
+            AuditedTable.of("nu.fgv.register.server.spexare.activity.Activity", "activity", "id, uuid, spexare_id"),
+            AuditedTable.of("nu.fgv.register.server.spexare.activity.spex.SpexActivity", "spex_activity", "id, uuid, activity_id, spex_id"),
+            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.TaskActivity", "task_activity", "id, uuid, activity_id, task_id"),
+            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.actor.Actor", "actor", "id, uuid, role, vocal_id, task_activity_id")
                     .withHistory("role = LEFT(CONCAT(COALESCE(role, ''), ' (ersättare)'), 255)")
     );
 
@@ -349,18 +350,20 @@ public class AuditDataSeeder {
                 .filter(t -> "address".equals(t.table()))
                 .findFirst()
                 .orElseThrow();
-        final String columnsWithoutId = String.join(", ", address.columns().stream().filter(c -> !"id".equals(c)).toList());
+        final String columnsWithoutId = String.join(", ", address.columns().stream().filter(c -> !"id".equals(c) && !"uuid".equals(c)).toList());
 
         long phantomId = Objects.requireNonNull(maxId) + 1;
 
         for (final Long source : sources) {
+            final String phantomUuid = Uuids.v7().toString();
             final Revision added = revisions.get(rnd.nextInt(revisions.size() - 1));
             final Revision removed = revisions.get(revisions.indexOf(added) + 1 + rnd.nextInt(revisions.size() - revisions.indexOf(added) - 1));
 
             jdbcClient
-                    .sql("INSERT INTO address_audit (id, %s, rev, revend, revtype, revend_tstmp) SELECT ?, %s, ?, ?, 0, FROM_UNIXTIME(? / 1000) FROM address WHERE id = ?"
+                    .sql("INSERT INTO address_audit (id, uuid, %s, rev, revend, revtype, revend_tstmp) SELECT ?, ?, %s, ?, ?, 0, FROM_UNIXTIME(? / 1000) FROM address WHERE id = ?"
                             .formatted(columnsWithoutId, columnsWithoutId))
                     .param(phantomId)
+                    .param(phantomUuid)
                     .param(added.id())
                     .param(removed.id())
                     .param(removed.timestamp())
@@ -368,9 +371,10 @@ public class AuditDataSeeder {
                     .update();
 
             jdbcClient
-                    .sql("INSERT INTO address_audit (id, %s, rev, revend, revtype, revend_tstmp) SELECT ?, %s, ?, NULL, 2, NULL FROM address WHERE id = ?"
+                    .sql("INSERT INTO address_audit (id, uuid, %s, rev, revend, revtype, revend_tstmp) SELECT ?, ?, %s, ?, NULL, 2, NULL FROM address WHERE id = ?"
                             .formatted(columnsWithoutId, columnsWithoutId))
                     .param(phantomId)
+                    .param(phantomUuid)
                     .param(removed.id())
                     .param(source)
                     .update();

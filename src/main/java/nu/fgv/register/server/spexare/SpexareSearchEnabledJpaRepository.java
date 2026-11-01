@@ -68,36 +68,6 @@ import static org.springframework.util.StringUtils.hasText;
 @Transactional
 public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaRepository<Spexare, Long> {
 
-    private static final String ATTRIBUTE_DELIMITER = ".";
-
-    private static final String[] PRIMARY_FUZZY_FIELDS = new String[]{
-            Spexare_.FIRST_NAME, Spexare_.LAST_NAME, Spexare_.NICK_NAME
-    };
-
-    private static final String[] SECONDARY_FUZZY_FIELDS = new String[]{
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, Tag_.NAME),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.TITLE),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, Actor_.ROLE),
-    };
-
-    private static final String[] FUZZY_FIELDS = new String[]{
-            Spexare_.COMMENT,
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.STREET_ADDRESS),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.CITY),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, "countryName")
-    };
-
-    private static final String[] EXACT_FIELDS = new String[]{
-            Spexare_.GRADUATION,
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.POSTAL_CODE),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.COUNTRY),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE),
-            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)
-    };
-
-    static final String AGGREGATION_DATA_QUALITY = "quality";
-
     public static final String FACET_DECEASED = Spexare_.DECEASED;
     public static final String FACET_PUBLISHED = Spexare_.PUBLISHED;
     public static final String FACET_SPEX_YEARS = "spexYears";
@@ -115,7 +85,30 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
     public static final String FACET_DEBUT_YEARS = "debutYears";
     public static final String FACET_LAST_ACTIVE_YEARS = "lastActiveYears";
     public static final String FACET_SPEX_COUNTS = "spexCounts";
-
+    static final String AGGREGATION_DATA_QUALITY = "quality";
+    private static final String ATTRIBUTE_DELIMITER = ".";
+    private static final String[] PRIMARY_FUZZY_FIELDS = new String[]{
+            Spexare_.FIRST_NAME, Spexare_.LAST_NAME, Spexare_.NICK_NAME
+    };
+    private static final String[] SECONDARY_FUZZY_FIELDS = new String[]{
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.TAGS, Tag_.NAME),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.DETAILS, SpexDetails_.TITLE),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.TASK_ACTIVITIES, TaskActivity_.ACTORS, Actor_.ROLE),
+    };
+    private static final String[] FUZZY_FIELDS = new String[]{
+            Spexare_.COMMENT,
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.STREET_ADDRESS),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.CITY),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, "countryName")
+    };
+    private static final String[] EXACT_FIELDS = new String[]{
+            Spexare_.GRADUATION,
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.POSTAL_CODE),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.COUNTRY),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE),
+            String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)
+    };
     private static final String FIELD_HAS_IMAGE = "hasImage";
     private static final String FIELD_DEBUT_YEAR = "debutYear";
     private static final String FIELD_LAST_ACTIVE_YEAR = "lastActiveYear";
@@ -191,10 +184,42 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         super(entityInformation, entityManager);
     }
 
+    private static int parseCount(final String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (final NumberFormatException _) {
+            throw new BadRequestException("Invalid %s value %s".formatted(FACET_SPEX_COUNTS, value));
+        }
+    }
+
+    private static void applyDataQualityIssue(final SearchPredicateFactory f, final BooleanPredicateOptionsCollector<?, ?> collector, final DataQualityIssue issue) {
+        switch (issue) {
+            case NO_ADDRESS -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.ADDRESSES)));
+            case NO_EMAIL_ADDRESS ->
+                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)));
+            case NO_PHONE -> {
+                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE)));
+                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE)));
+            }
+            case NO_IMAGE -> collector.must(f.match().field(FIELD_HAS_IMAGE).matching(false));
+            case NO_MEMBERSHIP -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.MEMBERSHIPS)));
+            case NO_CONSENT -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.CONSENTS)));
+            case NO_ACTIVITY ->
+                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR)));
+            case NO_SOCIAL_SECURITY_NUMBER ->
+                    collector.mustNot(f.exists().field(Spexare.INDEX_SOCIAL_SECURITY_NUMBER_HASH));
+            case NO_TAG -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.TAGS)));
+        }
+    }
+
+    private static String hierarchicalField(final String collection) {
+        return String.join(ATTRIBUTE_DELIMITER, collection, AGGREGATION_HIERARCHICAL_MARKER + LocaleContextHolder.getLocale().getLanguage());
+    }
+
     /**
      * @param searchSession the search session
      * @param query         the free text, blank for all, and the facet values to narrow to; year facets also take a
-     *     range such as {@code 1990..1999}, and {@code quality} a {@link DataQualityIssue}
+     *                      range such as {@code 1990..1999}, and {@code quality} a {@link DataQualityIssue}
      * @param offset        the first hit to return
      * @param limit         the most hits to return
      * @param sort          the order, by relevance when unsorted
@@ -300,14 +325,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
         return search(searchSession, query, (int) pageable.getOffset(), pageable.getPageSize(), pageable.getSort());
     }
 
-    private static int parseCount(final String value) {
-        try {
-            return Integer.parseInt(value);
-        } catch (final NumberFormatException _) {
-            throw new BadRequestException("Invalid %s value %s".formatted(FACET_SPEX_COUNTS, value));
-        }
-    }
-
     /**
      * @param issue what the records lack
      * @return how many of the spexare the caller may see lack it
@@ -325,29 +342,6 @@ public class SpexareSearchEnabledJpaRepository extends AbstractSearchEnabledJpaR
                     applyDataQualityIssue(f, b, issue);
                 }))
                 .fetchTotalHitCount();
-    }
-
-    private static void applyDataQualityIssue(final SearchPredicateFactory f, final BooleanPredicateOptionsCollector<?, ?> collector, final DataQualityIssue issue) {
-        switch (issue) {
-            case NO_ADDRESS -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.ADDRESSES)));
-            case NO_EMAIL_ADDRESS ->
-                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.EMAIL_ADDRESS)));
-            case NO_PHONE -> {
-                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE)));
-                collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ADDRESSES, Address_.PHONE_MOBILE)));
-            }
-            case NO_IMAGE -> collector.must(f.match().field(FIELD_HAS_IMAGE).matching(false));
-            case NO_MEMBERSHIP -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.MEMBERSHIPS)));
-            case NO_CONSENT -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.CONSENTS)));
-            case NO_ACTIVITY ->
-                    collector.mustNot(f.exists().field(String.join(ATTRIBUTE_DELIMITER, Spexare_.ACTIVITIES, Activity_.SPEX_ACTIVITY, SpexActivity_.SPEX, Spex_.YEAR)));
-            case NO_SOCIAL_SECURITY_NUMBER -> collector.mustNot(f.exists().field(Spexare.INDEX_SOCIAL_SECURITY_NUMBER_HASH));
-            case NO_TAG -> collector.mustNot(f.exists().field(hierarchicalField(Spexare_.TAGS)));
-        }
-    }
-
-    private static String hierarchicalField(final String collection) {
-        return String.join(ATTRIBUTE_DELIMITER, collection, AGGREGATION_HIERARCHICAL_MARKER + LocaleContextHolder.getLocale().getLanguage());
     }
 
 }

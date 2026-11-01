@@ -29,7 +29,9 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -74,14 +76,14 @@ class ActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var activity1 = ActivityDto.builder().id(1L).build();
-        final var activity2 = ActivityDto.builder().id(2L).build();
+        final var activity1 = ActivityDto.builder().id(uuid(1)).build();
+        final var activity2 = ActivityDto.builder().id(uuid(2)).build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(activity1, activity2), PageRequest.of(1, 2, Sort.by("id")), 10));
+        when(service.findBySpexare(any(UUID.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(activity1, activity2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", 1L)
+                        get("/api/spexare/{spexareId}/activities?page=1&size=2&sort=id,desc", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -112,20 +114,20 @@ class ActivityApiTest extends AbstractApiTest {
                                 pagingQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActivityApi.class, "retrieve", Long.class, Pageable.class))
+                                security(getRolesFromMethod(ActivityApi.class, "retrieve", UUID.class, Pageable.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var activity = ActivityDto.builder().id(1L).build();
+        final var activity = ActivityDto.builder().id(uuid(1)).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(activity);
+        when(service.findById(any(UUID.class), any(UUID.class))).thenReturn(activity);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -146,20 +148,20 @@ class ActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActivityApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(ActivityApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_create() throws Exception {
-        final var activity = ActivityDto.builder().id(1L).build();
+        final var activity = ActivityDto.builder().id(uuid(1)).build();
 
-        when(service.create(any(Long.class))).thenReturn(activity);
+        when(service.create(any(UUID.class))).thenReturn(activity);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/activities", 1L)
+                        post("/api/spexare/{spexareId}/activities", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -177,7 +179,7 @@ class ActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ActivityApi.class, "create", Long.class))
+                                security(getRolesFromMethod(ActivityApi.class, "create", UUID.class))
                         )
                 );
     }
@@ -186,7 +188,7 @@ class ActivityApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/activities/{id}", 1L, 1L)
+                        delete("/api/spexare/{spexareId}/activities/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -201,7 +203,7 @@ class ActivityApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the activity")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(ActivityApi.class, "delete", Long.class, Long.class))
+                                security(getRolesFromMethod(ActivityApi.class, "delete", UUID.class, UUID.class))
                         )
                 );
     }

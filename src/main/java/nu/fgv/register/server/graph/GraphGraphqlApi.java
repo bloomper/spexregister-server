@@ -27,6 +27,7 @@ import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.MAX_LIMIT;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
@@ -53,7 +54,7 @@ public class GraphGraphqlApi {
     @QueryMapping("graphNeighbourhood")
     @RequiresAdminOrEditorOrUser
     public @Nullable GraphNeighbourhoodDto retrieveNeighbourhood(@Argument final GraphNodeType type,
-                                                                 @Argument final Long id,
+                                                                 @Argument final UUID id,
                                                                  @Argument final int first) {
         return service.findNeighbourhood(type, id, Math.min(first, MAX_LIMIT)).orElse(null);
     }
@@ -61,7 +62,7 @@ public class GraphGraphqlApi {
     @QueryMapping("graphNeighboursPaged")
     @RequiresAdminOrEditorOrUser
     public CountedWindow<GraphNodeDto> retrieveNeighbours(@Argument final GraphNodeType type,
-                                                          @Argument final Long id,
+                                                          @Argument final UUID id,
                                                           @Argument final GraphEdgeType edge,
                                                           final ScrollSubrange subrange) {
         return service.findNeighbours(type, id, edge, extractScrollRequest(subrange));

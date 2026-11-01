@@ -34,6 +34,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,13 +55,13 @@ public class MembershipGraphqlApi {
 
     @MutationMapping("membershipCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public MembershipDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final MembershipCreateDto input) {
+    public MembershipDto create(@Argument final UUID spexareId, @Argument final String typeId, @Valid @Argument final MembershipCreateDto input) {
         return service.create(spexareId, typeId, input);
     }
 
     @MutationMapping("membershipDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final String typeId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final String typeId, @Argument final UUID id) {
         service.deleteById(spexareId, typeId, id);
     }
 
@@ -73,7 +74,7 @@ public class MembershipGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "memberships")
     @RequiresAdminOrEditorOrUser
     public Map<SpexareDto, List<MembershipDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
-        final Map<Long, List<MembershipDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
+        final Map<UUID, List<MembershipDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 
         return dtos.stream()
                 .collect(Collectors.toMap(Function.identity(), dto -> result.getOrDefault(dto.getId(), List.of()), (a, _) -> a));

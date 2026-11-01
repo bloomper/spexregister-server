@@ -47,13 +47,15 @@ public interface SpexCategoryMapper {
     SpexCategoryMapper SPEX_CATEGORY_MAPPER = Mappers.getMapper(SpexCategoryMapper.class);
 
     @BeanMapping(ignoreUnmappedSourceProperties = {"logo"})
-    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getUuid())).toUri().toString()).orElse(null))")
+    @Mapping(target = "id", source = "uuid")
     SpexCategoryDto toDto(SpexCategory model);
 
     @BeanMapping(ignoreUnmappedSourceProperties = {"logo"})
-    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
+    @Mapping(target = "logoUrl", expression = "java(Optional.ofNullable(model.getLogo()).map(logo -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexCategoryApi.class).downloadLogo(model.getUuid())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     SpexCategoryImpexDto toImpexDto(SpexCategory model);
 
     @Mapping(target = "id", ignore = true)
@@ -71,6 +73,7 @@ public interface SpexCategoryMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     SpexCategory toModel(SpexCategoryUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

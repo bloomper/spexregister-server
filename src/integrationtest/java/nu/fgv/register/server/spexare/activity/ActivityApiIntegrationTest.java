@@ -49,6 +49,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -144,7 +145,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -159,7 +160,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<ActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -182,7 +183,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<ActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -208,7 +209,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -236,7 +237,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ActivityDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), activity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -249,7 +250,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id")
-                    .isEqualTo(activity.getId());
+                    .isEqualTo(activity.getUuid());
         }
 
         @Test
@@ -258,7 +259,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -279,7 +280,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, activity.getId())
+                    .uri("/{id}", UUID.randomUUID(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -304,7 +305,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build(spexare.getId()))
+                    .uri(builder -> builder.build(spexare.getUuid()))
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -314,7 +315,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<ActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -334,7 +335,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_creating_and_spexare_not_found() {
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -355,7 +356,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri(builder -> builder.build(spexare.getId()))
+                    .uri(builder -> builder.build(spexare.getUuid()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -376,7 +377,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri(builder -> builder.build(spexare.getId()))
+                    .uri(builder -> builder.build(spexare.getUuid()))
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -397,7 +398,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -407,7 +408,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<ActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -429,7 +430,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -451,7 +452,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", -1L, activity.getId())
+                    .uri("/{id}", UUID.randomUUID(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -474,7 +475,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare1.getId(), activity.getId())
+                    .uri("/{id}", spexare1.getUuid(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -496,7 +497,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -518,7 +519,7 @@ class ActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

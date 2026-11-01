@@ -41,7 +41,6 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.search.AggregationFilter;
 import nu.fgv.register.server.util.search.PagedWithFacetsModel;
 import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -80,6 +79,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.isAdministrator;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -136,7 +136,7 @@ public class SpexareApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam(required = false) final String reportType,
                                                     @RequestParam final String type,
@@ -198,7 +198,7 @@ public class SpexareApi {
     @GetMapping(value = "/me", params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<JobReferenceDto> exportMe(@RequestParam final String type, final Locale locale) {
-        final Long id = service.findByCurrentUser()
+        final UUID id = service.findByCurrentUser()
                 .map(SpexareDto::getId)
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, "me"));
         final Long jobId = jobService.createExportJob(SpexareExportService.class, List.of(id), "", ImpexType.fromValue(type), null, locale);
@@ -221,7 +221,7 @@ public class SpexareApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexareDto>> retrieve(@PathVariable final UUID id) {
         final SpexareDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -229,7 +229,7 @@ public class SpexareApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexareDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexareDto>> update(@PathVariable final UUID id, @Valid @RequestBody final SpexareUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -241,7 +241,7 @@ public class SpexareApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexareDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexareUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexareDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final SpexareUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -253,7 +253,7 @@ public class SpexareApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long id, @RequestParam(defaultValue = "false") final boolean purge) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id, @RequestParam(defaultValue = "false") final boolean purge) {
         if (purge && !isAdministrator()) {
             throw new AccessDeniedException("Access denied");
         }
@@ -267,7 +267,7 @@ public class SpexareApi {
 
     @GetMapping("/{spexareId}/image")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadImage(@PathVariable final Long spexareId) {
+    public ResponseEntity<Resource> downloadImage(@PathVariable final UUID spexareId) {
         final Pair<byte[], String> image = service.getImage(spexareId);
 
         return ResponseEntity.ok()
@@ -279,7 +279,7 @@ public class SpexareApi {
 
     @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestBody final byte[] file) {
+    public ResponseEntity<Object> uploadImage(@PathVariable final UUID spexareId, @RequestBody final byte[] file) {
         service.saveImage(spexareId, file);
 
         return ResponseEntity.noContent().build();
@@ -287,7 +287,7 @@ public class SpexareApi {
 
     @RequestMapping(value = "/{spexareId}/image", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadImage(@PathVariable final Long spexareId, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadImage(@PathVariable final UUID spexareId, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadImage(spexareId, file.getBytes());
         } catch (final IOException e) {
@@ -297,7 +297,7 @@ public class SpexareApi {
 
     @DeleteMapping("/{spexareId}/image")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> deleteImage(@PathVariable final Long spexareId) {
+    public ResponseEntity<Object> deleteImage(@PathVariable final UUID spexareId) {
         service.deleteImage(spexareId);
 
         return ResponseEntity.noContent().build();
@@ -305,7 +305,7 @@ public class SpexareApi {
 
     @GetMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final Long spexareId) {
+    public ResponseEntity<EntityModel<SpexareDto>> retrievePartner(@PathVariable final UUID spexareId) {
         final SpexareDto dto = service.findPartnerBySpexare(spexareId)
                 .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.PARTNER, spexareId));
 
@@ -314,7 +314,7 @@ public class SpexareApi {
 
     @PutMapping(value = "/{spexareId}/partner/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> addPartner(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<Object> addPartner(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         service.addPartner(spexareId, id);
 
         return ResponseEntity.noContent().build();
@@ -322,7 +322,7 @@ public class SpexareApi {
 
     @DeleteMapping(value = "/{spexareId}/partner", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> removePartner(@PathVariable final Long spexareId) {
+    public ResponseEntity<Object> removePartner(@PathVariable final UUID spexareId) {
         service.removePartner(spexareId);
 
         return ResponseEntity.noContent().build();

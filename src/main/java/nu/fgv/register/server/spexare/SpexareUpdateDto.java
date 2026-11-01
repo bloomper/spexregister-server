@@ -25,6 +25,8 @@ import lombok.Builder;
 import nu.fgv.register.server.util.validation.Luhn;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
 /**
@@ -35,7 +37,7 @@ import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATT
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexareUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotEmpty(message = "{spexare.firstName.notEmpty}")
         @Size(max = 255, message = "{spexare.firstName.size}")

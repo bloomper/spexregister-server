@@ -13,6 +13,8 @@ spring:
           sharedCache:
             mode: UNSPECIFIED
       hibernate:
+        type:
+          preferred_uuid_jdbc_type: CHAR
         transaction:
           jta:
             platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform

@@ -28,10 +28,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -56,14 +57,14 @@ class GraphApiTest extends AbstractApiTest {
     @MockitoBean
     private GraphService service;
 
-    private static GraphNodeDto node(final GraphNodeType type, final Long id, final String label, final String sublabel) {
+    private static GraphNodeDto node(final GraphNodeType type, final UUID id, final String label, final String sublabel) {
         return new GraphNodeDto(GraphNodeDto.idOf(type, id), type, label, sublabel, null, false, id);
     }
 
     @Test
     void should_search() throws Exception {
         when(service.search(anyString(), anyInt()))
-                .thenReturn(List.of(node(GraphNodeType.SPEXARE, 1L, "Ada Lovelace", "Countess")));
+                .thenReturn(List.of(node(GraphNodeType.SPEXARE, uuid(1), "Ada Lovelace", "Countess")));
 
         mockMvc
                 .perform(
@@ -92,10 +93,10 @@ class GraphApiTest extends AbstractApiTest {
 
     @Test
     void should_get_neighbourhood() throws Exception {
-        final var origin = node(GraphNodeType.SPEXARE, 1L, "Ada Lovelace", "Countess");
-        final var spex = node(GraphNodeType.SPEX, 100L, "Bacchus", "1973");
+        final var origin = node(GraphNodeType.SPEXARE, uuid(1), "Ada Lovelace", "Countess");
+        final var spex = node(GraphNodeType.SPEX, uuid(100), "Bacchus", "1973");
 
-        when(service.findNeighbourhood(any(GraphNodeType.class), anyLong(), anyInt()))
+        when(service.findNeighbourhood(any(GraphNodeType.class), any(UUID.class), anyInt()))
                 .thenReturn(Optional.of(new GraphNeighbourhoodDto(origin, List.of(
                         new GraphGroupDto(GraphEdgeType.PARTICIPATION, 1L, List.of(spex),
                                 List.of(GraphEdgeDto.of(origin.id(), spex.id(), GraphEdgeType.PARTICIPATION, "1973")))
@@ -103,7 +104,7 @@ class GraphApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/graph/{type}/{id}?first=25", "SPEXARE", 1L)
+                        get("/api/graph/{type}/{id}?first=25", "SPEXARE", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -124,23 +125,23 @@ class GraphApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(GraphApi.class, "retrieveNeighbourhood", GraphNodeType.class, Long.class, int.class))
+                                security(getRolesFromMethod(GraphApi.class, "retrieveNeighbourhood", GraphNodeType.class, UUID.class, int.class))
                         )
                 );
     }
 
     @Test
     void should_get_neighbours() throws Exception {
-        final var spexare = node(GraphNodeType.SPEXARE, 1L, "Ada Lovelace", "Countess");
+        final var spexare = node(GraphNodeType.SPEXARE, uuid(1), "Ada Lovelace", "Countess");
         final CountedWindow<GraphNodeDto> window = CountedWindow.of(
                 Window.from(List.of(spexare), OffsetScrollPosition.positionFunction(0), true), 275L);
 
-        when(service.findNeighbours(any(GraphNodeType.class), anyLong(), any(GraphEdgeType.class), any(GraphqlUtil.ScrollRequest.class)))
+        when(service.findNeighbours(any(GraphNodeType.class), any(UUID.class), any(GraphEdgeType.class), any(GraphqlUtil.ScrollRequest.class)))
                 .thenReturn(window);
 
         mockMvc
                 .perform(
-                        get("/api/graph/{type}/{id}/neighbours?edge=TAG&offset=0&first=25", "TAG", 300L)
+                        get("/api/graph/{type}/{id}/neighbours?edge=TAG&offset=0&first=25", "TAG", uuid(300))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -163,7 +164,7 @@ class GraphApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(GraphApi.class, "retrieveNeighbours", GraphNodeType.class, Long.class, GraphEdgeType.class, long.class, int.class))
+                                security(getRolesFromMethod(GraphApi.class, "retrieveNeighbours", GraphNodeType.class, UUID.class, GraphEdgeType.class, long.class, int.class))
                         )
                 );
     }

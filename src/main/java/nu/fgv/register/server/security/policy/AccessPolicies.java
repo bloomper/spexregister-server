@@ -69,7 +69,7 @@ public class AccessPolicies {
      * @param <T>  the entity type
      * @return the policy
      * @throws org.springframework.security.access.AccessDeniedException when the type has no policy, so it is denied
-     *     rather than allowed
+     *                                                                   rather than allowed
      */
     @SuppressWarnings("unchecked")
     public <T> AccessPolicy<T> forType(final Class<T> type) {

@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.util.List;
 import java.util.Optional;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
@@ -85,7 +86,7 @@ class SpexareRemovalRequestServiceTest {
     @Test
     void should_send_request_to_recipients() {
         when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
-        when(spexareService.findByCurrentUser()).thenReturn(Optional.of(SpexareDto.builder().id(4711L).firstName("Jane").lastName("Doe").build()));
+        when(spexareService.findByCurrentUser()).thenReturn(Optional.of(SpexareDto.builder().id(uuid(4711)).firstName("Jane").lastName("Doe").build()));
 
         service(List.of("admin@example.org", "other@example.org")).request("Please remove me");
 
@@ -99,7 +100,7 @@ class SpexareRemovalRequestServiceTest {
         assertThat(message.getSubject(), is("Request for removal from Spexregister"));
         assertThat(message.getText(), containsString("Name: Jane Doe"));
         assertThat(message.getText(), containsString("User ID: user-id"));
-        assertThat(message.getText(), containsString("Spexare ID: 4711"));
+        assertThat(message.getText(), containsString("Spexare ID: " + uuid(4711)));
         assertThat(message.getText(), containsString("Please remove me"));
     }
 

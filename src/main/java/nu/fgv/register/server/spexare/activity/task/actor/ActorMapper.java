@@ -43,6 +43,7 @@ public interface ActorMapper {
 
     ActorMapper ACTOR_MAPPER = Mappers.getMapper(ActorMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     ActorDto toDto(Actor model);
 
     @Mapping(target = "id", ignore = true)
@@ -62,6 +63,7 @@ public interface ActorMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Actor toModel(ActorUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Filters on tasks for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}, with
@@ -43,13 +44,13 @@ public class TaskSpecification extends BaseSpecification<Task> {
         super(criteria);
     }
 
+    public static Specification<Task> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(Task_.uuid).in(ids);
+    }
+
     @Override
     protected Set<String> nestedPaths() {
         return Set.of("category.id", "category.name");
-    }
-
-    public static Specification<Task> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(Task_.id).in(ids);
     }
 
 }

@@ -57,6 +57,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -204,7 +205,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(uriBuilder -> uriBuilder.build(1L, 1L))
+                    .uri(uriBuilder -> uriBuilder.build(UUID.randomUUID(), UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -220,7 +221,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<TaskActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid(), activity.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -246,7 +247,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<TaskActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid(), activity.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -275,7 +276,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId(), activity.getId())
+                                            .build(spexare.getUuid(), activity.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -300,7 +301,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<TaskActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare1.getId(), activity.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare1.getUuid(), activity.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -329,7 +330,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskActivityDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -342,7 +343,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id")
-                    .isEqualTo(taskActivity.getId());
+                    .isEqualTo(taskActivity.getUuid());
         }
 
         @Test
@@ -352,7 +353,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), activity.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -376,7 +377,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, activity.getId(), taskActivity.getId())
+                    .uri("/{id}", UUID.randomUUID(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -400,7 +401,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L, taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -425,7 +426,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare1.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare1.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -450,7 +451,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), activity1.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity1.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -478,7 +479,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{taskId}", spexare.getId(), activity.getId(), task.getId())
+                    .uri("/{taskId}", spexare.getUuid(), activity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -488,7 +489,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<TaskActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId(), activity.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid(), activity.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -513,7 +514,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{taskId}", 1L, activity.getId(), task.getId())
+                    .uri("/{taskId}", UUID.randomUUID(), activity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -537,7 +538,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{taskId}", spexare.getId(), 1L, task.getId())
+                    .uri("/{taskId}", spexare.getUuid(), UUID.randomUUID(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -558,7 +559,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{taskId}", spexare.getId(), activity.getId(), 1L)
+                    .uri("/{taskId}", spexare.getUuid(), activity.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -583,7 +584,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{taskId}", spexare1.getId(), activity.getId(), task.getId())
+                    .uri("/{taskId}", spexare1.getUuid(), activity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -607,7 +608,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{taskId}", spexare.getId(), activity.getId(), task.getId())
+                    .uri("/{taskId}", spexare.getUuid(), activity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -631,7 +632,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{taskId}", spexare.getId(), activity.getId(), task.getId())
+                    .uri("/{taskId}", spexare.getUuid(), activity.getUuid(), task.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -656,7 +657,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskActivityDto result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), activity.getId(), taskActivity.getId(), task2.getId())
+                    .uri("/{id}/{taskId}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid(), task2.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -670,7 +671,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id")
-                    .isEqualTo(taskActivity.getId());
+                    .isEqualTo(taskActivity.getUuid());
         }
 
         @Test
@@ -683,7 +684,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", 1L, activity.getId(), taskActivity.getId(), task.getId())
+                    .uri("/{id}/{taskId}", UUID.randomUUID(), activity.getUuid(), taskActivity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -708,7 +709,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), -1L, taskActivity.getId(), task.getId())
+                    .uri("/{id}/{taskId}", spexare.getUuid(), UUID.randomUUID(), taskActivity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -733,7 +734,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), activity.getId(), taskActivity.getId(), 1L)
+                    .uri("/{id}/{taskId}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -759,7 +760,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare1.getId(), activity.getId(), taskActivity.getId(), task.getId())
+                    .uri("/{id}/{taskId}", spexare1.getUuid(), activity.getUuid(), taskActivity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -785,7 +786,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), activity1.getId(), taskActivity.getId(), task.getId())
+                    .uri("/{id}/{taskId}", spexare.getUuid(), activity1.getUuid(), taskActivity.getUuid(), task.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -811,7 +812,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), activity.getId(), taskActivity.getId(), task2.getId())
+                    .uri("/{id}/{taskId}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid(), task2.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -837,7 +838,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{id}/{taskId}", spexare.getId(), activity.getId(), taskActivity.getId(), task2.getId())
+                    .uri("/{id}/{taskId}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid(), task2.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -859,7 +860,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -869,7 +870,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
             final List<TaskActivityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId(), activity.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid(), activity.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -892,7 +893,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -916,7 +917,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 1L, activity.getId(), taskActivity.getId())
+                    .uri("/{id}", UUID.randomUUID(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -941,7 +942,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), 1L, taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -967,7 +968,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare1.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare1.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -993,7 +994,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity1.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity1.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1018,7 +1019,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1043,7 +1044,7 @@ class TaskActivityApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId(), activity.getId(), taskActivity.getId())
+                    .uri("/{id}", spexare.getUuid(), activity.getUuid(), taskActivity.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

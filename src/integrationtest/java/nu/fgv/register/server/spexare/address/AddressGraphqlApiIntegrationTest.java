@@ -50,6 +50,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
@@ -173,7 +174,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -189,7 +190,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -202,7 +203,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -224,7 +225,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -240,7 +241,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -265,7 +266,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", 1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -290,7 +291,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -316,7 +317,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -341,7 +342,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -372,7 +373,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -392,7 +393,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(updateDto, new TypeReference<>() {
                     }))
@@ -408,7 +409,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -421,7 +422,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -443,7 +444,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -468,7 +469,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", 1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -493,7 +494,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -516,7 +517,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare2));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -524,7 +525,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare1.getId())
+                    .variable("spexareId", spexare1.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -546,7 +547,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var address = persistAddress(randomizeAddress(type, spexare));
             final var randDto = random.nextObject(AddressUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(address.getId())
+                    .id(address.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -554,7 +555,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -579,7 +580,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/address/addressUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -610,9 +611,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -624,7 +625,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -637,7 +638,7 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -658,9 +659,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -683,9 +684,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", -1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -708,9 +709,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -734,9 +735,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare1.getId())
+                    .variable("spexareId", spexare1.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -759,9 +760,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -783,9 +784,9 @@ class AddressGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/address/addressDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", address.getId())
+                    .variable("id", address.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

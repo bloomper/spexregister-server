@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Filters on news for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -68,7 +69,7 @@ public class NewsSpecification extends BaseSpecification<News> {
         );
     }
 
-    public static Specification<News> hasIds(final List<Long> ids) {
-        return (root, _, _) -> root.get(News_.id).in(ids);
+    public static Specification<News> hasIds(final List<UUID> ids) {
+        return (root, _, _) -> root.get(News_.uuid).in(ids);
     }
 }

@@ -21,6 +21,8 @@ import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -34,10 +36,10 @@ public record GraphNodeDto(
         @JsonProperty("sublabel") @Nullable String sublabel,
         @JsonProperty("imageUrl") @Nullable String imageUrl,
         @JsonProperty("revival") boolean revival,
-        @JsonProperty("entityId") Long entityId
+        @JsonProperty("entityId") UUID entityId
 ) {
 
-    public static String idOf(final GraphNodeType type, final Long entityId) {
-        return "%s:%d".formatted(type.name(), entityId);
+    public static String idOf(final GraphNodeType type, final UUID entityId) {
+        return "%s:%s".formatted(type.name(), entityId);
     }
 }

@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -92,7 +93,7 @@ public class TagApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -117,7 +118,7 @@ public class TagApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TagDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TagDto>> retrieve(@PathVariable final UUID id) {
         final TagDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -152,7 +153,7 @@ public class TagApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TagDto>> update(@PathVariable final Long id, @Valid @RequestBody final TagUpdateDto dto) {
+    public ResponseEntity<EntityModel<TagDto>> update(@PathVariable final UUID id, @Valid @RequestBody final TagUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -164,7 +165,7 @@ public class TagApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TagDto>> partialUpdate(@PathVariable final Long id, @RequestBody final TagUpdateDto dto) {
+    public ResponseEntity<EntityModel<TagDto>> partialUpdate(@PathVariable final UUID id, @RequestBody final TagUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -176,7 +177,7 @@ public class TagApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditor
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();

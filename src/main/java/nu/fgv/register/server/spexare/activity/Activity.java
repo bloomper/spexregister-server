@@ -17,6 +17,7 @@
 package nu.fgv.register.server.spexare.activity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -33,6 +35,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivity;
 import nu.fgv.register.server.spexare.activity.task.TaskActivity;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.Uuids;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
@@ -49,6 +52,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * A spexare's participation in one spex: the {@link nu.fgv.register.server.spexare.activity.spex.SpexActivity} names
@@ -73,6 +77,10 @@ public class Activity extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @OneToOne(mappedBy = "activity", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude

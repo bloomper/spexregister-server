@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,10 @@ public class UserGraphqlApi {
     private final UserService service;
     private final JobService jobService;
 
+    private static List<UUID> ids(final List<UserDto> dtos) {
+        return dtos.stream().map(UserDto::getId).distinct().toList();
+    }
+
     @QueryMapping("userPaged")
     @RequiresAdmin
     public CountedWindow<UserDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
@@ -81,7 +86,7 @@ public class UserGraphqlApi {
 
     @QueryMapping("userExport")
     @RequiresAdmin
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(UserExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
@@ -101,7 +106,7 @@ public class UserGraphqlApi {
 
     @QueryMapping("user")
     @RequiresAdmin
-    public UserDto retrieve(@Argument final Long id) {
+    public UserDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -113,7 +118,7 @@ public class UserGraphqlApi {
 
     @MutationMapping("userDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 
@@ -125,32 +130,32 @@ public class UserGraphqlApi {
 
     @MutationMapping("userAuthorityAdd")
     @RequiresAdmin
-    public void addAuthority(@Argument final Long userId, @Argument final String id) {
+    public void addAuthority(@Argument final UUID userId, @Argument final String id) {
         service.addAuthority(userId, id);
     }
 
     @MutationMapping("userAuthoritiesAdd")
     @RequiresAdmin
-    public void addAuthorities(@Argument final Long userId, @Argument final List<String> ids) {
+    public void addAuthorities(@Argument final UUID userId, @Argument final List<String> ids) {
         service.addAuthorities(userId, ids);
     }
 
     @MutationMapping("userAuthorityRemove")
     @RequiresAdmin
-    public void removeAuthority(@Argument final Long userId, @Argument final String id) {
+    public void removeAuthority(@Argument final UUID userId, @Argument final String id) {
         service.removeAuthority(userId, id);
     }
 
     @MutationMapping("userAuthoritiesRemove")
     @RequiresAdmin
-    public void removeAuthorities(@Argument final Long userId, @Argument final List<String> ids) {
+    public void removeAuthorities(@Argument final UUID userId, @Argument final List<String> ids) {
         service.removeAuthorities(userId, ids);
     }
 
     @BatchMapping(typeName = "User", field = "state")
     @RequiresAdmin
     public Map<UserDto, StateDto> retrieveStates(final List<UserDto> dtos) {
-        final Map<Long, StateDto> states = service.getStatesByUsers(ids(dtos));
+        final Map<UUID, StateDto> states = service.getStatesByUsers(ids(dtos));
 
         return dtos.stream()
                 .filter(dto -> states.containsKey(dto.getId()))
@@ -159,14 +164,14 @@ public class UserGraphqlApi {
 
     @MutationMapping("userStateSet")
     @RequiresAdmin
-    public void setState(@Argument final Long userId, @Argument final String id) {
+    public void setState(@Argument final UUID userId, @Argument final String id) {
         service.setState(userId, id);
     }
 
     @BatchMapping(typeName = "User", field = "spexare")
     @RequiresAdmin
     public Map<UserDto, SpexareDto> retrieveSpexare(final List<UserDto> dtos) {
-        final Map<Long, SpexareDto> spexare = service.findSpexareByUsers(ids(dtos));
+        final Map<UUID, SpexareDto> spexare = service.findSpexareByUsers(ids(dtos));
 
         return dtos.stream()
                 .filter(dto -> spexare.containsKey(dto.getId()))
@@ -175,17 +180,13 @@ public class UserGraphqlApi {
 
     @MutationMapping("userSpexareAdd")
     @RequiresAdmin
-    public void addSpexare(@Argument final Long userId, @Argument final Long id) {
+    public void addSpexare(@Argument final UUID userId, @Argument final UUID id) {
         service.addSpexare(userId, id);
     }
 
     @MutationMapping("userSpexareRemove")
     @RequiresAdmin
-    public void removeSpexare(@Argument final Long userId) {
+    public void removeSpexare(@Argument final UUID userId) {
         service.removeSpexare(userId);
-    }
-
-    private static List<Long> ids(final List<UserDto> dtos) {
-        return dtos.stream().map(UserDto::getId).distinct().toList();
     }
 }

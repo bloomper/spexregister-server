@@ -22,6 +22,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -30,7 +32,7 @@ import lombok.Builder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AddressUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @Size(max = 255, message = "{address.streetAddress.size}")
         @JsonProperty("streetAddress")

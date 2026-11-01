@@ -19,9 +19,10 @@ package nu.fgv.register.server.spex;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.permission.PermissionGrantService;
-import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.Permission;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
@@ -37,15 +38,14 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -151,9 +152,9 @@ public class SpexService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex
      */
     @RequiresSpexReader
-    public SpexDto findById(final Long id) {
+    public SpexDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(SPEX_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
     }
@@ -164,9 +165,9 @@ public class SpexService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -179,7 +180,7 @@ public class SpexService {
      * @return the spex the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spex> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<Spex> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Spex> spec;
 
@@ -207,7 +208,7 @@ public class SpexService {
      * @return the spex the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spex> streamRevivalsByParentIds(final List<Long> parentIds, final String filter, final Sort sort) {
+    public Iterable<Spex> streamRevivalsByParentIds(final List<UUID> parentIds, final String filter, final Sort sort) {
         return () -> {
             final Specification<Spex> spec;
 
@@ -261,7 +262,7 @@ public class SpexService {
     @RequiresAdminOrEditorOrUser
     public SpexDto partialUpdate(final SpexUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     SPEX_MAPPER.toPartialModel(dto, spex);
@@ -282,10 +283,10 @@ public class SpexService {
      * @param id the spex id
      */
     @RequiresAdmin
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesSpexExist(id)) {
             repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(spex -> {
                         repository.findAll(hasParent(spex)).forEach(revival -> {
@@ -309,9 +310,9 @@ public class SpexService {
      * @return the spex
      */
     @RequiresAdminOrEditorOrUser
-    public SpexDto savePoster(final Long id, final byte[] poster) {
+    public SpexDto savePoster(final UUID id, final byte[] poster) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(Image.of(poster, requireSupportedImageMimeType(poster)));
@@ -329,9 +330,9 @@ public class SpexService {
      * @return the spex
      */
     @RequiresAdminOrEditorOrUser
-    public SpexDto deletePoster(final Long id) {
+    public SpexDto deletePoster(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spex -> {
                     spex.getDetails().setPoster(null);
@@ -348,12 +349,12 @@ public class SpexService {
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex has no poster
      */
     @RequiresSpexReader
-    public Pair<byte[], String> getPoster(final Long id) {
+    public Pair<byte[], String> getPoster(final UUID id) {
         if (!doesSpexExist(id)) {
             throw new ResourceNotFoundException(Spex.class, id);
         }
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(Spex::getDetails)
                 .map(SpexDetails::getPoster)
                 .map(poster -> Pair.of(poster.getData(), poster.getContentType()))
@@ -366,10 +367,10 @@ public class SpexService {
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex is not a revival
      */
     @RequiresAdminOrEditorOrUser
-    public SpexDto findParentById(final Long id) {
+    public SpexDto findParentById(final UUID id) {
         if (doesSpexExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .filter(revival -> revival.getParent() != null)
                     .map(Spex::getParent)
                     .map(SPEX_MAPPER::toDto)
@@ -386,11 +387,11 @@ public class SpexService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when it is not a revival of that spex
      */
     @RequiresSpexReader
-    public SpexDto findRevivalById(final Long spexId, final Long id) {
+    public SpexDto findRevivalById(final UUID spexId, final UUID id) {
         if (doSpexAndRevivalExist(spexId, id)) {
             return repository
-                    .findById0(id)
-                    .filter(revival -> revival.getParent() != null && revival.getParent().getId().equals(spexId))
+                    .findByUuid0(id)
+                    .filter(revival -> revival.getParent() != null && revival.getParent().getUuid().equals(spexId))
                     .map(SPEX_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
         } else {
@@ -403,10 +404,10 @@ public class SpexService {
      * @return the revivals the caller may read by year, or none when the spex is itself a revival
      */
     @RequiresAdminOrEditorOrUser
-    public List<SpexDto> findRevivalsByParent(final Long id) {
+    public List<SpexDto> findRevivalsByParent(final UUID id) {
         if (doesSpexExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .filter(parent -> !parent.isRevival())
                     .map(parent -> repository
                             .findAll(hasParent(parent), Pageable.unpaged(Sort.by(Spex_.YEAR)), Permission.READ)
@@ -421,7 +422,7 @@ public class SpexService {
     }
 
     @RequiresSpexReader
-    public CountedWindow<SpexDto> findRevivalsByParent(final Long id, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<SpexDto> findRevivalsByParent(final UUID id, final ScrollRequest scroll, final Sort sort) {
         return findRevivalsByParent(
                 id,
                 parent -> repository
@@ -439,7 +440,7 @@ public class SpexService {
     }
 
     @RequiresAdminOrEditorOrUser
-    public Page<SpexDto> findRevivalsByParent(final Long id, final Pageable pageable) {
+    public Page<SpexDto> findRevivalsByParent(final UUID id, final Pageable pageable) {
         return findRevivalsByParent(
                 id,
                 parent -> repository
@@ -456,13 +457,13 @@ public class SpexService {
      * @param year the revival's year
      * @return the revival
      * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spex already has a revival
-     *     that year
+     *                                                                             that year
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto addRevival(final Long id, final String year) {
+    public SpexDto addRevival(final UUID id, final String year) {
         if (doesSpexExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkWritePermission)
                     .filter(parent -> !repository.exists(hasParent(parent).and(hasYear(year))))
                     .map(parent -> {
@@ -490,10 +491,10 @@ public class SpexService {
      * @param id     the revival id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteRevival(final Long spexId, final Long id) {
+    public void deleteRevival(final UUID spexId, final UUID id) {
         if (doSpexAndRevivalExist(spexId, id)) {
             repository
-                    .findById0(spexId)
+                    .findByUuid0(spexId)
                     .map(permissionService::checkWritePermission)
                     .filter(parent -> repository.exists(hasParent(parent).and(hasId(id))))
                     .flatMap(parent -> repository.findOne(hasParent(parent).and(hasId(id))))
@@ -520,10 +521,10 @@ public class SpexService {
      * @return the originals of those that are revivals and readable, by revival id
      */
     @RequiresAdminOrEditorOrUserOrMedia
-    public Map<Long, SpexDto> findParentsBySpex(final Collection<Long> ids) {
+    public Map<UUID, SpexDto> findParentsBySpex(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getParent() != null)
-                .collect(Collectors.toMap(Spex::getId, spex -> SPEX_MAPPER.toDto(spex.getParent())));
+                .collect(Collectors.toMap(Spex::getUuid, spex -> SPEX_MAPPER.toDto(spex.getParent())));
     }
 
     /**
@@ -533,10 +534,10 @@ public class SpexService {
      * @return the revivals by year of those that are originals and readable, by original id
      */
     @RequiresSpexReader
-    public Map<Long, List<SpexDto>> findRevivalsByParents(final Collection<Long> ids) {
-        final List<Long> parentIds = findReadable(ids).stream()
+    public Map<UUID, List<SpexDto>> findRevivalsByParents(final Collection<UUID> ids) {
+        final List<UUID> parentIds = findReadable(ids).stream()
                 .filter(parent -> !parent.isRevival())
-                .map(Spex::getId)
+                .map(Spex::getUuid)
                 .toList();
 
         if (parentIds.isEmpty()) {
@@ -546,7 +547,7 @@ public class SpexService {
         return repository
                 .findAll(hasParentIds(parentIds), Sort.by(Spex_.YEAR), Permission.READ)
                 .stream()
-                .collect(Collectors.groupingBy(revival -> revival.getParent().getId(), Collectors.mapping(SPEX_MAPPER::toDto, Collectors.toList())));
+                .collect(Collectors.groupingBy(revival -> revival.getParent().getUuid(), Collectors.mapping(SPEX_MAPPER::toDto, Collectors.toList())));
     }
 
     /**
@@ -556,17 +557,17 @@ public class SpexService {
      * @return the categories of those that have one and are readable, by spex id
      */
     @RequiresAdminOrEditorOrUserOrMedia
-    public Map<Long, SpexCategoryDto> findCategoriesBySpex(final Collection<Long> ids) {
+    public Map<UUID, SpexCategoryDto> findCategoriesBySpex(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getDetails().getCategory() != null)
-                .collect(Collectors.toMap(Spex::getId, spex -> SPEX_CATEGORY_MAPPER.toDto(spex.getDetails().getCategory())));
+                .collect(Collectors.toMap(Spex::getUuid, spex -> SPEX_CATEGORY_MAPPER.toDto(spex.getDetails().getCategory())));
     }
 
     @RequiresAdminOrEditorOrUser
-    public SpexCategoryDto findCategoryBySpex(final Long id) {
+    public SpexCategoryDto findCategoryBySpex(final UUID id) {
         if (doesSpexExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .filter(spex -> spex.getDetails().getCategory() != null)
                     .map(spex -> spex.getDetails().getCategory())
                     .map(SPEX_CATEGORY_MAPPER::toDto)
@@ -583,13 +584,13 @@ public class SpexService {
      * @param id     the category id
      */
     @RequiresAdmin
-    public void addCategory(final Long spexId, final Long id) {
+    public void addCategory(final UUID spexId, final UUID id) {
         if (doSpexAndCategoryExist(spexId, id)) {
             repository
-                    .findById0(spexId)
+                    .findByUuid0(spexId)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(spex -> categoryRepository
-                            .findById0(id)
+                            .findByUuid0(id)
                             .ifPresent(category -> {
                                 spex.getDetails().setCategory(category);
                                 detailsRepository.save(spex.getDetails());
@@ -607,10 +608,10 @@ public class SpexService {
      * @param id the spex id
      */
     @RequiresAdmin
-    public void removeCategory(final Long id) {
+    public void removeCategory(final UUID id) {
         if (doesSpexExist(id)) {
             repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(spex -> {
                         spex.getDetails().setCategory(null);
@@ -629,9 +630,9 @@ public class SpexService {
         });
     }
 
-    private <T> T findRevivalsByParent(final Long id, final Function<Spex, T> retrievalFunction, final Supplier<T> emptyResultSupplier) {
+    private <T> T findRevivalsByParent(final UUID id, final Function<Spex, T> retrievalFunction, final Supplier<T> emptyResultSupplier) {
         if (doesSpexExist(id)) {
-            return repository.findById0(id)
+            return repository.findByUuid0(id)
                     .map(retrievalFunction)
                     .orElseGet(emptyResultSupplier);
         } else {
@@ -639,21 +640,21 @@ public class SpexService {
         }
     }
 
-    private List<Spex> findReadable(final Collection<Long> ids) {
-        return repository.findAllById(ids).stream()
+    private List<Spex> findReadable(final Collection<UUID> ids) {
+        return repository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
     }
 
-    private boolean doesSpexExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesSpexExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 
-    private boolean doSpexAndRevivalExist(final Long spexId, final Long id) {
-        return repository.findById0(spexId).isPresent() && repository.findById0(id).isPresent();
+    private boolean doSpexAndRevivalExist(final UUID spexId, final UUID id) {
+        return repository.findByUuid0(spexId).isPresent() && repository.findByUuid0(id).isPresent();
     }
 
-    private boolean doSpexAndCategoryExist(final Long spexId, final Long categoryId) {
-        return doesSpexExist(spexId) && categoryRepository.findById0(categoryId).isPresent();
+    private boolean doSpexAndCategoryExist(final UUID spexId, final UUID categoryId) {
+        return doesSpexExist(spexId) && categoryRepository.findByUuid0(categoryId).isPresent();
     }
 }

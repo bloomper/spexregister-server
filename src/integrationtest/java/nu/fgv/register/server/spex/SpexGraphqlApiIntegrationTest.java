@@ -52,6 +52,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -356,13 +357,13 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         @Test
         void should_only_count_and_return_filtered() {
             final var category = persistSpexCategory(randomizeSpexCategory());
-            final List<Long> matching = new ArrayList<>();
+            final List<UUID> matching = new ArrayList<>();
             IntStream.range(0, 20).forEach(i -> {
                 final var spex = randomizeSpex(category);
                 spex.setYear(i % 2 == 0 ? "1996" : "1997");
                 final var persisted = persistSpex(spex);
                 if (i % 2 == 0) {
-                    matching.add(persisted.getId());
+                    matching.add(persisted.getUuid());
                 }
             });
 
@@ -385,10 +386,10 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         void should_return_last_page_of_revivals() {
             final var category = persistSpexCategory(randomizeSpexCategory());
             final var parent = persistSpex(randomizeSpex(category));
-            final List<Long> revivals = IntStream.range(0, 12)
+            final List<UUID> revivals = IntStream.range(0, 12)
                     .mapToObj(_ -> {
                         final var revival = persistRevival(randomizeRevival(parent));
-                        return revival.getId();
+                        return revival.getUuid();
                     })
                     .toList();
 
@@ -397,7 +398,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalsPagedCursor")
-                    .variable("id", parent.getId())
+                    .variable("id", parent.getUuid())
                     .variable("last", 5)
                     .execute()
                     .errors()
@@ -408,17 +409,17 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("spex.revivalsPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(revivals.subList(7, 12)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedSpex(final int size) {
+        private List<UUID> persistPermittedSpex(final int size) {
             final var category = persistSpexCategory(randomizeSpexCategory());
 
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var spex = persistSpex(randomizeSpex(category));
-                        return spex.getId();
+                        return spex.getUuid();
                     })
                     .toList();
         }
@@ -592,12 +593,12 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spex", result -> result
-                            .path("id").entity(Long.class).isEqualTo(spex.getId())
+                            .path("id").entity(UUID.class).isEqualTo(spex.getUuid())
                             .path("title").entity(String.class).isEqualTo(spex.getDetails().getTitle())
                             .path("year").entity(String.class).isEqualTo(spex.getYear())
                     );
@@ -610,7 +611,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -635,7 +636,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -671,7 +672,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -747,7 +748,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -795,7 +796,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexDelete")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -813,7 +814,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -836,7 +837,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexDelete")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -855,7 +856,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -880,7 +881,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexId}/poster", spex.getId())
+                    .uri("/{spexId}/poster", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -893,7 +894,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -906,7 +907,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexPosterDelete")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -918,7 +919,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -940,7 +941,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexPosterDelete")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -969,7 +970,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", revival.getId())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -989,13 +990,13 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevival")
-                    .variable("spexId", spex.getId())
-                    .variable("id", revival.getId())
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spexRevival", result -> result
-                            .path("id").entity(Long.class).isEqualTo(revival.getId())
+                            .path("id").entity(UUID.class).isEqualTo(revival.getUuid())
                             .path("title").entity(String.class).isEqualTo(revival.getDetails().getTitle())
                             .path("year").entity(String.class).isEqualTo(revival.getYear())
                     );
@@ -1012,8 +1013,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevival")
-                    .variable("spexId", -1L)
-                    .variable("id", revival.getId())
+                    .variable("spexId", UUID.randomUUID())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1035,8 +1036,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevival")
-                    .variable("spexId", spex1.getId())
-                    .variable("id", revival.getId())
+                    .variable("spexId", spex1.getUuid())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1056,7 +1057,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1072,7 +1073,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1093,7 +1094,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1116,7 +1117,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1135,7 +1136,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1151,7 +1152,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1172,7 +1173,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1195,7 +1196,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .variable("first", size)
                     .execute()
                     .errors()
@@ -1215,7 +1216,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalCreate")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .variable("year", "2022")
                     .execute()
                     .errors()
@@ -1235,7 +1236,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalCreate")
-                    .variable("spexId", 1L)
+                    .variable("spexId", UUID.randomUUID())
                     .variable("year", "2022")
                     .execute()
                     .errors()
@@ -1260,7 +1261,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalCreate")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .variable("year", revival.getYear())
                     .execute()
                     .errors()
@@ -1285,8 +1286,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalDelete")
-                    .variable("spexId", spex.getId())
-                    .variable("id", revival.getId())
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1304,8 +1305,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalDelete")
-                    .variable("spexId", 1L)
-                    .variable("id", 1L)
+                    .variable("spexId", UUID.randomUUID())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1328,8 +1329,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalDelete")
-                    .variable("spexId", spex.getId())
-                    .variable("id", 1L)
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1352,7 +1353,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalCreate")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .variable("year", "2022")
                     .execute()
                     .errors()
@@ -1377,8 +1378,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexRevivalDelete")
-                    .variable("spexId", spex.getId())
-                    .variable("id", revival.getId())
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", revival.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1407,12 +1408,12 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spex.category", result -> result
-                            .path("id").entity(Long.class).isEqualTo(category.getId())
+                            .path("id").entity(UUID.class).isEqualTo(category.getUuid())
                             .path("name").entity(String.class).isEqualTo(category.getName())
                             .path("firstYear").entity(String.class).isEqualTo(category.getFirstYear())
                     );
@@ -1431,7 +1432,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1443,8 +1444,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
-                    .variable("spexId", spex.getId())
-                    .variable("id", category.getId())
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1456,12 +1457,12 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spex.category", result -> result
-                            .path("id").entity(Long.class).isEqualTo(category.getId())
+                            .path("id").entity(UUID.class).isEqualTo(category.getUuid())
                             .path("name").entity(String.class).isEqualTo(category.getName())
                             .path("firstYear").entity(String.class).isEqualTo(category.getFirstYear())
                     );
@@ -1477,8 +1478,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
-                    .variable("spexId", 1L)
-                    .variable("id", 1L)
+                    .variable("spexId", UUID.randomUUID())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1501,8 +1502,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
-                    .variable("spexId", spex.getId())
-                    .variable("id", 1L)
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1525,12 +1526,12 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("spex.category", result -> result
-                            .path("id").entity(Long.class).isEqualTo(category.getId())
+                            .path("id").entity(UUID.class).isEqualTo(category.getUuid())
                             .path("name").entity(String.class).isEqualTo(category.getName())
                             .path("firstYear").entity(String.class).isEqualTo(category.getFirstYear())
                     );
@@ -1540,7 +1541,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1552,7 +1553,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spex")
-                    .variable("id", spex.getId())
+                    .variable("id", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1572,7 +1573,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -1590,7 +1591,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
-                    .variable("spexId", 1L)
+                    .variable("spexId", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1613,8 +1614,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
-                    .variable("spexId", spex.getId())
-                    .variable("id", category.getId())
+                    .variable("spexId", spex.getUuid())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1634,8 +1635,8 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryAdd")
-                    .variable("spexId", 1L)
-                    .variable("id", 1L)
+                    .variable("spexId", UUID.randomUUID())
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1658,7 +1659,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
-                    .variable("spexId", spex.getId())
+                    .variable("spexId", spex.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -1678,7 +1679,7 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spex/spexCategoryRemove")
-                    .variable("spexId", 1L)
+                    .variable("spexId", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

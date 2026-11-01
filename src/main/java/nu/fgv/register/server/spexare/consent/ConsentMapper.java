@@ -42,10 +42,11 @@ public interface ConsentMapper {
 
     ConsentMapper CONSENT_MAPPER = Mappers.getMapper(ConsentMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     ConsentDto toDto(Consent model);
 
-    @Mapping(target = "id", source = "consent.id")
-    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "id", source = "consent.uuid")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
     @Mapping(target = "typeId", source = "type.id")
     @Mapping(target = "typeLabel", source = "type.label")
     @Mapping(target = "createdBy", source = "consent.createdBy")

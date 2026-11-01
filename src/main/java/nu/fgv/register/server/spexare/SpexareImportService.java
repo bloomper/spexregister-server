@@ -58,6 +58,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -139,20 +140,49 @@ public class SpexareImportService extends AbstractImportService {
         this.baseUrl = baseUrl;
     }
 
+    private static Collection<SpexareUnit> units(final Map<Class<?>, List<?>> data) {
+        final Map<UUID, SpexareUnit> units = new LinkedHashMap<>();
+        final Function<UUID, SpexareUnit> unitOf = id -> units.computeIfAbsent(id, _ -> new SpexareUnit());
+
+        rows(data, SpexareImpexDto.class).forEach(dto -> unitOf.apply(dto.getId()).spexare().add(dto));
+        rows(data, AddressImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).addresses().add(dto));
+        rows(data, ConsentImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).consents().add(dto));
+        rows(data, MembershipImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).memberships().add(dto));
+        rows(data, ToggleImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).toggles().add(dto));
+        rows(data, TaggingImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).taggings().add(dto));
+        rows(data, ActivityImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).activities().add(dto));
+
+        return units.values();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> rows(final Map<Class<?>, List<?>> data, final Class<T> type) {
+        return Optional.ofNullable((List<T>) data.get(type)).orElseGet(List::of);
+    }
+
+    private static void row(final HasImpexAction dto, final String entity, final ImportSummary summary, final Runnable work) {
+        try {
+            work.run();
+        } catch (final RuntimeException e) {
+            throw new RowFailure(dto.getRowNumber(), entity, e);
+        }
+        summary.increment(dto.getAction(), entity);
+    }
+
     @Override
     protected List<ImportSpec> getImportSpecs() {
         return List.of(
                 ImportSpec.builder()
                         .clazz(SpexareImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v)
+                                "id", v -> service.exists((UUID) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(AddressImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "id", v -> addressService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "id", v -> addressService.exists((UUID) v),
                                 "country", v -> countryService.exists((String) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
@@ -160,45 +190,45 @@ public class SpexareImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(ConsentImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "id", v -> consentService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "id", v -> consentService.exists((UUID) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(MembershipImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "id", v -> membershipService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "id", v -> membershipService.exists((UUID) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(TaggingImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "tagId", v -> tagService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "tagId", v -> tagService.exists((UUID) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(ToggleImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "id", v -> toggleService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "id", v -> toggleService.exists((UUID) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(ActivityImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "spexareId", v -> service.exists((Long) v),
-                                "id", v -> activityService.exists((Long) v),
-                                "spexActivityId", v -> spexActivityService.exists((Long) v),
-                                "spexId", v -> spexService.exists((Long) v),
-                                "taskActivityId", v -> taskActivityService.exists((Long) v),
-                                "taskId", v -> taskService.exists((Long) v),
-                                "actorId", v -> actorService.exists((Long) v),
+                                "spexareId", v -> service.exists((UUID) v),
+                                "id", v -> activityService.exists((UUID) v),
+                                "spexActivityId", v -> spexActivityService.exists((UUID) v),
+                                "spexId", v -> spexService.exists((UUID) v),
+                                "taskActivityId", v -> taskActivityService.exists((UUID) v),
+                                "taskId", v -> taskService.exists((UUID) v),
+                                "actorId", v -> actorService.exists((UUID) v),
                                 "typeId", v -> typeService.exists((String) v)
                         ))
                         .build()
@@ -208,13 +238,13 @@ public class SpexareImportService extends AbstractImportService {
     @Override
     protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
         final ImportSummary summary = new ImportSummary(messageSource, locale);
-        final Map<Long, Long> spexareIdMap = new HashMap<>();
+        final Map<UUID, UUID> spexareIdMap = new HashMap<>();
         final List<PartnerLink> partnerLinks = new ArrayList<>();
 
         // Everything belonging to one spexare commits or rolls back together; one bad spexare leaves the rest in place.
         units(data).forEach(unit -> {
             final ImportSummary unitSummary = new ImportSummary(messageSource, locale);
-            final Map<Long, Long> unitIdMap = new HashMap<>();
+            final Map<UUID, UUID> unitIdMap = new HashMap<>();
             final List<PartnerLink> unitLinks = new ArrayList<>();
 
             try {
@@ -244,28 +274,8 @@ public class SpexareImportService extends AbstractImportService {
         return summary.toResult();
     }
 
-    private static Collection<SpexareUnit> units(final Map<Class<?>, List<?>> data) {
-        final Map<Long, SpexareUnit> units = new LinkedHashMap<>();
-        final Function<Long, SpexareUnit> unitOf = id -> units.computeIfAbsent(id, _ -> new SpexareUnit());
-
-        rows(data, SpexareImpexDto.class).forEach(dto -> unitOf.apply(dto.getId()).spexare().add(dto));
-        rows(data, AddressImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).addresses().add(dto));
-        rows(data, ConsentImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).consents().add(dto));
-        rows(data, MembershipImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).memberships().add(dto));
-        rows(data, ToggleImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).toggles().add(dto));
-        rows(data, TaggingImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).taggings().add(dto));
-        rows(data, ActivityImpexDto.class).forEach(dto -> unitOf.apply(dto.getSpexareId()).activities().add(dto));
-
-        return units.values();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> List<T> rows(final Map<Class<?>, List<?>> data, final Class<T> type) {
-        return Optional.ofNullable((List<T>) data.get(type)).orElseGet(List::of);
-    }
-
-    private void importUnit(final SpexareUnit unit, final Map<Long, Long> idMap, final List<PartnerLink> partnerLinks, final ImportSummary summary) {
-        final Function<Long, Long> realSpexareId = id -> idMap.getOrDefault(id, id);
+    private void importUnit(final SpexareUnit unit, final Map<UUID, UUID> idMap, final List<PartnerLink> partnerLinks, final ImportSummary summary) {
+        final Function<UUID, UUID> realSpexareId = id -> idMap.getOrDefault(id, id);
 
         unit.spexare().forEach(dto -> row(dto, SPEXARE, summary, () -> apply(dto,
                 d -> {
@@ -326,17 +336,8 @@ public class SpexareImportService extends AbstractImportService {
         importActivities(unit.activities(), realSpexareId, summary);
     }
 
-    private static void row(final HasImpexAction dto, final String entity, final ImportSummary summary, final Runnable work) {
-        try {
-            work.run();
-        } catch (final RuntimeException e) {
-            throw new RowFailure(dto.getRowNumber(), entity, e);
-        }
-        summary.increment(dto.getAction(), entity);
-    }
-
-    private void linkPartner(final PartnerLink link, final Map<Long, Long> spexareIdMap) {
-        final Long realPartnerId = spexareIdMap.getOrDefault(link.partnerId(), link.partnerId());
+    private void linkPartner(final PartnerLink link, final Map<UUID, UUID> spexareIdMap) {
+        final UUID realPartnerId = spexareIdMap.getOrDefault(link.partnerId(), link.partnerId());
         final SpexareDto currentPartner = service.findPartnerBySpexare(link.spexareId()).orElse(null);
 
         if (currentPartner == null || !currentPartner.getId().equals(realPartnerId)) {
@@ -345,11 +346,11 @@ public class SpexareImportService extends AbstractImportService {
     }
 
     private void importActivities(final List<ActivityImpexDto> dtos,
-                                  final Function<Long, Long> realSpexareIdOf,
+                                  final Function<UUID, UUID> realSpexareIdOf,
                                   final ImportSummary summary) {
-        final Map<Long, Long> activityIdMap = new HashMap<>();
-        final Map<Long, Long> spexActivityIdMap = new HashMap<>();
-        final Map<Long, Long> taskActivityIdMap = new HashMap<>();
+        final Map<UUID, UUID> activityIdMap = new HashMap<>();
+        final Map<UUID, UUID> spexActivityIdMap = new HashMap<>();
+        final Map<UUID, UUID> taskActivityIdMap = new HashMap<>();
 
         dtos.forEach(dto -> {
             try {
@@ -361,12 +362,12 @@ public class SpexareImportService extends AbstractImportService {
     }
 
     private void importActivity(final ActivityImpexDto dto,
-                                final Long realSpexareId,
-                                final Map<Long, Long> activityIdMap,
-                                final Map<Long, Long> spexActivityIdMap,
-                                final Map<Long, Long> taskActivityIdMap,
+                                final UUID realSpexareId,
+                                final Map<UUID, UUID> activityIdMap,
+                                final Map<UUID, UUID> spexActivityIdMap,
+                                final Map<UUID, UUID> taskActivityIdMap,
                                 final ImportSummary summary) {
-        Long realActivityId = activityIdMap.get(dto.getId());
+        UUID realActivityId = activityIdMap.get(dto.getId());
 
         if (realActivityId == null) {
             if (dto.getAction() == ImpexAction.CREATE) {
@@ -382,7 +383,7 @@ public class SpexareImportService extends AbstractImportService {
             activityIdMap.put(dto.getId(), realActivityId);
         }
 
-        Long realSpexActivityId = spexActivityIdMap.get(dto.getSpexActivityId());
+        UUID realSpexActivityId = spexActivityIdMap.get(dto.getSpexActivityId());
 
         if (realSpexActivityId == null) {
             if (dto.getSpexActivityAction() == ImpexAction.CREATE) {
@@ -402,7 +403,7 @@ public class SpexareImportService extends AbstractImportService {
             }
         }
 
-        Long realTaskActivityId = taskActivityIdMap.get(dto.getTaskActivityId());
+        UUID realTaskActivityId = taskActivityIdMap.get(dto.getTaskActivityId());
 
         if (realTaskActivityId == null) {
             if (dto.getTaskActivityAction() == ImpexAction.CREATE) {
@@ -434,7 +435,7 @@ public class SpexareImportService extends AbstractImportService {
         }
     }
 
-    private void processImage(final Long id, @Nullable final String url) {
+    private void processImage(final UUID id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
             service.saveImage(id, downloadImage(url));
         } else if (!hasText(url)) {
@@ -442,7 +443,7 @@ public class SpexareImportService extends AbstractImportService {
         }
     }
 
-    private record PartnerLink(Long spexareId, Long partnerId, @Nullable Integer rowNumber) {
+    private record PartnerLink(UUID spexareId, UUID partnerId, @Nullable Integer rowNumber) {
     }
 
     private record SpexareUnit(List<SpexareImpexDto> spexare,

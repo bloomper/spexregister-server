@@ -35,6 +35,7 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spexare.activity.spex.SpexActivityMapper.SPEX_ACTIVITY_MAPPER;
@@ -66,13 +67,13 @@ public class SpexActivityService {
      * @return the spex activity
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexActivityDto findByActivity(final Long spexareId, final Long activityId) {
+    public SpexActivityDto findByActivity(final UUID spexareId, final UUID activityId) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .flatMap(activity -> repository
                             .findOne(hasActivity(activity))
                             .map(SPEX_ACTIVITY_MAPPER::toDto))
@@ -89,14 +90,14 @@ public class SpexActivityService {
      * @return the spex activity
      */
     @RequiresAdminOrEditorOrUser
-    public SpexActivityDto findById(final Long spexareId, final Long activityId, final Long id) {
+    public SpexActivityDto findById(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
-                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(spexActivity -> spexActivity.getActivity().getUuid().equals(activityId))
+                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getUuid().equals(spexareId))
                     .map(SPEX_ACTIVITY_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(SpexActivity.class, id));
         } else {
@@ -109,9 +110,9 @@ public class SpexActivityService {
      * @return whether the spex activity exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -122,15 +123,15 @@ public class SpexActivityService {
      * @return the created spex activity
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexActivityDto create(final Long spexareId, final Long activityId, final Long spexId) {
+    public SpexActivityDto create(final UUID spexareId, final UUID activityId, final UUID spexId) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .flatMap(activity -> spexRepository
-                            .findById0(spexId)
+                            .findByUuid0(spexId)
                             .filter(spex -> !repository.exists(hasActivity(activity).and(hasSpex(spex))))
                             .map(spex -> {
                                 final SpexActivity spexActivity = new SpexActivity();
@@ -155,20 +156,20 @@ public class SpexActivityService {
      * @return the updated spex activity
      */
     @RequiresAdminOrEditorOrUser
-    public SpexActivityDto update(final Long spexareId, final Long activityId, final Long spexId, final Long id) {
+    public SpexActivityDto update(final UUID spexareId, final UUID activityId, final UUID spexId, final UUID id) {
         if (doSpexareAndActivityAndSpexExist(spexareId, activityId, spexId) && doesSpexActivityExist(id)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .map(activity ->
                             spexRepository
-                                    .findById0(spexId)
+                                    .findByUuid0(spexId)
                                     .filter(spex -> repository.exists(hasActivity(activity).and(hasId(id))))
                                     .map(spex ->
                                             repository
-                                                    .findById(id)
+                                                    .findByUuid(id)
                                                     .filter(spexActivity -> spexActivity.getActivity().equals(activity))
                                                     .map(spexActivity -> {
                                                         spexActivity.setSpex(spex);
@@ -191,17 +192,17 @@ public class SpexActivityService {
      * @param id         the spex activity id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final Long activityId, final Long id) {
+    public void deleteById(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {
             spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .filter(activity -> repository.exists(hasActivity(activity).and(hasId(id))))
                     .ifPresentOrElse(
                             activity -> repository
-                                    .findById(id)
+                                    .findByUuid(id)
                                     .filter(spexActivity -> spexActivity.getActivity().equals(activity))
                                     .ifPresentOrElse(
                                             spexActivity -> {
@@ -228,14 +229,14 @@ public class SpexActivityService {
      * @return the spex
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto findSpexBySpexActivity(final Long spexareId, final Long activityId, final Long id) {
+    public SpexDto findSpexBySpexActivity(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesSpexActivityExist(id)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(spexActivity -> spexActivity.getActivity().getId().equals(activityId))
-                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(spexActivity -> spexActivity.getActivity().getUuid().equals(activityId))
+                    .filter(spexActivity -> spexActivity.getActivity().getSpexare().getUuid().equals(spexareId))
                     .map(SpexActivity::getSpex)
                     .map(SPEX_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(SpexActivity.class, id));
@@ -244,23 +245,23 @@ public class SpexActivityService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesSpexActivityExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesSpexActivityExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
-    private boolean doesActivityExist(final Long id) {
-        return activityRepository.findById(id).isPresent();
+    private boolean doesActivityExist(final UUID id) {
+        return activityRepository.findByUuid(id).isPresent();
     }
 
-    private boolean doSpexareAndActivityExist(final Long spexareId, final Long activityId) {
+    private boolean doSpexareAndActivityExist(final UUID spexareId, final UUID activityId) {
         return doesSpexareExist(spexareId) && doesActivityExist(activityId);
     }
 
-    private boolean doSpexareAndActivityAndSpexExist(final Long spexareId, final Long activityId, final Long spexId) {
-        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && spexRepository.findById0(spexId).isPresent();
+    private boolean doSpexareAndActivityAndSpexExist(final UUID spexareId, final UUID activityId, final UUID spexId) {
+        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && spexRepository.findByUuid0(spexId).isPresent();
     }
 }

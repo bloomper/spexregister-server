@@ -31,6 +31,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
@@ -58,6 +60,76 @@ import static org.springframework.util.StringUtils.hasText;
 public class ExcelReader {
 
     private final MessageSource messageSource;
+
+    private static void setUnlessAbsent(final Object dto, final Field field, @Nullable final Object value) throws IllegalAccessException {
+        if (value != null || !field.getType().isPrimitive()) {
+            field.set(dto, value);
+        }
+    }
+
+    static CellType typeOf(final Cell cell) {
+        return cell.getCellType() == CellType.FORMULA ? cell.getCachedFormulaResultType() : cell.getCellType();
+    }
+
+    static @Nullable Long wholeNumberOf(final Cell cell) {
+        return switch (typeOf(cell)) {
+            case NUMERIC -> {
+                final double value = cell.getNumericCellValue();
+
+                if (value != Math.rint(value)) {
+                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, String.valueOf(value));
+                }
+                yield (long) value;
+            }
+            case STRING -> {
+                final String text = cell.getStringCellValue().trim();
+
+                if (text.isEmpty()) {
+                    yield null;
+                }
+                if (!text.matches("-?\\d+")) {
+                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, text);
+                }
+                yield Long.parseLong(text);
+            }
+            case BLANK -> null;
+            default ->
+                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, stringValueOf(cell));
+        };
+    }
+
+    /**
+     * Reads an id. The ids the system hands out are UUIDs; any other text, such as a placeholder tying a new row to the
+     * rows that belong to it, stands for one made-up id wherever it appears in the file.
+     *
+     * @param cell the cell
+     * @return the id, or null when the cell is blank
+     */
+    static @Nullable UUID uuidOf(final Cell cell) {
+        final String text = stringValueOf(cell).trim();
+
+        if (text.isEmpty()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(text);
+        } catch (final IllegalArgumentException e) {
+            return UUID.nameUUIDFromBytes(text.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    static String stringValueOf(final Cell cell) {
+        return switch (typeOf(cell)) {
+            case STRING -> cell.getStringCellValue();
+            case NUMERIC -> {
+                final double value = cell.getNumericCellValue();
+
+                yield value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+            }
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            default -> "";
+        };
+    }
 
     public <T> List<T> read(final Sheet sheet, final Class<T> clazz, final Locale locale) {
         final Map<Field, Integer> fieldColumnMap = buildFieldColumnMap(sheet, clazz, locale);
@@ -179,58 +251,11 @@ public class ExcelReader {
                 throw new CellValueException("impex.import.validation.notWholeNumber", cell, String.valueOf(value));
             }
             setUnlessAbsent(dto, field, value == null ? null : value.intValue());
+        } else if (type == UUID.class) {
+            field.set(dto, uuidOf(cell));
         } else if (type == ImpexAction.class) {
             field.set(dto, parseImpexAction(cell));
         }
-    }
-
-    private static void setUnlessAbsent(final Object dto, final Field field, @Nullable final Object value) throws IllegalAccessException {
-        if (value != null || !field.getType().isPrimitive()) {
-            field.set(dto, value);
-        }
-    }
-
-    static CellType typeOf(final Cell cell) {
-        return cell.getCellType() == CellType.FORMULA ? cell.getCachedFormulaResultType() : cell.getCellType();
-    }
-
-    static @Nullable Long wholeNumberOf(final Cell cell) {
-        return switch (typeOf(cell)) {
-            case NUMERIC -> {
-                final double value = cell.getNumericCellValue();
-
-                if (value != Math.rint(value)) {
-                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, String.valueOf(value));
-                }
-                yield (long) value;
-            }
-            case STRING -> {
-                final String text = cell.getStringCellValue().trim();
-
-                if (text.isEmpty()) {
-                    yield null;
-                }
-                if (!text.matches("-?\\d+")) {
-                    throw new CellValueException("impex.import.validation.notWholeNumber", cell, text);
-                }
-                yield Long.parseLong(text);
-            }
-            case BLANK -> null;
-            default -> throw new CellValueException("impex.import.validation.notWholeNumber", cell, stringValueOf(cell));
-        };
-    }
-
-    static String stringValueOf(final Cell cell) {
-        return switch (typeOf(cell)) {
-            case STRING -> cell.getStringCellValue();
-            case NUMERIC -> {
-                final double value = cell.getNumericCellValue();
-
-                yield value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
-            }
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            default -> "";
-        };
     }
 
     private ImpexAction parseImpexAction(final Cell cell) {

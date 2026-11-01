@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
@@ -54,7 +55,7 @@ public class ActivityGraphqlApi {
 
     @MutationMapping("activityCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<ActivityDto> create(@Argument final Long spexareId) {
+    public DataFetcherResult<ActivityDto> create(@Argument final UUID spexareId) {
         return buildDataFetcherResult(
                 service.create(spexareId),
                 Map.of(
@@ -65,7 +66,7 @@ public class ActivityGraphqlApi {
 
     @MutationMapping("activityDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final UUID id) {
         service.deleteById(spexareId, id);
     }
 
@@ -92,7 +93,7 @@ public class ActivityGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Activity", field = "id")
-    public Long getId(final ActivityDto dto) {
+    public UUID getId(final ActivityDto dto) {
         return dto.getId();
     }
 

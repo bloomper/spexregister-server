@@ -19,6 +19,7 @@ package nu.fgv.register.server.tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -33,11 +34,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.tag.TagMapper.TAG_MAPPER;
 import static nu.fgv.register.server.tag.TagSpecification.NO_FILTER;
@@ -108,9 +109,9 @@ public class TagService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such tag
      */
     @RequiresReferenceDataReader
-    public TagDto findById(final Long id) {
+    public TagDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(TAG_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Tag.class, id));
     }
@@ -121,9 +122,9 @@ public class TagService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -136,7 +137,7 @@ public class TagService {
      * @return the tags the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<Tag> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<Tag> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Tag> spec;
 
@@ -190,7 +191,7 @@ public class TagService {
     @RequiresAdminOrEditor
     public TagDto partialUpdate(final TagUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(tag -> {
                     TAG_MAPPER.toPartialModel(dto, tag);
@@ -206,9 +207,9 @@ public class TagService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such tag
      */
     @RequiresAdminOrEditor
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesTagExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(tag -> {
                         repository.delete(tag);
@@ -218,8 +219,8 @@ public class TagService {
         }
     }
 
-    private boolean doesTagExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesTagExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 
 }

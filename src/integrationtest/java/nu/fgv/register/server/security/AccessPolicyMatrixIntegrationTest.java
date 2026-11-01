@@ -45,6 +45,8 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -64,8 +66,8 @@ class AccessPolicyMatrixIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final TagRepository tagRepository;
     private final SpexareRepository spexareRepository;
     private final NewsRepository newsRepository;
-    private Long unpublishedSpexareId;
-    private Long unpublishedNewsId;
+    private UUID unpublishedSpexareId;
+    private UUID unpublishedNewsId;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -90,6 +92,27 @@ class AccessPolicyMatrixIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.tagRepository = tagRepository;
         this.spexareRepository = spexareRepository;
         this.newsRepository = newsRepository;
+    }
+
+    private static Spexare spexare(final String firstName, final boolean published) {
+        final Spexare spexare = new Spexare();
+
+        spexare.setFirstName(firstName);
+        spexare.setLastName("Matris");
+        spexare.setDeceased(false);
+        spexare.setPublished(published);
+
+        return spexare;
+    }
+
+    private static News news(final String subject, final boolean published) {
+        final News news = new News();
+
+        news.setSubject(subject);
+        news.setText("Text");
+        news.setPublished(published);
+
+        return news;
     }
 
     @BeforeEach
@@ -129,10 +152,10 @@ class AccessPolicyMatrixIntegrationTest extends AbstractGraphqlIntegrationTest {
         tagRepository.save(tag);
 
         spexareRepository.save(spexare("Petra", true));
-        unpublishedSpexareId = spexareRepository.save(spexare("Olle", false)).getId();
+        unpublishedSpexareId = spexareRepository.save(spexare("Olle", false)).getUuid();
 
         newsRepository.save(news("Publicerad", true));
-        unpublishedNewsId = newsRepository.save(news("Opublicerad", false)).getId();
+        unpublishedNewsId = newsRepository.save(news("Opublicerad", false)).getUuid();
     }
 
     @ParameterizedTest(name = "{0} sees {2} of {1}")
@@ -182,14 +205,14 @@ class AccessPolicyMatrixIntegrationTest extends AbstractGraphqlIntegrationTest {
             "ADMIN,   news,    true"
     })
     void should_look_up_what_the_policy_permits(final String role, final String type, final boolean readable) {
-        final Long id = "spexare".equals(type) ? unpublishedSpexareId : unpublishedNewsId;
+        final UUID id = "spexare".equals(type) ? unpublishedSpexareId : unpublishedNewsId;
         final var response = as(role)
                 .document("query get($id: ID!) { %s(id: $id) { id } }".formatted(type))
                 .variable("id", id)
                 .execute();
 
         if (readable) {
-            response.errors().verify().path(type + ".id").entity(Long.class).isEqualTo(id);
+            response.errors().verify().path(type + ".id").entity(UUID.class).isEqualTo(id);
         } else {
             response.errors()
                     .satisfy(errors -> assertThat(errors).isNotEmpty())
@@ -208,26 +231,5 @@ class AccessPolicyMatrixIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .mutate()
                 .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, token))
                 .build();
-    }
-
-    private static Spexare spexare(final String firstName, final boolean published) {
-        final Spexare spexare = new Spexare();
-
-        spexare.setFirstName(firstName);
-        spexare.setLastName("Matris");
-        spexare.setDeceased(false);
-        spexare.setPublished(published);
-
-        return spexare;
-    }
-
-    private static News news(final String subject, final boolean published) {
-        final News news = new News();
-
-        news.setSubject(subject);
-        news.setText("Text");
-        news.setPublished(published);
-
-        return news;
     }
 }

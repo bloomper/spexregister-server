@@ -33,14 +33,14 @@ import static org.mockito.Mockito.mock;
 final class PolicyTestSupport {
     static final String OWN_SUBJECT = "own-subject";
 
+    private PolicyTestSupport() {
+    }
+
     /**
      * Grants that cover nothing, for testing the rules alone.
      */
     static PermissionGrants noGrants() {
         return mock(PermissionGrants.class);
-    }
-
-    private PolicyTestSupport() {
     }
 
     /**

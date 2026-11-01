@@ -7,8 +7,6 @@ mutation restore ($type: AuditedType!, $id: ID!, $revision: Long!, $cascade: Boo
         warnings {
             code
             message
-            previousId
-            newId
         }
     }
 }

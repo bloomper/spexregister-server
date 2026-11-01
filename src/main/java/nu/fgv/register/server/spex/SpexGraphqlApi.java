@@ -27,8 +27,8 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,10 @@ public class SpexGraphqlApi {
     private final SpexService service;
     private final JobService jobService;
 
+    private static List<UUID> ids(final List<SpexDto> dtos) {
+        return dtos.stream().map(SpexDto::getId).distinct().toList();
+    }
+
     @QueryMapping("spexPaged")
     @RequiresSpexReader
     public CountedWindow<SpexDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
@@ -72,7 +77,7 @@ public class SpexGraphqlApi {
 
     @QueryMapping("spexExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
@@ -86,7 +91,7 @@ public class SpexGraphqlApi {
 
     @QueryMapping("spex")
     @RequiresSpexReader
-    public SpexDto retrieve(@Argument final Long id) {
+    public SpexDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -98,20 +103,20 @@ public class SpexGraphqlApi {
 
     @MutationMapping("spexDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 
     @MutationMapping("spexPosterDelete")
     @RequiresAdminOrEditorOrUser
-    public void deletePoster(@Argument final Long id) {
+    public void deletePoster(@Argument final UUID id) {
         service.deletePoster(id);
     }
 
     @BatchMapping(typeName = "Spex", field = "parent")
     @RequiresAdminOrEditorOrUserOrMedia
     public Map<SpexDto, SpexDto> retrieveParents(final List<SpexDto> dtos) {
-        final Map<Long, SpexDto> parents = service.findParentsBySpex(ids(dtos));
+        final Map<UUID, SpexDto> parents = service.findParentsBySpex(ids(dtos));
 
         return dtos.stream()
                 .filter(dto -> parents.containsKey(dto.getId()))
@@ -127,7 +132,7 @@ public class SpexGraphqlApi {
     @BatchMapping(typeName = "Spex", field = "revivals")
     @RequiresSpexReader
     public Map<SpexDto, List<SpexDto>> retrieveRevivalsByParents(final List<SpexDto> dtos) {
-        final Map<Long, List<SpexDto>> revivals = service.findRevivalsByParents(ids(dtos));
+        final Map<UUID, List<SpexDto>> revivals = service.findRevivalsByParents(ids(dtos));
 
         return dtos.stream()
                 .collect(Collectors.toMap(Function.identity(), dto -> revivals.getOrDefault(dto.getId(), List.of()), (a, _) -> a));
@@ -135,26 +140,26 @@ public class SpexGraphqlApi {
 
     @QueryMapping("spexRevival")
     @RequiresSpexReader
-    public SpexDto retrieveRevival(@Argument final Long spexId, @Argument final Long id) {
+    public SpexDto retrieveRevival(@Argument final UUID spexId, @Argument final UUID id) {
         return service.findRevivalById(spexId, id);
     }
 
     @MutationMapping("spexRevivalCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto createRevival(@Argument final Long spexId, @Argument final String year) {
+    public SpexDto createRevival(@Argument final UUID spexId, @Argument final String year) {
         return service.addRevival(spexId, year);
     }
 
     @MutationMapping("spexRevivalDelete")
     @RequiresAdminOrEditorOrUser
-    public void deleteRevival(@Argument final Long spexId, @Argument final Long id) {
+    public void deleteRevival(@Argument final UUID spexId, @Argument final UUID id) {
         service.deleteRevival(spexId, id);
     }
 
     @BatchMapping(typeName = "Spex", field = "category")
     @RequiresAdminOrEditorOrUserOrMedia
     public Map<SpexDto, SpexCategoryDto> retrieveCategories(final List<SpexDto> dtos) {
-        final Map<Long, SpexCategoryDto> categories = service.findCategoriesBySpex(ids(dtos));
+        final Map<UUID, SpexCategoryDto> categories = service.findCategoriesBySpex(ids(dtos));
 
         return dtos.stream()
                 .filter(dto -> categories.containsKey(dto.getId()))
@@ -163,17 +168,13 @@ public class SpexGraphqlApi {
 
     @MutationMapping("spexCategoryAdd")
     @RequiresAdmin
-    public void addCategory(@Argument final Long spexId, @Argument final Long id) {
+    public void addCategory(@Argument final UUID spexId, @Argument final UUID id) {
         service.addCategory(spexId, id);
     }
 
     @MutationMapping("spexCategoryRemove")
     @RequiresAdmin
-    public void removeCategory(@Argument final Long spexId) {
+    public void removeCategory(@Argument final UUID spexId) {
         service.removeCategory(spexId);
-    }
-
-    private static List<Long> ids(final List<SpexDto> dtos) {
-        return dtos.stream().map(SpexDto::getId).distinct().toList();
     }
 }

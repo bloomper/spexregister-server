@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -103,7 +104,7 @@ public class SpexApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -128,7 +129,7 @@ public class SpexApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexDto>> retrieve(@PathVariable final UUID id) {
         final SpexDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -163,7 +164,7 @@ public class SpexApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> update(@PathVariable final UUID id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -175,7 +176,7 @@ public class SpexApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final SpexUpdateDto dto) {
+    public ResponseEntity<EntityModel<SpexDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final SpexUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -187,7 +188,7 @@ public class SpexApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();
@@ -195,7 +196,7 @@ public class SpexApi {
 
     @GetMapping("/{spexId}/poster")
     @RequiresSpexReader
-    public ResponseEntity<Resource> downloadPoster(@PathVariable final Long spexId) {
+    public ResponseEntity<Resource> downloadPoster(@PathVariable final UUID spexId) {
         final Pair<byte[], String> poster = service.getPoster(spexId);
 
         return ResponseEntity.ok()
@@ -207,7 +208,7 @@ public class SpexApi {
 
     @RequestMapping(value = "/{spexId}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> uploadPoster(@PathVariable final Long spexId, @RequestBody final byte[] file) {
+    public ResponseEntity<Object> uploadPoster(@PathVariable final UUID spexId, @RequestBody final byte[] file) {
         service.savePoster(spexId, file);
 
         return ResponseEntity.noContent().build();
@@ -215,7 +216,7 @@ public class SpexApi {
 
     @RequestMapping(value = "/{spexId}/poster", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
     @RequiresAdminOrEditor
-    public ResponseEntity<Object> uploadPoster(@PathVariable final Long spexId, @RequestParam("file") final MultipartFile file) {
+    public ResponseEntity<Object> uploadPoster(@PathVariable final UUID spexId, @RequestParam("file") final MultipartFile file) {
         try {
             return uploadPoster(spexId, file.getBytes());
         } catch (final IOException e) {
@@ -225,7 +226,7 @@ public class SpexApi {
 
     @DeleteMapping("/{spexId}/poster")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> deletePoster(@PathVariable final Long spexId) {
+    public ResponseEntity<Object> deletePoster(@PathVariable final UUID spexId) {
         service.deletePoster(spexId);
 
         return ResponseEntity.noContent().build();
@@ -233,7 +234,7 @@ public class SpexApi {
 
     @GetMapping(value = "/{spexId}/parent", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> retrieveParent(@PathVariable final Long spexId) {
+    public ResponseEntity<EntityModel<SpexDto>> retrieveParent(@PathVariable final UUID spexId) {
         final SpexDto dto = service.findParentById(spexId);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -241,7 +242,7 @@ public class SpexApi {
 
     @GetMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE, version = "1.0")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> retrieveRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SpexDto>> retrieveRevival(@PathVariable final UUID spexId, @PathVariable final UUID id) {
         final SpexDto dto = service.findRevivalById(spexId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -249,7 +250,7 @@ public class SpexApi {
 
     @GetMapping(value = "/{spexId}/revivals", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final Long spexId,
+    public ResponseEntity<PagedModel<EntityModel<SpexDto>>> retrieveRevivalsByParent(@PathVariable final UUID spexId,
                                                                                      @SortDefault(sort = Spex_.YEAR, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<SpexDto>> paged = pagedResourcesAssembler.toModel(service.findRevivalsByParent(spexId, pageable));
         paged.getContent().forEach(this::addLinks);
@@ -259,7 +260,7 @@ public class SpexApi {
 
     @PostMapping(value = "/{spexId}/revivals/{year}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final Long spexId, @PathVariable final String year) {
+    public ResponseEntity<EntityModel<SpexDto>> createRevival(@PathVariable final UUID spexId, @PathVariable final String year) {
         final SpexDto dto = service.addRevival(spexId, year);
 
         return ResponseEntity.created(linkTo(methodOn(SpexApi.class).retrieveRevival(spexId, dto.getId())).toUri())
@@ -268,7 +269,7 @@ public class SpexApi {
 
     @DeleteMapping(value = "/{spexId}/revivals/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> deleteRevival(@PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<Object> deleteRevival(@PathVariable final UUID spexId, @PathVariable final UUID id) {
         service.deleteRevival(spexId, id);
 
         return ResponseEntity.noContent().build();
@@ -276,7 +277,7 @@ public class SpexApi {
 
     @GetMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieveCategory(@PathVariable final Long spexId) {
+    public ResponseEntity<EntityModel<SpexCategoryDto>> retrieveCategory(@PathVariable final UUID spexId) {
         final SpexCategoryDto dto = service.findCategoryBySpex(spexId);
 
         return ResponseEntity.ok(EntityModel.of(dto, spexCategoryApi.getLinks(dto)));
@@ -284,7 +285,7 @@ public class SpexApi {
 
     @PutMapping(value = "/{spexId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> addCategory(@PathVariable final Long spexId, @PathVariable final Long id) {
+    public ResponseEntity<Object> addCategory(@PathVariable final UUID spexId, @PathVariable final UUID id) {
         service.addCategory(spexId, id);
 
         return ResponseEntity.noContent().build();
@@ -292,7 +293,7 @@ public class SpexApi {
 
     @DeleteMapping(value = "/{spexId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> removeCategory(@PathVariable final Long spexId) {
+    public ResponseEntity<Object> removeCategory(@PathVariable final UUID spexId) {
         service.removeCategory(spexId);
 
         return ResponseEntity.noContent().build();

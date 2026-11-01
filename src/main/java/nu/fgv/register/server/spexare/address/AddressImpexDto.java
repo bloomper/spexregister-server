@@ -26,6 +26,8 @@ import nu.fgv.register.server.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -40,11 +42,11 @@ public class AddressImpexDto extends AbstractAuditableImpexDto<AddressImpexDto> 
     @NotEmpty(message = "{address.spexare.notEmpty}")
     @JsonProperty("spexareId")
     @ExcelCell(header = "address.impex.spexareId.columnName", position = 1)
-    private Long spexareId;
+    private UUID spexareId;
 
     @JsonProperty("id")
     @ExcelCell(header = "address.impex.id.columnName", position = 2, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @JsonProperty("streetAddress")
     @ExcelCell(header = "address.impex.streetAddress.columnName", position = 3, updatable = true)

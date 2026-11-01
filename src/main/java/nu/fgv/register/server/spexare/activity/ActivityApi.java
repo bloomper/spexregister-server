@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -61,7 +62,7 @@ public class ActivityApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<ActivityDto>>> retrieve(@PathVariable final Long spexareId,
+    public ResponseEntity<PagedModel<EntityModel<ActivityDto>>> retrieve(@PathVariable final UUID spexareId,
                                                                          @SortDefault(sort = Activity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<ActivityDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
 
@@ -72,7 +73,7 @@ public class ActivityApi {
 
     @PostMapping(value = "", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActivityDto>> create(@PathVariable final Long spexareId) {
+    public ResponseEntity<EntityModel<ActivityDto>> create(@PathVariable final UUID spexareId) {
         final ActivityDto dto = service.create(spexareId);
 
         return ResponseEntity.created(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).toUri())
@@ -81,7 +82,7 @@ public class ActivityApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<ActivityDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         final ActivityDto dto = service.findById(spexareId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
@@ -89,21 +90,21 @@ public class ActivityApi {
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         service.deleteById(spexareId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<ActivityDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<ActivityDto> entity, final UUID spexareId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
-    void addLinks(final ActivityDto dto, final Long spexareId) {
+    void addLinks(final ActivityDto dto, final UUID spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final ActivityDto dto, final Long spexareId) {
+    List<Link> getLinks(final ActivityDto dto, final UUID spexareId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ActivityApi.class).retrieve(spexareId, dto.getId())).withSelfRel());

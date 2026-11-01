@@ -43,6 +43,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -338,7 +339,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto result = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -351,14 +352,14 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "name")
-                    .contains(tag.getId(), tag.getName());
+                    .contains(tag.getUuid(), tag.getName());
         }
 
         @Test
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -383,7 +384,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto before = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -402,7 +403,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto updated = restTestClient
                     .put()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -415,7 +416,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto after = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -480,7 +481,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto before = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -548,7 +549,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto before = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -567,7 +568,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -580,7 +581,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto after = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -625,7 +626,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final TagDto before = restTestClient
                     .get()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -694,7 +695,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -707,7 +708,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -727,7 +728,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", tag.getId())
+                    .uri("/{id}", tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -745,7 +746,7 @@ class TagApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()

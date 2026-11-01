@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -60,7 +61,7 @@ public class UserExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ExportHolder<?>> getReports(final List<Long> ids, final String filter) {
+    protected List<ExportHolder<?>> getReports(final List<UUID> ids, final String filter) {
         final Iterable<User> users = service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "externalId"));
 
         return List.of(

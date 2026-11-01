@@ -41,7 +41,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -107,8 +109,8 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var user1 = UserDto.builder().id(1L).email("email1@somewhere.com").build();
-        final var user2 = UserDto.builder().id(2L).email("email2@somewhere.com").build();
+        final var user1 = UserDto.builder().id(uuid(1)).email("email1@somewhere.com").build();
+        final var user2 = UserDto.builder().id(uuid(2)).email("email2@somewhere.com").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2), PageRequest.of(1, 2, Sort.by("username")), 10));
 
@@ -154,7 +156,7 @@ class UserApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/users?ids=1,2,3&type=excel")
+                        get("/api/users?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -182,7 +184,7 @@ class UserApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(UserCreateDto.class);
         final var dto = UserCreateDto.builder().email("email@somewhere.com").build();
 
-        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(1L).email(dto.email()).build());
+        when(service.create(any(UserCreateDto.class))).thenReturn(UserDto.builder().id(uuid(1)).email(dto.email()).build());
 
         mockMvc
                 .perform(
@@ -241,13 +243,13 @@ class UserApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(uuid(1)).email("email@somewhere.com").build();
 
-        when(service.findById(any(Long.class))).thenReturn(user);
+        when(service.findById(any(UUID.class))).thenReturn(user);
 
         mockMvc
                 .perform(
-                        get("/api/users/{id}", 1)
+                        get("/api/users/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -267,7 +269,7 @@ class UserApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -275,14 +277,14 @@ class UserApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(UserUpdateDto.class);
-        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
-        final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(uuid(1)).email("email@somewhere.com").build();
+        final var dto = UserUpdateDto.builder().id(uuid(1)).email("email@somewhere.com").build();
 
         when(service.update(any(UserUpdateDto.class))).thenReturn(user);
 
         mockMvc
                 .perform(
-                        put("/api/users/{id}", 1)
+                        put("/api/users/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -308,7 +310,7 @@ class UserApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "update", Long.class, UserUpdateDto.class))
+                                security(getRolesFromMethod(UserApi.class, "update", UUID.class, UserUpdateDto.class))
                         )
                 );
     }
@@ -316,14 +318,14 @@ class UserApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(UserUpdateDto.class);
-        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
-        final var dto = UserUpdateDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(uuid(1)).email("email@somewhere.com").build();
+        final var dto = UserUpdateDto.builder().id(uuid(1)).email("email@somewhere.com").build();
 
         when(service.partialUpdate(any(UserUpdateDto.class))).thenReturn(user);
 
         mockMvc
                 .perform(
-                        patch("/api/users/{id}", 1)
+                        patch("/api/users/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -349,21 +351,21 @@ class UserApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "partialUpdate", Long.class, UserUpdateDto.class))
+                                security(getRolesFromMethod(UserApi.class, "partialUpdate", UUID.class, UserUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var user = UserDto.builder().id(1L).email("email@somewhere.com").build();
+        final var user = UserDto.builder().id(uuid(1)).email("email@somewhere.com").build();
 
-        when(service.findById(any(Long.class))).thenReturn(user);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(user);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/users/{id}", 1)
+                        delete("/api/users/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -379,7 +381,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the user")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "delete", UUID.class))
                         )
                 );
     }
@@ -388,11 +390,11 @@ class UserApiTest extends AbstractApiTest {
     void should_retrieve_authorities() throws Exception {
         final var authority1 = AuthorityDto.builder().id("ROLE_USER").build();
         final var authority2 = AuthorityDto.builder().id("ROLE_EDITOR").build();
-        when(service.getAuthoritiesByUser(any(Long.class))).thenReturn(Set.of(authority1, authority2));
+        when(service.getAuthoritiesByUser(any(UUID.class))).thenReturn(Set.of(authority1, authority2));
 
         mockMvc
                 .perform(
-                        get("/api/users/{userId}/authorities", 1)
+                        get("/api/users/{userId}/authorities", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -421,7 +423,7 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "retrieveAuthorities", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "retrieveAuthorities", UUID.class))
                         )
                 );
     }
@@ -430,7 +432,7 @@ class UserApiTest extends AbstractApiTest {
     void should_add_authority() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                        put("/api/users/{userId}/authorities/{id}", uuid(1), "ROLE_USER")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -447,7 +449,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the authority")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "addAuthority", Long.class, String.class))
+                                security(getRolesFromMethod(UserApi.class, "addAuthority", UUID.class, String.class))
                         )
                 );
     }
@@ -456,7 +458,7 @@ class UserApiTest extends AbstractApiTest {
     void should_add_authorities() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/users/{userId}/authorities", 1)
+                        put("/api/users/{userId}/authorities", uuid(1))
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -476,7 +478,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("ids").description("The ids of the authorities")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "addAuthorities", Long.class, List.class))
+                                security(getRolesFromMethod(UserApi.class, "addAuthorities", UUID.class, List.class))
                         )
                 );
     }
@@ -485,7 +487,7 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_authority() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/users/{userId}/authorities/{id}", 1, "ROLE_USER")
+                        delete("/api/users/{userId}/authorities/{id}", uuid(1), "ROLE_USER")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -502,7 +504,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the authority")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "removeAuthority", Long.class, String.class))
+                                security(getRolesFromMethod(UserApi.class, "removeAuthority", UUID.class, String.class))
                         )
                 );
     }
@@ -511,7 +513,7 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_authorities() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/users/{userId}/authorities", 1)
+                        delete("/api/users/{userId}/authorities", uuid(1))
                                 .queryParam("ids", "ROLE_USER", "ROLE_EDITOR")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -531,18 +533,18 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("ids").description("The ids of the authorities")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "removeAuthorities", Long.class, List.class))
+                                security(getRolesFromMethod(UserApi.class, "removeAuthorities", UUID.class, List.class))
                         )
                 );
     }
 
     @Test
     void should_get_state() throws Exception {
-        when(service.getStateByUser(any(Long.class))).thenReturn(StateDto.builder().id("PENDING").build());
+        when(service.getStateByUser(any(UUID.class))).thenReturn(StateDto.builder().id("PENDING").build());
 
         mockMvc
                 .perform(
-                        get("/api/users/{userId}/state", 1)
+                        get("/api/users/{userId}/state", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -568,7 +570,7 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "retrieveState", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "retrieveState", UUID.class))
                         )
                 );
     }
@@ -577,7 +579,7 @@ class UserApiTest extends AbstractApiTest {
     void should_set_state() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/users/{userId}/state/{id}", 1, "PENDING")
+                        put("/api/users/{userId}/state/{id}", uuid(1), "PENDING")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -594,18 +596,18 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the state")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "setState", Long.class, String.class))
+                                security(getRolesFromMethod(UserApi.class, "setState", UUID.class, String.class))
                         )
                 );
     }
 
     @Test
     void should_get_spexare() throws Exception {
-        when(service.findSpexareByUser(any(Long.class))).thenReturn(Optional.of(SpexareDto.builder().id(1L).build()));
+        when(service.findSpexareByUser(any(UUID.class))).thenReturn(Optional.of(SpexareDto.builder().id(uuid(1)).build()));
 
         mockMvc
                 .perform(
-                        get("/api/users/{userId}/spexare", 1)
+                        get("/api/users/{userId}/spexare", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -639,7 +641,7 @@ class UserApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(UserApi.class, "retrieveSpexare", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "retrieveSpexare", UUID.class))
                         )
                 );
     }
@@ -648,7 +650,7 @@ class UserApiTest extends AbstractApiTest {
     void should_add_spexare() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/users/{userId}/spexare/{id}", 1, 1)
+                        put("/api/users/{userId}/spexare/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -665,7 +667,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "addSpexare", Long.class, Long.class))
+                                security(getRolesFromMethod(UserApi.class, "addSpexare", UUID.class, UUID.class))
                         )
                 );
     }
@@ -674,7 +676,7 @@ class UserApiTest extends AbstractApiTest {
     void should_remove_spexare() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/users/{userId}/spexare", 1)
+                        delete("/api/users/{userId}/spexare", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -690,7 +692,7 @@ class UserApiTest extends AbstractApiTest {
                                         parameterWithName("userId").description("The id of the user")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(UserApi.class, "removeSpexare", Long.class))
+                                security(getRolesFromMethod(UserApi.class, "removeSpexare", UUID.class))
                         )
                 );
     }

@@ -20,6 +20,8 @@ import nu.fgv.register.server.spexare.activity.Activity;
 import nu.fgv.register.server.task.Task;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 /**
  * Query restrictions on task activities.
  *
@@ -33,8 +35,8 @@ public class TaskActivitySpecification {
     private TaskActivitySpecification() {
     }
 
-    public static Specification<TaskActivity> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaskActivity_.id), id);
+    public static Specification<TaskActivity> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaskActivity_.uuid), id);
     }
 
     public static Specification<TaskActivity> hasActivity(final Activity activity) {

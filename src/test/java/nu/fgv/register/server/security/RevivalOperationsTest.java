@@ -98,34 +98,6 @@ class RevivalOperationsTest {
             "Mutation.membershipCreate"
     );
 
-    @Test
-    void should_let_revival_through_to_exactly_the_graphql_operations_nyuppsattning_needs() {
-        assertThat(graphqlOperationsOpenToRevival())
-                .containsExactlyInAnyOrderElementsOf(GRAPHQL_OPERATIONS);
-    }
-
-    @Test
-    void should_not_let_revival_delete_anything() {
-        assertThat(graphqlOperationsOpenToRevival())
-                .noneMatch(operation -> operation.toLowerCase().contains("delete") || operation.toLowerCase().contains("remove"));
-    }
-
-    @Test
-    void should_not_let_revival_read_memberships_users_or_partners() {
-        assertThat(graphqlOperationsOpenToRevival())
-                .noneMatch(operation -> operation.contains("membershipsPaged")
-                        || operation.endsWith(".memberships")
-                        || operation.contains("user")
-                        || operation.contains("User")
-                        || operation.endsWith(".partner")
-                        || operation.equals("Mutation.spexareUpdate"));
-    }
-
-    @Test
-    void should_let_revival_through_to_no_rest_operation_but_reading_spexes() {
-        assertThat(restControllersOpenToRevival()).containsExactly("SpexApi");
-    }
-
     private static Set<String> graphqlOperationsOpenToRevival() {
         return controllers().stream()
                 .flatMap(type -> Arrays.stream(type.getDeclaredMethods()))
@@ -177,5 +149,33 @@ class RevivalOperationsTest {
         return scanner.findCandidateComponents(BASE_PACKAGE).stream()
                 .map(definition -> ClassUtils.resolveClassName(definition.getBeanClassName(), RevivalOperationsTest.class.getClassLoader()))
                 .collect(Collectors.toSet());
+    }
+
+    @Test
+    void should_let_revival_through_to_exactly_the_graphql_operations_nyuppsattning_needs() {
+        assertThat(graphqlOperationsOpenToRevival())
+                .containsExactlyInAnyOrderElementsOf(GRAPHQL_OPERATIONS);
+    }
+
+    @Test
+    void should_not_let_revival_delete_anything() {
+        assertThat(graphqlOperationsOpenToRevival())
+                .noneMatch(operation -> operation.toLowerCase().contains("delete") || operation.toLowerCase().contains("remove"));
+    }
+
+    @Test
+    void should_not_let_revival_read_memberships_users_or_partners() {
+        assertThat(graphqlOperationsOpenToRevival())
+                .noneMatch(operation -> operation.contains("membershipsPaged")
+                        || operation.endsWith(".memberships")
+                        || operation.contains("user")
+                        || operation.contains("User")
+                        || operation.endsWith(".partner")
+                        || operation.equals("Mutation.spexareUpdate"));
+    }
+
+    @Test
+    void should_let_revival_through_to_no_rest_operation_but_reading_spexes() {
+        assertThat(restControllersOpenToRevival()).containsExactly("SpexApi");
     }
 }

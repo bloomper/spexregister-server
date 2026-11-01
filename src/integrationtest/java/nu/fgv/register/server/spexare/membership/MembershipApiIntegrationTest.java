@@ -53,6 +53,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -167,7 +168,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -182,7 +183,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final List<MembershipDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -206,7 +207,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final List<MembershipDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -233,7 +234,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -261,7 +262,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                     .get()
                     .uri(uriBuilder -> uriBuilder
                             .queryParam("filter", Membership_.YEAR + ":whatever")
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -279,7 +280,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Membership_.YEAR + ":whatever")
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -306,7 +307,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Membership_.YEAR + ":" + membership.getYear())
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -343,7 +344,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("filter", Membership_.YEAR + ":1900")
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -372,7 +373,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final MembershipDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), membership.getId())
+                    .uri("/{id}", spexare.getUuid(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -385,7 +386,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "year")
-                    .contains(membership.getId(), membership.getYear());
+                    .contains(membership.getUuid(), membership.getYear());
         }
 
         @Test
@@ -394,7 +395,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -416,7 +417,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, membership.getId())
+                    .uri("/{id}", UUID.randomUUID(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -443,7 +444,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -454,7 +455,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final List<MembershipDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -478,7 +479,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -488,7 +489,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -511,7 +512,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", 1L, type.getId())
+                    .uri("/{typeId}", UUID.randomUUID(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -534,7 +535,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), "dummy")
+                    .uri("/{typeId}", spexare.getUuid(), "dummy")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -558,7 +559,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -582,7 +583,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -605,7 +606,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), membership.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -615,7 +616,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
             final List<MembershipDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -638,7 +639,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -661,7 +662,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", -1L, type.getId(), membership.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -684,7 +685,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", membership.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -708,7 +709,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), membership.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -731,7 +732,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), membership.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), membership.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -754,7 +755,7 @@ class MembershipApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), membership.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), membership.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

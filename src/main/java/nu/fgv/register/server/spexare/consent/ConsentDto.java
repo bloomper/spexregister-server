@@ -29,6 +29,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +44,7 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConsentDto extends AbstractAuditableDto<ConsentDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("value")
     private Boolean value;
@@ -53,7 +54,7 @@ public class ConsentDto extends AbstractAuditableDto<ConsentDto> {
 
     @Builder
     public ConsentDto(
-            final Long id,
+            final UUID id,
             final Boolean value,
             final TypeDto type,
             final String createdBy,

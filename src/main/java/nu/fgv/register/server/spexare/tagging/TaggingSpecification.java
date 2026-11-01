@@ -27,6 +27,7 @@ import nu.fgv.register.server.tag.Tag_;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Query restrictions on the spexare by their tags.
@@ -53,7 +54,7 @@ public class TaggingSpecification {
         };
     }
 
-    public static Specification<Tag> hasSpexareId(final Long spexareId) {
+    public static Specification<Tag> hasSpexareId(final UUID spexareId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);
 
@@ -62,7 +63,7 @@ public class TaggingSpecification {
             final Expression<Collection<Tag>> taggings = spexare.get(Spexare_.TAGS);
 
             spexareSubQuery.select(spexare);
-            spexareSubQuery.where(criteriaBuilder.equal(spexare.get(Spexare_.ID), spexareId), criteriaBuilder.isMember(root, taggings));
+            spexareSubQuery.where(criteriaBuilder.equal(spexare.get(Spexare_.UUID), spexareId), criteriaBuilder.isMember(root, taggings));
 
             return criteriaBuilder.exists(spexareSubQuery);
         };

@@ -234,7 +234,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
             final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_tags", Map.of("filter", "name:Musikal")));
 
             assertThat(listed.get("totalElements").asLong()).isEqualTo(1);
-            assertThat(listed.get("items").get(0).get("id").asLong()).isEqualTo(created.get("id").asLong());
+            assertThat(listed.get("items").get(0).get("id").asString()).isEqualTo(created.get("id").asString());
         }
 
         @Test
@@ -258,7 +258,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
             final String token = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Scen", "actorPresent", true)));
 
-            final JsonNode updated = toolContent(callTool(token, "update_task_category", Map.of("id", category.get("id").asLong(), "name", "Scenen")));
+            final JsonNode updated = toolContent(callTool(token, "update_task_category", Map.of("id", category.get("id").asString(), "name", "Scenen")));
 
             assertThat(updated.get("name").asString()).isEqualTo("Scenen");
             assertThat(updated.get("actorPresent").asBoolean()).isTrue();
@@ -269,7 +269,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
             final String token = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
 
-            final JsonNode task = toolContent(callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asLong())));
+            final JsonNode task = toolContent(callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString())));
 
             assertThat(task.get("name").asString()).isEqualTo("Trumpet");
             assertThat(task.get("category").get("name").asString()).isEqualTo("Orkester");
@@ -279,7 +279,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         void should_list_tasks_with_category() {
             final String token = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asLong()));
+            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
             callTool(token, "create_task", Map.of("name", "Affisch"));
 
             final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_tasks", Map.of()));
@@ -295,7 +295,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         void should_filter_tasks_by_category() {
             final String token = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asLong()));
+            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
             callTool(token, "create_task", Map.of("name", "Affisch"));
 
             final JsonNode listed = toolContent(callTool(token, "list_tasks", Map.of("filter", "category.name:Orkester")));
@@ -308,7 +308,7 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         void should_list_spex_without_revivals_by_default() {
             final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon")));
-            final long spexId = spex.get("id").asLong();
+            final String spexId = spex.get("id").asString();
 
             toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spexId, "year", "2006")));
 
@@ -326,10 +326,10 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         void should_list_spex_with_category() {
             final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
             final JsonNode category = toolContent(callTool(adminToken, "create_spex_category", Map.of("name", "Chalmersspexet", "firstYear", "1948")));
-            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon", "categoryId", category.get("id").asLong())));
+            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon", "categoryId", category.get("id").asString())));
             callTool(adminToken, "create_spex", Map.of("year", "1990", "title", "Anna"));
 
-            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spex.get("id").asLong(), "year", "2006")));
+            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spex.get("id").asString(), "year", "2006")));
 
             final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_spex", Map.of("includeRevivals", true)));
 

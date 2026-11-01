@@ -31,6 +31,14 @@ import java.util.Locale;
  */
 public class PolicyPermissionEvaluator implements PermissionEvaluator {
 
+    private static Permission toPermission(final Object permission) {
+        if (permission instanceof Permission p) {
+            return p;
+        }
+
+        return Permission.valueOf(permission.toString().toUpperCase(Locale.ROOT));
+    }
+
     @Override
     public boolean hasPermission(final Authentication authentication, final Object targetDomainObject, final Object permission) {
         return AccessPolicies.get().permits(targetDomainObject, toPermission(permission));
@@ -40,13 +48,5 @@ public class PolicyPermissionEvaluator implements PermissionEvaluator {
     public boolean hasPermission(final Authentication authentication, final Serializable targetId, final String targetType, final Object permission) {
         // Every expression in the application passes the object, never an id
         return false;
-    }
-
-    private static Permission toPermission(final Object permission) {
-        if (permission instanceof Permission p) {
-            return p;
-        }
-
-        return Permission.valueOf(permission.toString().toUpperCase(Locale.ROOT));
     }
 }

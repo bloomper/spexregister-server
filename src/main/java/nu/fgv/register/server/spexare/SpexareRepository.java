@@ -25,6 +25,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -34,16 +35,34 @@ import java.util.Optional;
 public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, Long>, JpaSpecificationExecutor<Spexare> {
 
     /**
-     * {@link #findById}, refused when the caller may not read the spexare.
+     * @param uuid the external id
+     * @return the spexare with that external id, or empty when there is none
+     */
+    Optional<Spexare> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<Spexare> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
+
+    /**
+     * {@link #findByUuid}, refused when the caller may not read the spexare.
      *
      * @param id the spexare id
      * @return the spexare, or empty when there is none
      * @throws org.springframework.security.access.AccessDeniedException when the spexare exists but may not be read
      */
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
-    default Optional<Spexare> findById0(final Long id) {
+    default Optional<Spexare> findByUuid0(final UUID id) {
         return this
-                .findById(id);
+                .findByUuid(id);
     }
 
     /**
@@ -54,18 +73,18 @@ public interface SpexareRepository extends SearchEnabledJpaRepository<Spexare, L
     Optional<Spexare> findByUserExternalId(final String externalId);
 
     /**
-     * @param ids spexare ids
+     * @param ids spexare external ids
      * @return those of the spexare that have a partner, with the partner fetched
      */
-    @Query("SELECT s FROM Spexare s JOIN FETCH s.partner WHERE s.id IN :ids")
-    List<Spexare> findWithPartnerByIdIn(Collection<Long> ids);
+    @Query("SELECT s FROM Spexare s JOIN FETCH s.partner WHERE s.uuid IN :ids")
+    List<Spexare> findWithPartnerByUuidIn(Collection<UUID> ids);
 
     /**
-     * @param ids spexare ids
+     * @param ids spexare external ids
      * @return the spexare with their tags fetched
      */
-    @Query("SELECT DISTINCT s FROM Spexare s LEFT JOIN FETCH s.tags WHERE s.id IN :ids")
-    List<Spexare> findWithTagsByIdIn(Collection<Long> ids);
+    @Query("SELECT DISTINCT s FROM Spexare s LEFT JOIN FETCH s.tags WHERE s.uuid IN :ids")
+    List<Spexare> findWithTagsByUuidIn(Collection<UUID> ids);
 
     long countByPublishedTrue();
 

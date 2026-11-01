@@ -33,6 +33,14 @@ public class PermissionService {
 
     private final AccessPolicies accessPolicies;
 
+    private static <T> T check(final boolean permitted, final T object) {
+        if (!permitted) {
+            throw new AccessDeniedException("Access denied");
+        }
+
+        return object;
+    }
+
     /**
      * @param object the entity
      * @param <T>    the entity type
@@ -128,13 +136,5 @@ public class PermissionService {
      */
     public <T> boolean hasPermission(final T object, final Permission permission) {
         return accessPolicies.permits(object, permission);
-    }
-
-    private static <T> T check(final boolean permitted, final T object) {
-        if (!permitted) {
-            throw new AccessDeniedException("Access denied");
-        }
-
-        return object;
     }
 }

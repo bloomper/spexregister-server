@@ -29,6 +29,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -98,16 +99,16 @@ class SpexareBulkApiTest extends AbstractApiTest {
 
     private static SpexareBulkInputDto input() {
         return SpexareBulkInputDto.builder()
-                .target(BulkTargetDto.builder().ids(List.of(1L, 2L)).build())
+                .target(BulkTargetDto.builder().ids(List.of(uuid(1), uuid(2))).build())
                 .operation(SpexareBulkOperation.TAG_ADD)
-                .tags(List.of(1L))
+                .tags(List.of(uuid(1)))
                 .build();
     }
 
     private static BulkResultDto result() {
         return BulkResultDto.of(SpexareBulkOperation.TAG_ADD, List.of(
-                BulkEntryDto.builder().id(1L).label("Anna Bergström").outcome(BulkOutcome.APPLIED).detail("Sångare").build(),
-                BulkEntryDto.builder().id(2L).label("Bo Nilsson").outcome(BulkOutcome.UNCHANGED).build()
+                BulkEntryDto.builder().id(uuid(1)).label("Anna Bergström").outcome(BulkOutcome.APPLIED).detail("Sångare").build(),
+                BulkEntryDto.builder().id(uuid(2)).label("Bo Nilsson").outcome(BulkOutcome.UNCHANGED).build()
         ));
     }
 

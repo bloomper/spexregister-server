@@ -66,6 +66,13 @@ Spexregister Server tries to adhere as closely as possible to standard HTTP and 
 | A fatal error has occurred.
 |===
 
+[[ids]]
+== Ids
+
+Every resource is identified by a UUID (version 7), such as `01933f2a-7c3e-7b1a-9d2e-4f5a6b7c8d9e`.
+The id never changes, so other systems may store it to refer to the resource.
+Types and states are the exception: they are identified by codes such as `HOME`.
+
 [[versioning]]
 == Versioning
 

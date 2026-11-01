@@ -28,6 +28,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * A specification for one {@link FilterCriteria}. Subclasses list the nested attribute paths that may be filtered on in
@@ -41,6 +42,9 @@ import java.util.Set;
 @Getter
 public class BaseSpecification<T> implements Specification<T> {
 
+    private static final String ID = "id";
+    private static final String UUID_ATTRIBUTE = "uuid";
+
     @Nullable
     private final FilterCriteria criteria;
 
@@ -50,6 +54,22 @@ public class BaseSpecification<T> implements Specification<T> {
 
     protected BaseSpecification(final FilterCriteria criteria) {
         this.criteria = criteria;
+    }
+
+    private static <T> Path<T> externalIdOf(final Path<T> path) {
+        try {
+            return path.get(UUID_ATTRIBUTE);
+        } catch (final IllegalArgumentException | IllegalStateException _) {
+            return path.get(ID);
+        }
+    }
+
+    private static UUID uuidOf(final Object value) {
+        try {
+            return UUID.fromString(value.toString());
+        } catch (final IllegalArgumentException _) {
+            throw new BadRequestException("%s is not an id".formatted(value));
+        }
     }
 
     @Override
@@ -70,6 +90,8 @@ public class BaseSpecification<T> implements Specification<T> {
                     yield builder.isFalse(path.as(Boolean.class));
                 } else if (path.getJavaType().equals(LocalDate.class)) {
                     yield builder.equal(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
+                } else if (path.getJavaType().equals(UUID.class)) {
+                    yield builder.equal(path, uuidOf(criteria.value()));
                 } else {
                     yield builder.equal(path, criteria.value());
                 }
@@ -83,6 +105,8 @@ public class BaseSpecification<T> implements Specification<T> {
                     yield builder.isTrue(path.as(Boolean.class));
                 } else if (path.getJavaType().equals(LocalDate.class)) {
                     yield builder.notEqual(path.as(LocalDate.class), LocalDate.parse((String) criteria.value()));
+                } else if (path.getJavaType().equals(UUID.class)) {
+                    yield builder.notEqual(path, uuidOf(criteria.value()));
                 } else {
                     yield builder.notEqual(path, criteria.value());
                 }
@@ -124,7 +148,7 @@ public class BaseSpecification<T> implements Specification<T> {
 
         try {
             for (final String part : attributePath.split("\\.")) {
-                path = path.get(part);
+                path = ID.equals(part) ? externalIdOf(path) : path.get(part);
             }
         } catch (final IllegalArgumentException | IllegalStateException _) {
             throw new BadRequestException("Unknown filter attribute %s".formatted(attributePath));

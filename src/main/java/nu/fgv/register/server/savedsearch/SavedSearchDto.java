@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +44,7 @@ import java.time.Instant;
 public class SavedSearchDto extends AbstractAuditableDto<SavedSearchDto> {
 
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("name")
     private String name;
@@ -53,7 +54,7 @@ public class SavedSearchDto extends AbstractAuditableDto<SavedSearchDto> {
 
     @Builder
     public SavedSearchDto(
-            final Long id,
+            final UUID id,
             final String name,
             final String query,
             final String createdBy,

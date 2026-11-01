@@ -50,6 +50,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class AuditDiffer {
 
+    private static final String EXTERNAL_ID = "uuid";
+
     private final EntityManagerFactory entityManagerFactory;
     private final AuditRegistry registry;
 
@@ -94,6 +96,10 @@ public class AuditDiffer {
         return String.valueOf(value);
     }
 
+    private static Image imageOf(final Object value) {
+        return (Image) Hibernate.unproxy(value);
+    }
+
     /**
      * The audited fields that differ, by name. Associations compare by id and are shown by their label, and binary
      * values by content type.
@@ -112,6 +118,10 @@ public class AuditDiffer {
         final List<FieldChangeDto> changes = new ArrayList<>();
 
         for (final SingularAttribute<?, ?> attribute : attributesOf(entityClass)) {
+            if (EXTERNAL_ID.equals(attribute.getName())) {
+                continue;
+            }
+
             final Object oldValue = read(attribute, before);
             final Object newValue = read(attribute, after);
 
@@ -216,10 +226,6 @@ public class AuditDiffer {
         final byte[] bytes = asBytes(value);
 
         return bytes == null || bytes.length == 0 ? null : new BinaryValueDto(bytes, contentTypeOf(entityClass, attribute, entity));
-    }
-
-    private static Image imageOf(final Object value) {
-        return (Image) Hibernate.unproxy(value);
     }
 
     private @Nullable String contentTypeOf(final Class<?> entityClass,

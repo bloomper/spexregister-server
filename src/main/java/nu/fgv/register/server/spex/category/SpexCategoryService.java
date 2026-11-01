@@ -19,8 +19,9 @@ package nu.fgv.register.server.spex.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.security.policy.Permission;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -35,11 +36,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
@@ -111,9 +112,9 @@ public class SpexCategoryService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
      */
     @RequiresAdminOrEditorOrUser
-    public SpexCategoryDto findById(final Long id) {
+    public SpexCategoryDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(SPEX_CATEGORY_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
@@ -124,9 +125,9 @@ public class SpexCategoryService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -139,7 +140,7 @@ public class SpexCategoryService {
      * @return the spex categories the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<SpexCategory> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<SpexCategory> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<SpexCategory> spec;
 
@@ -192,7 +193,7 @@ public class SpexCategoryService {
     @RequiresAdmin
     public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     SPEX_CATEGORY_MAPPER.toPartialModel(dto, category);
@@ -208,9 +209,9 @@ public class SpexCategoryService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
      */
     @RequiresAdmin
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesSpexCategoryExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(category -> {
                         repository.delete(category);
@@ -226,9 +227,9 @@ public class SpexCategoryService {
      * @return the category
      */
     @RequiresAdmin
-    public SpexCategoryDto saveLogo(final Long id, final byte[] logo) {
+    public SpexCategoryDto saveLogo(final UUID id, final byte[] logo) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(Image.of(logo, requireSupportedImageMimeType(logo)));
@@ -243,9 +244,9 @@ public class SpexCategoryService {
      * @return the category
      */
     @RequiresAdmin
-    public SpexCategoryDto deleteLogo(final Long id) {
+    public SpexCategoryDto deleteLogo(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(category -> {
                     category.setLogo(null);
@@ -261,18 +262,18 @@ public class SpexCategoryService {
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the category has no logo
      */
     @RequiresAdminOrEditorOrUser
-    public Pair<byte[], String> getLogo(final Long id) {
+    public Pair<byte[], String> getLogo(final UUID id) {
         if (!doesSpexCategoryExist(id)) {
             throw new ResourceNotFoundException(SpexCategory.class, id);
         }
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(SpexCategory::getLogo)
                 .map(logo -> Pair.of(logo.getData(), logo.getContentType()))
                 .orElseThrow(() -> new ResourceNoValueException(SpexCategory.class, SpexCategory_.LOGO, id));
     }
 
-    private boolean doesSpexCategoryExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesSpexCategoryExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 }

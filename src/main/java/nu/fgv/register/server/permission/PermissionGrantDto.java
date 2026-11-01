@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -44,10 +45,10 @@ import java.time.LocalDate;
 public class PermissionGrantDto extends AbstractAuditableDto<PermissionGrantDto> {
 
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("userId")
-    private @Nullable Long userId;
+    private @Nullable UUID userId;
 
     @JsonProperty("role")
     private @Nullable String role;
@@ -59,10 +60,10 @@ public class PermissionGrantDto extends AbstractAuditableDto<PermissionGrantDto>
     private PermissionGrantScope scope;
 
     @JsonProperty("spexareId")
-    private @Nullable Long spexareId;
+    private @Nullable UUID spexareId;
 
     @JsonProperty("spexId")
-    private @Nullable Long spexId;
+    private @Nullable UUID spexId;
 
     @JsonProperty("validUntil")
     private @Nullable LocalDate validUntil;
@@ -72,13 +73,13 @@ public class PermissionGrantDto extends AbstractAuditableDto<PermissionGrantDto>
 
     @Builder
     public PermissionGrantDto(
-            final Long id,
-            final @Nullable Long userId,
+            final UUID id,
+            final @Nullable UUID userId,
             final @Nullable String role,
             final Permission permission,
             final PermissionGrantScope scope,
-            final @Nullable Long spexareId,
-            final @Nullable Long spexId,
+            final @Nullable UUID spexareId,
+            final @Nullable UUID spexId,
             final @Nullable LocalDate validUntil,
             final boolean expired,
             final String createdBy,

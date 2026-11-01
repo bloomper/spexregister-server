@@ -43,7 +43,7 @@ public interface TaggingMapper {
 
     TaggingMapper TAGGING_MAPPER = Mappers.getMapper(TaggingMapper.class);
 
-    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
     @Mapping(target = "tagId", source = "tag.id")
     @Mapping(target = "tagName", source = "tag.name")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")

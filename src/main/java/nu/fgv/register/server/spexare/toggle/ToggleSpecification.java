@@ -23,6 +23,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Query restrictions on toggles.
@@ -37,8 +38,8 @@ public class ToggleSpecification {
     private ToggleSpecification() {
     }
 
-    public static Specification<Toggle> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Toggle_.id), id);
+    public static Specification<Toggle> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Toggle_.uuid), id);
     }
 
     public static Specification<Toggle> hasSpexare(final Spexare spexare) {

@@ -33,8 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -83,14 +85,14 @@ class ActorApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var actor1 = ActorDto.builder().id(1L).build();
-        final var actor2 = ActorDto.builder().id(2L).build();
+        final var actor1 = ActorDto.builder().id(uuid(1)).build();
+        final var actor2 = ActorDto.builder().id(uuid(2)).build();
 
-        when(service.findByTaskActivity(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(actor1, actor2), PageRequest.of(1, 2, Sort.by("id")), 10));
+        when(service.findByTaskActivity(any(UUID.class), any(UUID.class), any(UUID.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(actor1, actor2), PageRequest.of(1, 2, Sort.by("id")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors?page=1&size=2&sort=id,desc&filter=role:whatever", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors?page=1&size=2&sort=id,desc&filter=role:whatever", uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -124,20 +126,20 @@ class ActorApiTest extends AbstractApiTest {
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "retrieve", Long.class, Long.class, Long.class, Pageable.class, String.class))
+                                security(getRolesFromMethod(ActorApi.class, "retrieve", UUID.class, UUID.class, UUID.class, Pageable.class, String.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var actor = ActorDto.builder().id(uuid(1)).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(actor);
+        when(service.findById(any(UUID.class), any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{id}", 1L, 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{id}", uuid(1), uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -160,7 +162,7 @@ class ActorApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "retrieve", Long.class, Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(ActorApi.class, "retrieve", UUID.class, UUID.class, UUID.class, UUID.class))
                         )
                 );
     }
@@ -169,13 +171,13 @@ class ActorApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(ActorCreateDto.class);
         final var dto = ActorCreateDto.builder().role("Alfred Nobel").build();
-        final var actor = ActorDto.builder().id(1L).role(dto.role()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var actor = ActorDto.builder().id(uuid(1)).role(dto.role()).vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(ActorCreateDto.class))).thenReturn(actor);
+        when(service.create(any(UUID.class), any(UUID.class), any(UUID.class), any(String.class), any(ActorCreateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}", 1L, 1L, 1L, "B1")
+                        post("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}", uuid(1), uuid(1), uuid(1), "B1")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -201,7 +203,7 @@ class ActorApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "create", Long.class, Long.class, Long.class, String.class, ActorCreateDto.class))
+                                security(getRolesFromMethod(ActorApi.class, "create", UUID.class, UUID.class, UUID.class, String.class, ActorCreateDto.class))
                         )
                 );
     }
@@ -209,14 +211,14 @@ class ActorApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(ActorUpdateDto.class);
-        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
-        final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
+        final var actor = ActorDto.builder().id(uuid(1)).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var dto = ActorUpdateDto.builder().id(uuid(1)).role("Alfred Nobel").build();
 
-        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(actor);
+        when(service.update(any(UUID.class), any(UUID.class), any(UUID.class), any(String.class), any(UUID.class), any(ActorUpdateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                        put("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", uuid(1), uuid(1), uuid(1), "B1", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -243,7 +245,7 @@ class ActorApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "update", Long.class, Long.class, Long.class, String.class, Long.class, ActorUpdateDto.class))
+                                security(getRolesFromMethod(ActorApi.class, "update", UUID.class, UUID.class, UUID.class, String.class, UUID.class, ActorUpdateDto.class))
                         )
                 );
     }
@@ -251,14 +253,14 @@ class ActorApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(ActorUpdateDto.class);
-        final var actor = ActorDto.builder().id(1L).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
-        final var dto = ActorUpdateDto.builder().id(1L).role("Alfred Nobel").build();
+        final var actor = ActorDto.builder().id(uuid(1)).role("Alfred Nobel").vocal(TypeDto.builder().id("B1").type(TypeType.VOCAL).build()).build();
+        final var dto = ActorUpdateDto.builder().id(uuid(1)).role("Alfred Nobel").build();
 
-        when(service.partialUpdate(any(Long.class), any(Long.class), any(Long.class), any(String.class), any(Long.class), any(ActorUpdateDto.class))).thenReturn(actor);
+        when(service.partialUpdate(any(UUID.class), any(UUID.class), any(UUID.class), any(String.class), any(UUID.class), any(ActorUpdateDto.class))).thenReturn(actor);
 
         mockMvc
                 .perform(
-                        patch("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                        patch("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", uuid(1), uuid(1), uuid(1), "B1", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -285,7 +287,7 @@ class ActorApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "partialUpdate", Long.class, Long.class, Long.class, String.class, Long.class, ActorUpdateDto.class))
+                                security(getRolesFromMethod(ActorApi.class, "partialUpdate", UUID.class, UUID.class, UUID.class, String.class, UUID.class, ActorUpdateDto.class))
                         )
                 );
     }
@@ -294,7 +296,7 @@ class ActorApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", 1L, 1L, 1L, "B1", 1L)
+                        delete("/api/spexare/{spexareId}/activities/{activityId}/task-activities/{taskActivityId}/actors/{vocalId}/{id}", uuid(1), uuid(1), uuid(1), "B1", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -312,7 +314,7 @@ class ActorApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the task activity")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(ActorApi.class, "delete", Long.class, Long.class, Long.class, String.class, Long.class))
+                                security(getRolesFromMethod(ActorApi.class, "delete", UUID.class, UUID.class, UUID.class, String.class, UUID.class))
                         )
                 );
     }

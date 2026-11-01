@@ -65,6 +65,12 @@ class JobServiceTest {
             progressService
     );
 
+    private static void authenticateAs(final String subject) {
+        final Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", subject).build();
+
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(ROLE_EDITOR))));
+    }
+
     @BeforeEach
     void setUp() {
         final JobExecution execution = mock(JobExecution.class);
@@ -94,11 +100,5 @@ class JobServiceTest {
 
         assertThrows(AccessDeniedException.class, () -> service.getJobProgress(1L).blockLast());
         verify(progressService, never()).getStream(1L);
-    }
-
-    private static void authenticateAs(final String subject) {
-        final Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("sub", subject).build();
-
-        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(ROLE_EDITOR))));
     }
 }

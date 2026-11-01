@@ -57,28 +57,6 @@ import static org.mockito.Mockito.when;
  */
 class SecurityContextWebSocketGraphQlInterceptorTest {
 
-    @Test
-    void should_end_a_subscription_with_an_error_when_the_token_expires() {
-        final Flux<?> stream = subscribe(Instant.now().plusSeconds(2), Flux.interval(Duration.ofMillis(100)));
-
-        assertThrows(AccessDeniedException.class, () -> stream.blockLast(Duration.ofSeconds(5)));
-    }
-
-    @Test
-    void should_let_a_subscription_that_ends_before_the_token_complete() {
-        final Flux<?> stream = subscribe(Instant.now().plusSeconds(60), Flux.just(1, 2));
-
-        assertThat(stream.collectList().block(Duration.ofSeconds(5)), is(equalTo(List.of(1, 2))));
-    }
-
-    @Test
-    void should_refuse_a_request_once_the_token_has_expired() {
-        final Map<String, Object> attributes = new HashMap<>();
-        final SecurityContextWebSocketGraphQlInterceptor interceptor = connect(Instant.now().minusSeconds(1), attributes);
-
-        assertThrows(AccessDeniedException.class, () -> interceptor.intercept(request(attributes), chainOf(Flux.just(1))).block());
-    }
-
     private static Flux<?> subscribe(final Instant expiresAt, final Flux<?> events) {
         final Map<String, Object> attributes = new HashMap<>();
         final WebGraphQlResponse response = connect(expiresAt, attributes).intercept(request(attributes), chainOf(events)).block();
@@ -114,5 +92,27 @@ class SecurityContextWebSocketGraphQlInterceptorTest {
         return request -> Mono.just(new WebGraphQlResponse(new DefaultExecutionGraphQlResponse(
                 ExecutionInput.newExecutionInput("subscription { jobProgress(id: 1) { id } }").build(),
                 ExecutionResultImpl.newExecutionResult().data(events).build())));
+    }
+
+    @Test
+    void should_end_a_subscription_with_an_error_when_the_token_expires() {
+        final Flux<?> stream = subscribe(Instant.now().plusSeconds(2), Flux.interval(Duration.ofMillis(100)));
+
+        assertThrows(AccessDeniedException.class, () -> stream.blockLast(Duration.ofSeconds(5)));
+    }
+
+    @Test
+    void should_let_a_subscription_that_ends_before_the_token_complete() {
+        final Flux<?> stream = subscribe(Instant.now().plusSeconds(60), Flux.just(1, 2));
+
+        assertThat(stream.collectList().block(Duration.ofSeconds(5)), is(equalTo(List.of(1, 2))));
+    }
+
+    @Test
+    void should_refuse_a_request_once_the_token_has_expired() {
+        final Map<String, Object> attributes = new HashMap<>();
+        final SecurityContextWebSocketGraphQlInterceptor interceptor = connect(Instant.now().minusSeconds(1), attributes);
+
+        assertThrows(AccessDeniedException.class, () -> interceptor.intercept(request(attributes), chainOf(Flux.just(1))).block());
     }
 }

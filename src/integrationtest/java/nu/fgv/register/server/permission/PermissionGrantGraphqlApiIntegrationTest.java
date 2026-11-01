@@ -46,6 +46,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -103,6 +104,10 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         this.spexActivityRepository = spexActivityRepository;
     }
 
+    private static String classification(final org.springframework.graphql.ResponseError error) {
+        return String.valueOf(error.getExtensions().get("classification"));
+    }
+
     @BeforeEach
     void setUp() {
         httpGraphQlTester = HttpGraphQlTester.create(
@@ -132,7 +137,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
     @Test
     void should_let_only_admins_manage_grants() {
         final Spexare spexare = spexare("Petra", false);
-        final Map<String, Object> input = Map.of("userId", grantee.getId(), "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getId());
+        final Map<String, Object> input = Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid());
 
         for (final GraphQlTester tester : new GraphQlTester[]{as(obtainEditorAccessToken()), as(obtainUserAccessToken())}) {
             tester.document(CREATE).variable("input", input).execute().errors()
@@ -142,7 +147,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         }
 
         final String id = as(obtainAdminAccessToken()).document(CREATE).variable("input", input).execute().errors().verify()
-                .path("permissionGrantCreate.user.id").entity(Long.class).isEqualTo(grantee.getId())
+                .path("permissionGrantCreate.user.id").entity(UUID.class).isEqualTo(grantee.getUuid())
                 .path("permissionGrantCreate.expired").entity(Boolean.class).isEqualTo(false)
                 .path("permissionGrantCreate.id").entity(String.class).get();
 
@@ -172,11 +177,11 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         final Spexare spexare = spexare("Petra", false);
 
         for (final Map<String, Object> input : new Map[]{
-                Map.of("userId", grantee.getId(), "role", "USER", "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getId()),
-                Map.of("permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getId()),
-                Map.of("role", "REVIVAL", "permission", "READ", "scope", "SPEX", "spexId", spex.getId()),
-                Map.of("userId", grantee.getId(), "permission", "READ", "scope", "SPEX", "spexareId", spexare.getId()),
-                Map.of("userId", grantee.getId(), "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getId(),
+                Map.of("userId", grantee.getUuid(), "role", "USER", "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid()),
+                Map.of("permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid()),
+                Map.of("role", "REVIVAL", "permission", "READ", "scope", "SPEX", "spexId", spex.getUuid()),
+                Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEX", "spexareId", spexare.getUuid()),
+                Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid(),
                         "validUntil", LocalDate.now().minusDays(1).toString())
         }) {
             as(obtainAdminAccessToken()).document(CREATE).variable("input", input).execute().errors()
@@ -199,7 +204,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
 
         as(obtainUserAccessToken())
                 .document("query s($id: ID!) { spexare(id: $id) { permissions { read write delete administer } } }")
-                .variable("id", participant.getId()).execute().errors().verify()
+                .variable("id", participant.getUuid()).execute().errors().verify()
                 .path("spexare.permissions.write").entity(Boolean.class).isEqualTo(true)
                 .path("spexare.permissions.delete").entity(Boolean.class).isEqualTo(false);
     }
@@ -238,12 +243,12 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
 
         as(obtainUserAccessToken())
                 .document("mutation u($id: ID!) { spexUpdate(input: { id: $id, year: \"1956\", title: \"Ali Baba och de fyrtio rövarna\" }) { title } }")
-                .variable("id", spex.getId()).execute().errors().verify()
+                .variable("id", spex.getUuid()).execute().errors().verify()
                 .path("spexUpdate.title").entity(String.class).isEqualTo("Ali Baba och de fyrtio rövarna");
 
         as(obtainUserAccessToken())
                 .document("mutation d($id: ID!) { spexDelete(id: $id) }")
-                .variable("id", spex.getId()).execute().errors()
+                .variable("id", spex.getUuid()).execute().errors()
                 .satisfy(errors -> assertThat(errors).anyMatch(this::isForbidden));
     }
 
@@ -256,7 +261,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
 
         as(obtainUserAccessToken())
                 .document("query s($id: ID!) { spexare(id: $id) { socialSecurityNumber } }")
-                .variable("id", spexare.getId()).execute().errors().verify()
+                .variable("id", spexare.getUuid()).execute().errors().verify()
                 .path("spexare.socialSecurityNumber").entity(String.class).isEqualTo("19121212");
     }
 
@@ -267,7 +272,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
 
         as(obtainAdminAccessToken())
                 .document("mutation d($id: ID!) { spexareDelete(id: $id) }")
-                .variable("id", spexare.getId()).execute().errors().verify();
+                .variable("id", spexare.getUuid()).execute().errors().verify();
 
         assertThat(grantRepository.count()).isZero();
     }
@@ -275,7 +280,7 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
     private void updateSpexare(final Spexare spexare, final boolean permitted) {
         final var response = as(obtainUserAccessToken())
                 .document(UPDATE_SPEXARE)
-                .variable("id", spexare.getId())
+                .variable("id", spexare.getUuid())
                 .variable("firstName", spexare.getFirstName() + "-ändrad")
                 .execute();
 
@@ -327,9 +332,5 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
 
     private boolean isForbidden(final org.springframework.graphql.ResponseError error) {
         return ErrorType.FORBIDDEN.toString().equals(classification(error));
-    }
-
-    private static String classification(final org.springframework.graphql.ResponseError error) {
-        return String.valueOf(error.getExtensions().get("classification"));
     }
 }

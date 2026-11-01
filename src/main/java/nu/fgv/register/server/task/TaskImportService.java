@@ -30,6 +30,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
 
@@ -59,7 +60,7 @@ public class TaskImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(TaskImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v)
+                                "id", v -> service.exists((UUID) v)
                         ))
                         .build()
         );
@@ -92,7 +93,7 @@ public class TaskImportService extends AbstractImportService {
         return summary.toResult();
     }
 
-    private @Nullable Long currentCategoryId(final Long id) {
+    private @Nullable UUID currentCategoryId(final UUID id) {
         try {
             return service.findCategoryByTask(id).getId();
         } catch (final ResourceNoValueException _) {

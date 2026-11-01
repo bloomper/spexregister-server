@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -42,7 +43,7 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto extends AbstractAuditableDto<UserDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("externalId")
     private String externalId;
@@ -55,7 +56,7 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
 
     @Builder
     public UserDto(
-            final Long id,
+            final UUID id,
             final String externalId,
             final String email,
             final String temporaryPassword,

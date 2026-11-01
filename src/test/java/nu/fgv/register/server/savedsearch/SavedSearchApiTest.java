@@ -26,11 +26,12 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -73,7 +74,7 @@ class SavedSearchApiTest extends AbstractApiTest {
 
     @Test
     void should_get_all() throws Exception {
-        final var savedSearch = SavedSearchDto.builder().id(1L).name("Inactive members").query("q=inactive").build();
+        final var savedSearch = SavedSearchDto.builder().id(uuid(1)).name("Inactive members").query("q=inactive").build();
 
         when(service.findAll()).thenReturn(List.of(savedSearch));
 
@@ -101,7 +102,7 @@ class SavedSearchApiTest extends AbstractApiTest {
     @Test
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(SavedSearchCreateDto.class);
-        final var savedSearch = SavedSearchDto.builder().id(1L).name("Inactive members").query("q=inactive").build();
+        final var savedSearch = SavedSearchDto.builder().id(uuid(1)).name("Inactive members").query("q=inactive").build();
         final var dto = SavedSearchCreateDto.builder().name("Inactive members").query("q=inactive").build();
 
         when(service.create(any(SavedSearchCreateDto.class))).thenReturn(savedSearch);
@@ -138,13 +139,13 @@ class SavedSearchApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var savedSearch = SavedSearchDto.builder().id(1L).name("Inactive members").query("q=inactive").build();
+        final var savedSearch = SavedSearchDto.builder().id(uuid(1)).name("Inactive members").query("q=inactive").build();
 
-        when(service.findById(anyLong())).thenReturn(savedSearch);
+        when(service.findById(any(UUID.class))).thenReturn(savedSearch);
 
         mockMvc
                 .perform(
-                        get("/api/saved-searches/{id}", 1L)
+                        get("/api/saved-searches/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -164,7 +165,7 @@ class SavedSearchApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SavedSearchApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(SavedSearchApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -172,14 +173,14 @@ class SavedSearchApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SavedSearchUpdateDto.class);
-        final var savedSearch = SavedSearchDto.builder().id(1L).name("Inactive members").query("q=inactive").build();
-        final var dto = SavedSearchUpdateDto.builder().id(1L).name("Inactive members").query("q=inactive").build();
+        final var savedSearch = SavedSearchDto.builder().id(uuid(1)).name("Inactive members").query("q=inactive").build();
+        final var dto = SavedSearchUpdateDto.builder().id(uuid(1)).name("Inactive members").query("q=inactive").build();
 
         when(service.update(any(SavedSearchUpdateDto.class))).thenReturn(savedSearch);
 
         mockMvc
                 .perform(
-                        put("/api/saved-searches/{id}", 1L)
+                        put("/api/saved-searches/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -206,18 +207,18 @@ class SavedSearchApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SavedSearchApi.class, "update", Long.class, SavedSearchUpdateDto.class))
+                                security(getRolesFromMethod(SavedSearchApi.class, "update", UUID.class, SavedSearchUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        doNothing().when(service).deleteById(anyLong());
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/saved-searches/{id}", 1L)
+                        delete("/api/saved-searches/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -233,7 +234,7 @@ class SavedSearchApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the saved search")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SavedSearchApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(SavedSearchApi.class, "delete", UUID.class))
                         )
                 );
     }

@@ -39,6 +39,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -275,15 +276,15 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("tagPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedTags(final int size) {
+        private List<UUID> persistPermittedTags(final int size) {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var tag = persistTag(randomizeTag());
-                        return tag.getId();
+                        return tag.getUuid();
                     })
                     .toList();
         }
@@ -444,7 +445,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -460,7 +461,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -484,7 +485,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -518,7 +519,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -590,7 +591,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tag")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -657,7 +658,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("tag/tagDelete")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -674,7 +675,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("tag/tagDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -695,7 +696,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tagDelete")
-                    .variable("id", tag.getId())
+                    .variable("id", tag.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -714,7 +715,7 @@ class TagGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("tag/tagDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

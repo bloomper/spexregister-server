@@ -29,6 +29,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -42,7 +44,7 @@ public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
 
     @JsonProperty("id")
     @ExcelCell(header = "task.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "{task.name.notEmpty}")
     @Size(max = 255, message = "{task.name.size}")
@@ -53,7 +55,7 @@ public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
     @NotNull(message = "{task.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "task.impex.category.id.columnName", position = 3, updatable = true)
-    private Long categoryId;
+    private UUID categoryId;
 
     @Nullable
     @JsonProperty("categoryName")

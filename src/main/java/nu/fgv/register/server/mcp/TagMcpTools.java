@@ -30,6 +30,8 @@ import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 import static nu.fgv.register.server.mcp.McpToolSupport.FILTER_DESCRIPTION;
 import static nu.fgv.register.server.mcp.McpToolSupport.PAGE_DESCRIPTION;
 import static nu.fgv.register.server.mcp.McpToolSupport.SIZE_DESCRIPTION;
@@ -59,7 +61,7 @@ public class TagMcpTools {
 
     @McpTool(name = "get_tag", description = "Get a tag",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpTag getTag(@McpToolParam(description = "Tag id") final Long id) {
+    public McpTag getTag(@McpToolParam(description = "Tag id") final UUID id) {
         return McpTag.of(service.findById(id));
     }
 
@@ -73,7 +75,7 @@ public class TagMcpTools {
 
     @McpTool(name = "update_tag", description = "Rename a tag. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTag updateTag(@McpToolParam(description = "Tag id") final Long id,
+    public McpTag updateTag(@McpToolParam(description = "Tag id") final UUID id,
                             @McpToolParam(description = "New tag name") final String name) {
         support.audit("update_tag");
 
@@ -82,14 +84,14 @@ public class TagMcpTools {
 
     @McpTool(name = "delete_tag", description = "Permanently delete a single tag. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteTag(@McpToolParam(description = "Tag id") final Long id) {
+    public String deleteTag(@McpToolParam(description = "Tag id") final UUID id) {
         support.audit("delete_tag");
         service.deleteById(id);
 
         return "Deleted tag %d".formatted(id);
     }
 
-    public record McpTag(Long id, String name) {
+    public record McpTag(UUID id, String name) {
 
         static McpTag of(final TagDto dto) {
             return new McpTag(dto.getId(), dto.getName());

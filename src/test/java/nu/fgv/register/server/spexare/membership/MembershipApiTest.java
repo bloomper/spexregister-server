@@ -33,8 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -79,14 +81,14 @@ class MembershipApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var membership1 = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
-        final var membership2 = MembershipDto.builder().id(2L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        final var membership1 = MembershipDto.builder().id(uuid(1)).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        final var membership2 = MembershipDto.builder().id(uuid(2)).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(membership1, membership2), PageRequest.of(1, 2, Sort.by("year")), 10));
+        when(service.findBySpexare(any(UUID.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(membership1, membership2), PageRequest.of(1, 2, Sort.by("year")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc&filter=year:whatever", 1L)
+                        get("/api/spexare/{spexareId}/memberships?page=1&size=2&sort=year,desc&filter=year:whatever", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -119,20 +121,20 @@ class MembershipApiTest extends AbstractApiTest {
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(MembershipApi.class, "retrieve", Long.class, Pageable.class, String.class))
+                                security(getRolesFromMethod(MembershipApi.class, "retrieve", UUID.class, Pageable.class, String.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var membership = MembershipDto.builder().id(1L).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        final var membership = MembershipDto.builder().id(uuid(1)).year("2022").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(membership);
+        when(service.findById(any(UUID.class), any(UUID.class))).thenReturn(membership);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/memberships/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/memberships/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -153,7 +155,7 @@ class MembershipApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(MembershipApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(MembershipApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
@@ -162,13 +164,13 @@ class MembershipApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(MembershipCreateDto.class);
         final var dto = MembershipCreateDto.builder().year("2023").build();
-        final var membership = MembershipDto.builder().id(1L).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
+        final var membership = MembershipDto.builder().id(uuid(1)).year("2023").type(TypeDto.builder().id("FGV").type(TypeType.MEMBERSHIP).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(MembershipCreateDto.class))).thenReturn(membership);
+        when(service.create(any(UUID.class), any(String.class), any(MembershipCreateDto.class))).thenReturn(membership);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/memberships/{typeId}", 1L, "FGV")
+                        post("/api/spexare/{spexareId}/memberships/{typeId}", uuid(1), "FGV")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -192,7 +194,7 @@ class MembershipApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(MembershipApi.class, "create", Long.class, String.class, MembershipCreateDto.class))
+                                security(getRolesFromMethod(MembershipApi.class, "create", UUID.class, String.class, MembershipCreateDto.class))
                         )
                 );
     }
@@ -201,7 +203,7 @@ class MembershipApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/memberships/{typeId}/{id}", 1L, "FGV", 1L)
+                        delete("/api/spexare/{spexareId}/memberships/{typeId}/{id}", uuid(1), "FGV", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -217,7 +219,7 @@ class MembershipApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the membership")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(MembershipApi.class, "delete", Long.class, String.class, Long.class))
+                                security(getRolesFromMethod(MembershipApi.class, "delete", UUID.class, String.class, UUID.class))
                         )
                 );
     }

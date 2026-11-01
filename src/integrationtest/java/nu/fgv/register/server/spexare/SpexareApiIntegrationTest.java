@@ -60,6 +60,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -557,7 +558,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -570,14 +571,14 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "firstName", "lastName", "nickName")
-                    .contains(spexare.getId(), spexare.getFirstName(), spexare.getLastName(), spexare.getNickName());
+                    .contains(spexare.getUuid(), spexare.getFirstName(), spexare.getLastName(), spexare.getNickName());
         }
 
         @Test
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -602,7 +603,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto before = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -625,7 +626,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto updated = restTestClient
                     .put()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -638,7 +639,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto after = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -731,7 +732,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto before = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -797,7 +798,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto before = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -818,7 +819,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -831,7 +832,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto after = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -876,7 +877,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto before = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -940,7 +941,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -954,7 +955,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -975,7 +976,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", spexare.getId())
+                    .uri("/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1003,7 +1004,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -1013,7 +1014,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final byte[] result = restTestClient
                     .get()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1037,7 +1038,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
                     .apiVersion("1.0")
@@ -1047,7 +1048,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final byte[] result = restTestClient
                     .get()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1067,7 +1068,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -1077,7 +1078,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1086,7 +1087,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/{spexareId}/image", spexare.getId())
+                    .uri("/{spexareId}/image", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1110,7 +1111,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto result = restTestClient
                     .get()
-                    .uri("/{spexareId}/partner", spexare.getId())
+                    .uri("/{spexareId}/partner", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1123,14 +1124,14 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "firstName", "lastName", "nickName")
-                    .contains(partner.getId(), partner.getFirstName(), partner.getLastName(), partner.getNickName());
+                    .contains(partner.getUuid(), partner.getFirstName(), partner.getLastName(), partner.getNickName());
         }
 
         @Test
         void should_return_404_when_retrieving_and_spexare_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{spexareId}/partner", 1L)
+                    .uri("/{spexareId}/partner", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1150,7 +1151,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{spexareId}/partner", spexare.getId())
+                    .uri("/{spexareId}/partner", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1171,7 +1172,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexareId}/partner/{id}", spexare.getId(), partner.getId())
+                    .uri("/{spexareId}/partner/{id}", spexare.getUuid(), partner.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1183,7 +1184,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_updating_and_spexare_not_found() {
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{spexareId}/partner/{id}", 1L, 1L)
+                    .uri("/{spexareId}/partner/{id}", UUID.randomUUID(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1203,7 +1204,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{spexareId}/partner/{id}", spexare.getId(), 1L)
+                    .uri("/{spexareId}/partner/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1228,7 +1229,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{spexareId}/partner", spexare.getId())
+                    .uri("/{spexareId}/partner", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1244,7 +1245,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{spexareId}/partner", spexare.getId())
+                    .uri("/{spexareId}/partner", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1258,7 +1259,7 @@ class SpexareApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_removing_and_spexare_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{spexareId}/partner", 1L)
+                    .uri("/{spexareId}/partner", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")

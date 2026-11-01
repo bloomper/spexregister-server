@@ -27,15 +27,16 @@ import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -59,28 +60,28 @@ public class PermissionsGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "permissions")
     @Transactional(readOnly = true)
     public Map<SpexareDto, PermissionsDto> spexare(final List<SpexareDto> spexare) {
-        return permissions(spexare, SpexareDto::getId, spexareRepository, Spexare::getId);
+        return permissions(spexare, SpexareDto::getId, spexareRepository::findByUuidIn, Spexare::getUuid);
     }
 
     @BatchMapping(typeName = "Spex", field = "permissions")
     @Transactional(readOnly = true)
     public Map<SpexDto, PermissionsDto> spex(final List<SpexDto> spex) {
-        return permissions(spex, SpexDto::getId, spexRepository, Spex::getId);
+        return permissions(spex, SpexDto::getId, spexRepository::findByUuidIn, Spex::getUuid);
     }
 
     @BatchMapping(typeName = "News", field = "permissions")
     @Transactional(readOnly = true)
     public Map<NewsDto, PermissionsDto> news(final List<NewsDto> news) {
-        return permissions(news, NewsDto::getId, newsRepository, News::getId);
+        return permissions(news, NewsDto::getId, newsRepository::findByUuidIn, News::getUuid);
     }
 
     private <D, E> Map<D, PermissionsDto> permissions(final List<D> dtos,
-                                                      final Function<D, Long> dtoId,
-                                                      final CrudRepository<E, Long> repository,
-                                                      final Function<E, Long> entityId) {
-        final Map<Long, E> entities = new HashMap<>();
+                                                      final Function<D, UUID> dtoId,
+                                                      final Function<Collection<UUID>, List<E>> lookup,
+                                                      final Function<E, UUID> entityId) {
+        final Map<UUID, E> entities = new HashMap<>();
 
-        repository.findAllById(dtos.stream().map(dtoId).toList()).forEach(entity -> entities.put(entityId.apply(entity), entity));
+        lookup.apply(dtos.stream().map(dtoId).toList()).forEach(entity -> entities.put(entityId.apply(entity), entity));
 
         final Map<D, PermissionsDto> permissions = new LinkedHashMap<>();
 

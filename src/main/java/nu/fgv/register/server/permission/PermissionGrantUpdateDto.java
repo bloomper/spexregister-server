@@ -24,6 +24,7 @@ import nu.fgv.register.server.security.policy.Permission;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -34,7 +35,7 @@ import java.time.LocalDate;
 public record PermissionGrantUpdateDto(
         @NotNull
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotNull
         @JsonProperty("permission")

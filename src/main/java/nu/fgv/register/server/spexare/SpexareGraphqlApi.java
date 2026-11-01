@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexareExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, @Nullable @Argument final ReportType reportType, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, @Nullable @Argument final ReportType reportType, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(SpexareExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, reportType, locale))
                 .build();
@@ -92,7 +93,7 @@ public class SpexareGraphqlApi {
     @QueryMapping("spexareMeExport")
     @RequiresAdminOrEditorOrUser
     public JobReferenceDto exportMe(@Argument final ImpexType type, final Locale locale) {
-        final Long id = service.findByCurrentUser()
+        final UUID id = service.findByCurrentUser()
                 .map(SpexareDto::getId)
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, "me"));
 
@@ -109,19 +110,19 @@ public class SpexareGraphqlApi {
 
     @QueryMapping("spexare")
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexareDto retrieve(@Argument final Long id) {
+    public SpexareDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
     @QueryMapping("spexareByIds")
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<SpexareDto> retrieveByIds(@Argument final List<Long> ids) {
+    public List<SpexareDto> retrieveByIds(@Argument final List<UUID> ids) {
         return service.findByIds(ids);
     }
 
     @QueryMapping("spexareBySpex")
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<SpexareDto> retrieveBySpex(@Argument final Long spexId) {
+    public List<SpexareDto> retrieveBySpex(@Argument final UUID spexId) {
         return service.findBySpex(spexId);
     }
 
@@ -140,7 +141,7 @@ public class SpexareGraphqlApi {
 
     @MutationMapping("spexareDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long id, @Argument final boolean purge) {
+    public void delete(@Argument final UUID id, @Argument final boolean purge) {
         if (purge && !isAdministrator()) {
             throw new AccessDeniedException("Access denied");
         }
@@ -152,7 +153,7 @@ public class SpexareGraphqlApi {
 
     @MutationMapping("spexareImageDelete")
     @RequiresAdminOrEditorOrUser
-    public void deleteImage(@Argument final Long id) {
+    public void deleteImage(@Argument final UUID id) {
         service.deleteImage(id);
     }
 
@@ -165,7 +166,7 @@ public class SpexareGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "partner")
     @RequiresAdminOrEditorOrUser
     public Map<SpexareDto, SpexareDto> retrievePartners(final List<SpexareDto> dtos) {
-        final Map<Long, SpexareDto> partners = service.findPartnersBySpexare(dtos.stream().map(SpexareDto::getId).toList());
+        final Map<UUID, SpexareDto> partners = service.findPartnersBySpexare(dtos.stream().map(SpexareDto::getId).toList());
 
         return dtos.stream()
                 .filter(dto -> partners.containsKey(dto.getId()))
@@ -174,13 +175,13 @@ public class SpexareGraphqlApi {
 
     @MutationMapping("spexarePartnerAdd")
     @RequiresAdminOrEditorOrUser
-    public void addPartner(@Argument final Long spexareId, @Argument final Long id) {
+    public void addPartner(@Argument final UUID spexareId, @Argument final UUID id) {
         service.addPartner(spexareId, id);
     }
 
     @MutationMapping("spexarePartnerRemove")
     @RequiresAdminOrEditorOrUser
-    public void removePartner(@Argument final Long spexareId) {
+    public void removePartner(@Argument final UUID spexareId) {
         service.removePartner(spexareId);
     }
 

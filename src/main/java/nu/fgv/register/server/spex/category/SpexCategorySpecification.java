@@ -22,6 +22,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Filters on spex categories for the {@code filter} expressions of
@@ -42,8 +43,8 @@ public class SpexCategorySpecification extends BaseSpecification<SpexCategory> {
         super(criteria);
     }
 
-    public static Specification<SpexCategory> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(SpexCategory_.id).in(ids);
+    public static Specification<SpexCategory> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(SpexCategory_.uuid).in(ids);
     }
 
 }

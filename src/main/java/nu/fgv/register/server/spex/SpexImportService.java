@@ -32,6 +32,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.util.FileUtil.downloadImage;
@@ -70,15 +71,15 @@ public class SpexImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(SpexImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v),
-                                "categoryId", v -> categoryService.exists((Long) v)
+                                "id", v -> service.exists((UUID) v),
+                                "categoryId", v -> categoryService.exists((UUID) v)
                         ))
                         .build(),
                 ImportSpec.builder()
                         .clazz(SpexRevivalImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v),
-                                "parentId", v -> service.exists((Long) v)
+                                "id", v -> service.exists((UUID) v),
+                                "parentId", v -> service.exists((UUID) v)
                         ))
                         .build()
         );
@@ -122,13 +123,13 @@ public class SpexImportService extends AbstractImportService {
         return summary.toResult();
     }
 
-    private @Nullable Long currentCategoryId(final Long id) {
+    private @Nullable UUID currentCategoryId(final UUID id) {
         final SpexCategoryDto category = service.findCategoriesBySpex(List.of(id)).get(id);
 
         return category != null ? category.getId() : null;
     }
 
-    private void processPoster(final Long id, @Nullable final String url) {
+    private void processPoster(final UUID id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
             service.savePoster(id, downloadImage(url));
         } else if (!hasText(url)) {

@@ -35,7 +35,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -102,8 +104,8 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var task1 = TaskDto.builder().id(1L).name("Scenmästare").build();
-        final var task2 = TaskDto.builder().id(2L).name("Ljusmästare").build();
+        final var task1 = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
+        final var task2 = TaskDto.builder().id(uuid(2)).name("Ljusmästare").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(task1, task2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -149,7 +151,7 @@ class TaskApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/tasks?ids=1,2,3&type=excel")
+                        get("/api/tasks?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -177,7 +179,7 @@ class TaskApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(TaskCreateDto.class);
         final var dto = TaskCreateDto.builder().name("Scenmästare").build();
 
-        when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(1L).name(dto.name()).build());
+        when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(uuid(1)).name(dto.name()).build());
 
         mockMvc
                 .perform(
@@ -236,13 +238,13 @@ class TaskApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
 
-        when(service.findById(any(Long.class))).thenReturn(task);
+        when(service.findById(any(UUID.class))).thenReturn(task);
 
         mockMvc
                 .perform(
-                        get("/api/tasks/{id}", 1L)
+                        get("/api/tasks/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -262,7 +264,7 @@ class TaskApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(TaskApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -270,14 +272,14 @@ class TaskApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(TaskUpdateDto.class);
-        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
+        final var dto = TaskUpdateDto.builder().id(uuid(1)).name("Scenmästare").build();
 
         when(service.update(any(TaskUpdateDto.class))).thenReturn(task);
 
         mockMvc
                 .perform(
-                        put("/api/tasks/{id}", 1L)
+                        put("/api/tasks/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -303,7 +305,7 @@ class TaskApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "update", Long.class, TaskUpdateDto.class))
+                                security(getRolesFromMethod(TaskApi.class, "update", UUID.class, TaskUpdateDto.class))
                         )
                 );
     }
@@ -311,14 +313,14 @@ class TaskApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(TaskUpdateDto.class);
-        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
-        final var dto = TaskUpdateDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
+        final var dto = TaskUpdateDto.builder().id(uuid(1)).name("Scenmästare").build();
 
         when(service.partialUpdate(any(TaskUpdateDto.class))).thenReturn(task);
 
         mockMvc
                 .perform(
-                        patch("/api/tasks/{id}", 1L)
+                        patch("/api/tasks/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -344,21 +346,21 @@ class TaskApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "partialUpdate", Long.class, TaskUpdateDto.class))
+                                security(getRolesFromMethod(TaskApi.class, "partialUpdate", UUID.class, TaskUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var task = TaskDto.builder().id(1L).name("Scenmästare").build();
+        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
 
-        when(service.findById(any(Long.class))).thenReturn(task);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(task);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/tasks/{id}", 1L)
+                        delete("/api/tasks/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -374,22 +376,22 @@ class TaskApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the task")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(TaskApi.class, "delete", UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_category() throws Exception {
-        final var category = TaskCategoryDto.builder().id(1L).name("category").build();
+        final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").build();
         final var realCategoryApi = new TaskCategoryApi(null, null, null);
 
-        when(service.findCategoryByTask(any(Long.class))).thenReturn(category);
+        when(service.findCategoryByTask(any(UUID.class))).thenReturn(category);
         when(categoryApi.getLinks(any(TaskCategoryDto.class))).thenReturn(realCategoryApi.getLinks(category));
 
         mockMvc
                 .perform(
-                        get("/api/tasks/{taskId}/category", 1L)
+                        get("/api/tasks/{taskId}/category", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -407,7 +409,7 @@ class TaskApiTest extends AbstractApiTest {
                                 categoryLinks,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "retrieveCategory", Long.class))
+                                security(getRolesFromMethod(TaskApi.class, "retrieveCategory", UUID.class))
                         )
                 );
     }
@@ -416,7 +418,7 @@ class TaskApiTest extends AbstractApiTest {
     void should_add_category() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/tasks/{taskId}/category/{id}", 1L, 1L)
+                        put("/api/tasks/{taskId}/category/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -431,7 +433,7 @@ class TaskApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the task category")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "addCategory", Long.class, Long.class))
+                                security(getRolesFromMethod(TaskApi.class, "addCategory", UUID.class, UUID.class))
                         )
                 );
     }
@@ -440,7 +442,7 @@ class TaskApiTest extends AbstractApiTest {
     void should_remove_category() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/tasks/{taskId}/category", 1L)
+                        delete("/api/tasks/{taskId}/category", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -454,7 +456,7 @@ class TaskApiTest extends AbstractApiTest {
                                         parameterWithName("taskId").description("The id of the task")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "removeCategory", Long.class))
+                                security(getRolesFromMethod(TaskApi.class, "removeCategory", UUID.class))
                         )
                 );
     }

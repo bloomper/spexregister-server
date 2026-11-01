@@ -37,6 +37,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static nu.fgv.register.server.mcp.McpToolSupport.FILTER_DESCRIPTION;
@@ -84,7 +85,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "get_spex", description = "Get a spex, including its category and revivals",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpSpexDetails getSpex(@McpToolParam(description = "Spex id") final Long id) {
+    public McpSpexDetails getSpex(@McpToolParam(description = "Spex id") final UUID id) {
         final SpexDto spex = spexService.findById(id);
         final List<McpSpex> revivals = Boolean.TRUE.equals(spex.getRevival()) ?
                 List.of() :
@@ -97,7 +98,7 @@ public class SpexMcpTools {
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
     public McpSpexDetails createSpex(@McpToolParam(description = "Year of the premiere, four digits") final String year,
                                      @McpToolParam(description = "Title") final String title,
-                                     @McpToolParam(required = false, description = "Id of the spex category") final @Nullable Long categoryId) {
+                                     @McpToolParam(required = false, description = "Id of the spex category") final @Nullable UUID categoryId) {
         support.audit("create_spex");
         final SpexDto spex = spexService.create(support.validate(SpexCreateDto.builder().year(year).title(title).build()));
 
@@ -110,7 +111,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "update_spex", description = "Update a spex; omitted fields are left unchanged. The title is shared with the spex's revivals. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpex updateSpex(@McpToolParam(description = "Spex id") final Long id,
+    public McpSpex updateSpex(@McpToolParam(description = "Spex id") final UUID id,
                               @McpToolParam(required = false, description = "Year, four digits") final @Nullable String year,
                               @McpToolParam(required = false, description = "Title") final @Nullable String title) {
         support.audit("update_spex");
@@ -125,8 +126,8 @@ public class SpexMcpTools {
 
     @McpTool(name = "set_spex_category", description = "Set or clear the category of a spex. Requires the ADMIN role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpexDetails setSpexCategory(@McpToolParam(description = "Spex id") final Long id,
-                                          @McpToolParam(required = false, description = "Spex category id, omit to remove the category") final @Nullable Long categoryId) {
+    public McpSpexDetails setSpexCategory(@McpToolParam(description = "Spex id") final UUID id,
+                                          @McpToolParam(required = false, description = "Spex category id, omit to remove the category") final @Nullable UUID categoryId) {
         support.audit("set_spex_category");
 
         if (categoryId != null) {
@@ -140,7 +141,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "delete_spex", description = "Permanently delete a single spex together with all its revivals. Requires the ADMIN role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpex(@McpToolParam(description = "Spex id") final Long id) {
+    public String deleteSpex(@McpToolParam(description = "Spex id") final UUID id) {
         support.audit("delete_spex");
         spexService.deleteById(id);
 
@@ -149,7 +150,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "add_spex_revival", description = "Add a revival of a spex in a given year. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpSpex addSpexRevival(@McpToolParam(description = "Id of the original spex") final Long spexId,
+    public McpSpex addSpexRevival(@McpToolParam(description = "Id of the original spex") final UUID spexId,
                                   @McpToolParam(description = "Year of the revival, four digits") final String year) {
         support.audit("add_spex_revival");
         if (!YEAR.matcher(year).matches()) {
@@ -162,8 +163,8 @@ public class SpexMcpTools {
 
     @McpTool(name = "delete_spex_revival", description = "Permanently delete a single revival of a spex. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpexRevival(@McpToolParam(description = "Id of the original spex") final Long spexId,
-                                    @McpToolParam(description = "Id of the revival") final Long revivalId) {
+    public String deleteSpexRevival(@McpToolParam(description = "Id of the original spex") final UUID spexId,
+                                    @McpToolParam(description = "Id of the revival") final UUID revivalId) {
         support.audit("delete_spex_revival");
         spexService.deleteRevival(spexId, revivalId);
 
@@ -180,7 +181,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "get_spex_category", description = "Get a spex category",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpSpexCategory getSpexCategory(@McpToolParam(description = "Spex category id") final Long id) {
+    public McpSpexCategory getSpexCategory(@McpToolParam(description = "Spex category id") final UUID id) {
         return McpSpexCategory.of(categoryService.findById(id));
     }
 
@@ -195,7 +196,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "update_spex_category", description = "Update a spex category; omitted fields are left unchanged. Requires the ADMIN role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpexCategory updateSpexCategory(@McpToolParam(description = "Spex category id") final Long id,
+    public McpSpexCategory updateSpexCategory(@McpToolParam(description = "Spex category id") final UUID id,
                                               @McpToolParam(required = false, description = "New name") final @Nullable String name,
                                               @McpToolParam(required = false, description = "First year, four digits") final @Nullable String firstYear) {
         support.audit("update_spex_category");
@@ -210,7 +211,7 @@ public class SpexMcpTools {
 
     @McpTool(name = "delete_spex_category", description = "Permanently delete a single spex category. Requires the ADMIN role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpexCategory(@McpToolParam(description = "Spex category id") final Long id) {
+    public String deleteSpexCategory(@McpToolParam(description = "Spex category id") final UUID id) {
         support.audit("delete_spex_category");
         categoryService.deleteById(id);
 
@@ -221,7 +222,7 @@ public class SpexMcpTools {
         return new McpSpex(dto.getId(), dto.getYear(), dto.getTitle(), Boolean.TRUE.equals(dto.getRevival()), categoryOf(dto.getId()));
     }
 
-    private @Nullable McpSpexCategory categoryOf(final Long spexId) {
+    private @Nullable McpSpexCategory categoryOf(final UUID spexId) {
         try {
             return McpSpexCategory.of(spexService.findCategoryBySpex(spexId));
         } catch (final ResourceNoValueException _) {
@@ -229,13 +230,14 @@ public class SpexMcpTools {
         }
     }
 
-    public record McpSpex(Long id, String year, String title, boolean revival, @Nullable McpSpexCategory category) {
+    public record McpSpex(UUID id, String year, String title, boolean revival, @Nullable McpSpexCategory category) {
     }
 
-    public record McpSpexDetails(Long id, String year, String title, boolean revival, @Nullable McpSpexCategory category, List<McpSpex> revivals) {
+    public record McpSpexDetails(UUID id, String year, String title, boolean revival,
+                                 @Nullable McpSpexCategory category, List<McpSpex> revivals) {
     }
 
-    public record McpSpexCategory(Long id, String name, String firstYear) {
+    public record McpSpexCategory(UUID id, String name, String firstYear) {
 
         static McpSpexCategory of(final SpexCategoryDto dto) {
             return new McpSpexCategory(dto.getId(), dto.getName(), dto.getFirstYear());

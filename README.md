@@ -33,7 +33,8 @@ CI builds the image with Jib and publishes `bloomper/spexregister-server` for `l
 | push to `develop`    | `develop`, `sha-<commit>`         |
 | push of tag `vX.Y.Z` | `X.Y.Z`, `latest`, `sha-<commit>` |
 
-To release, set `version` in `build.gradle` to `X.Y.Z`, merge to `main`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+To release, set `version` in `build.gradle` to `X.Y.Z`, merge to `main`, then
+`git tag vX.Y.Z && git push origin vX.Y.Z`.
 The build fails if the tag doesn't match the version or if `X.Y.Z` is already on Docker Hub.
 
 ## Contributing

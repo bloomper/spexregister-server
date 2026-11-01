@@ -34,6 +34,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,13 +55,13 @@ public class TaggingGraphqlApi {
 
     @MutationMapping("taggingCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public void create(@Argument final Long spexareId, @Argument final Long tagId) {
+    public void create(@Argument final UUID spexareId, @Argument final UUID tagId) {
         service.create(spexareId, tagId);
     }
 
     @MutationMapping("taggingDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final Long tagId) {
+    public void delete(@Argument final UUID spexareId, @Argument final UUID tagId) {
         service.deleteById(spexareId, tagId);
     }
 
@@ -73,7 +74,7 @@ public class TaggingGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "taggings")
     @RequiresAdminOrEditorOrUser
     public Map<SpexareDto, List<TagDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
-        final Map<Long, List<TagDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
+        final Map<UUID, List<TagDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 
         return dtos.stream()
                 .collect(Collectors.toMap(Function.identity(), dto -> result.getOrDefault(dto.getId(), List.of()), (a, _) -> a));

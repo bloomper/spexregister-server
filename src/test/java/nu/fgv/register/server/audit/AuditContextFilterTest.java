@@ -33,6 +33,26 @@ import static org.hamcrest.Matchers.is;
  */
 class AuditContextFilterTest {
 
+    private static String actingPersonRecordedFor(final String header) throws Exception {
+        final MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/graphql");
+        final AtomicReference<String> recorded = new AtomicReference<>();
+
+        request.addHeader(AuditContextFilter.ACTING_PERSON_HEADER, header);
+        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(Objects.requireNonNull(AuditContext.current()).actingPerson()));
+
+        return recorded.get();
+    }
+
+    private static String reasonRecordedFor(final String header) throws Exception {
+        final MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/graphql");
+        final AtomicReference<String> recorded = new AtomicReference<>();
+
+        request.addHeader(AuditContextFilter.REASON_HEADER, header);
+        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(Objects.requireNonNull(AuditContext.current()).comment()));
+
+        return recorded.get();
+    }
+
     @Test
     void should_decode_a_percent_encoded_reason() throws Exception {
         assertThat(reasonRecordedFor("Massåtg%C3%A4rd%20%E2%80%93%20taggar"), is(equalTo("Massåtgärd – taggar")));
@@ -52,25 +72,5 @@ class AuditContextFilterTest {
     @Test
     void should_cap_the_acting_person_at_255_characters() throws Exception {
         assertThat(actingPersonRecordedFor("x".repeat(300)).length(), is(equalTo(255)));
-    }
-
-    private static String actingPersonRecordedFor(final String header) throws Exception {
-        final MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/graphql");
-        final AtomicReference<String> recorded = new AtomicReference<>();
-
-        request.addHeader(AuditContextFilter.ACTING_PERSON_HEADER, header);
-        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(Objects.requireNonNull(AuditContext.current()).actingPerson()));
-
-        return recorded.get();
-    }
-
-    private static String reasonRecordedFor(final String header) throws Exception {
-        final MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/graphql");
-        final AtomicReference<String> recorded = new AtomicReference<>();
-
-        request.addHeader(AuditContextFilter.REASON_HEADER, header);
-        new AuditContextFilter().doFilter(request, new MockHttpServletResponse(), (_, _) -> recorded.set(Objects.requireNonNull(AuditContext.current()).comment()));
-
-        return recorded.get();
     }
 }

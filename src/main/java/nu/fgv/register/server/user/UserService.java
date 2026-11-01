@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
@@ -57,13 +58,12 @@ import org.passay.generate.PasswordGenerator;
 import org.passay.rule.CharacterRule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -128,6 +129,24 @@ public class UserService {
     private String keycloakRealm;
     @Value("${spexregister.keycloak.pending-approval-group}")
     private String pendingApprovalGroup;
+
+    private static List<UserRepresentation> allPages(final BiFunction<Integer, Integer, List<UserRepresentation>> fetch) {
+        final List<UserRepresentation> all = new ArrayList<>();
+        List<UserRepresentation> page;
+        int first = 0;
+
+        do {
+            page = fetch.apply(first, SYNC_PAGE_SIZE);
+            all.addAll(page);
+            first += SYNC_PAGE_SIZE;
+        } while (page.size() == SYNC_PAGE_SIZE);
+
+        return all;
+    }
+
+    private static boolean hasMissingNames(final UserRepresentation representation) {
+        return !hasText(representation.getFirstName()) || !hasText(representation.getLastName());
+    }
 
     /**
      * @param filter a filter expression, or blank for all
@@ -192,23 +211,23 @@ public class UserService {
                 .stream()
                 .map(UserRepresentation::getId)
                 .toList();
-        final List<Long> spexareIds = spexareRepository
+        final List<UUID> spexareIds = spexareRepository
                 .search(query.trim(), List.of(), 0, limit, Sort.unsorted())
                 .hits()
                 .stream()
-                .map(Spexare::getId)
+                .map(Spexare::getUuid)
                 .toList();
-        final Map<Long, User> found = new LinkedHashMap<>();
+        final Map<UUID, User> found = new LinkedHashMap<>();
 
         if (!externalIds.isEmpty()) {
             repository.findAll(hasExternalIds(externalIds), Permission.READ).stream()
                     .sorted(Comparator.comparingInt(user -> externalIds.indexOf(user.getExternalId())))
-                    .forEach(user -> found.putIfAbsent(user.getId(), user));
+                    .forEach(user -> found.putIfAbsent(user.getUuid(), user));
         }
         if (!spexareIds.isEmpty()) {
             repository.findAll(hasSpexareIds(spexareIds), Permission.READ).stream()
-                    .sorted(Comparator.comparingInt(user -> spexareIds.indexOf(user.getSpexare().getId())))
-                    .forEach(user -> found.putIfAbsent(user.getId(), user));
+                    .sorted(Comparator.comparingInt(user -> spexareIds.indexOf(user.getSpexare().getUuid())))
+                    .forEach(user -> found.putIfAbsent(user.getUuid(), user));
         }
 
         return found.values().stream()
@@ -222,9 +241,9 @@ public class UserService {
      * @return the user
      */
     @RequiresAdmin
-    public UserDto findById(final Long id) {
+    public UserDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .flatMap(model ->
                         findResourceByExternalId(model.getExternalId())
                                 .map(resource -> USER_MAPPER.toDto(model, resource.toRepresentation(), null))
@@ -274,9 +293,9 @@ public class UserService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdmin
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -287,7 +306,7 @@ public class UserService {
      * @return the users the caller may read, streamed when iterated, so it must be consumed inside a transaction
      */
     @RequiresAdmin
-    public Iterable<User> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<User> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<User> spec;
 
@@ -312,7 +331,7 @@ public class UserService {
      * @param dto the email
      * @return the created user, with the temporary password, which is not kept
      * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the email is taken
-     * @throws nu.fgv.register.server.util.error.InternalErrorException when Keycloak refuses the account
+     * @throws nu.fgv.register.server.util.error.InternalErrorException         when Keycloak refuses the account
      */
     @RequiresAdmin
     public UserDto create(final UserCreateDto dto) {
@@ -360,12 +379,12 @@ public class UserService {
      * @param dto the user id and new values
      * @return the updated user
      * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the email is taken by another
-     *     account
+     *                                                                          account
      */
     @RequiresAdmin
     public UserDto partialUpdate(final UserUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(user -> {
                     if (!doesUserWithEmailExist(dto.email(), user.getExternalId())) {
@@ -398,14 +417,14 @@ public class UserService {
      * @param id the user id
      */
     @RequiresAdmin
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesUserExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .flatMap(resource -> {
                         resource.remove();
-                        return repository.findById0(id);
+                        return repository.findByUuid0(id);
                     })
                     .ifPresent(user -> {
                         permissionGrantService.deleteByUser(user);
@@ -418,7 +437,7 @@ public class UserService {
 
     /**
      * @return how many users are in each state, and how many accounts in the Keycloak group of those pending approval
-     *     are not users yet
+     * are not users yet
      */
     @RequiresAdmin
     public UserStatisticsDto getStatistics() {
@@ -438,9 +457,9 @@ public class UserService {
      * @return the Spexregister client roles of the user's Keycloak account
      */
     @RequiresAdmin
-    public Set<AuthorityDto> getAuthoritiesByUser(final Long id) {
+    public Set<AuthorityDto> getAuthoritiesByUser(final UUID id) {
         if (doesUserExist(id)) {
-            return repository.findById0(id)
+            return repository.findByUuid0(id)
                     .flatMap(model -> findResourceByExternalId(model.getExternalId()))
                     .map(resource -> {
                         final List<RoleRepresentation> roleRepresentations = resource
@@ -463,9 +482,9 @@ public class UserService {
      * @param ids    authority ids, such as {@code ADMIN}
      */
     @RequiresAdmin
-    public void addAuthorities(final Long userId, final List<String> ids) {
+    public void addAuthorities(final UUID userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            repository.findById0(userId)
+            repository.findByUuid0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresentOrElse(
                             user -> findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
@@ -507,7 +526,7 @@ public class UserService {
      * @param id     the authority id, such as {@code ADMIN}
      */
     @RequiresAdmin
-    public void addAuthority(final Long userId, final String id) {
+    public void addAuthority(final UUID userId, final String id) {
         addAuthorities(userId, List.of(id));
     }
 
@@ -518,9 +537,9 @@ public class UserService {
      * @param ids    authority ids, such as {@code ADMIN}
      */
     @RequiresAdmin
-    public void removeAuthorities(final Long userId, final List<String> ids) {
+    public void removeAuthorities(final UUID userId, final List<String> ids) {
         if (doUserAndAuthoritiesExist(userId, ids)) {
-            repository.findById0(userId)
+            repository.findByUuid0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresentOrElse(
                             user -> findResourceByExternalId(user.getExternalId()).ifPresent(resource -> {
@@ -557,7 +576,7 @@ public class UserService {
      * @param id     the authority id, such as {@code ADMIN}
      */
     @RequiresAdmin
-    public void removeAuthority(final Long userId, final String id) {
+    public void removeAuthority(final UUID userId, final String id) {
         removeAuthorities(userId, List.of(id));
     }
 
@@ -568,10 +587,10 @@ public class UserService {
      * @return the state of each user, by user id
      */
     @RequiresAdmin
-    public Map<Long, StateDto> getStatesByUsers(final Collection<Long> ids) {
+    public Map<UUID, StateDto> getStatesByUsers(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(user -> user.getState() != null)
-                .collect(Collectors.toMap(User::getId, user -> STATE_MAPPER.toDto(user.getState())));
+                .collect(Collectors.toMap(User::getUuid, user -> STATE_MAPPER.toDto(user.getState())));
     }
 
     /**
@@ -581,14 +600,14 @@ public class UserService {
      * @return the spexare of those users that have one, by user id
      */
     @RequiresAdmin
-    public Map<Long, SpexareDto> findSpexareByUsers(final Collection<Long> ids) {
+    public Map<UUID, SpexareDto> findSpexareByUsers(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(user -> user.getSpexare() != null)
-                .collect(Collectors.toMap(User::getId, user -> SPEXARE_MAPPER.toDto(user.getSpexare())));
+                .collect(Collectors.toMap(User::getUuid, user -> SPEXARE_MAPPER.toDto(user.getSpexare())));
     }
 
-    private List<User> findReadable(final Collection<Long> ids) {
-        return repository.findAllById(ids).stream()
+    private List<User> findReadable(final Collection<UUID> ids) {
+        return repository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
     }
@@ -598,9 +617,9 @@ public class UserService {
      * @return the user's state
      */
     @RequiresAdmin
-    public StateDto getStateByUser(final Long id) {
+    public StateDto getStateByUser(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(User::getState)
                 .map(STATE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
@@ -613,10 +632,10 @@ public class UserService {
      * @param id     the state id
      */
     @RequiresAdmin
-    public void setState(final Long userId, final String id) {
+    public void setState(final UUID userId, final String id) {
         if (doUserAndStateExist(userId, id)) {
             repository
-                    .findById0(userId)
+                    .findByUuid0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(user -> stateRepository
                             .findById(id)
@@ -644,10 +663,10 @@ public class UserService {
      * @return the user's spexare, or empty when there is none
      */
     @RequiresAdmin
-    public Optional<SpexareDto> findSpexareByUser(final Long id) {
+    public Optional<SpexareDto> findSpexareByUser(final UUID id) {
         if (doesUserExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(User::getSpexare)
                     .map(SPEXARE_MAPPER::toDto);
         } else {
@@ -664,13 +683,13 @@ public class UserService {
      * @throws nu.fgv.register.server.util.error.ResourceAlreadyExistsException when the spexare belongs to another user
      */
     @RequiresAdmin
-    public void addSpexare(final Long userId, final Long id) {
+    public void addSpexare(final UUID userId, final UUID id) {
         if (doUserAndSpexareExist(userId, id)) {
             repository
-                    .findById0(userId)
+                    .findByUuid0(userId)
                     .map(permissionService::checkWritePermission)
                     .ifPresent(user -> spexareRepository
-                            .findById(id)
+                            .findByUuid(id)
                             .ifPresent(spexare -> {
                                 if (spexare.getUser() != null && !spexare.getUser().equals(user)) {
                                     throw new ResourceAlreadyExistsException(Spexare.class, id);
@@ -691,10 +710,10 @@ public class UserService {
      * @param id the user id
      */
     @RequiresAdmin
-    public void removeSpexare(final Long id) {
+    public void removeSpexare(final UUID id) {
         if (doesUserExist(id)) {
             repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkWritePermission)
                     .filter(user -> user.getSpexare() != null)
                     .ifPresent(user -> {
@@ -741,7 +760,7 @@ public class UserService {
                     .filter(user -> isDeletedInKeycloak(user.getExternalId()))
                     .forEach(user -> {
                         try {
-                            inTransaction(() -> removeSyncedUser(user.getId()));
+                            inTransaction(() -> removeSyncedUser(user.getUuid()));
                             removed.incrementAndGet();
                         } catch (final Exception e) {
                             log.error("Could not remove user {} deleted in Keycloak", user.getExternalId(), e);
@@ -791,28 +810,10 @@ public class UserService {
                 .members(first, max));
     }
 
-    private static List<UserRepresentation> allPages(final BiFunction<Integer, Integer, List<UserRepresentation>> fetch) {
-        final List<UserRepresentation> all = new ArrayList<>();
-        List<UserRepresentation> page;
-        int first = 0;
-
-        do {
-            page = fetch.apply(first, SYNC_PAGE_SIZE);
-            all.addAll(page);
-            first += SYNC_PAGE_SIZE;
-        } while (page.size() == SYNC_PAGE_SIZE);
-
-        return all;
-    }
-
     private void addSyncedUser(final String externalId) {
         final User user = repository.save(USER_MAPPER.toModel(externalId, getUserInitialState()));
 
         log.debug("Synced user {} from Keycloak", externalId);
-    }
-
-    private static boolean hasMissingNames(final UserRepresentation representation) {
-        return !hasText(representation.getFirstName()) || !hasText(representation.getLastName());
     }
 
     private boolean fillMissingNames(final String externalId, final Spexare spexare) {
@@ -850,8 +851,8 @@ public class UserService {
         }
     }
 
-    private void removeSyncedUser(final Long id) {
-        repository.findById(id).ifPresent(user -> {
+    private void removeSyncedUser(final UUID id) {
+        repository.findByUuid(id).ifPresent(user -> {
             permissionGrantService.deleteByUser(user);
             repository.delete(user);
             log.info("Removed user {} that no longer exists in Keycloak", user.getExternalId());
@@ -895,20 +896,20 @@ public class UserService {
                 .collect(Collectors.collectingAndThen(Collectors.toSet(), AUTHORITY_MAPPER::toDtos));
     }
 
-    private boolean doesUserExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesUserExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 
-    private boolean doUserAndAuthoritiesExist(final Long userId, final List<String> authorityIds) {
+    private boolean doUserAndAuthoritiesExist(final UUID userId, final List<String> authorityIds) {
         return doesUserExist(userId) && authorityIds.stream().allMatch(authorityRepository::existsById);
     }
 
-    private boolean doUserAndStateExist(final Long userId, final String stateId) {
+    private boolean doUserAndStateExist(final UUID userId, final String stateId) {
         return doesUserExist(userId) && stateRepository.existsById(stateId);
     }
 
-    private boolean doUserAndSpexareExist(final Long userId, final Long spexareId) {
-        return doesUserExist(userId) && spexareRepository.findById0(spexareId).isPresent();
+    private boolean doUserAndSpexareExist(final UUID userId, final UUID spexareId) {
+        return doesUserExist(userId) && spexareRepository.findByUuid0(spexareId).isPresent();
     }
 
     private boolean doesUserWithEmailExist(final String email, @Nullable final String excludedExternalId) {

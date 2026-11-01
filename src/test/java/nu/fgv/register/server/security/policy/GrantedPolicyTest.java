@@ -44,6 +44,12 @@ class GrantedPolicyTest {
     private final SpexarePolicy spexarePolicy = new SpexarePolicy(grants);
     private final SpexPolicy spexPolicy = new SpexPolicy(grants);
 
+    private static Spexare unpublishedSpexare() {
+        final Spexare spexare = new Spexare();
+        spexare.setPublished(false);
+        return spexare;
+    }
+
     @ParameterizedTest
     @EnumSource(Permission.class)
     void should_give_a_user_what_a_grant_on_a_spexare_covers(final Permission permission) {
@@ -91,11 +97,5 @@ class GrantedPolicyTest {
         assertThat(spexarePolicy.permits(caller("USER"), unpublishedSpexare(), Permission.READ)).isFalse();
         assertThat(spexPolicy.permits(caller("USER"), new Spex(), Permission.READ)).isTrue();
         assertThat(spexPolicy.permits(caller("USER"), new Spex(), Permission.WRITE)).isFalse();
-    }
-
-    private static Spexare unpublishedSpexare() {
-        final Spexare spexare = new Spexare();
-        spexare.setPublished(false);
-        return spexare;
     }
 }

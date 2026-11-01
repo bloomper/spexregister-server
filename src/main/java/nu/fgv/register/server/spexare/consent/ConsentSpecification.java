@@ -23,6 +23,7 @@ import nu.fgv.register.server.spexare.Spexare;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Query restrictions on consents.
@@ -37,8 +38,8 @@ public class ConsentSpecification {
     private ConsentSpecification() {
     }
 
-    public static Specification<Consent> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Consent_.id), id);
+    public static Specification<Consent> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Consent_.uuid), id);
     }
 
     public static Specification<Consent> hasSpexare(final Spexare spexare) {

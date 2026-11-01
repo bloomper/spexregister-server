@@ -30,7 +30,9 @@ import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -72,14 +74,14 @@ class TaggingApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var tag1 = TagDto.builder().id(1L).name("tag1").build();
-        final var tag2 = TagDto.builder().id(2L).name("tag2").build();
+        final var tag1 = TagDto.builder().id(uuid(1)).name("tag1").build();
+        final var tag2 = TagDto.builder().id(uuid(2)).name("tag2").build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
+        when(service.findBySpexare(any(UUID.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/taggings?page=1&size=2&sort=name,desc", 1L)
+                        get("/api/spexare/{spexareId}/taggings?page=1&size=2&sort=name,desc", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -111,18 +113,18 @@ class TaggingApiTest extends AbstractApiTest {
                                 pagingQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TaggingApi.class, "retrieve", Long.class, Pageable.class))
+                                security(getRolesFromMethod(TaggingApi.class, "retrieve", UUID.class, Pageable.class))
                         )
                 );
     }
 
     @Test
     void should_create() throws Exception {
-        final var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(uuid(1)).name("tag").build();
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/taggings/{tagId}", 1L, tag.getId())
+                        post("/api/spexare/{spexareId}/taggings/{tagId}", uuid(1), tag.getId())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -138,7 +140,7 @@ class TaggingApiTest extends AbstractApiTest {
                                 ),
                                 secureRequestHeaders,
                                 createOnlyResponseHeaders,
-                                security(getRolesFromMethod(TaggingApi.class, "create", Long.class, Long.class))
+                                security(getRolesFromMethod(TaggingApi.class, "create", UUID.class, UUID.class))
                         )
                 );
     }
@@ -147,7 +149,7 @@ class TaggingApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/taggings/{tagId}", 1L, 1L)
+                        delete("/api/spexare/{spexareId}/taggings/{tagId}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -162,7 +164,7 @@ class TaggingApiTest extends AbstractApiTest {
                                         parameterWithName("tagId").description("The id of the tag")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(TaggingApi.class, "delete", Long.class, Long.class))
+                                security(getRolesFromMethod(TaggingApi.class, "delete", UUID.class, UUID.class))
                         )
                 );
     }

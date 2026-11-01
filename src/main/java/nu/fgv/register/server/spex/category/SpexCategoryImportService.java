@@ -30,6 +30,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.util.FileUtil.downloadImage;
@@ -65,7 +66,7 @@ public class SpexCategoryImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(SpexCategoryImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v)
+                                "id", v -> service.exists((UUID) v)
                         ))
                         .build()
         );
@@ -96,7 +97,7 @@ public class SpexCategoryImportService extends AbstractImportService {
         return summary.toResult();
     }
 
-    private void processLogo(final Long id, @Nullable final String url) {
+    private void processLogo(final UUID id, @Nullable final String url) {
         if (hasText(url) && !isLocalUrl(url, baseUrl)) {
             service.saveLogo(id, downloadImage(url));
         } else if (!hasText(url)) {

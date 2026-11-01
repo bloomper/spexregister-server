@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
@@ -56,7 +57,7 @@ public class TaskActivityGraphqlApi {
 
     @MutationMapping("taskActivityCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<TaskActivityDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskId) {
+    public DataFetcherResult<TaskActivityDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskId) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, taskId),
                 Map.of(
@@ -68,7 +69,7 @@ public class TaskActivityGraphqlApi {
 
     @MutationMapping("taskActivityUpdate")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<TaskActivityDto> update(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskId, @Argument final Long id) {
+    public DataFetcherResult<TaskActivityDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskId, @Argument final UUID id) {
         return buildDataFetcherResult(
                 service.update(spexareId, activityId, taskId, id),
                 Map.of(
@@ -80,13 +81,13 @@ public class TaskActivityGraphqlApi {
 
     @MutationMapping("taskActivityDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID id) {
         service.deleteById(spexareId, activityId, id);
     }
 
     @SchemaMapping(typeName = "Activity", field = "taskActivitiesPaged")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<CountedWindow<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
+    public DataFetcherResult<CountedWindow<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final UUID spexareId,
                                                                                 final ActivityDto dto,
                                                                                 final ScrollSubrange subrange,
                                                                                 final Optional<Sort> sort) {
@@ -101,7 +102,7 @@ public class TaskActivityGraphqlApi {
 
     @SchemaMapping(typeName = "Activity", field = "taskActivities")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<List<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
+    public DataFetcherResult<List<TaskActivityDto>> retrieveByActivity(@LocalContextValue("spexareId") final UUID spexareId,
                                                                        final ActivityDto dto) {
         return buildDataFetcherResult(
                 service.findByActivity(spexareId, dto.getId()),
@@ -114,14 +115,14 @@ public class TaskActivityGraphqlApi {
 
     @SchemaMapping(typeName = "TaskActivity", field = "task")
     @RequiresAdminOrEditorOrUserOrRevival
-    public TaskDto retrieveTask(@LocalContextValue("spexareId") final Long spexareId,
-                                @LocalContextValue("activityId") final Long activityId,
+    public TaskDto retrieveTask(@LocalContextValue("spexareId") final UUID spexareId,
+                                @LocalContextValue("activityId") final UUID activityId,
                                 final TaskActivityDto dto) {
         return service.findTaskByTaskActivity(spexareId, activityId, dto.getId());
     }
 
     @SchemaMapping(typeName = "TaskActivity", field = "id")
-    public Long getId(final TaskActivityDto dto) {
+    public UUID getId(final TaskActivityDto dto) {
         return dto.getId();
     }
 

@@ -38,8 +38,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -69,6 +71,21 @@ class ExcelWriterTest {
         messageSource.addMessage("common.impex.action.columnName", LOCALE, "Action");
     }
 
+    private static List<String> headers(final Sheet sheet) {
+        final List<String> headers = new ArrayList<>();
+
+        sheet.getRow(0).forEach(cell -> headers.add(cell.getStringCellValue()));
+        return headers;
+    }
+
+    private static TagImpexDto tag(final UUID id, final String name) {
+        final TagImpexDto dto = new TagImpexDto();
+
+        dto.setId(id);
+        dto.setName(name);
+        return dto;
+    }
+
     @AfterEach
     void tearDown() throws Exception {
         workbook.close();
@@ -77,20 +94,20 @@ class ExcelWriterTest {
 
     @Test
     void should_write_a_sheet_that_validates_and_reads_back() {
-        write(List.of(tag(1L, "Founder"), tag(2L, "Honorary member")), false);
+        write(List.of(tag(uuid(1), "Founder"), tag(uuid(2), "Honorary member")), false);
 
         final ImportResultDto result = new ExcelValidator(new ExcelReader(messageSource))
                 .validateSheet(messageSource, LOCALE, workbook, "Tags", ImportSpec.builder().clazz(TagImpexDto.class).build(), validator);
         final List<TagImpexDto> read = new ExcelReader(messageSource).read(workbook.getSheet("Tags"), TagImpexDto.class, LOCALE);
 
         assertThat(result.isSuccess(), is(true));
-        assertThat(read.stream().map(TagImpexDto::getId).toList(), contains(1L, 2L));
+        assertThat(read.stream().map(TagImpexDto::getId).toList(), contains(uuid(1), uuid(2)));
         assertThat(read.stream().map(TagImpexDto::getName).toList(), contains("Founder", "Honorary member"));
     }
 
     @Test
     void should_order_columns_by_position_with_the_audit_fields_last() {
-        write(List.of(tag(1L, "Founder")), false);
+        write(List.of(tag(uuid(1), "Founder")), false);
 
         final List<String> headers = headers(workbook.getSheet("Tags"));
 
@@ -100,7 +117,7 @@ class ExcelWriterTest {
 
     @Test
     void should_leave_out_the_action_column_when_read_only() {
-        write(List.of(tag(1L, "Founder")), true);
+        write(List.of(tag(uuid(1), "Founder")), true);
 
         final Sheet sheet = workbook.getSheet("Tags");
 
@@ -111,7 +128,7 @@ class ExcelWriterTest {
 
     @Test
     void should_report_a_row_failing_bean_validation() {
-        write(List.of(tag(1L, "Founder"), tag(2L, "")), false);
+        write(List.of(tag(uuid(1), "Founder"), tag(uuid(2), "")), false);
 
         final ImportResultDto result = new ExcelValidator(new ExcelReader(messageSource))
                 .validateSheet(messageSource, LOCALE, workbook, "Tags", ImportSpec.builder().clazz(TagImpexDto.class).build(), validator);
@@ -123,7 +140,7 @@ class ExcelWriterTest {
 
     @Test
     void should_report_a_missing_mandatory_column() {
-        write(List.of(tag(1L, "Founder")), false);
+        write(List.of(tag(uuid(1), "Founder")), false);
         workbook.getSheet("Tags").getRow(0).getCell(2).setCellValue("Renamed");
 
         final ImportResultDto result = new ExcelValidator(new ExcelReader(messageSource))
@@ -144,11 +161,11 @@ class ExcelWriterTest {
 
     @Test
     void should_report_a_row_whose_entry_does_not_exist() {
-        write(List.of(tag(1L, "Founder"), tag(99L, "Ghost")), false);
+        write(List.of(tag(uuid(1), "Founder"), tag(uuid(99), "Ghost")), false);
 
         final ImportSpec spec = ImportSpec.builder()
                 .clazz(TagImpexDto.class)
-                .existenceCheckers(Map.of("id", id -> Long.valueOf(1L).equals(id)))
+                .existenceCheckers(Map.of("id", id -> uuid(1).equals(id)))
                 .build();
         final ImportResultDto result = new ExcelValidator(new ExcelReader(messageSource))
                 .validateSheet(messageSource, LOCALE, workbook, "Tags", spec, validator);
@@ -184,20 +201,5 @@ class ExcelWriterTest {
 
     private void write(final List<TagImpexDto> tags, final boolean readOnly) {
         new ExcelWriter().createSheet(messageSource, LOCALE, workbook, tags, null, TagImpexDto.class, readOnly);
-    }
-
-    private static List<String> headers(final Sheet sheet) {
-        final List<String> headers = new ArrayList<>();
-
-        sheet.getRow(0).forEach(cell -> headers.add(cell.getStringCellValue()));
-        return headers;
-    }
-
-    private static TagImpexDto tag(final Long id, final String name) {
-        final TagImpexDto dto = new TagImpexDto();
-
-        dto.setId(id);
-        dto.setName(name);
-        return dto;
     }
 }

@@ -22,8 +22,8 @@ import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareSensitiveData;
 import nu.fgv.register.server.util.error.BadRequestException;
@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -77,6 +78,7 @@ import java.util.function.Function;
 public class AuditService {
 
     private static final int DEFAULT_SINCE_IN_DAYS = 90;
+    private static final String EXTERNAL_ID = "uuid";
 
     private final AuditRegistry registry;
     private final AuditDiffer differ;
@@ -96,12 +98,6 @@ public class AuditService {
         ReflectionUtils.setField(field, target, value);
     }
 
-    private static @Nullable Long asLong(final @Nullable Object id) {
-        return switch (id) {
-            case final Number number -> number.longValue();
-            case null, default -> null;
-        };
-    }
 
     private static Instant startOfDay(final LocalDate date) {
         return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -117,6 +113,18 @@ public class AuditService {
         return "Restored from revision %d%s".formatted(revision, cascade ? " including related records" : "");
     }
 
+    private static @Nullable FieldChangeDto redact(final FieldChangeDto change) {
+        final String oldValue = SpexareSensitiveData.birthDateOf(change.oldValue());
+        final String newValue = SpexareSensitiveData.birthDateOf(change.newValue());
+
+        return Objects.equals(oldValue, newValue) ? null :
+                new FieldChangeDto(change.field(), oldValue, newValue, change.binary(), change.type(), change.entityId());
+    }
+
+    private static boolean isSpexareField(final RevisionDto revision, final FieldChangeDto change) {
+        return (change.type() == null ? revision.type() : change.type()) == AuditedType.SPEXARE;
+    }
+
     /**
      * The revisions of the entity, merged with those of the entities it points at such as a spex's details, newest
      * first.
@@ -125,7 +133,7 @@ public class AuditService {
      * @param rawId the entity id
      * @return the revisions
      * @throws org.springframework.security.access.AccessDeniedException when the caller may not read the entity, or it
-     *     is gone and the caller is not an administrator
+     *                                                                   is gone and the caller is not an administrator
      */
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRevisions(final AuditedType type, final String rawId) {
@@ -164,18 +172,6 @@ public class AuditService {
                                 .filter(Objects::nonNull)
                                 .toList()))
                 .toList();
-    }
-
-    private static @Nullable FieldChangeDto redact(final FieldChangeDto change) {
-        final String oldValue = SpexareSensitiveData.birthDateOf(change.oldValue());
-        final String newValue = SpexareSensitiveData.birthDateOf(change.newValue());
-
-        return Objects.equals(oldValue, newValue) ? null :
-                new FieldChangeDto(change.field(), oldValue, newValue, change.binary(), change.type(), change.entityId());
-    }
-
-    private static boolean isSpexareField(final RevisionDto revision, final FieldChangeDto change) {
-        return (change.type() == null ? revision.type() : change.type()) == AuditedType.SPEXARE;
     }
 
     private List<RevisionDto> mergeByRevision(final AuditedEntityDescriptor descriptor, final List<RevisionDto> revisions) {
@@ -560,14 +556,14 @@ public class AuditService {
 
             changes.add(RevisionEntityChangeDto.builder()
                     .type(descriptor.type())
-                    .entityId(asLong(id))
+                    .entityId(id == null ? null : externalIdOf(descriptor.entityClass(), id, snapshot))
                     .entityLabel(snapshot == null ? null : registry.labelFor(snapshot))
                     .revisionType(revisionType)
                     .changes(id == null || revisionType == RevisionType.DEL
                             ? List.of()
                             : differ.diff(descriptor.entityClass(),
                                     revisionType == RevisionType.ADD ? null : previousSnapshot(descriptor, id, revision), snapshot).stream()
-                            .map(change -> change.ownedBy(descriptor.type(), asLong(id)))
+                            .map(change -> change.ownedBy(descriptor.type(), externalIdOf(descriptor.entityClass(), id, snapshot)))
                             .toList())
                     .target(id == null ? null : targetOf(descriptor, id))
                     .build());
@@ -601,7 +597,7 @@ public class AuditService {
 
         final Object unwrapped = Hibernate.unproxy(root);
         final AuditedType type = registry.byEntityName(Hibernate.getClass(unwrapped).getName());
-        final Long rootId = asLong(identifierOf(unwrapped));
+        final String rootId = externalIdOf(Hibernate.getClass(unwrapped), identifierOf(unwrapped), unwrapped);
 
         if (type == null || rootId == null) {
             return null;
@@ -635,7 +631,7 @@ public class AuditService {
 
         entries.add(RestorePreviewEntryDto.builder()
                 .type(type)
-                .id(asLong(id))
+                .id(externalIdOf(descriptor.entityClass(), id, current))
                 .action(RestoreAction.UPDATE)
                 .changes(differ.diff(descriptor.entityClass(), current, snapshot))
                 .build());
@@ -655,7 +651,7 @@ public class AuditService {
     /**
      * Restores the entity's audited fields, and those of the entities it points at, to the revision. With cascade, the
      * records that belong to it are restored too: those changed are put back, those added since are removed and those
-     * removed since are re-created under new ids. The entity itself must still exist. Recorded as a
+     * removed since are re-created with the same external ids. The entity itself must still exist. Recorded as a
      * {@link AuditSource#RESTORE} revision.
      *
      * @param type     the entity type
@@ -714,7 +710,7 @@ public class AuditService {
                     if (!changes.isEmpty()) {
                         entries.add(RestorePreviewEntryDto.builder()
                                 .type(target.type())
-                                .id(asLong(referencedId))
+                                .id(externalIdOf(target.entityClass(), referencedId, referencedCurrent))
                                 .action(RestoreAction.UPDATE)
                                 .changes(changes)
                                 .build());
@@ -743,7 +739,7 @@ public class AuditService {
                     if (!changes.isEmpty()) {
                         entries.add(RestorePreviewEntryDto.builder()
                                 .type(child.type())
-                                .id(asLong(entry.getKey()))
+                                .id(externalIdOf(child.entityClass(), entry.getKey(), existing))
                                 .action(RestoreAction.UPDATE)
                                 .changes(changes)
                                 .build());
@@ -753,11 +749,10 @@ public class AuditService {
                 } else {
                     entries.add(RestorePreviewEntryDto.builder()
                             .type(child.type())
-                            .id(asLong(entry.getKey()))
+                            .id(externalIdOf(child.entityClass(), entry.getKey(), entry.getValue()))
                             .action(RestoreAction.CREATE)
                             .changes(differ.diff(child.entityClass(), null, entry.getValue()))
                             .build());
-                    warnings.add(RestoreWarningDto.idReassigned(child.type(), asLong(entry.getKey()), null));
                 }
             }
 
@@ -765,7 +760,7 @@ public class AuditService {
                 if (!atRevision.containsKey(entry.getKey())) {
                     entries.add(RestorePreviewEntryDto.builder()
                             .type(child.type())
-                            .id(asLong(entry.getKey()))
+                            .id(externalIdOf(child.entityClass(), entry.getKey(), entry.getValue()))
                             .action(RestoreAction.DELETE)
                             .changes(List.of())
                             .build());
@@ -827,7 +822,6 @@ public class AuditService {
                     entityManager.flush();
 
                     context.created++;
-                    context.warnings.add(RestoreWarningDto.idReassigned(child.type(), asLong(entry.getKey()), asLong(identifierOf(created))));
 
                     restoreChildren(child.children(), created, entry.getKey(), revision, context);
                 }
@@ -919,6 +913,7 @@ public class AuditService {
 
     private List<RevisionDto> toRevisionDtos(final AuditedEntityDescriptor descriptor, final Object id, final List<Object[]> triples) {
         final List<RevisionDto> revisions = new ArrayList<>(triples.size());
+        final String externalId = externalIdOf(descriptor.entityClass(), id);
         Object previous = null;
 
         for (final Object[] triple : triples) {
@@ -929,13 +924,13 @@ public class AuditService {
             final List<FieldChangeDto> changes = revisionType == RevisionType.DEL
                     ? List.of()
                     : differ.diff(descriptor.entityClass(), previous, snapshot).stream()
-                    .map(change -> change.ownedBy(descriptor.type(), asLong(id)))
+                    .map(change -> change.ownedBy(descriptor.type(), externalId))
                     .toList();
 
             revisions.add(RevisionDto.builder()
                     .revision(revisionEntity.getId())
                     .type(descriptor.type())
-                    .entityId(asLong(id))
+                    .entityId(externalId)
                     .entityLabel(snapshot == null ? null : registry.labelFor(snapshot))
                     .revisionType(revisionType)
                     .modifiedAt(revisionEntity.getModifiedAt().toInstant(java.time.ZoneOffset.UTC))
@@ -1023,11 +1018,59 @@ public class AuditService {
     }
 
     private Object parseId(final AuditedEntityDescriptor descriptor, final String rawId) {
-        try {
+        if (!hasExternalId(descriptor.entityClass())) {
             return descriptor.parseId(rawId);
-        } catch (final NumberFormatException e) {
+        }
+
+        final UUID uuid;
+
+        try {
+            uuid = UUID.fromString(rawId);
+        } catch (final IllegalArgumentException e) {
             throw new BadRequestException("Malformed identifier %s for %s".formatted(rawId, descriptor.type()));
         }
+
+        final List<?> snapshots = envers.revisionEntities(descriptor.entityClass(), true,
+                q -> q.add(AuditEntity.property(EXTERNAL_ID).eq(uuid))
+                        .addOrder(AuditEntity.revisionNumber().desc())
+                        .setMaxResults(1));
+
+        if (snapshots.isEmpty()) {
+            throw new ResourceNotFoundException(descriptor.entityClass(), rawId);
+        }
+
+        return identifierOf(snapshots.getFirst());
+    }
+
+    private boolean hasExternalId(final Class<?> entityClass) {
+        return entityManagerFactory.getMetamodel().entity(entityClass).getSingularAttributes().stream()
+                .anyMatch(attribute -> EXTERNAL_ID.equals(attribute.getName()));
+    }
+
+    private @Nullable String externalIdOf(final Class<?> entityClass, final @Nullable Object id) {
+        if (id == null) {
+            return null;
+        }
+        if (!hasExternalId(entityClass)) {
+            return id.toString();
+        }
+
+        final List<?> snapshots = envers.revisionEntities(entityClass, true,
+                q -> q.add(AuditEntity.id().eq(id))
+                        .addOrder(AuditEntity.revisionNumber().desc())
+                        .setMaxResults(1));
+
+        return snapshots.isEmpty() ? null : externalIdOf(entityClass, id, snapshots.getFirst());
+    }
+
+    private @Nullable String externalIdOf(final Class<?> entityClass, final Object id, final @Nullable Object snapshot) {
+        if (!hasExternalId(entityClass)) {
+            return id.toString();
+        }
+
+        final Object uuid = snapshot == null ? null : differ.readProperty(entityClass, EXTERNAL_ID, snapshot);
+
+        return uuid == null ? externalIdOf(entityClass, id) : uuid.toString();
     }
 
     private Map<Object, Object> indexById(final Collection<Object> entities) {

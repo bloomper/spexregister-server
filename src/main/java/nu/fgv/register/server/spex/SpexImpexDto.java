@@ -31,6 +31,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -44,7 +46,7 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
 
     @JsonProperty("id")
     @ExcelCell(header = "spex.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "{spex.year.notEmpty}")
     @Size(max = 4, message = "{spex.year.size}")
@@ -68,7 +70,7 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
     @NotNull(message = "{spex.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "spex.impex.category.id.columnName", position = 5, updatable = true)
-    private Long categoryId;
+    private UUID categoryId;
 
     @Nullable
     @JsonProperty("categoryName")

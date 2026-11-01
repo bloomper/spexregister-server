@@ -42,6 +42,19 @@ class AuditorTest {
 
     private static final String SERVICE_ACCOUNT = "service-account-fgv-revival-service";
 
+    private static void actingFor(final @Nullable String actingPerson) {
+        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, "POST /api/graphql", null, actingPerson));
+    }
+
+    private static void authenticate(final @Nullable String email, final String username, final String role) {
+        final Jwt.Builder jwt = Jwt.withTokenValue("token").header("alg", "none").subject("subject").claim("preferred_username", username);
+
+        if (email != null) {
+            jwt.claim("email", email);
+        }
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt.build(), List.of(new SimpleGrantedAuthority(role))));
+    }
+
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
@@ -96,18 +109,5 @@ class AuditorTest {
         actingFor("Anna Andersson");
 
         assertThat(Auditor.current(), is(equalTo("")));
-    }
-
-    private static void actingFor(final @Nullable String actingPerson) {
-        AuditContext.set(new AuditContext.Origin(AuditSource.WEB, "POST /api/graphql", null, actingPerson));
-    }
-
-    private static void authenticate(final @Nullable String email, final String username, final String role) {
-        final Jwt.Builder jwt = Jwt.withTokenValue("token").header("alg", "none").subject("subject").claim("preferred_username", username);
-
-        if (email != null) {
-            jwt.claim("email", email);
-        }
-        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt.build(), List.of(new SimpleGrantedAuthority(role))));
     }
 }

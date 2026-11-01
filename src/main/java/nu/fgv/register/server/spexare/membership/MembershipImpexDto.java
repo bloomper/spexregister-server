@@ -26,6 +26,8 @@ import nu.fgv.register.server.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -40,11 +42,11 @@ public class MembershipImpexDto extends AbstractAuditableImpexDto<MembershipImpe
     @NotEmpty(message = "{membership.spexare.notEmpty}")
     @JsonProperty("spexareId")
     @ExcelCell(header = "membership.impex.spexareId.columnName", position = 1)
-    private Long spexareId;
+    private UUID spexareId;
 
     @JsonProperty("id")
     @ExcelCell(header = "membership.impex.id.columnName", position = 2, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @JsonProperty("year")
     @ExcelCell(header = "membership.impex.year.columnName", position = 3)

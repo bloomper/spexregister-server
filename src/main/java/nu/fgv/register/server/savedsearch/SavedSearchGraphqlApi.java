@@ -26,6 +26,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The {@code SavedSearch} queries and mutations.
@@ -48,7 +49,7 @@ public class SavedSearchGraphqlApi {
 
     @QueryMapping("savedSearch")
     @RequiresAdminOrEditorOrUser
-    public SavedSearchDto retrieve(@Argument final Long id) {
+    public SavedSearchDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -66,7 +67,7 @@ public class SavedSearchGraphqlApi {
 
     @MutationMapping("savedSearchDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 }

@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Removes the audit history of a spexare for good, with that of everything that belonged to it, and the revisions left
@@ -67,11 +68,19 @@ public class AuditPurgeService {
     private final JdbcClient jdbcClient;
 
     /**
-     * @param id the spexare id, usually of one just removed
+     * @param uuid the spexare's external id, usually of one just removed
      */
     @RequiresAdmin
     @Transactional
-    public void purgeSpexare(final Long id) {
+    public void purgeSpexare(final UUID uuid) {
+        jdbcClient.sql("SELECT DISTINCT id FROM spexare_audit WHERE uuid = :uuid")
+                .param("uuid", uuid.toString())
+                .query(Long.class)
+                .list()
+                .forEach(this::purgeSpexare);
+    }
+
+    private void purgeSpexare(final Long id) {
         final Set<Long> revisions = new HashSet<>();
         final List<Long> imageIds = ids("SELECT DISTINCT image_id FROM spexare_audit WHERE id IN (:ids) AND image_id IS NOT NULL", List.of(id));
         final List<Long> activityIds = ids("SELECT DISTINCT id FROM activity_audit WHERE spexare_id IN (:ids)", List.of(id));

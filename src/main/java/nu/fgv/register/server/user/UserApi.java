@@ -71,6 +71,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -107,7 +108,7 @@ public class UserApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -143,7 +144,7 @@ public class UserApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<UserDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<UserDto>> retrieve(@PathVariable final UUID id) {
         final UserDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -178,7 +179,7 @@ public class UserApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<UserDto>> update(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
+    public ResponseEntity<EntityModel<UserDto>> update(@PathVariable final UUID id, @Valid @RequestBody final UserUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -190,7 +191,7 @@ public class UserApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<UserDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final UserUpdateDto dto) {
+    public ResponseEntity<EntityModel<UserDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final UserUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -202,7 +203,7 @@ public class UserApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();
@@ -210,7 +211,7 @@ public class UserApi {
 
     @GetMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final Long userId) {
+    public ResponseEntity<CollectionModel<EntityModel<AuthorityDto>>> retrieveAuthorities(@PathVariable final UUID userId) {
         final Set<EntityModel<AuthorityDto>> authorities = service.getAuthoritiesByUser(userId).stream()
                 .map(dto -> EntityModel.of(dto, authorityApi.getLinks(dto)))
                 .collect(Collectors.toSet());
@@ -222,7 +223,7 @@ public class UserApi {
 
     @PutMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> addAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> addAuthority(@PathVariable final UUID userId, @PathVariable final String id) {
         service.addAuthority(userId, id);
 
         return ResponseEntity.noContent().build();
@@ -230,7 +231,7 @@ public class UserApi {
 
     @PutMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> addAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+    public ResponseEntity<Serializable> addAuthorities(@PathVariable final UUID userId, @RequestParam final List<String> ids) {
         service.addAuthorities(userId, ids);
 
         return ResponseEntity.noContent().build();
@@ -238,7 +239,7 @@ public class UserApi {
 
     @DeleteMapping(value = "/{userId}/authorities/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> removeAuthority(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> removeAuthority(@PathVariable final UUID userId, @PathVariable final String id) {
         service.removeAuthority(userId, id);
 
         return ResponseEntity.noContent().build();
@@ -246,7 +247,7 @@ public class UserApi {
 
     @DeleteMapping(value = "/{userId}/authorities", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> removeAuthorities(@PathVariable final Long userId, @RequestParam final List<String> ids) {
+    public ResponseEntity<Serializable> removeAuthorities(@PathVariable final UUID userId, @RequestParam final List<String> ids) {
         service.removeAuthorities(userId, ids);
 
         return ResponseEntity.noContent().build();
@@ -254,7 +255,7 @@ public class UserApi {
 
     @GetMapping(value = "/{userId}/state", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final Long userId) {
+    public ResponseEntity<EntityModel<StateDto>> retrieveState(@PathVariable final UUID userId) {
         final StateDto dto = service.getStateByUser(userId);
 
         return ResponseEntity.ok(EntityModel.of(dto, stateApi.getLinks(dto)));
@@ -262,7 +263,7 @@ public class UserApi {
 
     @PutMapping(value = "/{userId}/state/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> setState(@PathVariable final Long userId, @PathVariable final String id) {
+    public ResponseEntity<Serializable> setState(@PathVariable final UUID userId, @PathVariable final String id) {
         service.setState(userId, id);
 
         return ResponseEntity.noContent().build();
@@ -270,7 +271,7 @@ public class UserApi {
 
     @GetMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final Long userId) {
+    public ResponseEntity<EntityModel<SpexareDto>> retrieveSpexare(@PathVariable final UUID userId) {
         final SpexareDto dto = service.findSpexareByUser(userId)
                 .orElseThrow(() -> new ResourceNoValueException(User.class, User_.SPEXARE, userId));
 
@@ -279,7 +280,7 @@ public class UserApi {
 
     @PutMapping(value = "/{userId}/spexare/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> addSpexare(@PathVariable final Long userId, @PathVariable final Long id) {
+    public ResponseEntity<Serializable> addSpexare(@PathVariable final UUID userId, @PathVariable final UUID id) {
         service.addSpexare(userId, id);
 
         return ResponseEntity.noContent().build();
@@ -287,7 +288,7 @@ public class UserApi {
 
     @DeleteMapping(value = "/{userId}/spexare", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Serializable> removeSpexare(@PathVariable final Long userId) {
+    public ResponseEntity<Serializable> removeSpexare(@PathVariable final UUID userId) {
         service.removeSpexare(userId);
 
         return ResponseEntity.noContent().build();

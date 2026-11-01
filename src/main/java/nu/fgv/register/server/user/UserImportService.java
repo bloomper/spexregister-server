@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.user.UserMapper.USER_MAPPER;
 import static org.springframework.util.StringUtils.hasText;
@@ -73,11 +74,11 @@ public class UserImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(UserImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v),
+                                "id", v -> service.exists((UUID) v),
                                 "stateId", v -> stateService.exists((String) v),
                                 "spexareId", v -> {
                                     if (hasText(v.toString())) {
-                                        return spexareService.exists((Long) v);
+                                        return spexareService.exists((UUID) v);
                                     } else {
                                         return true;
                                     }
@@ -97,7 +98,7 @@ public class UserImportService extends AbstractImportService {
     @SuppressWarnings("unchecked")
     @Override
     protected ImportResultDto processImport(final Map<Class<?>, List<?>> data, final Locale locale) {
-        final Map<Long, Long> userIdMap = new HashMap<>();
+        final Map<UUID, UUID> userIdMap = new HashMap<>();
         final Map<String, Map<String, String>> userData = new HashMap<>();
         final ImportSummary summary = new ImportSummary(messageSource, locale);
 
@@ -146,17 +147,17 @@ public class UserImportService extends AbstractImportService {
                 summary,
                 "user.impex.authority.entityName",
                 dto -> {
-                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+                    final UUID realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
 
                     service.addAuthority(realUserId, dto.getId());
                 },
                 dto -> {
-                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+                    final UUID realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
 
                     service.addAuthority(realUserId, dto.getId());
                 },
                 dto -> {
-                    final Long realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
+                    final UUID realUserId = userIdMap.getOrDefault(dto.getUserId(), dto.getUserId());
 
                     service.removeAuthority(realUserId, dto.getId());
                 }

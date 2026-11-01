@@ -52,6 +52,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -163,7 +164,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -178,7 +179,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final List<ConsentDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -202,7 +203,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final List<ConsentDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -229,7 +230,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -258,7 +259,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ConsentDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), consent.getId())
+                    .uri("/{id}", spexare.getUuid(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -271,7 +272,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "value")
-                    .contains(consent.getId(), consent.getValue());
+                    .contains(consent.getUuid(), consent.getValue());
         }
 
         @Test
@@ -280,7 +281,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -302,7 +303,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, consent.getId())
+                    .uri("/{id}", UUID.randomUUID(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -329,7 +330,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -340,7 +341,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final List<ConsentDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -364,7 +365,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -374,7 +375,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -397,7 +398,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", 1L, type.getId())
+                    .uri("/{typeId}", UUID.randomUUID(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -420,7 +421,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), "dummy")
+                    .uri("/{typeId}", spexare.getUuid(), "dummy")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -444,7 +445,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -468,7 +469,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -492,13 +493,13 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             repository.save(consent);
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(consent.getId())
+                    .id(consent.getUuid())
                     .value(Boolean.FALSE)
                     .build();
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -509,7 +510,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final List<ConsentDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -524,7 +525,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(1);
             assertThat(result.getFirst())
                     .extracting("id", "value")
-                    .contains(consent.getId(), Boolean.FALSE);
+                    .contains(consent.getUuid(), Boolean.FALSE);
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -534,12 +535,12 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(1L)
+                    .id(UUID.randomUUID())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -562,12 +563,12 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var consent = persistConsent(randomizeConsent(type, spexare));
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(consent.getId())
+                    .id(consent.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", 1L, type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -590,12 +591,12 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var consent = persistConsent(randomizeConsent(type, spexare));
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(consent.getId())
+                    .id(consent.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -619,12 +620,12 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var consent = persistConsent(randomizeConsent(type, spexare2));
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(consent.getId())
+                    .id(consent.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -647,12 +648,12 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final var consent = persistConsent(randomizeConsent(type, spexare));
             final var randDto = random.nextObject(ConsentUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(consent.getId())
+                    .id(consent.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -677,7 +678,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -700,7 +701,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -710,7 +711,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
             final List<ConsentDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -733,7 +734,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -756,7 +757,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", -1L, type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -779,7 +780,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -803,7 +804,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -826,7 +827,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -849,7 +850,7 @@ class ConsentApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), consent.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), consent.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

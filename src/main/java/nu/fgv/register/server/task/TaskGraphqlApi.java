@@ -27,7 +27,6 @@ import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
@@ -42,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -67,7 +67,7 @@ public class TaskGraphqlApi {
 
     @QueryMapping("taskExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(TaskExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
@@ -81,7 +81,7 @@ public class TaskGraphqlApi {
 
     @QueryMapping("task")
     @RequiresReferenceDataReader
-    public TaskDto retrieve(@Argument final Long id) {
+    public TaskDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -93,7 +93,7 @@ public class TaskGraphqlApi {
 
     @MutationMapping("taskDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 
@@ -110,13 +110,13 @@ public class TaskGraphqlApi {
 
     @MutationMapping("taskCategoryAdd")
     @RequiresAdmin
-    public void addCategory(@Argument final Long taskId, @Argument final Long id) {
+    public void addCategory(@Argument final UUID taskId, @Argument final UUID id) {
         service.addCategory(taskId, id);
     }
 
     @MutationMapping("taskCategoryRemove")
     @RequiresAdmin
-    public void removeCategory(@Argument final Long taskId) {
+    public void removeCategory(@Argument final UUID taskId) {
         service.removeCategory(taskId);
     }
 

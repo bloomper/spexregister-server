@@ -44,6 +44,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
@@ -120,7 +121,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
         return tagRepository.save(tag);
     }
 
-    private Map<String, Object> tagAdd(final List<Long> ids, final Long tagId) {
+    private Map<String, Object> tagAdd(final List<UUID> ids, final UUID tagId) {
         return Map.of(
                 "target", Map.of("ids", ids),
                 "operation", "TAG_ADD",
@@ -146,7 +147,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
-                    .body(tagAdd(List.of(spexare.getId()), tag.getId()))
+                    .body(tagAdd(List.of(spexare.getUuid()), tag.getUuid()))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody()
@@ -173,7 +174,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
-                    .body(tagAdd(List.of(spexare.getId()), tag.getId()))
+                    .body(tagAdd(List.of(spexare.getUuid()), tag.getUuid()))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody()
@@ -195,7 +196,7 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .header("X-Audit-Reason", reason)
                     .apiVersion("1.0")
-                    .body(tagAdd(List.of(spexare.getId()), tag.getId()))
+                    .body(tagAdd(List.of(spexare.getUuid()), tag.getUuid()))
                     .exchange()
                     .expectStatus().isOk();
 
@@ -225,9 +226,9 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId()), "filter", "published:TRUE"),
+                            "target", Map.of("ids", List.of(spexare.getUuid()), "filter", "published:TRUE"),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .exchange()
                     .expectStatus().isBadRequest();
 
@@ -246,9 +247,9 @@ class SpexareBulkApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId(), tag.getId() + 1000)))
+                            "tags", List.of(tag.getUuid(), UUID.randomUUID())))
                     .exchange()
                     .expectStatus().isNotFound();
 

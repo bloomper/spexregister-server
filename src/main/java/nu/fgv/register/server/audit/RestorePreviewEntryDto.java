@@ -30,7 +30,7 @@ import java.util.List;
 @Builder
 public record RestorePreviewEntryDto(
         AuditedType type,
-        @Nullable Long id,
+        @Nullable String id,
         RestoreAction action,
         List<FieldChangeDto> changes
 ) {

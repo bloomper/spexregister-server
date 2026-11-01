@@ -65,8 +65,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.LongStream;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -116,6 +117,18 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.spexActivityService = spexActivityService;
         this.membershipService = membershipService;
         this.tagService = tagService;
+    }
+
+    private static String fullSocialSecurityNumber() {
+        final SocialSecurityNumberRandomizer randomizer = new SocialSecurityNumberRandomizer();
+
+        while (true) {
+            final String value = randomizer.getRandomValue();
+
+            if (value.length() > 8) {
+                return value;
+            }
+        }
     }
 
     @BeforeEach
@@ -260,7 +273,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         revivalTester()
                 .document("query spexareByIds($ids: [ID!]!) { spexareByIds(ids: $ids) { id firstName deceased } }")
-                .variable("ids", List.of(published.getId(), unpublished.getId(), published.getId(), 999_999_999L))
+                .variable("ids", List.of(published.getId(), unpublished.getId(), published.getId(), UUID.randomUUID()))
                 .execute()
                 .errors()
                 .verify()
@@ -271,7 +284,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
     void should_refuse_more_than_500_ids() {
         revivalTester()
                 .document("query spexareByIds($ids: [ID!]!) { spexareByIds(ids: $ids) { id } }")
-                .variable("ids", LongStream.rangeClosed(1, 501).boxed().toList())
+                .variable("ids", IntStream.rangeClosed(1, 501).mapToObj(_ -> UUID.randomUUID()).toList())
                 .execute()
                 .errors()
                 .satisfy(errors -> assertThat(errors)
@@ -316,7 +329,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         revivalTester()
                 .document("query spexareBySpex($spexId: ID!) { spexareBySpex(spexId: $spexId) { id } }")
-                .variable("spexId", 999_999_999L)
+                .variable("spexId", UUID.randomUUID())
                 .execute()
                 .errors()
                 .satisfy(errors -> assertThat(errors)
@@ -349,7 +362,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         final TagDto tag = asAdmin(() -> tagService.create(new TagCreateDto("Nyuppsättning")));
         final String socialSecurityNumber = fullSocialSecurityNumber();
 
-        final Long spexareId = Long.valueOf(revivalTester(ACTING_PERSON_HEADER)
+        final UUID spexareId = UUID.fromString(revivalTester(ACTING_PERSON_HEADER)
                 .document("""
                         mutation spexareCreate($ssn: SocialSecurityNumber) { spexareCreate(input: {
                             firstName: "Gustav", lastName: "Gran", nickName: "Gurra", socialSecurityNumber: $ssn,
@@ -469,14 +482,14 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         // The integration test profile replaces the auditor of created_by and last_modified_by (see JpaConfig), so the
         // revision, which always uses Auditor, is what shows who acted here; AuditorTest covers created_by.
-        final String modifiedBy = jdbcClient.sql("SELECT r.modified_by FROM revinfo r JOIN spexare_audit a ON a.rev = r.id WHERE a.id = :id ORDER BY r.id LIMIT 1")
-                .param("id", spexareId).query(String.class).single();
-        final String socialSecurityNumberStored = jdbcClient.sql("SELECT social_security_number FROM spexare WHERE id = :id").param("id", spexareId).query(String.class).optional().orElse(null);
+        final String modifiedBy = jdbcClient.sql("SELECT r.modified_by FROM revinfo r JOIN spexare_audit a ON a.rev = r.id WHERE a.uuid = :id ORDER BY r.id LIMIT 1")
+                .param("id", spexareId.toString()).query(String.class).single();
+        final String socialSecurityNumberStored = jdbcClient.sql("SELECT social_security_number FROM spexare WHERE uuid = :id").param("id", spexareId.toString()).query(String.class).optional().orElse(null);
 
         assertThat(modifiedBy).isEqualTo(REVIVAL_CLIENT_ID + " on behalf of " + ACTING_PERSON);
         assertThat(socialSecurityNumberStored).isNull();
-        assertThat(jdbcClient.sql("SELECT r.modified_by FROM revinfo r JOIN membership_audit a ON a.rev = r.id WHERE a.spexare_id = :id")
-                .param("id", spexareId).query(String.class).single())
+        assertThat(jdbcClient.sql("SELECT r.modified_by FROM revinfo r JOIN membership_audit a ON a.rev = r.id WHERE a.spexare_id = (SELECT id FROM spexare WHERE uuid = :id)")
+                .param("id", spexareId.toString()).query(String.class).single())
                 .isEqualTo(modifiedBy);
     }
 
@@ -524,20 +537,20 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
             "mutation { spexCreate(input: { year: \"1999\", title: \"Inte tillåten\" }) { id } }",
             "mutation { taskCreate(input: { name: \"Inte tillåten\" }) { id } }",
             "mutation { tagCreate(input: { name: \"Inte tillåten\" }) { id } }",
-            "mutation { spexareUpdate(input: { id: 1, firstName: \"A\", lastName: \"B\", deceased: false, published: true }) { id } }",
-            "mutation { spexareDelete(id: 1) }",
-            "mutation { spexarePartnerAdd(spexareId: 1, id: 2) }",
-            "mutation { addressDelete(spexareId: 1, typeId: \"HOME\", id: 1) }",
-            "mutation { consentDelete(spexareId: 1, typeId: \"REGISTER\", id: 1) }",
-            "mutation { membershipDelete(spexareId: 1, typeId: \"FGV\", id: 1) }",
-            "mutation { activityDelete(spexareId: 1, id: 1) }",
-            "mutation { spexActivityUpdate(spexareId: 1, activityId: 1, spexId: 1, id: 1) { id } }",
-            "mutation { spexActivityDelete(spexareId: 1, activityId: 1, id: 1) }",
-            "mutation { taskActivityDelete(spexareId: 1, activityId: 1, id: 1) }",
-            "mutation { actorDelete(spexareId: 1, activityId: 1, taskActivityId: 1, vocalId: \"B1\", id: 1) }",
-            "mutation { taggingDelete(spexareId: 1, tagId: 1) }",
-            "mutation { spexRevivalDelete(spexId: 1, id: 1) }",
-            "mutation { toggleCreate(spexareId: 1, typeId: \"X\", input: { value: true }) { id } }"
+            "mutation { spexareUpdate(input: { id: \"00000000-0000-7000-8000-000000000001\", firstName: \"A\", lastName: \"B\", deceased: false, published: true }) { id } }",
+            "mutation { spexareDelete(id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { spexarePartnerAdd(spexareId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000002\") }",
+            "mutation { addressDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", typeId: \"HOME\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { consentDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", typeId: \"REGISTER\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { membershipDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", typeId: \"FGV\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { activityDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { spexActivityUpdate(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", spexId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") { id } }",
+            "mutation { spexActivityDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { taskActivityDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { actorDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", taskActivityId: \"00000000-0000-7000-8000-000000000001\", vocalId: \"B1\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { taggingDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", tagId: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { spexRevivalDelete(spexId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
+            "mutation { toggleCreate(spexareId: \"00000000-0000-7000-8000-000000000001\", typeId: \"X\", input: { value: true }) { id } }"
     })
     void should_refuse_everything_else(final String document) {
         revivalTester()
@@ -589,18 +602,6 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         final ActivityDto activity = activityService.create(spexare.getId());
 
         spexActivityService.create(spexare.getId(), activity.getId(), spex.getId());
-    }
-
-    private static String fullSocialSecurityNumber() {
-        final SocialSecurityNumberRandomizer randomizer = new SocialSecurityNumberRandomizer();
-
-        while (true) {
-            final String value = randomizer.getRandomValue();
-
-            if (value.length() > 8) {
-                return value;
-            }
-        }
     }
 
     private String obtainServiceAccessToken() {

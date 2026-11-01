@@ -44,6 +44,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -203,7 +204,7 @@ class AuthorityApiIntegrationTest extends AbstractIntegrationTest {
             final ProblemDetail result = Objects.requireNonNull(
                     restTestClient
                             .get()
-                            .uri("/{id}", 1L)
+                            .uri("/{id}", UUID.randomUUID())
                             .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .apiVersion("1.0")

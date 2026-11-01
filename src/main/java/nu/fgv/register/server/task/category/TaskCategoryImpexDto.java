@@ -28,6 +28,8 @@ import nu.fgv.register.server.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -41,7 +43,7 @@ public class TaskCategoryImpexDto extends AbstractAuditableImpexDto<TaskCategory
 
     @JsonProperty("id")
     @ExcelCell(header = "taskCategory.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "{taskCategory.name.notEmpty}")
     @Size(max = 255, message = "{taskCategory.name.maxSize}")

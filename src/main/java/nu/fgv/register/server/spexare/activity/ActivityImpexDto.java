@@ -28,6 +28,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -42,11 +44,11 @@ public class ActivityImpexDto extends AbstractAuditableImpexDto<ActivityImpexDto
     @NotEmpty(message = "{activity.spexare.notEmpty}")
     @JsonProperty("spexareId")
     @ExcelCell(header = "activity.impex.spexareId.columnName", position = 1)
-    private Long spexareId;
+    private UUID spexareId;
 
     @JsonProperty("id")
     @ExcelCell(header = "activity.impex.id.columnName", position = 2, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @JsonProperty("spexActivityAction")
     @ExcelCell(header = "common.impex.action.columnName", position = 3)
@@ -55,12 +57,12 @@ public class ActivityImpexDto extends AbstractAuditableImpexDto<ActivityImpexDto
     @NotEmpty(message = "{activity.spexActivity.notEmpty}")
     @JsonProperty("spexActivityId")
     @ExcelCell(header = "activity.impex.spexActivityId.columnName", position = 4)
-    private Long spexActivityId;
+    private UUID spexActivityId;
 
     @NotEmpty(message = "{activity.spex.notEmpty}")
     @JsonProperty("spexId")
     @ExcelCell(header = "activity.impex.spexId.columnName", position = 5, updatable = true)
-    private Long spexId;
+    private UUID spexId;
 
     @Nullable
     @JsonProperty("spexYear")
@@ -89,12 +91,12 @@ public class ActivityImpexDto extends AbstractAuditableImpexDto<ActivityImpexDto
     @NotEmpty(message = "{activity.taskActivity.notEmpty}")
     @JsonProperty("taskActivityId")
     @ExcelCell(header = "activity.impex.taskActivityId.columnName", position = 11)
-    private Long taskActivityId;
+    private UUID taskActivityId;
 
     @NotEmpty(message = "{activity.task.notEmpty}")
     @JsonProperty("taskId")
     @ExcelCell(header = "activity.impex.taskId.columnName", position = 12, updatable = true)
-    private Long taskId;
+    private UUID taskId;
 
     @Nullable
     @JsonProperty("taskName")
@@ -114,7 +116,7 @@ public class ActivityImpexDto extends AbstractAuditableImpexDto<ActivityImpexDto
     @Nullable
     @JsonProperty("actorId")
     @ExcelCell(header = "activity.impex.actorId.columnName", position = 16)
-    private Long actorId;
+    private UUID actorId;
 
     @Nullable
     @JsonProperty("actorRole")

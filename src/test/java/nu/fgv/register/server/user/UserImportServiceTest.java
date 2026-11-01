@@ -32,13 +32,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -55,7 +56,7 @@ class UserImportServiceTest {
     private final UserService userService = mock(UserService.class);
     private UserImportService service;
 
-    private static UserImpexDto user(final Long id, final ImpexAction action, final Long spexareId) {
+    private static UserImpexDto user(final UUID id, final ImpexAction action, final UUID spexareId) {
         final UserImpexDto dto = new UserImpexDto();
 
         dto.setId(id);
@@ -67,7 +68,7 @@ class UserImportServiceTest {
         return dto;
     }
 
-    private static AuthorityImpexDto authority(final Long userId, final ImpexAction action) {
+    private static AuthorityImpexDto authority(final UUID userId, final ImpexAction action) {
         final AuthorityImpexDto dto = new AuthorityImpexDto();
 
         dto.setUserId(userId);
@@ -88,41 +89,41 @@ class UserImportServiceTest {
 
     @Test
     void should_create_a_user_with_state_spexare_and_authority_and_return_the_temporary_password() {
-        when(userService.create(any())).thenReturn(UserDto.builder().id(40L).email("anna@example.org").externalId("kc-1")
+        when(userService.create(any())).thenReturn(UserDto.builder().id(uuid(40)).email("anna@example.org").externalId("kc-1")
                 .temporaryPassword("tillfälligt").build());
 
-        final ImportResultDto result = service.processImport(Map.of(UserImpexDto.class, List.of(user(-1L, ImpexAction.CREATE, 7L)),
-                AuthorityImpexDto.class, List.of(authority(-1L, ImpexAction.CREATE))), Locale.ENGLISH);
+        final ImportResultDto result = service.processImport(Map.of(UserImpexDto.class, List.of(user(uuid(1001), ImpexAction.CREATE, uuid(7))),
+                AuthorityImpexDto.class, List.of(authority(uuid(1001), ImpexAction.CREATE))), Locale.ENGLISH);
 
         assertThat(result.getErrors(), empty());
-        verify(userService).setState(40L, "ACTIVE");
-        verify(userService).addSpexare(40L, 7L);
-        verify(userService).addAuthority(40L, "EDITOR");
+        verify(userService).setState(uuid(40), "ACTIVE");
+        verify(userService).addSpexare(uuid(40), uuid(7));
+        verify(userService).addAuthority(uuid(40), "EDITOR");
         assertThat(result.getData().get("users"), is(Map.of("anna@example.org", Map.of("externalId", "kc-1", "temporaryPassword", "tillfälligt"))));
     }
 
     @Test
     void should_change_or_remove_a_users_spexare_on_update() {
-        when(userService.partialUpdate(any())).thenReturn(UserDto.builder().id(5L).build());
-        when(userService.findSpexareByUser(5L)).thenReturn(Optional.of(SpexareDto.builder().id(7L).build()));
+        when(userService.partialUpdate(any())).thenReturn(UserDto.builder().id(uuid(5)).build());
+        when(userService.findSpexareByUser(uuid(5))).thenReturn(Optional.of(SpexareDto.builder().id(uuid(7)).build()));
 
-        service.processImport(Map.of(UserImpexDto.class, List.of(user(5L, ImpexAction.UPDATE, 7L))), Locale.ENGLISH);
-        verify(userService, never()).addSpexare(anyLong(), anyLong());
+        service.processImport(Map.of(UserImpexDto.class, List.of(user(uuid(5), ImpexAction.UPDATE, uuid(7)))), Locale.ENGLISH);
+        verify(userService, never()).addSpexare(any(UUID.class), any(UUID.class));
 
-        service.processImport(Map.of(UserImpexDto.class, List.of(user(5L, ImpexAction.UPDATE, 8L))), Locale.ENGLISH);
-        verify(userService).addSpexare(5L, 8L);
+        service.processImport(Map.of(UserImpexDto.class, List.of(user(uuid(5), ImpexAction.UPDATE, uuid(8)))), Locale.ENGLISH);
+        verify(userService).addSpexare(uuid(5), uuid(8));
 
-        final ImportResultDto result = service.processImport(Map.of(UserImpexDto.class, List.of(user(5L, ImpexAction.UPDATE, null))), Locale.ENGLISH);
-        verify(userService).removeSpexare(5L);
+        final ImportResultDto result = service.processImport(Map.of(UserImpexDto.class, List.of(user(uuid(5), ImpexAction.UPDATE, null))), Locale.ENGLISH);
+        verify(userService).removeSpexare(uuid(5));
         assertThat(result.getData().get("users"), is(nullValue()));
     }
 
     @Test
     void should_delete_users_and_remove_authorities() {
-        service.processImport(Map.of(UserImpexDto.class, List.of(user(5L, ImpexAction.DELETE, null)),
-                AuthorityImpexDto.class, List.of(authority(6L, ImpexAction.DELETE))), Locale.ENGLISH);
+        service.processImport(Map.of(UserImpexDto.class, List.of(user(uuid(5), ImpexAction.DELETE, null)),
+                AuthorityImpexDto.class, List.of(authority(uuid(6), ImpexAction.DELETE))), Locale.ENGLISH);
 
-        verify(userService).deleteById(5L);
-        verify(userService).removeAuthority(6L, "EDITOR");
+        verify(userService).deleteById(uuid(5));
+        verify(userService).removeAuthority(uuid(6), "EDITOR");
     }
 }

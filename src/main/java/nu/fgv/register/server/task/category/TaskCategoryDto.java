@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -42,7 +43,7 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("name")
     private String name;
@@ -52,7 +53,7 @@ public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {
 
     @Builder
     public TaskCategoryDto(
-            final Long id,
+            final UUID id,
             final String name,
             final Boolean actorPresent,
             final String createdBy,

@@ -52,15 +52,15 @@ public interface UserMapper {
 
     UserMapper USER_MAPPER = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target = "id", source = "model.id")
+    @Mapping(target = "id", source = "model.uuid")
     @Mapping(target = "email", source = "representation.email")
     @Mapping(target = "temporaryPassword", source = "temporaryPassword")
     UserDto toDto(User model, UserRepresentation representation, @Nullable String temporaryPassword);
 
-    @Mapping(target = "id", source = "model.id")
+    @Mapping(target = "id", source = "model.uuid")
     @Mapping(target = "stateId", source = "state.id")
     @Mapping(target = "stateLabel", source = "state.label")
-    @Mapping(target = "spexareId", source = "model.spexare.id")
+    @Mapping(target = "spexareId", source = "model.spexare.uuid")
     @Mapping(target = "spexareFirstName", source = "model.spexare.firstName")
     @Mapping(target = "spexareLastName", source = "model.spexare.lastName")
     @Mapping(target = "spexareNickName", source = "model.spexare.nickName")
@@ -90,6 +90,7 @@ public interface UserMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     User toModel(UserUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

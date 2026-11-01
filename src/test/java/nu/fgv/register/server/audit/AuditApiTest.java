@@ -26,6 +26,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.Instant;
 import java.util.List;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,7 +66,7 @@ class AuditApiTest extends AbstractApiTest {
         return RevisionDto.builder()
                 .revision(revision)
                 .type(AuditedType.TAG)
-                .entityId(1L)
+                .entityId(uuid(1).toString())
                 .entityLabel("tag2")
                 .revisionType(revisionType)
                 .modifiedAt(Instant.parse("2026-09-08T14:02:00Z"))
@@ -86,7 +87,7 @@ class AuditApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/revisions/{type}/{id}", "TAG", "1")
+                        get("/api/revisions/{type}/{id}", "TAG", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -131,7 +132,7 @@ class AuditApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/revisions/{type}/{id}/{revision}", "TAG", "1", 2L)
+                        get("/api/revisions/{type}/{id}/{revision}", "TAG", uuid(1), 2L)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -184,7 +185,7 @@ class AuditApiTest extends AbstractApiTest {
                                 .build()))
                         .entities(List.of(RevisionEntityChangeDto.builder()
                                 .type(AuditedType.TAG)
-                                .entityId(1L)
+                                .entityId(uuid(1).toString())
                                 .entityLabel("tag2")
                                 .revisionType(RevisionType.MOD)
                                 .changes(List.of(FieldChangeDto.builder()
@@ -195,7 +196,7 @@ class AuditApiTest extends AbstractApiTest {
                                         .build()))
                                 .target(RevisionTargetDto.builder()
                                         .type(AuditedType.TAG)
-                                        .id(1L)
+                                        .id(uuid(1).toString())
                                         .label("tag2")
                                         .build())
                                 .build()))
@@ -252,7 +253,7 @@ class AuditApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        post("/api/revisions/{type}/{id}/{revision}/restore?cascade=false", "TAG", "1", 2L)
+                        post("/api/revisions/{type}/{id}/{revision}/restore?cascade=false", "TAG", uuid(1), 2L)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -101,7 +102,7 @@ public class SpexareExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ExportHolder<?>> getReports(final List<Long> ids, final String filter) {
+    protected List<ExportHolder<?>> getReports(final List<UUID> ids, final String filter) {
         final Iterable<Spexare> spexareList = service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "firstName"));
         final List<CountryDto> countries = countryService.findAll();
         final Map<String, CountryDto> countryMap = countries.stream()

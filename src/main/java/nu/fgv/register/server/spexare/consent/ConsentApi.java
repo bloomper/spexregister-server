@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -63,7 +64,7 @@ public class ConsentApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieve(@PathVariable final Long spexareId,
+    public ResponseEntity<PagedModel<EntityModel<ConsentDto>>> retrieve(@PathVariable final UUID spexareId,
                                                                         @SortDefault(sort = Consent_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<ConsentDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
 
@@ -74,7 +75,7 @@ public class ConsentApi {
 
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ConsentDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final ConsentCreateDto dto) {
+    public ResponseEntity<EntityModel<ConsentDto>> create(@PathVariable final UUID spexareId, @PathVariable final String typeId, @Valid @RequestBody final ConsentCreateDto dto) {
         final ConsentDto createdDto = service.create(spexareId, typeId, dto);
 
         return ResponseEntity.created(linkTo(methodOn(ConsentApi.class).retrieve(spexareId, createdDto.getId())).toUri())
@@ -83,7 +84,7 @@ public class ConsentApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ConsentDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<ConsentDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         final ConsentDto dto = service.findById(spexareId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
@@ -91,7 +92,7 @@ public class ConsentApi {
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ConsentDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final ConsentUpdateDto dto) {
+    public ResponseEntity<EntityModel<ConsentDto>> update(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id, @Valid @RequestBody final ConsentUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -103,21 +104,21 @@ public class ConsentApi {
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id) {
         service.deleteById(spexareId, typeId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<ConsentDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<ConsentDto> entity, final UUID spexareId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
-    void addLinks(final ConsentDto dto, final Long spexareId) {
+    void addLinks(final ConsentDto dto, final UUID spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final ConsentDto dto, final Long spexareId) {
+    List<Link> getLinks(final ConsentDto dto, final UUID spexareId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ConsentApi.class).retrieve(spexareId, dto.getId())).withSelfRel());

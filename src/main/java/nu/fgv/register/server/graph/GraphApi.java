@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -73,7 +74,7 @@ public class GraphApi {
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<GraphNeighbourhoodDto>> retrieveNeighbourhood(
             @PathVariable final GraphNodeType type,
-            @PathVariable final Long id,
+            @PathVariable final UUID id,
             @RequestParam(defaultValue = "" + DEFAULT_NEIGHBOUR_LIMIT) final int first) {
         return service.findNeighbourhood(type, id, first)
                 .map(dto -> ResponseEntity.ok(EntityModel.of(dto,
@@ -85,7 +86,7 @@ public class GraphApi {
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<CollectionModel<EntityModel<GraphNodeDto>>> retrieveNeighbours(
             @PathVariable final GraphNodeType type,
-            @PathVariable final Long id,
+            @PathVariable final UUID id,
             @RequestParam final GraphEdgeType edge,
             @RequestParam(defaultValue = "0") final long offset,
             @RequestParam(defaultValue = "" + DEFAULT_NEIGHBOUR_LIMIT) final int first) {

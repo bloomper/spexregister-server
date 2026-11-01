@@ -36,6 +36,7 @@ import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -62,7 +63,7 @@ public class PermissionGrantGraphqlApi {
 
     @QueryMapping("permissionGrant")
     @RequiresAdmin
-    public PermissionGrantDto retrieve(@Argument final Long id) {
+    public PermissionGrantDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -80,7 +81,7 @@ public class PermissionGrantGraphqlApi {
 
     @MutationMapping("permissionGrantDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 

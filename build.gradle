@@ -238,9 +238,9 @@ asciidoctor {
                 '--add-opens', 'java.base/java.io=ALL-UNNAMED',
                 '--enable-native-access=ALL-UNNAMED'
     }
-    attributes    \
-         'snippets': file('build/generated-snippets'),
-         'static-snippets': file('src/main/asciidoc/static-snippets')
+    attributes     \
+          'snippets': file('build/generated-snippets'),
+            'static-snippets': file('src/main/asciidoc/static-snippets')
 }
 
 bootJar {

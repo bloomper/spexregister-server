@@ -34,6 +34,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,19 +55,19 @@ public class ConsentGraphqlApi {
 
     @MutationMapping("consentCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public ConsentDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentCreateDto input) {
+    public ConsentDto create(@Argument final UUID spexareId, @Argument final String typeId, @Valid @Argument final ConsentCreateDto input) {
         return service.create(spexareId, typeId, input);
     }
 
     @MutationMapping("consentUpdate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public ConsentDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ConsentUpdateDto input) {
+    public ConsentDto update(@Argument final UUID spexareId, @Argument final String typeId, @Valid @Argument final ConsentUpdateDto input) {
         return service.update(spexareId, typeId, input.id(), input);
     }
 
     @MutationMapping("consentDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final String typeId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final String typeId, @Argument final UUID id) {
         service.deleteById(spexareId, typeId, id);
     }
 
@@ -79,7 +80,7 @@ public class ConsentGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "consents")
     @RequiresAdminOrEditorOrUserOrRevival
     public Map<SpexareDto, List<ConsentDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
-        final Map<Long, List<ConsentDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
+        final Map<UUID, List<ConsentDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 
         return dtos.stream()
                 .collect(Collectors.toMap(Function.identity(), dto -> result.getOrDefault(dto.getId(), List.of()), (a, _) -> a));

@@ -59,6 +59,29 @@ public class SecurityContextWebSocketGraphQlInterceptor implements WebSocketGrap
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
+    @SuppressWarnings("unchecked")
+    private static WebGraphQlResponse endStreamAt(final WebGraphQlResponse response, final Instant expiresAt) {
+        if (!(response.getData() instanceof final Publisher<?> stream)) {
+            return response;
+        }
+
+        final Flux<Object> bounded = Flux.from((Publisher<Object>) stream)
+                .timeout(Mono.delay(untilExpiry(expiresAt)), _ -> Mono.delay(untilExpiry(expiresAt)))
+                .onErrorMap(TimeoutException.class, _ -> tokenExpired());
+
+        return response.transform(builder -> builder.data(bounded));
+    }
+
+    private static Duration untilExpiry(final Instant expiresAt) {
+        final Duration remaining = Duration.between(Instant.now(), expiresAt);
+
+        return remaining.isNegative() ? Duration.ZERO : remaining;
+    }
+
+    private static AccessDeniedException tokenExpired() {
+        return new AccessDeniedException("Access token expired, reconnect with a new one");
+    }
+
     @Override
     public Mono<Object> handleConnectionInitialization(final WebSocketSessionInfo sessionInfo, final Map<String, Object> connectionInitPayload) {
         final Object header = connectionInitPayload.get("Authorization");
@@ -105,29 +128,6 @@ public class SecurityContextWebSocketGraphQlInterceptor implements WebSocketGrap
         }
 
         return chain.next(request);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static WebGraphQlResponse endStreamAt(final WebGraphQlResponse response, final Instant expiresAt) {
-        if (!(response.getData() instanceof final Publisher<?> stream)) {
-            return response;
-        }
-
-        final Flux<Object> bounded = Flux.from((Publisher<Object>) stream)
-                .timeout(Mono.delay(untilExpiry(expiresAt)), _ -> Mono.delay(untilExpiry(expiresAt)))
-                .onErrorMap(TimeoutException.class, _ -> tokenExpired());
-
-        return response.transform(builder -> builder.data(bounded));
-    }
-
-    private static Duration untilExpiry(final Instant expiresAt) {
-        final Duration remaining = Duration.between(Instant.now(), expiresAt);
-
-        return remaining.isNegative() ? Duration.ZERO : remaining;
-    }
-
-    private static AccessDeniedException tokenExpired() {
-        return new AccessDeniedException("Access token expired, reconnect with a new one");
     }
 
     @Override

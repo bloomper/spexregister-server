@@ -39,6 +39,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -275,15 +276,15 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .path("taskCategoryPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedTaskCategories(final int size) {
+        private List<UUID> persistPermittedTaskCategories(final int size) {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var category = persistTaskCategory(randomizeTaskCategory());
-                        return category.getId();
+                        return category.getUuid();
                     })
                     .toList();
         }
@@ -443,12 +444,12 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
                     .path("taskCategory", result -> result
-                            .path("id").entity(Long.class).isEqualTo(category.getId())
+                            .path("id").entity(UUID.class).isEqualTo(category.getUuid())
                             .path("name").entity(String.class).isEqualTo(category.getName())
                             .path("actorPresent").entity(Boolean.class).isEqualTo(category.getActorPresent())
                     );
@@ -461,7 +462,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -485,7 +486,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -521,7 +522,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -593,7 +594,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategory")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -661,7 +662,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -678,7 +679,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -699,7 +700,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryDelete")
-                    .variable("id", category.getId())
+                    .variable("id", category.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -718,7 +719,7 @@ class TaskCategoryGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTe
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("task/category/taskCategoryDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

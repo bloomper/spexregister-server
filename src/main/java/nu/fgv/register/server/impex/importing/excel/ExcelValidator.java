@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePosition;
 import static nu.fgv.register.server.impex.util.excel.ImpexUtil.determinePositionBeforeAuditableFields;
@@ -198,6 +199,9 @@ public class ExcelValidator {
         }
         if (fieldType == Long.class || fieldType == long.class) {
             return ExcelReader.wholeNumberOf(cell);
+        }
+        if (fieldType == UUID.class) {
+            return ExcelReader.uuidOf(cell);
         }
         return null;
     }

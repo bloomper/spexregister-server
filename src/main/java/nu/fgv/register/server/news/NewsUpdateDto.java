@@ -23,6 +23,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -32,7 +33,7 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record NewsUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotBlank(message = "{news.subject.notEmpty}")
         @Size(max = 255, message = "{news.subject.size}")
