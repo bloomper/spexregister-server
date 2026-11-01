@@ -33,7 +33,7 @@ import nu.fgv.register.server.util.filter.FilterOperation;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
+import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -194,7 +194,7 @@ public class SpexApi {
     }
 
     @GetMapping("/{spexId}/poster")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public ResponseEntity<Resource> downloadPoster(@PathVariable final Long spexId) {
         final Pair<byte[], String> poster = service.getPoster(spexId);
 

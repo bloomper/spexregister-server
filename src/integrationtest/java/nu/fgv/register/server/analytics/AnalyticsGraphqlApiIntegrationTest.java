@@ -203,6 +203,60 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .path("analytics.totals.userCountHistory[*].label").entityList(String.class).isEqualTo(years);
     }
 
+    @Test
+    void should_show_demographics_to_everyone_and_operations_only_to_admins() {
+        final String admin = obtainAdminAccessToken();
+
+        createSpexare(admin, "Ada", true);
+        createSpexare(admin, "Bo", true);
+
+        final String query = """
+                query {
+                    analytics {
+                        demographics {
+                            byCountry { key count }
+                            byStatus { key label count facet }
+                            consentCompletion { key granted denied missing }
+                        }
+                        operations {
+                            usersByState { key count }
+                            usersWithoutSpexare
+                            spexareWithoutUser
+                            revisionsByMonth { key count }
+                            revisionsBySource { key count }
+                            topEditors { label count }
+                        }
+                    }
+                }
+                """;
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, admin))
+                .build()
+                .document(query)
+                .execute()
+                .errors()
+                .verify()
+                // The search index is shared with the other tests, so only the shape is checked
+                .path("analytics.demographics.byStatus[*].count").entityList(Integer.class).satisfies(counts -> org.assertj.core.api.Assertions.assertThat(counts).allMatch(count -> count >= 2))
+                .path("analytics.demographics.byStatus[*].facet").entityList(String.class).isEqualTo(List.of("deceased"))
+                .path("analytics.operations.spexareWithoutUser").entity(Integer.class).isEqualTo(2)
+                .path("analytics.operations.revisionsBySource").entityList(Object.class).satisfies(list -> org.assertj.core.api.Assertions.assertThat(list).isNotEmpty())
+                .path("analytics.operations.topEditors").entityList(Object.class).satisfies(list -> org.assertj.core.api.Assertions.assertThat(list).isNotEmpty());
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken()))
+                .build()
+                .document(query)
+                .execute()
+                .errors()
+                .verify()
+                .path("analytics.demographics.byStatus").entityList(Object.class).hasSize(1)
+                .path("analytics.operations").valueIsNull();
+    }
+
     private String createSpexare(final String token, final String firstName, final boolean published) {
         return httpGraphQlTester
                 .mutate()

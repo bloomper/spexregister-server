@@ -28,7 +28,8 @@ import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
-import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
+import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -64,7 +65,7 @@ public class SpexGraphqlApi {
     private final JobService jobService;
 
     @QueryMapping("spexPaged")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public CountedWindow<SpexDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
@@ -84,7 +85,7 @@ public class SpexGraphqlApi {
     }
 
     @QueryMapping("spex")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public SpexDto retrieve(@Argument final Long id) {
         return service.findById(id);
     }
@@ -108,7 +109,7 @@ public class SpexGraphqlApi {
     }
 
     @BatchMapping(typeName = "Spex", field = "parent")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrMedia
     public Map<SpexDto, SpexDto> retrieveParents(final List<SpexDto> dtos) {
         final Map<Long, SpexDto> parents = service.findParentsBySpex(ids(dtos));
 
@@ -118,13 +119,13 @@ public class SpexGraphqlApi {
     }
 
     @SchemaMapping(typeName = "Spex", field = "revivalsPaged")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public CountedWindow<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
         return service.findRevivalsByParent(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @BatchMapping(typeName = "Spex", field = "revivals")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public Map<SpexDto, List<SpexDto>> retrieveRevivalsByParents(final List<SpexDto> dtos) {
         final Map<Long, List<SpexDto>> revivals = service.findRevivalsByParents(ids(dtos));
 
@@ -133,7 +134,7 @@ public class SpexGraphqlApi {
     }
 
     @QueryMapping("spexRevival")
-    @RequiresReferenceDataReader
+    @RequiresSpexReader
     public SpexDto retrieveRevival(@Argument final Long spexId, @Argument final Long id) {
         return service.findRevivalById(spexId, id);
     }
@@ -151,7 +152,7 @@ public class SpexGraphqlApi {
     }
 
     @BatchMapping(typeName = "Spex", field = "category")
-    @RequiresAdminOrEditorOrUser
+    @RequiresAdminOrEditorOrUserOrMedia
     public Map<SpexDto, SpexCategoryDto> retrieveCategories(final List<SpexDto> dtos) {
         final Map<Long, SpexCategoryDto> categories = service.findCategoriesBySpex(ids(dtos));
 

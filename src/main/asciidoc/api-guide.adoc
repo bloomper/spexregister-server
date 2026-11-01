@@ -112,10 +112,12 @@ Spexregister Server uses the following roles:
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
 |REVIVAL|ROLE_REVIVAL|Nyuppsättning's service account only
+|MEDIA|ROLE_MEDIA|Spexify's and Spexflix's service accounts only
 
 |===
 
 REVIVAL works through the xref:graphql-api-guide.adoc#roles[GraphQL API]; of the REST API it may only download spex posters.
+MEDIA reads spex, with their originals and categories, through the GraphQL API and downloads spex posters; nothing else.
 
 [[acting_person]]
 === Acting person

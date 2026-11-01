@@ -401,6 +401,49 @@ class GraphGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        void should_return_the_spex_of_a_spex_category_and_the_tasks_of_a_task_category() {
+            final var spex = persistReadableSpex();
+            final var task = persistReadableTask("Trumpet", "Orkester");
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.SPEX_CATEGORY)
+                    .variable("id", spex.getDetails().getCategory().getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.groups[?(@.type == 'CATEGORY')].totalCount").entityList(Integer.class).containsExactly(1);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.TASK_CATEGORY)
+                    .variable("id", task.getCategory().getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.origin.label").entity(String.class).isEqualTo("Orkester")
+                    .path("graphNeighbourhood.groups[?(@.type == 'CATEGORY')].totalCount").entityList(Integer.class).containsExactly(1);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                    .build()
+                    .documentName("graph/graphNeighbourhood")
+                    .variable("type", GraphNodeType.TASK)
+                    .variable("id", task.getId())
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("graphNeighbourhood.origin.label").entity(String.class).isEqualTo("Trumpet");
+        }
+
+        @Test
         void should_label_participation_with_the_spex_year_for_spex() {
             final var spexare = persistReadableSpexare("Ada", "Lovelace", true);
             final var spex = persistReadableSpex();
