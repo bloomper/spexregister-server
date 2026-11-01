@@ -29,7 +29,7 @@ import java.util.List;
 @Builder
 public record RevisionEntityChangeDto(
         AuditedType type,
-        @Nullable Long entityId,
+        @Nullable String entityId,
         @Nullable String entityLabel,
         RevisionType revisionType,
         List<FieldChangeDto> changes,

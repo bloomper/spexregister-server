@@ -38,7 +38,7 @@ extend type Mutation {
 type Revision {
     revision: Long!
     type: AuditedType!
-    entityId: Long
+    entityId: ID
     entityLabel: String
     revisionType: RevisionType!
     modifiedAt: Instant!
@@ -57,7 +57,7 @@ type FieldChange {
     binary: Boolean!
     "The type of the entity the field belongs to, when it is not the revision's own, as in merged revisions."
     type: AuditedType
-    entityId: Long
+    entityId: ID
 }
 
 "A revision in the feed."
@@ -96,7 +96,7 @@ type RevisionTypeSummary {
 "One entity changed in a revision."
 type RevisionEntityChange {
     type: AuditedType!
-    entityId: Long
+    entityId: ID
     entityLabel: String
     revisionType: RevisionType!
     changes: [FieldChange!]!
@@ -107,7 +107,7 @@ type RevisionEntityChange {
 "The entity whose history a change belongs to."
 type RevisionTarget {
     type: AuditedType!
-    id: Long!
+    id: ID!
     label: String
 }
 
@@ -125,7 +125,7 @@ type RevisionFeedEdge {
 "What a restore would do to one entity."
 type RestorePreviewEntry {
     type: AuditedType!
-    id: Long
+    id: ID
     action: RestoreAction!
     changes: [FieldChange!]!
 }
@@ -147,14 +147,9 @@ type RestoreResult {
 
 "Something a restore could not do as asked."
 type RestoreWarning {
-    """
-    ID_REASSIGNED when a removed record was re-created under a new id, REFERENCE_MISSING when it pointed at something
-    that no longer exists.
-    """
+    "REFERENCE_MISSING when a restored record pointed at something that no longer exists."
     code: String!
     message: String!
-    previousId: Long
-    newId: Long
 }
 
 "Whether the entity was added, modified or deleted."

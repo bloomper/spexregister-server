@@ -33,7 +33,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -87,8 +89,8 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var tag1 = TagDto.builder().id(1L).name("tag1").build();
-        final var tag2 = TagDto.builder().id(2L).name("tag2").build();
+        final var tag1 = TagDto.builder().id(uuid(1)).name("tag1").build();
+        final var tag2 = TagDto.builder().id(uuid(2)).name("tag2").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(tag1, tag2), PageRequest.of(1, 2, Sort.by("name")), 10));
 
@@ -134,7 +136,7 @@ class TagApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/tags?ids=1,2,3&type=excel")
+                        get("/api/tags?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -162,7 +164,7 @@ class TagApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(TagCreateDto.class);
         final var dto = TagCreateDto.builder().name("Tag").build();
 
-        when(service.create(any(TagCreateDto.class))).thenReturn(TagDto.builder().id(1L).name(dto.name()).build());
+        when(service.create(any(TagCreateDto.class))).thenReturn(TagDto.builder().id(uuid(1)).name(dto.name()).build());
 
         mockMvc
                 .perform(
@@ -221,13 +223,13 @@ class TagApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(uuid(1)).name("tag").build();
 
-        when(service.findById(any(Long.class))).thenReturn(tag);
+        when(service.findById(any(UUID.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
-                        get("/api/tags/{id}", 1)
+                        get("/api/tags/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -247,7 +249,7 @@ class TagApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TagApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(TagApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -255,14 +257,14 @@ class TagApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(TagUpdateDto.class);
-        final var tag = TagDto.builder().id(1L).name("tag").build();
-        final var dto = TagUpdateDto.builder().id(1L).name("tag2").build();
+        final var tag = TagDto.builder().id(uuid(1)).name("tag").build();
+        final var dto = TagUpdateDto.builder().id(uuid(1)).name("tag2").build();
 
         when(service.update(any(TagUpdateDto.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
-                        put("/api/tags/{id}", 1)
+                        put("/api/tags/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -288,7 +290,7 @@ class TagApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TagApi.class, "update", Long.class, TagUpdateDto.class))
+                                security(getRolesFromMethod(TagApi.class, "update", UUID.class, TagUpdateDto.class))
                         )
                 );
     }
@@ -296,14 +298,14 @@ class TagApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(TagUpdateDto.class);
-        final var tag = TagDto.builder().id(1L).name("tag").build();
-        final var dto = TagUpdateDto.builder().id(1L).build();
+        final var tag = TagDto.builder().id(uuid(1)).name("tag").build();
+        final var dto = TagUpdateDto.builder().id(uuid(1)).build();
 
         when(service.partialUpdate(any(TagUpdateDto.class))).thenReturn(tag);
 
         mockMvc
                 .perform(
-                        patch("/api/tags/{id}", 1)
+                        patch("/api/tags/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -329,21 +331,21 @@ class TagApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(TagApi.class, "partialUpdate", Long.class, TagUpdateDto.class))
+                                security(getRolesFromMethod(TagApi.class, "partialUpdate", UUID.class, TagUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var tag = TagDto.builder().id(1L).name("tag").build();
+        final var tag = TagDto.builder().id(uuid(1)).name("tag").build();
 
-        when(service.findById(any(Long.class))).thenReturn(tag);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(tag);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/tags/{id}", 1)
+                        delete("/api/tags/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -359,7 +361,7 @@ class TagApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the tag")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(TagApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(TagApi.class, "delete", UUID.class))
                         )
                 );
     }

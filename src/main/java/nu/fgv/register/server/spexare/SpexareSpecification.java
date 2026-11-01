@@ -30,6 +30,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Filters on spexare for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -49,15 +50,15 @@ public class SpexareSpecification extends BaseSpecification<Spexare> {
         super(criteria);
     }
 
-    public static Specification<Spexare> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(Spexare_.id).in(ids);
+    public static Specification<Spexare> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(Spexare_.uuid).in(ids);
     }
 
     /**
      * @param spexId an original spex id
      * @return the spexare with a spex activity in the spex or in one of its revivals
      */
-    public static Specification<Spexare> hasSpexActivityInSpexOrRevivals(final Long spexId) {
+    public static Specification<Spexare> hasSpexActivityInSpexOrRevivals(final UUID spexId) {
         return (root, query, criteriaBuilder) -> {
             final Subquery<Long> participants = query.subquery(Long.class);
             final Root<SpexActivity> spexActivity = participants.from(SpexActivity.class);
@@ -66,8 +67,8 @@ public class SpexareSpecification extends BaseSpecification<Spexare> {
             participants
                     .select(spexActivity.get(SpexActivity_.activity).get(Activity_.spexare).get(Spexare_.id))
                     .where(criteriaBuilder.or(
-                            criteriaBuilder.equal(spex.get(Spex_.id), spexId),
-                            criteriaBuilder.equal(spex.get(Spex_.parent).get(Spex_.id), spexId)));
+                            criteriaBuilder.equal(spex.get(Spex_.uuid), spexId),
+                            criteriaBuilder.equal(spex.get(Spex_.parent).get(Spex_.uuid), spexId)));
 
             return root.get(Spexare_.id).in(participants);
         };

@@ -27,6 +27,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -41,7 +43,7 @@ public class AuthorityImpexDto extends AbstractImpexDto {
     @NotEmpty(message = "{authority.user.notEmpty}")
     @JsonProperty("userId")
     @ExcelCell(header = "authority.impex.user.id.columnName", position = 1, ignoreIfNull = true)
-    private Long userId;
+    private UUID userId;
 
     @JsonProperty("id")
     @ExcelCell(header = "authority.impex.id.columnName", position = 2, primaryKey = true, updatable = true)

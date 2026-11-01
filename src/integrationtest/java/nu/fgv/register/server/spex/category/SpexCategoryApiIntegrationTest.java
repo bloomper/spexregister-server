@@ -51,6 +51,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -356,7 +357,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto result = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -369,14 +370,14 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "name", "firstYear")
-                    .contains(category.getId(), category.getName(), category.getFirstYear());
+                    .contains(category.getUuid(), category.getName(), category.getFirstYear());
         }
 
         @Test
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -401,7 +402,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -421,7 +422,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto updated = restTestClient
                     .put()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -434,7 +435,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto after = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -503,7 +504,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -523,7 +524,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -572,7 +573,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -592,7 +593,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -605,7 +606,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto after = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -650,7 +651,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -670,7 +671,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .patch()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -719,7 +720,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -732,7 +733,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -752,7 +753,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -770,7 +771,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -796,7 +797,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -806,7 +807,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final byte[] result = restTestClient
                     .get()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -830,7 +831,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
                     .apiVersion("1.0")
@@ -840,7 +841,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final byte[] result = restTestClient
                     .get()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -860,7 +861,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -870,7 +871,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -878,7 +879,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -893,7 +894,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -915,7 +916,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{spexCategoryId}/logo", 123L)
+                    .uri("/{spexCategoryId}/logo", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                     .apiVersion("1.0")
@@ -937,7 +938,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{spexCategoryId}/logo", category.getId())
+                    .uri("/{spexCategoryId}/logo", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -955,7 +956,7 @@ class SpexCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{spexCategoryId}/logo", 123L)
+                    .uri("/{spexCategoryId}/logo", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()

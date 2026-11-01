@@ -18,6 +18,7 @@ package nu.fgv.register.server.spexare.activity.task;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -37,6 +38,7 @@ public interface TaskActivityMapper {
 
     TaskActivityMapper TASK_ACTIVITY_MAPPER = Mappers.getMapper(TaskActivityMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     TaskActivityDto toDto(TaskActivity model);
 
 }

@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -75,8 +76,8 @@ public class ToggleService {
      * @return the toggles of each spexare, by spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public Map<Long, List<ToggleDto>> findBySpexareIds(final Collection<Long> ids) {
-        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+    public Map<UUID, List<ToggleDto>> findBySpexareIds(final Collection<UUID> ids) {
+        final List<Spexare> spexare = spexareRepository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
 
@@ -87,7 +88,7 @@ public class ToggleService {
         return repository
                 .findAll(hasSpexareIn(spexare), Sort.by(Toggle_.TYPE))
                 .stream()
-                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(TOGGLE_MAPPER::toDto, Collectors.toList())));
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getUuid(), Collectors.mapping(TOGGLE_MAPPER::toDto, Collectors.toList())));
     }
 
     /**
@@ -95,7 +96,7 @@ public class ToggleService {
      * @return the spexare's toggles
      */
     @RequiresAdminOrEditorOrUser
-    public List<ToggleDto> findBySpexare(final Long id) {
+    public List<ToggleDto> findBySpexare(final UUID id) {
         return findBySpexare(id, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Toggle_.TYPE)))
@@ -113,7 +114,7 @@ public class ToggleService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUser
-    public CountedWindow<ToggleDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<ToggleDto> findBySpexare(final UUID spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findBy(hasSpexare(spexare), query -> {
@@ -135,7 +136,7 @@ public class ToggleService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<ToggleDto> findBySpexare(final Long spexareId, final Pageable pageable) {
+    public Page<ToggleDto> findBySpexare(final UUID spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), pageable)
@@ -150,13 +151,13 @@ public class ToggleService {
      * @return the toggle
      */
     @RequiresAdminOrEditorOrUser
-    public ToggleDto findById(final Long spexareId, final Long id) {
+    public ToggleDto findById(final UUID spexareId, final UUID id) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(toggle -> toggle.getSpexare().getUuid().equals(spexareId))
                     .map(TOGGLE_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Toggle.class, id));
         } else {
@@ -169,9 +170,9 @@ public class ToggleService {
      * @return whether the toggle exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -181,15 +182,15 @@ public class ToggleService {
      * @param dto       the value
      * @return the created toggle
      * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has a toggle
-     *     of the type
+     *                                                                             of the type
      */
     @RequiresAdminOrEditorOrUser
-    public ToggleDto create(final Long spexareId, final String typeId, final ToggleCreateDto dto) {
+    public ToggleDto create(final UUID spexareId, final String typeId, final ToggleCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
@@ -215,16 +216,16 @@ public class ToggleService {
      * @return the updated toggle
      */
     @RequiresAdminOrEditorOrUser
-    public ToggleDto update(final Long spexareId, final String typeId, final Long id, final ToggleUpdateDto dto) {
+    public ToggleDto update(final UUID spexareId, final String typeId, final UUID id, final ToggleUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
-                            .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
+                            .flatMap(spexare -> repository.findByUuid(id))
+                            .filter(toggle -> toggle.getSpexare().getUuid().equals(spexareId))
                             .map(toggle -> {
                                 toggle.setValue(dto.value());
                                 return repository.save(toggle);
@@ -243,16 +244,16 @@ public class ToggleService {
      * @param id        the toggle id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final String typeId, final Long id) {
+    public void deleteById(final UUID spexareId, final String typeId, final UUID id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesToggleExist(id)) {
             typeRepository
                     .findById(typeId)
                     .ifPresent(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
-                            .filter(toggle -> toggle.getSpexare().getId().equals(spexareId))
+                            .flatMap(spexare -> repository.findByUuid(id))
+                            .filter(toggle -> toggle.getSpexare().getUuid().equals(spexareId))
                             .ifPresentOrElse(
                                     toggle -> repository.deleteById(toggle.getId()),
                                     () -> {
@@ -265,10 +266,10 @@ public class ToggleService {
         }
     }
 
-    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+    private <T> T findBySpexare(final UUID id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
         if (doesSpexareExist(id)) {
             return spexareRepository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkReadPermission)
                     .map(queryFunction)
                     .orElseGet(emptyResult);
@@ -277,15 +278,15 @@ public class ToggleService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesToggleExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesToggleExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
-    private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {
+    private boolean doSpexareAndTypeExist(final UUID spexareId, final String typeId) {
         return doesSpexareExist(spexareId) && typeService.existsByIdAndType(typeId, TypeType.TOGGLE);
     }
 

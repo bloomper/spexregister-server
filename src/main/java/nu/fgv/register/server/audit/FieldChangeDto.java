@@ -32,10 +32,10 @@ public record FieldChangeDto(
         @Nullable String newValue,
         boolean binary,
         @Nullable AuditedType type,
-        @Nullable Long entityId
+        @Nullable String entityId
 ) {
 
-    FieldChangeDto ownedBy(final AuditedType owner, final @Nullable Long ownerId) {
+    FieldChangeDto ownedBy(final AuditedType owner, final @Nullable String ownerId) {
         return new FieldChangeDto(field, oldValue, newValue, binary, owner, ownerId);
     }
 }

@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -62,7 +63,7 @@ public class TagGraphqlApi {
 
     @QueryMapping("tagExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(TagExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
@@ -76,7 +77,7 @@ public class TagGraphqlApi {
 
     @QueryMapping("tag")
     @RequiresReferenceDataReader
-    public TagDto retrieve(@Argument final Long id) {
+    public TagDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -88,7 +89,7 @@ public class TagGraphqlApi {
 
     @MutationMapping("tagDelete")
     @RequiresAdminOrEditor
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 

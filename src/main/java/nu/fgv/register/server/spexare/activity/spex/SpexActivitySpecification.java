@@ -20,6 +20,8 @@ import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.activity.Activity;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 /**
  * Query restrictions on spex activities.
  *
@@ -33,8 +35,8 @@ public class SpexActivitySpecification {
     private SpexActivitySpecification() {
     }
 
-    public static Specification<SpexActivity> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(SpexActivity_.id), id);
+    public static Specification<SpexActivity> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(SpexActivity_.uuid), id);
     }
 
     public static Specification<SpexActivity> hasActivity(final Activity activity) {

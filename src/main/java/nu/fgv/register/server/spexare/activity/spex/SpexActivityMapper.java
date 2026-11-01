@@ -18,6 +18,7 @@ package nu.fgv.register.server.spexare.activity.spex;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -37,6 +38,7 @@ public interface SpexActivityMapper {
 
     SpexActivityMapper SPEX_ACTIVITY_MAPPER = Mappers.getMapper(SpexActivityMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     SpexActivityDto toDto(SpexActivity model);
 
 }

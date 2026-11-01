@@ -75,6 +75,14 @@ public class PermissionGrants {
         this.clock = clock;
     }
 
+    private static boolean mayHoldGrants(final Caller caller) {
+        return caller.subject() != null || !caller.roles().isEmpty();
+    }
+
+    private static List<Permission> permissionsMeeting(final Permission permission) {
+        return Arrays.stream(Permission.values()).filter(permission::isMetBy).toList();
+    }
+
     /**
      * The spexare a grant covers: those granted directly, and everyone with a spex activity in a spex granted for its
      * participants.
@@ -223,10 +231,6 @@ public class PermissionGrants {
         return mayHoldGrants(caller) && !grantsOf(caller, permission).isEmpty();
     }
 
-    private static boolean mayHoldGrants(final Caller caller) {
-        return caller.subject() != null || !caller.roles().isEmpty();
-    }
-
     private Predicate applies(final CriteriaBuilder criteriaBuilder,
                               final Root<PermissionGrant> grant,
                               final Caller caller,
@@ -248,10 +252,6 @@ public class PermissionGrants {
                 criteriaBuilder.or(grantees.toArray(Predicate[]::new)),
                 criteriaBuilder.or(criteriaBuilder.isNull(validUntil), criteriaBuilder.greaterThanOrEqualTo(validUntil, today)),
                 grant.get(PermissionGrant_.permission).in(permissionsMeeting(permission)));
-    }
-
-    private static List<Permission> permissionsMeeting(final Permission permission) {
-        return Arrays.stream(Permission.values()).filter(permission::isMetBy).toList();
     }
 
     private List<PermissionGrant> grantsOf(final Caller caller, final Permission permission) {

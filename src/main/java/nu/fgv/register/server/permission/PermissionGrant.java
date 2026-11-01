@@ -25,6 +25,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -33,6 +34,7 @@ import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.Uuids;
 import org.hibernate.envers.Audited;
 import org.jspecify.annotations.Nullable;
 
@@ -40,6 +42,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A permission given to one user or to one role, on the target its {@link PermissionGrantScope} names, valid through
@@ -62,6 +65,10 @@ public class PermissionGrant extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @ManyToOne
     private @Nullable User user;

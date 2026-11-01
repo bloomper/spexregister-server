@@ -23,6 +23,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Filters on users for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -42,15 +43,15 @@ public class UserSpecification extends BaseSpecification<User> {
         super(criteria);
     }
 
-    public static Specification<User> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(User_.id).in(ids);
+    public static Specification<User> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(User_.uuid).in(ids);
     }
 
     public static Specification<User> hasExternalIds(final List<String> externalIds) {
         return (root, query, criteriaBuilder) -> root.get(User_.externalId).in(externalIds);
     }
 
-    public static Specification<User> hasSpexareIds(final List<Long> spexareIds) {
-        return (root, query, criteriaBuilder) -> root.get(User_.spexare).get(Spexare_.id).in(spexareIds);
+    public static Specification<User> hasSpexareIds(final List<UUID> spexareIds) {
+        return (root, query, criteriaBuilder) -> root.get(User_.spexare).get(Spexare_.uuid).in(spexareIds);
     }
 }

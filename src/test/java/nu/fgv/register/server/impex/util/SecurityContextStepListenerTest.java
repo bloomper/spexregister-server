@@ -37,6 +37,13 @@ class SecurityContextStepListenerTest {
 
     private final SecurityContextStepListener listener = new SecurityContextStepListener();
 
+    private static StepExecution stepExecution(final JobParametersBuilder parameters) {
+        final StepExecution stepExecution = mock(StepExecution.class);
+
+        when(stepExecution.getJobParameters()).thenReturn(parameters.toJobParameters());
+        return stepExecution;
+    }
+
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
@@ -67,12 +74,5 @@ class SecurityContextStepListenerTest {
 
         assertThat(Auditor.current(), equalTo(""));
         assertThat(SecurityContextHolder.getContext().getAuthentication().getName(), equalTo("subject"));
-    }
-
-    private static StepExecution stepExecution(final JobParametersBuilder parameters) {
-        final StepExecution stepExecution = mock(StepExecution.class);
-
-        when(stepExecution.getJobParameters()).thenReturn(parameters.toJobParameters());
-        return stepExecution;
     }
 }

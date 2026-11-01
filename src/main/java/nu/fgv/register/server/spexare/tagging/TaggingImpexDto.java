@@ -26,6 +26,8 @@ import nu.fgv.register.server.impex.model.AbstractImpexDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -40,11 +42,11 @@ public class TaggingImpexDto extends AbstractImpexDto {
     @NotEmpty(message = "{tagging.spexare.notEmpty}")
     @JsonProperty("spexareId")
     @ExcelCell(header = "tagging.impex.spexareId.columnName", position = 1)
-    private Long spexareId;
+    private UUID spexareId;
 
     @JsonProperty("tagId")
     @ExcelCell(header = "tagging.impex.tagId.columnName", position = 2, updatable = true, mandatory = true)
-    private Long tagId;
+    private UUID tagId;
 
     @JsonProperty("tagName")
     @ExcelCell(header = "tagging.impex.tagName.columnName", position = 3)

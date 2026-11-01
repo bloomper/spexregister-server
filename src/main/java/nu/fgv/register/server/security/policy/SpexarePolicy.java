@@ -55,6 +55,32 @@ public class SpexarePolicy implements AccessPolicy<Spexare> {
         this.grants = grants;
     }
 
+    private static boolean isOwnRecordPermission(final Permission permission) {
+        return permission == Permission.READ || permission == Permission.WRITE;
+    }
+
+    private static boolean isUserOf(final Spexare spexare, final String subject) {
+        final @Nullable User user = spexare.getUser();
+
+        return user != null && subject.equals(user.getExternalId());
+    }
+
+    private static Specification<Spexare> isOwnOrPartners(final String subject) {
+        return (root, _, criteriaBuilder) -> {
+            final Join<Spexare, User> user = root.join(Spexare_.user, JoinType.LEFT);
+            final Join<Spexare, Spexare> partner = root.join(Spexare_.partner, JoinType.LEFT);
+            final Join<Spexare, User> partnerUser = partner.join(Spexare_.user, JoinType.LEFT);
+
+            return criteriaBuilder.or(
+                    criteriaBuilder.equal(user.get(User_.externalId), subject),
+                    criteriaBuilder.equal(partnerUser.get(User_.externalId), subject));
+        };
+    }
+
+    private static Specification<Spexare> isPublished() {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.isTrue(root.get(Spexare_.published));
+    }
+
     @Override
     public Class<Spexare> type() {
         return Spexare.class;
@@ -85,31 +111,5 @@ public class SpexarePolicy implements AccessPolicy<Spexare> {
                 || (isOwnRecordPermission(permission) && caller.subject() != null
                 && (isUserOf(spexare, caller.subject()) || (spexare.getPartner() != null && isUserOf(spexare.getPartner(), caller.subject()))))
                 || grants.covers(caller, spexare, permission);
-    }
-
-    private static boolean isOwnRecordPermission(final Permission permission) {
-        return permission == Permission.READ || permission == Permission.WRITE;
-    }
-
-    private static boolean isUserOf(final Spexare spexare, final String subject) {
-        final @Nullable User user = spexare.getUser();
-
-        return user != null && subject.equals(user.getExternalId());
-    }
-
-    private static Specification<Spexare> isOwnOrPartners(final String subject) {
-        return (root, _, criteriaBuilder) -> {
-            final Join<Spexare, User> user = root.join(Spexare_.user, JoinType.LEFT);
-            final Join<Spexare, Spexare> partner = root.join(Spexare_.partner, JoinType.LEFT);
-            final Join<Spexare, User> partnerUser = partner.join(Spexare_.user, JoinType.LEFT);
-
-            return criteriaBuilder.or(
-                    criteriaBuilder.equal(user.get(User_.externalId), subject),
-                    criteriaBuilder.equal(partnerUser.get(User_.externalId), subject));
-        };
-    }
-
-    private static Specification<Spexare> isPublished() {
-        return (root, _, criteriaBuilder) -> criteriaBuilder.isTrue(root.get(Spexare_.published));
     }
 }

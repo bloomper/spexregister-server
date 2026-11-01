@@ -23,6 +23,8 @@ import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 /**
  * Filters on actors for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
  *
@@ -41,8 +43,8 @@ public class ActorSpecification extends BaseSpecification<Actor> {
         super(criteria);
     }
 
-    public static Specification<Actor> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Actor_.id), id);
+    public static Specification<Actor> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Actor_.uuid), id);
     }
 
     public static Specification<Actor> hasTaskActivity(final TaskActivity taskActivity) {

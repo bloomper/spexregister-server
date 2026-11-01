@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -77,7 +78,7 @@ public class SavedSearchApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SavedSearchDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<SavedSearchDto>> retrieve(@PathVariable final UUID id) {
         final SavedSearchDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -85,7 +86,7 @@ public class SavedSearchApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<SavedSearchDto>> update(@PathVariable final Long id, @Valid @RequestBody final SavedSearchUpdateDto dto) {
+    public ResponseEntity<EntityModel<SavedSearchDto>> update(@PathVariable final UUID id, @Valid @RequestBody final SavedSearchUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -97,7 +98,7 @@ public class SavedSearchApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();

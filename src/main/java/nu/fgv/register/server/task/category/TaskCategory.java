@@ -24,11 +24,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.Uuids;
 import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -42,6 +44,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
 
@@ -67,6 +70,10 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{taskCategory.name.notEmpty}")
     @Size(max = 255, message = "{taskCategory.name.maxSize}")

@@ -226,7 +226,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedBaseline(jdbcClient));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, String.valueOf(tag.getId())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, tag.getUuid().toString()));
 
             assertThat(revisions).hasSize(1);
             assertThat(revisions.getFirst().revisionType().name()).isEqualTo("ADD");
@@ -257,7 +257,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, String.valueOf(tag.getId())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, tag.getUuid().toString()));
 
             assertThat(revisions).hasSizeGreaterThan(1);
             assertThat(revisions.getLast().revisionType().name()).isEqualTo("ADD");
@@ -385,14 +385,14 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
-            final List<Long> deleted = jdbcClient
-                    .sql("SELECT DISTINCT a.id FROM address_audit a WHERE a.revtype = 2 AND NOT EXISTS (SELECT 1 FROM address l WHERE l.id = a.id)")
-                    .query(Long.class)
+            final List<String> deleted = jdbcClient
+                    .sql("SELECT DISTINCT a.uuid FROM address_audit a WHERE a.revtype = 2 AND NOT EXISTS (SELECT 1 FROM address l WHERE l.id = a.id)")
+                    .query(String.class)
                     .list();
 
             assertThat(deleted).isNotEmpty();
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.ADDRESS, String.valueOf(deleted.getFirst())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.ADDRESS, deleted.getFirst()));
 
             assertThat(revisions).hasSize(2);
             assertThat(revisions.getFirst().revisionType().name()).isEqualTo("DEL");
@@ -430,7 +430,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedBaseline(jdbcClient));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, String.valueOf(spex.getId())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, spex.getUuid().toString()));
 
             assertThat(revisions)
                     .as("a spex and its details created in one revision must read as a single event")
@@ -450,7 +450,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, String.valueOf(spex.getId())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, spex.getUuid().toString()));
 
             assertThat(revisions).isNotEmpty();
             assertThat(revisions)
@@ -475,10 +475,10 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, String.valueOf(tag.getId())));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TAG, tag.getUuid().toString()));
             final var oldest = revisions.getLast();
 
-            asAdmin(() -> auditService.restore(AuditedType.TAG, String.valueOf(tag.getId()), oldest.revision(), false));
+            asAdmin(() -> auditService.restore(AuditedType.TAG, tag.getUuid().toString(), oldest.revision(), false));
 
             final var restored = tagRepository.findById(tag.getId()).orElseThrow();
 
@@ -508,7 +508,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(aliveAt).as("the seeder must produce a deleted address for the spexare").isNotNull();
 
-            final var preview = asAdmin(() -> auditService.preview(AuditedType.SPEXARE, String.valueOf(spexare.getId()), aliveAt, true));
+            final var preview = asAdmin(() -> auditService.preview(AuditedType.SPEXARE, spexare.getUuid().toString(), aliveAt, true));
 
             assertThat(preview.entries())
                     .filteredOn(e -> e.action() == RestoreAction.CREATE)

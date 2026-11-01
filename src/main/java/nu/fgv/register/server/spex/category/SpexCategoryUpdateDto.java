@@ -23,6 +23,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -31,7 +33,7 @@ import lombok.Builder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SpexCategoryUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotBlank(message = "{spexCategory.name.notEmpty}")
         @Size(max = 255, message = "{spexCategory.name.maxSize}")

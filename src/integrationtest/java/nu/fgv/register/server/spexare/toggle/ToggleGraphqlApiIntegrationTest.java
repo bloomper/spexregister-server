@@ -48,6 +48,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
@@ -165,7 +166,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -181,7 +182,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -194,7 +195,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -216,7 +217,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -232,7 +233,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -257,7 +258,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", 1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -282,7 +283,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -308,7 +309,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -333,7 +334,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/toggle/toggleCreate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -362,7 +363,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             repository.save(toggle);
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .value(Boolean.FALSE)
                     .build();
 
@@ -371,7 +372,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -387,7 +388,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -400,7 +401,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -422,7 +423,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -444,7 +445,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -452,7 +453,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", 1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -474,7 +475,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -482,7 +483,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -505,7 +506,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare2));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -513,7 +514,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare1.getId())
+                    .variable("spexareId", spexare1.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -535,7 +536,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             httpGraphQlTester
@@ -543,7 +544,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -565,14 +566,14 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
             final var toggle = randomizeToggle(type, spexare);
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             httpGraphQlTester
                     .mutate()
                     .build()
                     .documentName("spexare/toggle/toggleUpdate")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
                     .variables(objectMapper.convertValue(dto, new TypeReference<>() {
                     }))
@@ -603,9 +604,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -617,7 +618,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -630,7 +631,7 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/spexare")
-                    .variable("id", spexare.getId())
+                    .variable("id", spexare.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -651,9 +652,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -676,9 +677,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", -1L)
+                    .variable("spexareId", UUID.randomUUID())
                     .variable("typeId", type.getId())
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -701,9 +702,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", "dummy")
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -727,9 +728,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare1.getId())
+                    .variable("spexareId", spexare1.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -752,9 +753,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -776,9 +777,9 @@ class ToggleGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .mutate()
                     .build()
                     .documentName("spexare/toggle/toggleDelete")
-                    .variable("spexareId", spexare.getId())
+                    .variable("spexareId", spexare.getUuid())
                     .variable("typeId", type.getId())
-                    .variable("id", toggle.getId())
+                    .variable("id", toggle.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

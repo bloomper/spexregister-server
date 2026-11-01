@@ -40,6 +40,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -280,15 +281,15 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("newsPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(ids.subList(15, 25)));
         }
 
-        private List<String> asStrings(final List<Long> ids) {
+        private List<String> asStrings(final List<UUID> ids) {
             return ids.stream().map(String::valueOf).toList();
         }
 
-        private List<Long> persistPermittedNews(final int size) {
+        private List<UUID> persistPermittedNews(final int size) {
             return IntStream.range(0, size)
                     .mapToObj(_ -> {
                         final var news = persistNews(randomizeNews());
-                        return news.getId();
+                        return news.getUuid();
                     })
                     .toList();
         }
@@ -451,7 +452,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -469,7 +470,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -493,7 +494,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -531,7 +532,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -603,7 +604,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/news")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -672,7 +673,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("news/newsDelete")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .verify()
@@ -689,7 +690,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("news/newsDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -710,7 +711,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/newsDelete")
-                    .variable("id", news.getId())
+                    .variable("id", news.getUuid())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)
@@ -729,7 +730,7 @@ class NewsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
                     .build()
                     .documentName("news/newsDelete")
-                    .variable("id", 123L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

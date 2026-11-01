@@ -29,7 +29,9 @@ import org.springframework.context.support.StaticMessageSource;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -46,6 +48,47 @@ class PdfGeneratorTest {
 
     private final StaticMessageSource messageSource = new StaticMessageSource();
 
+    private static String text(final byte[] pdf) throws Exception {
+        try (final PdfReader reader = new PdfReader(pdf)) {
+            final PdfTextExtractor extractor = new PdfTextExtractor(reader);
+            final StringBuilder text = new StringBuilder();
+
+            for (int page = 1; page <= reader.getNumberOfPages(); page++) {
+                text.append(extractor.getTextFromPage(page)).append('\n');
+            }
+            return text.toString();
+        }
+    }
+
+    private static SpexareImpexDto spexare(final UUID id, final String firstName, final String lastName) {
+        final SpexareImpexDto dto = new SpexareImpexDto();
+
+        dto.setId(id);
+        dto.setFirstName(firstName);
+        dto.setLastName(lastName);
+        return dto;
+    }
+
+    private static AddressImpexDto address(final UUID spexareId, final String typeId, final String streetAddress) {
+        final AddressImpexDto dto = new AddressImpexDto();
+
+        dto.setSpexareId(spexareId);
+        dto.setTypeId(typeId);
+        dto.setStreetAddress(streetAddress);
+        dto.setPostalCode("411 01");
+        dto.setCity("Göteborg");
+        dto.setCountryName("Sweden");
+        return dto;
+    }
+
+    private static ActivityImpexDto activity(final UUID spexareId, final String taskName) {
+        final ActivityImpexDto dto = new ActivityImpexDto();
+
+        dto.setSpexareId(spexareId);
+        dto.setTaskName(taskName);
+        return dto;
+    }
+
     @Test
     void should_support_only_their_own_report_type() {
         assertThat(new AddressLabelsPdfGenerator(messageSource).supports(ReportType.PDF_ADDRESS_LABELS), is(true));
@@ -57,8 +100,8 @@ class PdfGeneratorTest {
     @Test
     void should_label_only_home_addresses() throws Exception {
         final byte[] pdf = new AddressLabelsPdfGenerator(messageSource).generate(List.of(
-                ExportHolder.of(List.of(spexare(1L, "Ada", "Lovelace"), spexare(2L, "Grace", "Hopper")), SpexareImpexDto.class),
-                ExportHolder.of(List.of(address(1L, "HOME", "Storgatan 1"), address(2L, "WORK", "Kontorsvägen 2")), AddressImpexDto.class)
+                ExportHolder.of(List.of(spexare(uuid(1), "Ada", "Lovelace"), spexare(uuid(2), "Grace", "Hopper")), SpexareImpexDto.class),
+                ExportHolder.of(List.of(address(uuid(1), "HOME", "Storgatan 1"), address(uuid(2), "WORK", "Kontorsvägen 2")), AddressImpexDto.class)
         ), LOCALE);
 
         final String text = text(pdf);
@@ -75,7 +118,7 @@ class PdfGeneratorTest {
         messageSource.addMessage("impex.export.pdf.addressLabels.noHomeAddressesFound", LOCALE, "No home addresses");
 
         final byte[] pdf = new AddressLabelsPdfGenerator(messageSource).generate(List.of(
-                ExportHolder.of(List.of(spexare(1L, "Ada", "Lovelace")), SpexareImpexDto.class),
+                ExportHolder.of(List.of(spexare(uuid(1), "Ada", "Lovelace")), SpexareImpexDto.class),
                 ExportHolder.of(List.<AddressImpexDto>of(), AddressImpexDto.class)
         ), LOCALE);
 
@@ -85,7 +128,7 @@ class PdfGeneratorTest {
     @Test
     void should_list_every_spexare_on_the_scratch_list() throws Exception {
         final byte[] pdf = new ScratchListPdfGenerator(messageSource).generate(List.of(
-                ExportHolder.of(List.of(spexare(1L, "Ada", "Lovelace"), spexare(2L, "Grace", "Hopper")), SpexareImpexDto.class)
+                ExportHolder.of(List.of(spexare(uuid(1), "Ada", "Lovelace"), spexare(uuid(2), "Grace", "Hopper")), SpexareImpexDto.class)
         ), LOCALE);
 
         final String text = text(pdf);
@@ -97,9 +140,9 @@ class PdfGeneratorTest {
     @Test
     void should_combine_role_and_home_address_on_the_platoon_list() throws Exception {
         final byte[] pdf = new PlatoonListPdfGenerator(messageSource).generate(List.of(
-                ExportHolder.of(List.of(spexare(1L, "Ada", "Lovelace"), spexare(2L, "Grace", "Hopper")), SpexareImpexDto.class),
-                ExportHolder.of(List.of(address(1L, "HOME", "Storgatan 1")), AddressImpexDto.class),
-                ExportHolder.of(List.of(activity(1L, "Orchestra")), ActivityImpexDto.class)
+                ExportHolder.of(List.of(spexare(uuid(1), "Ada", "Lovelace"), spexare(uuid(2), "Grace", "Hopper")), SpexareImpexDto.class),
+                ExportHolder.of(List.of(address(uuid(1), "HOME", "Storgatan 1")), AddressImpexDto.class),
+                ExportHolder.of(List.of(activity(uuid(1), "Orchestra")), ActivityImpexDto.class)
         ), LOCALE);
 
         final String text = text(pdf);
@@ -112,51 +155,10 @@ class PdfGeneratorTest {
 
     @Test
     void should_refuse_to_generate_without_the_data_it_needs() {
-        final List<ExportHolder<?>> spexareOnly = List.of(ExportHolder.of(List.of(spexare(1L, "Ada", "Lovelace")), SpexareImpexDto.class));
+        final List<ExportHolder<?>> spexareOnly = List.of(ExportHolder.of(List.of(spexare(uuid(1), "Ada", "Lovelace")), SpexareImpexDto.class));
 
         assertThrows(ExportException.class, () -> new AddressLabelsPdfGenerator(messageSource).generate(spexareOnly, LOCALE));
         assertThrows(ExportException.class, () -> new PlatoonListPdfGenerator(messageSource).generate(spexareOnly, LOCALE));
         assertThrows(ExportException.class, () -> new ScratchListPdfGenerator(messageSource).generate(List.of(), LOCALE));
-    }
-
-    private static String text(final byte[] pdf) throws Exception {
-        try (final PdfReader reader = new PdfReader(pdf)) {
-            final PdfTextExtractor extractor = new PdfTextExtractor(reader);
-            final StringBuilder text = new StringBuilder();
-
-            for (int page = 1; page <= reader.getNumberOfPages(); page++) {
-                text.append(extractor.getTextFromPage(page)).append('\n');
-            }
-            return text.toString();
-        }
-    }
-
-    private static SpexareImpexDto spexare(final Long id, final String firstName, final String lastName) {
-        final SpexareImpexDto dto = new SpexareImpexDto();
-
-        dto.setId(id);
-        dto.setFirstName(firstName);
-        dto.setLastName(lastName);
-        return dto;
-    }
-
-    private static AddressImpexDto address(final Long spexareId, final String typeId, final String streetAddress) {
-        final AddressImpexDto dto = new AddressImpexDto();
-
-        dto.setSpexareId(spexareId);
-        dto.setTypeId(typeId);
-        dto.setStreetAddress(streetAddress);
-        dto.setPostalCode("411 01");
-        dto.setCity("Göteborg");
-        dto.setCountryName("Sweden");
-        return dto;
-    }
-
-    private static ActivityImpexDto activity(final Long spexareId, final String taskName) {
-        final ActivityImpexDto dto = new ActivityImpexDto();
-
-        dto.setSpexareId(spexareId);
-        dto.setTaskName(taskName);
-        return dto;
     }
 }

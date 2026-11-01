@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -63,7 +64,7 @@ public class ToggleApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieve(@PathVariable final Long spexareId,
+    public ResponseEntity<PagedModel<EntityModel<ToggleDto>>> retrieve(@PathVariable final UUID spexareId,
                                                                        @SortDefault(sort = Toggle_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<ToggleDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
 
@@ -74,7 +75,7 @@ public class ToggleApi {
 
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ToggleDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final ToggleCreateDto dto) {
+    public ResponseEntity<EntityModel<ToggleDto>> create(@PathVariable final UUID spexareId, @PathVariable final String typeId, @Valid @RequestBody final ToggleCreateDto dto) {
         final ToggleDto createdDto = service.create(spexareId, typeId, dto);
 
         return ResponseEntity.created(linkTo(methodOn(ToggleApi.class).retrieve(spexareId, createdDto.getId())).toUri())
@@ -83,7 +84,7 @@ public class ToggleApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<ToggleDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         final ToggleDto dto = service.findById(spexareId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
@@ -91,7 +92,7 @@ public class ToggleApi {
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<ToggleDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final ToggleUpdateDto dto) {
+    public ResponseEntity<EntityModel<ToggleDto>> update(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id, @Valid @RequestBody final ToggleUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -103,21 +104,21 @@ public class ToggleApi {
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id) {
         service.deleteById(spexareId, typeId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<ToggleDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<ToggleDto> entity, final UUID spexareId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
-    void addLinks(final ToggleDto dto, final Long spexareId) {
+    void addLinks(final ToggleDto dto, final UUID spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final ToggleDto dto, final Long spexareId) {
+    List<Link> getLinks(final ToggleDto dto, final UUID spexareId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(ToggleApi.class).retrieve(spexareId, dto.getId())).withSelfRel());

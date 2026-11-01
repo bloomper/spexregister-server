@@ -35,6 +35,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -51,6 +52,7 @@ import nu.fgv.register.server.spexare.toggle.Toggle;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.Uuids;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import nu.fgv.register.server.util.validation.Luhn;
 import org.hibernate.annotations.Cache;
@@ -78,6 +80,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
@@ -112,6 +115,10 @@ public class Spexare extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")

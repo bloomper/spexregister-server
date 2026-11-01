@@ -50,25 +50,28 @@ public interface SpexMapper {
     SpexMapper SPEX_MAPPER = Mappers.getMapper(SpexMapper.class);
 
     @Mapping(target = "title", source = "details.title")
-    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getUuid())).toUri().toString()).orElse(null))")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
+    @Mapping(target = "id", source = "uuid")
     SpexDto toDto(Spex model);
 
     @Mapping(target = "title", source = "details.title")
-    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
-    @Mapping(target = "categoryId", source = "details.category.id")
+    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getUuid())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
+    @Mapping(target = "categoryId", source = "details.category.uuid")
     @Mapping(target = "categoryName", source = "details.category.name")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     SpexImpexDto toImpexDto(Spex model);
 
-    @Mapping(target = "parentId", source = "parent.id")
+    @Mapping(target = "parentId", source = "parent.uuid")
     @Mapping(target = "parentYear", source = "parent.year")
     @Mapping(target = "parentTitle", source = "details.title")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     SpexRevivalImpexDto toRevivalImpexDto(Spex model);
 
     @Mapping(target = "id", ignore = true)
@@ -94,6 +97,7 @@ public interface SpexMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Spex toModel(SpexUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

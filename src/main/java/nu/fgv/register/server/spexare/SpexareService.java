@@ -19,9 +19,10 @@ package nu.fgv.register.server.spexare;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.permission.PermissionGrantService;
-import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.permission.PermissionGrantService;
+import nu.fgv.register.server.security.policy.Permission;
+import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.util.error.BadRequestException;
@@ -56,7 +57,6 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -70,6 +70,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -111,6 +112,37 @@ public class SpexareService {
     private final PermissionGrantService permissionGrantService;
     private final MessageSource messageSource;
 
+    private static Deque<?> parseFilter(final String filter) {
+        final Deque<?> parsed = FilterParser.parse(filter);
+
+        if (!SpexareSensitiveData.isReadableForAll() && parsed.stream()
+                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.key()))) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(SpexareSensitiveData.FIELD));
+        }
+        if (SpexareSensitiveData.isLimitedToRevival() && parsed.stream()
+                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isRestrictedPath(criteria.key()))) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(String.join(" or ", SpexareSensitiveData.RESTRICTED_FIELDS)));
+        }
+
+        return parsed;
+    }
+
+    private static void requirePermittedAggregationFilters(final List<AggregationFilter> aggregationFilters) {
+        if (SpexareSensitiveData.isLimitedToRevival() && aggregationFilters.stream().anyMatch(SpexareService::isMembershipFilter)) {
+            throw new BadRequestException("Filtering on %s is not permitted".formatted(FACET_MEMBERSHIPS));
+        }
+    }
+
+    private static boolean isMembershipFilter(final AggregationFilter filter) {
+        return FACET_MEMBERSHIPS.equals(filter.name())
+                || (AGGREGATION_DATA_QUALITY.equals(filter.name()) && DataQualityIssue.fromKey(filter.value()).filter(DataQualityIssue.NO_MEMBERSHIP::equals).isPresent());
+    }
+
+    private static SpexareUpdateDto withoutSensitiveData(final SpexareUpdateDto dto) {
+        return new SpexareUpdateDto(dto.id(), dto.firstName(), dto.lastName(), dto.nickName(), null,
+                dto.deceased(), dto.published(), dto.graduation(), dto.comment());
+    }
+
     /**
      * Free-text search with facets. Facets the caller may not use are left out: published for those who see only
      * published spexare, and memberships for a caller limited to the revival service.
@@ -121,7 +153,7 @@ public class SpexareService {
      * @param sort               the order, by relevance when unsorted
      * @return the window with the total count and the facets
      * @throws nu.fgv.register.server.util.error.BadRequestException when a caller limited to the revival service
-     *     narrows on memberships
+     *                                                               narrows on memberships
      */
     @RequiresAdminOrEditorOrUserOrRevival
     public WindowWithFacets<SpexareDto> search(final String query, final List<AggregationFilter> aggregationFilters, final ScrollRequest scroll, final Sort sort) {
@@ -177,7 +209,7 @@ public class SpexareService {
      * @param sort   the order
      * @return the window with the total count
      * @throws nu.fgv.register.server.util.error.BadRequestException when the filter reaches what the caller may not
-     *     filter on
+     *                                                               filter on
      */
     @RequiresAdminOrEditorOrUserOrRevival
     public CountedWindow<SpexareDto> find(final String filter, final ScrollRequest scroll, final Sort sort) {
@@ -218,7 +250,7 @@ public class SpexareService {
      * @throws nu.fgv.register.server.util.error.BadRequestException for more than {@value #MAX_IDS} ids
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<SpexareDto> findByIds(final Collection<Long> ids) {
+    public List<SpexareDto> findByIds(final Collection<UUID> ids) {
         if (ids.size() > MAX_IDS) {
             throw new BadRequestException("At most %d ids can be fetched at once".formatted(MAX_IDS));
         }
@@ -236,16 +268,16 @@ public class SpexareService {
     /**
      * @param spexId an original spex id
      * @return the spexare with a spex activity in the spex or one of its revivals that the caller may read, by last
-     *     name and first name
+     * name and first name
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<SpexareDto> findBySpex(final Long spexId) {
+    public List<SpexareDto> findBySpex(final UUID spexId) {
         final Spex spex = spexRepository
-                .findById0(spexId)
+                .findByUuid0(spexId)
                 .orElseThrow(() -> new ResourceNotFoundException(Spex.class, spexId));
 
         return repository
-                .findAll(hasSpexActivityInSpexOrRevivals(spex.getId()), Sort.by(Spexare_.LAST_NAME, Spexare_.FIRST_NAME, Spexare_.ID), Permission.READ)
+                .findAll(hasSpexActivityInSpexOrRevivals(spex.getUuid()), Sort.by(Spexare_.LAST_NAME, Spexare_.FIRST_NAME, Spexare_.ID), Permission.READ)
                 .stream()
                 .map(SPEXARE_MAPPER::toDto)
                 .toList();
@@ -256,9 +288,9 @@ public class SpexareService {
      * @return the spexare
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexareDto findById(final Long id) {
+    public SpexareDto findById(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(SPEXARE_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
     }
@@ -283,9 +315,9 @@ public class SpexareService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -296,7 +328,7 @@ public class SpexareService {
      * @return the spexare the caller may read, streamed when iterated, so it must be consumed inside a transaction
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<Spexare> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<Spexare> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<Spexare> spec;
 
@@ -347,7 +379,7 @@ public class SpexareService {
     @RequiresAdminOrEditorOrUser
     public SpexareDto partialUpdate(final SpexareUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     SPEXARE_MAPPER.toPartialModel(SpexareSensitiveData.isReadable(spexare) ? dto : withoutSensitiveData(dto), spexare);
@@ -365,9 +397,9 @@ public class SpexareService {
      * @param id the spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesSpexareExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(spexare -> {
                         permissionGrantService.deleteBySpexare(spexare);
@@ -384,9 +416,9 @@ public class SpexareService {
      * @return the spexare
      */
     @RequiresAdminOrEditorOrUser
-    public SpexareDto saveImage(final Long id, final byte[] image) {
+    public SpexareDto saveImage(final UUID id, final byte[] image) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     spexare.setImage(Image.of(image, requireSupportedImageMimeType(image)));
@@ -401,9 +433,9 @@ public class SpexareService {
      * @return the spexare
      */
     @RequiresAdminOrEditorOrUser
-    public SpexareDto deleteImage(final Long id) {
+    public SpexareDto deleteImage(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(permissionService::checkWritePermission)
                 .map(spexare -> {
                     spexare.setImage(null);
@@ -419,12 +451,12 @@ public class SpexareService {
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spexare has no image
      */
     @RequiresAdminOrEditorOrUser
-    public Pair<byte[], String> getImage(final Long id) {
+    public Pair<byte[], String> getImage(final UUID id) {
         if (!doesSpexareExist(id)) {
             throw new ResourceNotFoundException(Spexare.class, id);
         }
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .map(Spexare::getImage)
                 .map(image -> Pair.of(image.getData(), image.getContentType()))
                 .orElseThrow(() -> new ResourceNoValueException(Spexare.class, Spexare_.IMAGE, id));
@@ -435,10 +467,10 @@ public class SpexareService {
      * @return the partner, or empty when there is none or the caller may not read it
      */
     @RequiresAdminOrEditorOrUser
-    public Optional<SpexareDto> findPartnerBySpexare(final Long id) {
+    public Optional<SpexareDto> findPartnerBySpexare(final UUID id) {
         if (doesSpexareExist(id)) {
             return repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .filter(spexare -> spexare.getPartner() != null)
                     .map(Spexare::getPartner)
                     .filter(permissionService::hasReadPermission)
@@ -455,10 +487,10 @@ public class SpexareService {
      * @return the partners the caller may read, by spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public Map<Long, SpexareDto> findPartnersBySpexare(final Collection<Long> ids) {
-        return repository.findWithPartnerByIdIn(ids).stream()
+    public Map<UUID, SpexareDto> findPartnersBySpexare(final Collection<UUID> ids) {
+        return repository.findWithPartnerByUuidIn(ids).stream()
                 .filter(spexare -> spexare.getPartner() != null && permissionService.hasReadPermission(spexare.getPartner()))
-                .collect(Collectors.toMap(Spexare::getId, spexare -> SPEXARE_MAPPER.toDto(spexare.getPartner())));
+                .collect(Collectors.toMap(Spexare::getUuid, spexare -> SPEXARE_MAPPER.toDto(spexare.getPartner())));
     }
 
     /**
@@ -469,21 +501,21 @@ public class SpexareService {
      * @param id        the partner's spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public void addPartner(final Long spexareId, final Long id) {
+    public void addPartner(final UUID spexareId, final UUID id) {
         if (doSpexareAndPartnerExist(spexareId, id)) {
-            final Spexare spexare = repository.findById(spexareId)
+            final Spexare spexare = repository.findByUuid(spexareId)
                     .map(permissionService::checkWritePermission)
                     .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, spexareId));
 
-            final Spexare partner = repository.findById(id)
+            final Spexare partner = repository.findByUuid(id)
                     .map(permissionService::checkWritePermission)
                     .orElseThrow(() -> new ResourceNotFoundException(Spexare.class, id));
 
             if (spexare.getPartner() != null) {
-                removePartner(spexare.getId());
+                removePartner(spexare.getUuid());
             }
             if (partner.getPartner() != null) {
-                removePartner(partner.getId());
+                removePartner(partner.getUuid());
             }
 
             spexare.setPartner(partner);
@@ -502,10 +534,10 @@ public class SpexareService {
      * @param id the spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public void removePartner(final Long id) {
+    public void removePartner(final UUID id) {
         if (doesSpexareExist(id)) {
             repository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkWritePermission)
                     .filter(spexare -> spexare.getPartner() != null)
                     .ifPresent(spexare -> {
@@ -524,42 +556,11 @@ public class SpexareService {
         }
     }
 
-    private static Deque<?> parseFilter(final String filter) {
-        final Deque<?> parsed = FilterParser.parse(filter);
-
-        if (!SpexareSensitiveData.isReadableForAll() && parsed.stream()
-                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isSensitivePath(criteria.key()))) {
-            throw new BadRequestException("Filtering on %s is not permitted".formatted(SpexareSensitiveData.FIELD));
-        }
-        if (SpexareSensitiveData.isLimitedToRevival() && parsed.stream()
-                .anyMatch(token -> token instanceof final FilterCriteria criteria && SpexareSensitiveData.isRestrictedPath(criteria.key()))) {
-            throw new BadRequestException("Filtering on %s is not permitted".formatted(String.join(" or ", SpexareSensitiveData.RESTRICTED_FIELDS)));
-        }
-
-        return parsed;
+    private boolean doesSpexareExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 
-    private static void requirePermittedAggregationFilters(final List<AggregationFilter> aggregationFilters) {
-        if (SpexareSensitiveData.isLimitedToRevival() && aggregationFilters.stream().anyMatch(SpexareService::isMembershipFilter)) {
-            throw new BadRequestException("Filtering on %s is not permitted".formatted(FACET_MEMBERSHIPS));
-        }
-    }
-
-    private static boolean isMembershipFilter(final AggregationFilter filter) {
-        return FACET_MEMBERSHIPS.equals(filter.name())
-                || (AGGREGATION_DATA_QUALITY.equals(filter.name()) && DataQualityIssue.fromKey(filter.value()).filter(DataQualityIssue.NO_MEMBERSHIP::equals).isPresent());
-    }
-
-    private static SpexareUpdateDto withoutSensitiveData(final SpexareUpdateDto dto) {
-        return new SpexareUpdateDto(dto.id(), dto.firstName(), dto.lastName(), dto.nickName(), null,
-                dto.deceased(), dto.published(), dto.graduation(), dto.comment());
-    }
-
-    private boolean doesSpexareExist(final Long id) {
-        return repository.findById0(id).isPresent();
-    }
-
-    private boolean doSpexareAndPartnerExist(final Long spexareId, final Long partnerId) {
+    private boolean doSpexareAndPartnerExist(final UUID spexareId, final UUID partnerId) {
         return doesSpexareExist(spexareId) && doesSpexareExist(partnerId);
     }
 

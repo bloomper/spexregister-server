@@ -44,21 +44,22 @@ public interface ActivityMapper {
 
     ActivityMapper ACTIVITY_MAPPER = Mappers.getMapper(ActivityMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     ActivityDto toDto(Activity model);
 
-    @Mapping(target = "spexareId", source = "spexare.id")
-    @Mapping(target = "id", source = "activity.id")
-    @Mapping(target = "spexActivityId", source = "spexActivity.id")
-    @Mapping(target = "spexId", source = "activity.spexActivity.spex.id")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
+    @Mapping(target = "id", source = "activity.uuid")
+    @Mapping(target = "spexActivityId", source = "spexActivity.uuid")
+    @Mapping(target = "spexId", source = "activity.spexActivity.spex.uuid")
     @Mapping(target = "spexYear", source = "activity.spexActivity.spex.year")
     @Mapping(target = "spexTitle", source = "activity.spexActivity.spex.details.title")
     @Mapping(target = "spexRevival", source = "activity.spexActivity.spex.revival")
     @Mapping(target = "spexCategoryName", source = "activity.spexActivity.spex.details.category.name")
-    @Mapping(target = "taskActivityId", source = "taskActivity.id")
-    @Mapping(target = "taskId", source = "taskActivity.task.id")
+    @Mapping(target = "taskActivityId", source = "taskActivity.uuid")
+    @Mapping(target = "taskId", source = "taskActivity.task.uuid")
     @Mapping(target = "taskName", source = "taskActivity.task.name")
     @Mapping(target = "taskCategoryName", source = "taskActivity.task.category.name")
-    @Mapping(target = "actorId", source = "actor.id")
+    @Mapping(target = "actorId", source = "actor.uuid")
     @Mapping(target = "actorRole", source = "actor.role")
     @Mapping(target = "typeId", source = "vocalType.id")
     @Mapping(target = "typeLabel", source = "vocalType.label")

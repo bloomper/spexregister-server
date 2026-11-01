@@ -17,10 +17,10 @@
 package nu.fgv.register.server.audit;
 
 import org.jspecify.annotations.Nullable;
-
-import java.util.regex.Pattern;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.regex.Pattern;
 
 /**
  * Where the changes of the current thread come from, recorded on each Envers revision. Set per HTTP request by
@@ -113,13 +113,14 @@ public final class AuditContext {
     /**
      * Where a change comes from.
      *
-     * @param source        what kind of client made it
-     * @param operation     the GraphQL operation or HTTP request
-     * @param comment       why, as the client gave it
-     * @param actingPerson  who a service account acted for, as the client gave it; only {@link Auditor} may decide
-     *                      whether to believe it. Control characters become spaces. It is personal data: never log it.
+     * @param source       what kind of client made it
+     * @param operation    the GraphQL operation or HTTP request
+     * @param comment      why, as the client gave it
+     * @param actingPerson who a service account acted for, as the client gave it; only {@link Auditor} may decide
+     *                     whether to believe it. Control characters become spaces. It is personal data: never log it.
      */
-    public record Origin(AuditSource source, @Nullable String operation, @Nullable String comment, @Nullable String actingPerson) {
+    public record Origin(AuditSource source, @Nullable String operation, @Nullable String comment,
+                         @Nullable String actingPerson) {
 
         public Origin {
             operation = truncate(operation, MAX_OPERATION_LENGTH);

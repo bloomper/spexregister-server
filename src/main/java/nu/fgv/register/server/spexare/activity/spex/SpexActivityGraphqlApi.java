@@ -33,6 +33,7 @@ import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 
@@ -51,7 +52,7 @@ public class SpexActivityGraphqlApi {
 
     @MutationMapping("spexActivityCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<SpexActivityDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long spexId) {
+    public DataFetcherResult<SpexActivityDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID spexId) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, spexId),
                 Map.of(
@@ -63,7 +64,7 @@ public class SpexActivityGraphqlApi {
 
     @MutationMapping("spexActivityUpdate")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<SpexActivityDto> update(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long spexId, @Argument final Long id) {
+    public DataFetcherResult<SpexActivityDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID spexId, @Argument final UUID id) {
         return buildDataFetcherResult(
                 service.update(spexareId, activityId, spexId, id),
                 Map.of(
@@ -75,14 +76,14 @@ public class SpexActivityGraphqlApi {
 
     @MutationMapping("spexActivityDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID id) {
         service.deleteById(spexareId, activityId, id);
     }
 
     @SchemaMapping(typeName = "Activity", field = "spexActivity")
     @RequiresAdminOrEditorOrUserOrRevival
     @Nullable
-    public DataFetcherResult<SpexActivityDto> retrieveByActivity(@LocalContextValue("spexareId") final Long spexareId,
+    public DataFetcherResult<SpexActivityDto> retrieveByActivity(@LocalContextValue("spexareId") final UUID spexareId,
                                                                  final ActivityDto dto) {
         try {
             return buildDataFetcherResult(
@@ -99,14 +100,14 @@ public class SpexActivityGraphqlApi {
 
     @SchemaMapping(typeName = "SpexActivity", field = "spex")
     @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto retrieveSpex(@LocalContextValue("spexareId") final Long spexareId,
-                                @LocalContextValue("activityId") final Long activityId,
+    public SpexDto retrieveSpex(@LocalContextValue("spexareId") final UUID spexareId,
+                                @LocalContextValue("activityId") final UUID activityId,
                                 final SpexActivityDto dto) {
         return service.findSpexBySpexActivity(spexareId, activityId, dto.getId());
     }
 
     @SchemaMapping(typeName = "SpexActivity", field = "id")
-    public Long getId(final SpexActivityDto dto) {
+    public UUID getId(final SpexActivityDto dto) {
         return dto.getId();
     }
 

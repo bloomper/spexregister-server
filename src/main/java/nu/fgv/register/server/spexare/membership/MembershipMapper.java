@@ -42,10 +42,11 @@ public interface MembershipMapper {
 
     MembershipMapper MEMBERSHIP_MAPPER = Mappers.getMapper(MembershipMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     MembershipDto toDto(Membership model);
 
-    @Mapping(target = "id", source = "membership.id")
-    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "id", source = "membership.uuid")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
     @Mapping(target = "typeId", source = "type.id")
     @Mapping(target = "typeLabel", source = "type.label")
     @Mapping(target = "createdBy", source = "membership.createdBy")

@@ -68,8 +68,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.UUID;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -88,15 +88,13 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
     private final EasyRandom random;
     private final UserRepository repository;
-
-    @Autowired
-    private UserService userService;
     private final AuthorityRepository authorityRepository;
     private final StateRepository stateRepository;
     private final SpexareRepository spexareRepository;
-
     private final EmailRandomizer emailRandomizer = new EmailRandomizer();
     private final Random rnd = new SecureRandom();
+    @Autowired
+    private UserService userService;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -434,7 +432,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                             restTestClient
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
-                                            .queryParam("filter", User_.ID + ":" + user.getId())
+                                            .queryParam("filter", User_.ID + ":" + user.getUuid())
                                             .build()
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
@@ -588,7 +586,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto result = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -608,7 +606,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -626,7 +624,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -652,7 +650,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto before = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -671,7 +669,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto updated = restTestClient
                     .put()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -684,7 +682,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto after = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -753,7 +751,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto before = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -822,7 +820,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto before = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -841,7 +839,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -854,7 +852,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto after = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -902,7 +900,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final UserDto before = restTestClient
                     .get()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -971,7 +969,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -986,7 +984,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1009,7 +1007,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", user.getId())
+                    .uri("/{id}", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1028,7 +1026,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1052,7 +1050,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri("/{userId}/authorities", 1L)
+                    .uri("/{userId}/authorities", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1070,7 +1068,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final List<AuthorityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{userId}/authorities", user.getId())
+                                    .uri("/{userId}/authorities", user.getUuid())
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -1096,7 +1094,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final List<AuthorityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{userId}/authorities", user.getId())
+                                    .uri("/{userId}/authorities", user.getUuid())
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -1124,7 +1122,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
             final List<AuthorityDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri("/{userId}/authorities", user.getId())
+                                    .uri("/{userId}/authorities", user.getUuid())
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -1152,7 +1150,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{userId}/authorities/{id}", user.getId(), authorities.getFirst())
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), authorities.getFirst())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1170,7 +1168,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_adding_and_user_not_found() {
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+                    .uri("/{userId}/authorities/{id}", UUID.randomUUID(), getRandomAuthority())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1193,7 +1191,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/authorities/{id}", user.getId(), "whatever")
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), "whatever")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1221,7 +1219,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1244,7 +1242,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", getRandomAuthority(), getRandomAuthority()))
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1271,7 +1269,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", "whatever1", "whatever2"))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1300,7 +1298,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authority, "whatever"))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1326,7 +1324,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{userId}/authorities/{id}", user.getId(), authority)
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), authority)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1342,7 +1340,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_removing_and_user_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+                    .uri("/{userId}/authorities/{id}", UUID.randomUUID(), getRandomAuthority())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1365,7 +1363,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/authorities/{id}", user.getId(), "whatever")
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), "whatever")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1393,7 +1391,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1415,7 +1413,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authorities.getFirst(), authorities.get(1)))
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1442,7 +1440,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", "whatever1", "whatever2"))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1471,7 +1469,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authority, "whatever"))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1495,7 +1493,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{userId}/authorities", 1L)
+                    .uri("/{userId}/authorities", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1518,7 +1516,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/authorities/{id}", user.getId(), getRandomAuthority())
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), getRandomAuthority())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1537,7 +1535,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+                    .uri("/{userId}/authorities/{id}", UUID.randomUUID(), getRandomAuthority())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1563,7 +1561,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authorities))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1586,7 +1584,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", "1", "2"))
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1610,7 +1608,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/authorities/{id}", user.getId(), authority)
+                    .uri("/{userId}/authorities/{id}", user.getUuid(), authority)
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1629,7 +1627,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_deleting_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/authorities/{id}", 1L, getRandomAuthority())
+                    .uri("/{userId}/authorities/{id}", UUID.randomUUID(), getRandomAuthority())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1655,7 +1653,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", authorities))
-                            .build(user.getId())
+                            .build(user.getUuid())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1678,7 +1676,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .uri(uriBuilder -> uriBuilder
                             .path("/{userId}/authorities")
                             .queryParam("ids", String.join(",", "1", "2"))
-                            .build(1L)
+                            .build(UUID.randomUUID())
                     )
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -1703,7 +1701,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri("/{userId}/state", 1L)
+                    .uri("/{userId}/state", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1718,7 +1716,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final StateDto result = restTestClient
                     .get()
-                    .uri("/{userId}/state", user.getId())
+                    .uri("/{userId}/state", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1742,7 +1740,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{userId}/state/{id}", user.getId(), newState.getId())
+                    .uri("/{userId}/state/{id}", user.getUuid(), newState.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1759,7 +1757,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/state/{id}", 1L, state.getId())
+                    .uri("/{userId}/state/{id}", UUID.randomUUID(), state.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1780,7 +1778,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/state/{id}", user.getId(), "whatever")
+                    .uri("/{userId}/state/{id}", user.getUuid(), "whatever")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1798,7 +1796,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{userId}/state", 1L)
+                    .uri("/{userId}/state", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1820,7 +1818,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/state/{id}", user.getId(), newState.getId())
+                    .uri("/{userId}/state/{id}", user.getUuid(), newState.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1838,7 +1836,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_setting_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/state/{id}", 1L, 2L)
+                    .uri("/{userId}/state/{id}", UUID.randomUUID(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1861,7 +1859,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri("/{userId}/spexare", 1L)
+                    .uri("/{userId}/spexare", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1879,7 +1877,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final SpexareDto result = restTestClient
                     .get()
-                    .uri("/{userId}/spexare", user.getId())
+                    .uri("/{userId}/spexare", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1890,7 +1888,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
                     .getResponseBody();
 
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(spexare.getId());
+            assertThat(result.getId()).isEqualTo(spexare.getUuid());
         }
 
         @Test
@@ -1901,7 +1899,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{userId}/spexare/{id}", user.getId(), spexare.getId())
+                    .uri("/{userId}/spexare/{id}", user.getUuid(), spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1917,7 +1915,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/spexare/{id}", 1L, spexare.getId())
+                    .uri("/{userId}/spexare/{id}", UUID.randomUUID(), spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1938,7 +1936,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/spexare/{id}", user.getId(), 1L)
+                    .uri("/{userId}/spexare/{id}", user.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1962,7 +1960,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{userId}/spexare", user.getId())
+                    .uri("/{userId}/spexare", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1976,7 +1974,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_removing_and_user_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/spexare", 1L)
+                    .uri("/{userId}/spexare", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -1994,7 +1992,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{userId}/spexare", 1L)
+                    .uri("/{userId}/spexare", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -2016,7 +2014,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/spexare/{id}", user.getId(), spexare.getId())
+                    .uri("/{userId}/spexare/{id}", user.getUuid(), spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -2034,7 +2032,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_adding_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{userId}/spexare/{id}", 1L, 1L)
+                    .uri("/{userId}/spexare/{id}", UUID.randomUUID(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -2056,7 +2054,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/spexare", user.getId())
+                    .uri("/{userId}/spexare", user.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -2074,7 +2072,7 @@ class UserApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_removing_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{userId}/spexare", 1L)
+                    .uri("/{userId}/spexare", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")

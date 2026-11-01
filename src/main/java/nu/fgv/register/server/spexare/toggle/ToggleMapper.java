@@ -42,10 +42,11 @@ public interface ToggleMapper {
 
     ToggleMapper TOGGLE_MAPPER = Mappers.getMapper(ToggleMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     ToggleDto toDto(Toggle model);
 
-    @Mapping(target = "id", source = "toggle.id")
-    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "id", source = "toggle.uuid")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
     @Mapping(target = "typeId", source = "type.id")
     @Mapping(target = "typeLabel", source = "type.label")
     @Mapping(target = "createdBy", source = "toggle.createdBy")

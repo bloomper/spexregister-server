@@ -20,10 +20,33 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Repository
 public interface ConsentRepository extends JpaRepository<Consent, Long>, JpaSpecificationExecutor<Consent> {
+
+    /**
+     * @param uuid the external id
+     * @return the consent with that external id, or empty when there is none
+     */
+    Optional<Consent> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<Consent> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
 }

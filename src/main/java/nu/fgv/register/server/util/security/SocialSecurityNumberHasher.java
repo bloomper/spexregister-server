@@ -63,18 +63,6 @@ public final class SocialSecurityNumberHasher {
         return digitsOf(value).length() == BIRTH_DATE_LENGTH;
     }
 
-    /**
-     * @param value a number or birth date, with or without separators
-     * @return the hash of its digits, or null when they are neither a full number nor a birth date
-     */
-    public @Nullable String hashNumber(@Nullable final String value) {
-        final String digits = digitsOf(value);
-
-        return digits.length() == NUMBER_LENGTH || digits.length() == BIRTH_DATE_LENGTH
-                ? Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(key, digits))
-                : null;
-    }
-
     private static byte[] hmac(final SecretKeySpec key, final String value) {
         try {
             final Mac mac = Mac.getInstance(ALGORITHM);
@@ -88,5 +76,17 @@ public final class SocialSecurityNumberHasher {
 
     private static String digitsOf(@Nullable final String value) {
         return value == null ? "" : value.replaceAll("\\D", "");
+    }
+
+    /**
+     * @param value a number or birth date, with or without separators
+     * @return the hash of its digits, or null when they are neither a full number nor a birth date
+     */
+    public @Nullable String hashNumber(@Nullable final String value) {
+        final String digits = digitsOf(value);
+
+        return digits.length() == NUMBER_LENGTH || digits.length() == BIRTH_DATE_LENGTH
+                ? Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(key, digits))
+                : null;
     }
 }

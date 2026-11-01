@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 
 import static nu.fgv.register.server.permission.PermissionGrantMapper.PERMISSION_GRANT_MAPPER;
 import static nu.fgv.register.server.permission.PermissionGrantSpecification.NO_FILTER;
@@ -60,6 +61,12 @@ public class PermissionGrantService {
     private final UserRepository userRepository;
     private final SpexareRepository spexareRepository;
     private final SpexRepository spexRepository;
+
+    private static void requireNotInThePast(final @Nullable LocalDate validUntil) {
+        if (validUntil != null && validUntil.isBefore(LocalDate.now())) {
+            throw new BadRequestException("A grant cannot end in the past");
+        }
+    }
 
     /**
      * @param filter a filter expression, or blank for all
@@ -85,9 +92,9 @@ public class PermissionGrantService {
     }
 
     @RequiresAdmin
-    public PermissionGrantDto findById(final Long id) {
+    public PermissionGrantDto findById(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .map(PERMISSION_GRANT_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(PermissionGrant.class, id));
     }
@@ -100,7 +107,7 @@ public class PermissionGrantService {
      * @param dto the grant
      * @return the created grant
      * @throws nu.fgv.register.server.util.error.BadRequestException when the grant breaks these rules, names an unknown
-     *     user, spexare or spex, or ends in the past
+     *                                                               user, spexare or spex, or ends in the past
      */
     @RequiresAdmin
     public PermissionGrantDto create(final PermissionGrantCreateDto dto) {
@@ -114,7 +121,7 @@ public class PermissionGrantService {
 
         final PermissionGrant grant = new PermissionGrant();
 
-        grant.setUser(dto.userId() == null ? null : userRepository.findById(dto.userId())
+        grant.setUser(dto.userId() == null ? null : userRepository.findByUuid(dto.userId())
                 .orElseThrow(() -> new BadRequestException("Unknown user %d".formatted(dto.userId()))));
         grant.setRole(dto.role());
         grant.setPermission(dto.permission());
@@ -125,13 +132,13 @@ public class PermissionGrantService {
             if (dto.spexareId() == null || dto.spexId() != null) {
                 throw new BadRequestException("A grant on one spexare names the spexare and no spex");
             }
-            grant.setSpexare(spexareRepository.findById(dto.spexareId())
+            grant.setSpexare(spexareRepository.findByUuid(dto.spexareId())
                     .orElseThrow(() -> new BadRequestException("Unknown spexare %d".formatted(dto.spexareId()))));
         } else {
             if (dto.spexId() == null || dto.spexareId() != null) {
                 throw new BadRequestException("A grant on a spex names the spex and no spexare");
             }
-            grant.setSpex(spexRepository.findById(dto.spexId())
+            grant.setSpex(spexRepository.findByUuid(dto.spexId())
                     .orElseThrow(() -> new BadRequestException("Unknown spex %d".formatted(dto.spexId()))));
         }
 
@@ -150,7 +157,7 @@ public class PermissionGrantService {
         requireNotInThePast(dto.validUntil());
 
         return repository
-                .findById(dto.id())
+                .findByUuid(dto.id())
                 .map(grant -> {
                     grant.setPermission(dto.permission());
                     grant.setValidUntil(dto.validUntil());
@@ -161,8 +168,8 @@ public class PermissionGrantService {
     }
 
     @RequiresAdmin
-    public void deleteById(final Long id) {
-        final PermissionGrant grant = repository.findById(id)
+    public void deleteById(final UUID id) {
+        final PermissionGrant grant = repository.findByUuid(id)
                 .orElseThrow(() -> new ResourceNotFoundException(PermissionGrant.class, id));
 
         repository.delete(grant);
@@ -193,11 +200,5 @@ public class PermissionGrantService {
      */
     public void deleteByUser(final User user) {
         repository.deleteAll(repository.findByUserId(user.getId()));
-    }
-
-    private static void requireNotInThePast(final @Nullable LocalDate validUntil) {
-        if (validUntil != null && validUntil.isBefore(LocalDate.now())) {
-            throw new BadRequestException("A grant cannot end in the past");
-        }
     }
 }

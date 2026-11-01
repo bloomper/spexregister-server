@@ -32,11 +32,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.imageio.ImageIO;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
@@ -70,6 +71,15 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
         this.transactionTemplate = transactionTemplate;
     }
 
+    private static byte[] png(final Color color) throws IOException {
+        final BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        image.setRGB(0, 0, color.getRGB());
+        ImageIO.write(image, "png", out);
+        return out.toByteArray();
+    }
+
     @BeforeEach
     void setUp() {
         jdbcClient.sql("UPDATE spexare SET partner_id = NULL").update();
@@ -79,10 +89,10 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
     @Test
     void should_not_load_the_image_with_the_spexare() throws IOException {
         final byte[] red = png(Color.RED);
-        final Long id = createWithImage(red);
+        final UUID id = createWithImage(red);
 
         transactionTemplate.executeWithoutResult(_ -> {
-            final Spexare spexare = repository.findById(id).orElseThrow();
+            final Spexare spexare = repository.findByUuid(id).orElseThrow();
 
             assertThat(spexare.getImage()).isNotNull();
             assertThat(Hibernate.isInitialized(spexare.getImage())).isFalse();
@@ -94,7 +104,7 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
     void should_keep_a_replaced_image_in_the_history_and_restore_it() throws IOException {
         final byte[] red = png(Color.RED);
         final byte[] blue = png(Color.BLUE);
-        final Long id = createWithImage(red);
+        final UUID id = createWithImage(red);
         final AtomicReference<List<RevisionDto>> revisions = new AtomicReference<>();
 
         runAsSystem(() -> {
@@ -125,8 +135,8 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
         });
     }
 
-    private Long createWithImage(final byte[] image) {
-        final AtomicReference<Long> id = new AtomicReference<>();
+    private UUID createWithImage(final byte[] image) {
+        final AtomicReference<UUID> id = new AtomicReference<>();
 
         runAsSystem(() -> {
             final SpexareDto spexare = service.create(SpexareCreateDto.builder().firstName("Ada").lastName("Lovelace").deceased(false).published(true).build());
@@ -136,14 +146,5 @@ class SpexareImageIntegrationTest extends AbstractIntegrationTest {
         });
 
         return id.get();
-    }
-
-    private static byte[] png(final Color color) throws IOException {
-        final BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        image.setRGB(0, 0, color.getRGB());
-        ImageIO.write(image, "png", out);
-        return out.toByteArray();
     }
 }

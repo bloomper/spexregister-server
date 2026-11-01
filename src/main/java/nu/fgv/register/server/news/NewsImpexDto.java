@@ -28,6 +28,7 @@ import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -42,7 +43,7 @@ public class NewsImpexDto extends AbstractAuditableImpexDto<NewsImpexDto> {
 
     @JsonProperty("id")
     @ExcelCell(header = "news.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "{news.subject.notEmpty}")
     @Size(max = 255, message = "{news.subject.size}")

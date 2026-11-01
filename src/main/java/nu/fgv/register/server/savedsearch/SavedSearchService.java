@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.savedsearch.SavedSearchMapper.SAVED_SEARCH_MAPPER;
 import static nu.fgv.register.server.util.security.SecurityUtil.getCurrentUserSubClaim;
@@ -63,7 +64,7 @@ public class SavedSearchService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the caller has no such saved search
      */
     @RequiresAdminOrEditorOrUser
-    public SavedSearchDto findById(final Long id) {
+    public SavedSearchDto findById(final UUID id) {
         return findOwnedById(id)
                 .map(SAVED_SEARCH_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(SavedSearch.class, id));
@@ -120,12 +121,12 @@ public class SavedSearchService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when the caller has no such saved search
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         repository.delete(findOwnedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(SavedSearch.class, id)));
     }
 
-    private Optional<SavedSearch> findOwnedById(final Long id) {
-        return repository.findByIdAndOwnerExternalId(id, getCurrentUserSubClaim());
+    private Optional<SavedSearch> findOwnedById(final UUID id) {
+        return repository.findByUuidAndOwnerExternalId(id, getCurrentUserSubClaim());
     }
 }

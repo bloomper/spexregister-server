@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -66,8 +67,8 @@ public class TaskActivityApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<TaskActivityDto>>> retrieve(@PathVariable final Long spexareId,
-                                                                             @PathVariable final Long activityId,
+    public ResponseEntity<PagedModel<EntityModel<TaskActivityDto>>> retrieve(@PathVariable final UUID spexareId,
+                                                                             @PathVariable final UUID activityId,
                                                                              @SortDefault(sort = TaskActivity_.ID, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<TaskActivityDto>> paged = pagedResourcesAssembler.toModel(service.findByActivity(spexareId, activityId, pageable));
 
@@ -78,7 +79,7 @@ public class TaskActivityApi {
 
     @PostMapping(value = "/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskActivityDto>> create(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long taskId) {
+    public ResponseEntity<EntityModel<TaskActivityDto>> create(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID taskId) {
         final TaskActivityDto dto = service.create(spexareId, activityId, taskId);
 
         return ResponseEntity.created(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, dto.getId())).toUri())
@@ -87,7 +88,7 @@ public class TaskActivityApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskActivityDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TaskActivityDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final TaskActivityDto dto = service.findById(spexareId, activityId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
@@ -95,7 +96,7 @@ public class TaskActivityApi {
 
     @PutMapping(value = "/{id}/{taskId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskActivityDto>> update(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id, @PathVariable final Long taskId) {
+    public ResponseEntity<EntityModel<TaskActivityDto>> update(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id, @PathVariable final UUID taskId) {
         final TaskActivityDto dto = service.update(spexareId, activityId, taskId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId, activityId)));
@@ -103,7 +104,7 @@ public class TaskActivityApi {
 
     @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         service.deleteById(spexareId, activityId, id);
 
         return ResponseEntity.noContent().build();
@@ -111,21 +112,21 @@ public class TaskActivityApi {
 
     @GetMapping(value = "/{id}/task", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskDto>> retrieveTask(@PathVariable final Long spexareId, @PathVariable final Long activityId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TaskDto>> retrieveTask(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final TaskDto dto = service.findTaskByTaskActivity(spexareId, activityId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, taskApi.getLinks(dto, false)));
     }
 
-    private void addLinks(final EntityModel<TaskActivityDto> entity, final Long spexareId, final Long activityId) {
+    private void addLinks(final EntityModel<TaskActivityDto> entity, final UUID spexareId, final UUID activityId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId, activityId));
     }
 
-    void addLinks(final TaskActivityDto dto, final Long spexareId, final Long activityId) {
+    void addLinks(final TaskActivityDto dto, final UUID spexareId, final UUID activityId) {
         dto.add(getLinks(dto, spexareId, activityId));
     }
 
-    List<Link> getLinks(final TaskActivityDto dto, final Long spexareId, final Long activityId) {
+    List<Link> getLinks(final TaskActivityDto dto, final UUID spexareId, final UUID activityId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, dto.getId())).withSelfRel());

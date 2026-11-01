@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -80,14 +81,14 @@ public class PlatoonListPdfGenerator implements PdfGenerator {
             throw new ExportException("Required data missing");
         }
 
-        final Map<Long, AddressImpexDto> addressMap = new HashMap<>();
+        final Map<UUID, AddressImpexDto> addressMap = new HashMap<>();
         addressReport.data().forEach(a -> {
             if ("HOME".equalsIgnoreCase(a.getTypeId())) {
                 addressMap.put(a.getSpexareId(), a);
             }
         });
 
-        final Map<Long, String> roleMap = new HashMap<>();
+        final Map<UUID, String> roleMap = new HashMap<>();
         activityReport.data().forEach(activity -> roleMap.put(activity.getSpexareId(), Objects.requireNonNullElse(activity.getTaskName(), "")));
 
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {

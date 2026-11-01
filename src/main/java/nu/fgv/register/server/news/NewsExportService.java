@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
 
@@ -45,7 +46,7 @@ public class NewsExportService extends AbstractExportService {
     }
 
     @Override
-    protected List<ExportHolder<?>> getReports(final List<Long> ids, final String filter) {
+    protected List<ExportHolder<?>> getReports(final List<UUID> ids, final String filter) {
         return List.of(
                 ExportHolder.of(
                         toImpexDto(service.streamByIds(ids, filter, Sort.by(Sort.Direction.ASC, "visibleFrom")), NEWS_MAPPER::toImpexDto),

@@ -35,6 +35,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.buildDataFetcherResult;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
@@ -54,7 +55,7 @@ public class ActorGraphqlApi {
 
     @MutationMapping("actorCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<ActorDto> create(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input) {
+    public DataFetcherResult<ActorDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input) {
         return buildDataFetcherResult(
                 service.create(spexareId, activityId, taskActivityId, vocalId, input),
                 Map.of(
@@ -68,7 +69,7 @@ public class ActorGraphqlApi {
 
     @MutationMapping("actorUpdate")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<ActorDto> update(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input) {
+    public DataFetcherResult<ActorDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input) {
         return buildDataFetcherResult(
                 service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input),
                 Map.of(
@@ -82,14 +83,14 @@ public class ActorGraphqlApi {
 
     @MutationMapping("actorDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final Long activityId, @Argument final Long taskActivityId, @Argument final String vocalId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Argument final UUID id) {
         service.deleteById(spexareId, activityId, taskActivityId, vocalId, id);
     }
 
     @SchemaMapping(typeName = "TaskActivity", field = "actorsPaged")
     @RequiresAdminOrEditorOrUserOrRevival
-    public CountedWindow<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
-                                                          @LocalContextValue("activityId") final Long activityId,
+    public CountedWindow<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final UUID spexareId,
+                                                          @LocalContextValue("activityId") final UUID activityId,
                                                           final TaskActivityDto dto,
                                                           final ScrollSubrange subrange,
                                                           @Argument final Optional<String> filter,
@@ -106,8 +107,8 @@ public class ActorGraphqlApi {
 
     @SchemaMapping(typeName = "TaskActivity", field = "actors")
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final Long spexareId,
-                                                 @LocalContextValue("activityId") final Long activityId,
+    public List<ActorDto> retrieveByTaskActivity(@LocalContextValue("spexareId") final UUID spexareId,
+                                                 @LocalContextValue("activityId") final UUID activityId,
                                                  final TaskActivityDto dto) {
         return service.findByTaskActivity(spexareId, activityId, dto.getId());
     }

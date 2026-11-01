@@ -40,6 +40,12 @@ class SpexareAndNewsPolicyTest {
     private final SpexarePolicy spexarePolicy = new SpexarePolicy(noGrants());
     private final NewsPolicy newsPolicy = new NewsPolicy();
 
+    private static User user(final String subject) {
+        final User user = new User();
+        user.setExternalId(subject);
+        return user;
+    }
+
     @ParameterizedTest(name = "spexare, published={1}: {0} holds {2}")
     @CsvSource({
             // role,   published, READ/WRITE/DELETE/ADMINISTRATION
@@ -76,9 +82,9 @@ class SpexareAndNewsPolicyTest {
             "ADMIN,    false,     OWN,      RWDA"
     })
     void should_let_a_user_read_and_change_their_own_and_their_partners_spexare(final String role,
-                                                                              final boolean published,
-                                                                              final String relation,
-                                                                              final String flags) {
+                                                                                final boolean published,
+                                                                                final String relation,
+                                                                                final String flags) {
         final Spexare spexare = new Spexare();
         spexare.setPublished(published);
         switch (relation) {
@@ -98,12 +104,6 @@ class SpexareAndNewsPolicyTest {
                     .as("%s %s %s published=%s", role, relation, permission, published)
                     .isEqualTo(expected.contains(permission));
         }
-    }
-
-    private static User user(final String subject) {
-        final User user = new User();
-        user.setExternalId(subject);
-        return user;
     }
 
     @ParameterizedTest(name = "news, published={1}: {0} holds {2}")

@@ -22,6 +22,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Filters on tags for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -41,8 +42,8 @@ public class TagSpecification extends BaseSpecification<Tag> {
         super(criteria);
     }
 
-    public static Specification<Tag> hasIds(final List<Long> ids) {
-        return (root, query, criteriaBuilder) -> root.get(Tag_.id).in(ids);
+    public static Specification<Tag> hasIds(final List<UUID> ids) {
+        return (root, query, criteriaBuilder) -> root.get(Tag_.uuid).in(ids);
     }
 
 }

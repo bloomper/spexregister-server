@@ -72,6 +72,10 @@ public class SpexareRemovalRequestService {
         this.locale = Locale.forLanguageTag(language);
     }
 
+    private static String orElse(final String value, final String fallback) {
+        return hasText(value) ? value : fallback;
+    }
+
     /**
      * Mails the request with the user's name, email, Keycloak subject and spexare, replying to the user's email.
      *
@@ -118,9 +122,5 @@ public class SpexareRemovalRequestService {
             log.error("Could not send removal request for user {}", getCurrentUserSubClaim(), e);
             throw new InternalErrorException("Removal requests cannot be sent at the moment");
         }
-    }
-
-    private static String orElse(final String value, final String fallback) {
-        return hasText(value) ? value : fallback;
     }
 }

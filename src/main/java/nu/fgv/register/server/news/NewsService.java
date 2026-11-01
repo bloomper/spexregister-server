@@ -19,6 +19,7 @@ package nu.fgv.register.server.news;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -33,11 +34,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static nu.fgv.register.server.news.NewsMapper.NEWS_MAPPER;
@@ -115,8 +116,8 @@ public class NewsService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such news item
      */
     @RequiresAdminOrEditorOrUser
-    public NewsDto findById(final Long id) {
-        return repository.findById0(id)
+    public NewsDto findById(final UUID id) {
+        return repository.findByUuid0(id)
                 .map(NEWS_MAPPER::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(News.class, id));
     }
@@ -127,9 +128,9 @@ public class NewsService {
      * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById0(id)
+                .findByUuid0(id)
                 .isPresent();
     }
 
@@ -142,7 +143,7 @@ public class NewsService {
      * @return the news the caller may read
      */
     @RequiresAdminOrEditorOrUser
-    public Iterable<News> streamByIds(final List<Long> ids, final String filter, final Sort sort) {
+    public Iterable<News> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
         return () -> {
             final Specification<News> spec;
 
@@ -195,7 +196,7 @@ public class NewsService {
     @RequiresAdminOrEditor
     public NewsDto partialUpdate(final NewsUpdateDto dto) {
         return repository
-                .findById0(dto.id())
+                .findByUuid0(dto.id())
                 .map(permissionService::checkWritePermission)
                 .map(news -> {
                     NEWS_MAPPER.toPartialModel(dto, news);
@@ -211,9 +212,9 @@ public class NewsService {
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such news item
      */
     @RequiresAdminOrEditor
-    public void deleteById(final Long id) {
+    public void deleteById(final UUID id) {
         if (doesNewsExist(id)) {
-            repository.findById0(id)
+            repository.findByUuid0(id)
                     .map(permissionService::checkDeletePermission)
                     .ifPresent(news -> {
                         repository.delete(news);
@@ -255,7 +256,7 @@ public class NewsService {
         });
     }
 
-    private boolean doesNewsExist(final Long id) {
-        return repository.findById0(id).isPresent();
+    private boolean doesNewsExist(final UUID id) {
+        return repository.findByUuid0(id).isPresent();
     }
 }

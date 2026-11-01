@@ -27,6 +27,8 @@ import nu.fgv.register.server.impex.model.AbstractAuditableImpexDto;
 import nu.fgv.register.server.impex.model.excel.ExcelCell;
 import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -39,7 +41,7 @@ import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 public class TagImpexDto extends AbstractAuditableImpexDto<TagImpexDto> {
     @JsonProperty("id")
     @ExcelCell(header = "tag.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotEmpty(message = "{tag.name.notEmpty}")
     @Size(max = 255, message = "{tag.name.size}")

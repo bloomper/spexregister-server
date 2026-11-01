@@ -28,6 +28,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 
@@ -57,7 +58,7 @@ public class TaskCategoryImportService extends AbstractImportService {
                 ImportSpec.builder()
                         .clazz(TaskCategoryImpexDto.class)
                         .existenceCheckers(Map.of(
-                                "id", v -> service.exists((Long) v)
+                                "id", v -> service.exists((UUID) v)
                         ))
                         .build()
         );

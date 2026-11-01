@@ -37,6 +37,8 @@ import nu.fgv.register.server.task.TaskRepository;
 import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
+import nu.fgv.register.server.user.UserRepository;
+import nu.fgv.register.server.user.state.StateRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
@@ -57,13 +59,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import nu.fgv.register.server.user.UserRepository;
-import nu.fgv.register.server.user.state.StateRepository;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -308,9 +309,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkPreview")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(untagged.getId())),
+                            "target", Map.of("ids", List.of(untagged.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -330,9 +331,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asUser()
                     .documentName("spexare/bulk/spexareBulkPreview")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(writable.getId(), readOnly.getId())),
+                            "target", Map.of("ids", List.of(writable.getUuid(), readOnly.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -348,7 +349,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         @Test
         void should_tag_every_target_in_a_single_revision() {
             final var ids = IntStream.range(0, 5)
-                    .mapToObj(_ -> persistWritableSpexare().getId())
+                    .mapToObj(_ -> persistWritableSpexare().getUuid())
                     .toList();
             final var tag = persistTag();
             final var before = latestSpexareRevision();
@@ -358,7 +359,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of("ids", ids),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -374,9 +375,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             final var spexare = persistWritableSpexare();
             final var tag = persistTag();
             final var input = Map.of(
-                    "target", Map.of("ids", List.of(spexare.getId())),
+                    "target", Map.of("ids", List.of(spexare.getUuid())),
                     "operation", "TAG_ADD",
-                    "tags", List.of(tag.getId()));
+                    "tags", List.of(tag.getUuid()));
 
             asAdmin().documentName("spexare/bulk/spexareBulkApply").variable("input", input).execute().errors().verify();
 
@@ -401,9 +402,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asUser()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(writable.getId(), readOnly.getId())),
+                            "target", Map.of("ids", List.of(writable.getUuid(), readOnly.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -421,9 +422,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify();
@@ -431,9 +432,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TAG_REMOVE",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -457,13 +458,13 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of("filter", "published:TRUE"),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .verify()
                     .path("spexareBulkApply.applied").entity(Integer.class).isEqualTo(1)
                     .path("spexareBulkApply.entries[0].id").entity(String.class)
-                    .isEqualTo(String.valueOf(published.getId()));
+                    .isEqualTo(String.valueOf(published.getUuid()));
 
             assertThat(countTaggings()).isEqualTo(1);
         }
@@ -473,7 +474,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             final var spexare = persistWritableSpexare();
             final var type = persistType(TypeType.CONSENT);
             final var toTrue = Map.of(
-                    "target", Map.of("ids", List.of(spexare.getId())),
+                    "target", Map.of("ids", List.of(spexare.getUuid())),
                     "operation", "CONSENT_SET",
                     "values", List.of(Map.of("typeId", type.getId(), "value", true)));
 
@@ -501,7 +502,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "CONSENT_SET",
                             "values", List.of(Map.of("typeId", type.getId(), "value", false))))
                     .execute()
@@ -522,10 +523,10 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TASK_ADD",
-                            "spexId", spex.getId(),
-                            "tasks", List.of(task.getId())))
+                            "spexId", spex.getUuid(),
+                            "tasks", List.of(task.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -538,7 +539,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         @Test
         void should_reuse_the_activity_a_preceding_spex_add_created_rather_than_making_a_second_one() {
             final var ids = IntStream.range(0, 3)
-                    .mapToObj(_ -> persistWritableSpexare().getId())
+                    .mapToObj(_ -> persistWritableSpexare().getUuid())
                     .toList();
             final var spex = persistSpex();
             final var task = persistTask();
@@ -548,7 +549,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of("ids", ids),
                             "operation", "SPEX_ADD",
-                            "spex", List.of(spex.getId())))
+                            "spex", List.of(spex.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -562,8 +563,8 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of("ids", ids),
                             "operation", "TASK_ADD",
-                            "spexId", spex.getId(),
-                            "tasks", List.of(task.getId())))
+                            "spexId", spex.getUuid(),
+                            "tasks", List.of(task.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -586,10 +587,10 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             final var spex = persistSpex();
             final var task = persistTask();
             final var input = Map.of(
-                    "target", Map.of("ids", List.of(spexare.getId())),
+                    "target", Map.of("ids", List.of(spexare.getUuid())),
                     "operation", "TASK_ADD",
-                    "spexId", spex.getId(),
-                    "tasks", List.of(task.getId()));
+                    "spexId", spex.getUuid(),
+                    "tasks", List.of(task.getUuid()));
 
             asAdmin().documentName("spexare/bulk/spexareBulkApply").variable("input", input).execute().errors().verify();
 
@@ -612,21 +613,21 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             final var other = persistWritableSpexare();
             final var spex = persistSpex();
             final var task = persistTask();
-            final var ids = List.of(spexare.getId(), other.getId());
+            final var ids = List.of(spexare.getUuid(), other.getUuid());
 
             asAdmin().documentName("spexare/bulk/spexareBulkApply").variable("input", Map.of(
-                    "target", Map.of("ids", List.of(spexare.getId())),
+                    "target", Map.of("ids", List.of(spexare.getUuid())),
                     "operation", "TASK_ADD",
-                    "spexId", spex.getId(),
-                    "tasks", List.of(task.getId()))).execute().errors().verify();
+                    "spexId", spex.getUuid(),
+                    "tasks", List.of(task.getUuid()))).execute().errors().verify();
 
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
                             "target", Map.of("ids", ids),
                             "operation", "TASK_REMOVE",
-                            "spexId", spex.getId(),
-                            "tasks", List.of(task.getId())))
+                            "spexId", spex.getUuid(),
+                            "tasks", List.of(task.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -640,7 +641,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of("ids", ids),
                             "operation", "SPEX_REMOVE",
-                            "spex", List.of(spex.getId())))
+                            "spex", List.of(spex.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -658,10 +659,10 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TASK_REMOVE",
-                            "spexId", spex.getId(),
-                            "tasks", List.of(task.getId())))
+                            "spexId", spex.getUuid(),
+                            "tasks", List.of(task.getUuid())))
                     .execute()
                     .errors()
                     .verify()
@@ -675,7 +676,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "FIELDS_SET",
                             "fields", Map.of("published", false)))
                     .execute()
@@ -699,9 +700,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId()), "filter", "published:TRUE"),
+                            "target", Map.of("ids", List.of(spexare.getUuid()), "filter", "published:TRUE"),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .satisfy(errors -> assertThat(errors).anyMatch(error -> isClassification(error, ErrorType.BAD_REQUEST)));
@@ -718,7 +719,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
                     .variable("input", Map.of(
                             "target", Map.of(),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId())))
+                            "tags", List.of(tag.getUuid())))
                     .execute()
                     .errors()
                     .satisfy(errors -> assertThat(errors).anyMatch(error -> isClassification(error, ErrorType.BAD_REQUEST)));
@@ -731,7 +732,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TASK_ADD",
                             "tasks", List.of("1")))
                     .execute()
@@ -747,9 +748,9 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "TAG_ADD",
-                            "tags", List.of(tag.getId(), tag.getId() + 1000)))
+                            "tags", List.of(tag.getUuid(), UUID.randomUUID())))
                     .execute()
                     .errors()
                     .satisfy(errors -> assertThat(errors).anyMatch(error -> isClassification(error, ErrorType.NOT_FOUND)));
@@ -766,7 +767,7 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
             asAdmin()
                     .documentName("spexare/bulk/spexareBulkApply")
                     .variable("input", Map.of(
-                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "target", Map.of("ids", List.of(spexare.getUuid())),
                             "operation", "CONSENT_SET",
                             "values", List.of(Map.of("typeId", type.getId(), "value", true))))
                     .execute()

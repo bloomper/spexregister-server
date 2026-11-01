@@ -43,6 +43,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -338,7 +339,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto result = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -351,14 +352,14 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "name", "actorPresent")
-                    .contains(category.getId(), category.getName(), category.getActorPresent());
+                    .contains(category.getUuid(), category.getName(), category.getActorPresent());
         }
 
         @Test
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -383,7 +384,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -403,7 +404,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto updated = restTestClient
                     .put()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -416,7 +417,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto after = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -485,7 +486,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -554,7 +555,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -574,7 +575,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -587,7 +588,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto after = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -632,7 +633,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final TaskCategoryDto before = restTestClient
                     .get()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -700,7 +701,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -713,7 +714,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -733,7 +734,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", category.getId())
+                    .uri("/{id}", category.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -751,7 +752,7 @@ class TaskCategoryApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()

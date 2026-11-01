@@ -47,16 +47,18 @@ public interface SpexareMapper {
 
     SpexareMapper SPEXARE_MAPPER = Mappers.getMapper(SpexareMapper.class);
 
-    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).orElse(null))")
+    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getUuid())).toUri().toString()).orElse(null))")
+    @Mapping(target = "id", source = "uuid")
     SpexareDto toDto(Spexare model);
 
-    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getId())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
-    @Mapping(target = "partnerId", source = "partner.id")
+    @Mapping(target = "imageUrl", expression = "java(Optional.ofNullable(model.getImage()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexareApi.class).downloadImage(model.getUuid())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
+    @Mapping(target = "partnerId", source = "partner.uuid")
     @Mapping(target = "partnerFirstName", source = "partner.firstName")
     @Mapping(target = "partnerLastName", source = "partner.lastName")
     @Mapping(target = "partnerNickName", source = "partner.nickName")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     SpexareImpexDto toImpexDto(Spexare model);
 
     List<SpexareDto> toDtos(List<Spexare> models);
@@ -92,6 +94,7 @@ public interface SpexareMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Spexare toModel(SpexareUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

@@ -25,11 +25,13 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.util.AbstractAuditable;
+import nu.fgv.register.server.util.Uuids;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
@@ -39,6 +41,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A news item. {@code published} follows from {@code visibleFrom} and {@code visibleTo}: without a
@@ -63,6 +66,10 @@ public class News extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @Column(name = "visible_from")
     private LocalDate visibleFrom;

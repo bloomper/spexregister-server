@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -71,6 +72,9 @@ class SpexareExportServiceTest {
     private final SpexareExportService service = new SpexareExportService(spexareService, countryService, spexService, taskService, tagService,
             typeService, List.of());
     private Spexare anna;
+    private Activity withActors;
+    private TaskActivity acting;
+    private TaskActivity orchestra;
 
     private static Type type(final String id, final TypeType kind) {
         final Type type = new Type();
@@ -116,11 +120,12 @@ class SpexareExportServiceTest {
         spex.setId(9L);
         spex.setYear("2024");
 
-        final Activity withActors = new Activity();
         final SpexActivity spexActivity = new SpexActivity();
         final Task ensemble = new Task();
-        final TaskActivity acting = new TaskActivity();
-        final TaskActivity orchestra = new TaskActivity();
+
+        withActors = new Activity();
+        acting = new TaskActivity();
+        orchestra = new TaskActivity();
 
         withActors.setId(20L);
         withActors.setSpexare(anna);
@@ -161,7 +166,7 @@ class SpexareExportServiceTest {
 
     @Test
     void should_have_a_sheet_per_kind_and_read_only_lists_for_the_ids() {
-        final List<ExportHolder<?>> holders = service.getReports(List.of(1L), "");
+        final List<ExportHolder<?>> holders = service.getReports(List.of(uuid(1)), "");
 
         assertThat(holders, hasSize(13));
         assertThat(holders.stream().filter(ExportHolder::readOnly).count(), is(6L));
@@ -171,10 +176,10 @@ class SpexareExportServiceTest {
 
     @Test
     void should_write_a_row_per_actor_and_per_task_without_actors_and_skip_activities_without_spex() {
-        final List<ActivityImpexDto> rows = rows(service.getReports(List.of(1L), ""), ActivityImpexDto.class);
+        final List<ActivityImpexDto> rows = rows(service.getReports(List.of(uuid(1)), ""), ActivityImpexDto.class);
 
         assertThat(rows.stream().map(row -> row.getTaskActivityId() + ":" + row.getActorRole()).toList(),
-                containsInAnyOrder("22:Ali Baba", "22:Kassim", "23:null"));
-        assertThat(rows.stream().map(ActivityImpexDto::getId).distinct().toList(), contains(20L));
+                containsInAnyOrder(acting.getUuid() + ":Ali Baba", acting.getUuid() + ":Kassim", orchestra.getUuid() + ":null"));
+        assertThat(rows.stream().map(ActivityImpexDto::getId).distinct().toList(), contains(withActors.getUuid()));
     }
 }

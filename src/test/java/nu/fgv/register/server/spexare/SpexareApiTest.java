@@ -31,7 +31,6 @@ import nu.fgv.register.server.util.search.PagedWithFacetsResourcesAssembler;
 import org.hibernate.search.engine.search.query.spi.SimpleSearchResultTotal;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,13 +44,16 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -136,8 +138,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
-        final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
+        final var spexare1 = SpexareDto.builder().id(uuid(1)).firstName("FirstName1").lastName("LastName1").build();
+        final var spexare2 = SpexareDto.builder().id(uuid(2)).firstName("FirstName2").lastName("LastName2").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), 10));
 
@@ -182,8 +184,8 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_search_paged() throws Exception {
-        final var spexare1 = SpexareDto.builder().id(1L).firstName("FirstName1").lastName("LastName1").build();
-        final var spexare2 = SpexareDto.builder().id(2L).firstName("FirstName2").lastName("LastName2").build();
+        final var spexare1 = SpexareDto.builder().id(uuid(1)).firstName("FirstName1").lastName("LastName1").build();
+        final var spexare2 = SpexareDto.builder().id(uuid(2)).firstName("FirstName2").lastName("LastName2").build();
         final var facets = List.of(Facet.builder().id("facet").groups(List.of(FacetGroup.builder().id("group").values(List.of(FacetValue.builder().id("whatever").count(2L).build())).build())).build());
         final var pageWithFacets = new PageWithFacetsImpl<>(List.of(spexare1, spexare2), PageRequest.of(1, 2, Sort.by("firstName")), SimpleSearchResultTotal.of(2, true), facets);
         final var pageWithFacetsModel = PagedWithFacetsModel.of(
@@ -247,7 +249,7 @@ class SpexareApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/spexare?ids=1,2,3&type=pdf&reportType=pdf-address-labels")
+                        get("/api/spexare?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=pdf&reportType=pdf-address-labels")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -273,7 +275,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get_export_me() throws Exception {
-        when(service.findByCurrentUser()).thenReturn(Optional.of(SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build()));
+        when(service.findByCurrentUser()).thenReturn(Optional.of(SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build()));
         when(jobService.createExportJob(any(), anyList(), any(String.class), any(ImpexType.class), isNull(), any(Locale.class))).thenReturn(1L);
 
         mockMvc
@@ -336,7 +338,7 @@ class SpexareApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(SpexareCreateDto.class);
         final var dto = SpexareCreateDto.builder().firstName("FirstName").lastName("LastName").deceased(false).published(true).build();
 
-        when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(1L).firstName(dto.firstName()).lastName(dto.lastName()).build());
+        when(service.create(any(SpexareCreateDto.class))).thenReturn(SpexareDto.builder().id(uuid(1)).firstName(dto.firstName()).lastName(dto.lastName()).build());
 
         mockMvc
                 .perform(
@@ -402,13 +404,13 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findById(any(Long.class))).thenReturn(spexare);
+        when(service.findById(any(UUID.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{id}", 1L)
+                        get("/api/spexare/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -428,14 +430,14 @@ class SpexareApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "retrieve", UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_me() throws Exception {
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
         when(service.findByCurrentUser()).thenReturn(Optional.of(spexare));
 
@@ -466,14 +468,14 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(SpexareUpdateDto.class);
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
+        final var dto = SpexareUpdateDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
 
         when(service.update(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{id}", 1L)
+                        put("/api/spexare/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -506,7 +508,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "update", Long.class, SpexareUpdateDto.class))
+                                security(getRolesFromMethod(SpexareApi.class, "update", UUID.class, SpexareUpdateDto.class))
                         )
                 );
     }
@@ -514,14 +516,14 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(SpexUpdateDto.class);
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
-        final var dto = SpexareUpdateDto.builder().id(1L).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
+        final var dto = SpexareUpdateDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
 
         when(service.partialUpdate(any(SpexareUpdateDto.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        patch("/api/spexare/{id}", 1L)
+                        patch("/api/spexare/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -554,7 +556,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "partialUpdate", Long.class, SpexareUpdateDto.class))
+                                security(getRolesFromMethod(SpexareApi.class, "partialUpdate", UUID.class, SpexareUpdateDto.class))
                         )
                 );
     }
@@ -562,14 +564,14 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     @WithMockUser(roles = "spexregister_ADMIN")
     void should_delete() throws Exception {
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findById(any(Long.class))).thenReturn(spexare);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(spexare);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/spexare/{id}", 1L)
+                        delete("/api/spexare/{id}", uuid(1))
                                 .queryParam("purge", "true")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -589,7 +591,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("purge").description("Whether to also remove the audit history of the spexare, leaving no trace of the person (default false)").optional()
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "delete", Long.class, boolean.class))
+                                security(getRolesFromMethod(SpexareApi.class, "delete", UUID.class, boolean.class))
                         )
                 );
     }
@@ -599,7 +601,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_not_delete_when_purging_without_admin() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{id}", 1L)
+                        delete("/api/spexare/{id}", uuid(1))
                                 .queryParam("purge", "true")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -607,19 +609,19 @@ class SpexareApiTest extends AbstractApiTest {
                 )
                 .andExpect(status().isForbidden());
 
-        verify(service, never()).deleteById(any(Long.class));
-        verify(auditPurgeService, never()).purgeSpexare(any(Long.class));
+        verify(service, never()).deleteById(any(UUID.class));
+        verify(auditPurgeService, never()).purgeSpexare(any(UUID.class));
     }
 
     @Test
     void should_download_image() throws Exception {
         final var image = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
 
-        when(service.getImage(any(Long.class))).thenReturn(image);
+        when(service.getImage(any(UUID.class))).thenReturn(image);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/image", 1L)
+                        get("/api/spexare/{spexareId}/image", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -642,7 +644,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
                                 ),
                                 responseBody(),
-                                security(getRolesFromMethod(SpexareApi.class, "downloadImage", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "downloadImage", UUID.class))
                         )
                 );
     }
@@ -650,13 +652,13 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     void should_upload_image() throws Exception {
         final var image = new byte[]{10, 12};
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any())).thenReturn(spexare);
+        when(service.saveImage(any(UUID.class), any())).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/image", 1L)
+                        put("/api/spexare/{spexareId}/image", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -677,7 +679,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
                                 ),
                                 requestBody(),
-                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, byte[].class))
+                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", UUID.class, byte[].class))
                         )
                 );
     }
@@ -685,13 +687,13 @@ class SpexareApiTest extends AbstractApiTest {
     @Test
     void should_upload_image_via_multipart() throws Exception {
         final var image = new MockMultipartFile("file", "image.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.saveImage(any(Long.class), any())).thenReturn(spexare);
+        when(service.saveImage(any(UUID.class), any())).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        multipart("/api/spexare/{spexareId}/image", 1L)
+                        multipart("/api/spexare/{spexareId}/image", uuid(1))
                                 .file(image)
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
@@ -711,20 +713,20 @@ class SpexareApiTest extends AbstractApiTest {
                                 requestParts(
                                         partWithName("file").description("The image to upload")
                                 ),
-                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", Long.class, MultipartFile.class))
+                                security(getRolesFromMethod(SpexareApi.class, "uploadImage", UUID.class, MultipartFile.class))
                         )
                 );
     }
 
     @Test
     void should_delete_image() throws Exception {
-        final var spexare = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.deleteImage(any(Long.class))).thenReturn(spexare);
+        when(service.deleteImage(any(UUID.class))).thenReturn(spexare);
 
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/image", 1L)
+                        delete("/api/spexare/{spexareId}/image", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -740,20 +742,20 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "deleteImage", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "deleteImage", UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_partner() throws Exception {
-        final var partner = SpexareDto.builder().id(1L).firstName("FirstName").lastName("LastName").build();
+        final var partner = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
-        when(service.findPartnerBySpexare(any(Long.class))).thenReturn(Optional.of(partner));
+        when(service.findPartnerBySpexare(any(UUID.class))).thenReturn(Optional.of(partner));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/partner", 1L)
+                        get("/api/spexare/{spexareId}/partner", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -773,7 +775,7 @@ class SpexareApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "retrievePartner", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "retrievePartner", UUID.class))
                         )
                 );
     }
@@ -782,7 +784,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_add_partner() throws Exception {
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/partner/{id}", 1L, 1L)
+                        put("/api/spexare/{spexareId}/partner/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -797,7 +799,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the partner")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "addPartner", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "addPartner", UUID.class, UUID.class))
                         )
                 );
     }
@@ -806,7 +808,7 @@ class SpexareApiTest extends AbstractApiTest {
     void should_remove_partner() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/partner", 1L)
+                        delete("/api/spexare/{spexareId}/partner", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -820,7 +822,7 @@ class SpexareApiTest extends AbstractApiTest {
                                         parameterWithName("spexareId").description("The id of the spexare")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexareApi.class, "removePartner", Long.class))
+                                security(getRolesFromMethod(SpexareApi.class, "removePartner", UUID.class))
                         )
                 );
     }

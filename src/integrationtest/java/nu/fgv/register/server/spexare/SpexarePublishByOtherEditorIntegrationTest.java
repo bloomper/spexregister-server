@@ -29,6 +29,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.UUID;
+
 /**
  * An editor may publish and unpublish any spexare, not only the ones they created.
  *
@@ -69,7 +71,7 @@ class SpexarePublishByOtherEditorIntegrationTest extends AbstractGraphqlIntegrat
 
     @Test
     void should_let_an_editor_unpublish_and_publish_a_spexare_created_by_another_editor() {
-        final Long id = createdByAnotherEditor();
+        final UUID id = createdByAnotherEditor();
 
         update(id, false);
         countForUser(0);
@@ -78,7 +80,7 @@ class SpexarePublishByOtherEditorIntegrationTest extends AbstractGraphqlIntegrat
         countForUser(1);
     }
 
-    private Long createdByAnotherEditor() {
+    private UUID createdByAnotherEditor() {
         final var previous = SecurityContextHolder.getContext().getAuthentication();
 
         SecurityContextHolder.getContext().setAuthentication(
@@ -95,7 +97,7 @@ class SpexarePublishByOtherEditorIntegrationTest extends AbstractGraphqlIntegrat
         }
     }
 
-    private void update(final Long id, final boolean published) {
+    private void update(final UUID id, final boolean published) {
         httpGraphQlTester
                 .mutate()
                 .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken()))

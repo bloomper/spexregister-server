@@ -154,7 +154,7 @@ public class AnalyticsService {
 
     private List<BucketDto> taskCountByCategory() {
         return entityManager
-                .createQuery("SELECT c.id, c.name, COUNT(t) FROM Task t JOIN t.category c GROUP BY c.id, c.name", Object[].class)
+                .createQuery("SELECT c.uuid, c.name, COUNT(t) FROM Task t JOIN t.category c GROUP BY c.uuid, c.name", Object[].class)
                 .getResultList()
                 .stream()
                 .map(row -> BucketDto.of(String.valueOf(row[0]), String.valueOf(row[1]), (Long) row[2]))

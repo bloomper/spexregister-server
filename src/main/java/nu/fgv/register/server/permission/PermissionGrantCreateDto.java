@@ -24,6 +24,7 @@ import nu.fgv.register.server.security.policy.Permission;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -33,7 +34,7 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PermissionGrantCreateDto(
         @JsonProperty("userId")
-        @Nullable Long userId,
+        @Nullable UUID userId,
 
         @JsonProperty("role")
         @Nullable String role,
@@ -47,10 +48,10 @@ public record PermissionGrantCreateDto(
         PermissionGrantScope scope,
 
         @JsonProperty("spexareId")
-        @Nullable Long spexareId,
+        @Nullable UUID spexareId,
 
         @JsonProperty("spexId")
-        @Nullable Long spexId,
+        @Nullable UUID spexId,
 
         @JsonProperty("validUntil")
         @Nullable LocalDate validUntil

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -64,7 +65,7 @@ public class ActivityService {
      * @return the spexare's activities
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<ActivityDto> findBySpexare(final Long id) {
+    public List<ActivityDto> findBySpexare(final UUID id) {
         return findBySpexare(id, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Activity_.ID)))
@@ -82,7 +83,7 @@ public class ActivityService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public CountedWindow<ActivityDto> findBySpexare(final Long id, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<ActivityDto> findBySpexare(final UUID id, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(id, spexare ->
                         repository
                                 .findBy(hasSpexare(spexare), query -> {
@@ -104,7 +105,7 @@ public class ActivityService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<ActivityDto> findBySpexare(final Long spexareId, final Pageable pageable) {
+    public Page<ActivityDto> findBySpexare(final UUID spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), pageable)
@@ -119,13 +120,13 @@ public class ActivityService {
      * @return the activity
      */
     @RequiresAdminOrEditorOrUser
-    public ActivityDto findById(final Long spexareId, final Long id) {
+    public ActivityDto findById(final UUID spexareId, final UUID id) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .map(ACTIVITY_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Activity.class, id));
         } else {
@@ -138,9 +139,9 @@ public class ActivityService {
      * @return whether the activity exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -149,10 +150,10 @@ public class ActivityService {
      * @return the created activity
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public ActivityDto create(final Long spexareId) {
+    public ActivityDto create(final UUID spexareId) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
                     .map(spexare -> {
                         final Activity activity = new Activity();
@@ -172,14 +173,14 @@ public class ActivityService {
      * @param id        the activity id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final Long id) {
+    public void deleteById(final UUID spexareId, final UUID id) {
         if (doesSpexareExist(spexareId) && doesActivityExist(id)) {
             spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
                     .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasId(id))))
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .ifPresentOrElse(
                             activity -> repository.deleteById(activity.getId()),
                             () -> {
@@ -190,10 +191,10 @@ public class ActivityService {
         }
     }
 
-    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+    private <T> T findBySpexare(final UUID id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
         if (doesSpexareExist(id)) {
             return spexareRepository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkReadPermission)
                     .map(queryFunction)
                     .orElseGet(emptyResult);
@@ -202,12 +203,12 @@ public class ActivityService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesActivityExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesActivityExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
 }

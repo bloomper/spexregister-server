@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +44,7 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("year")
     private String year;
@@ -60,7 +61,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
 
     @Builder
     public SpexDto(
-            final Long id,
+            final UUID id,
             final String year,
             final String title,
             final @Nullable Boolean revival,

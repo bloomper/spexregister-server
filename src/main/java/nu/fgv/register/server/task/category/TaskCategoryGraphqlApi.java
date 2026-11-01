@@ -25,7 +25,6 @@ import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
@@ -39,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
@@ -64,7 +64,7 @@ public class TaskCategoryGraphqlApi {
 
     @QueryMapping("taskCategoryExport")
     @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<Long> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
+    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
         return JobReferenceDto.builder()
                 .id(jobService.createExportJob(TaskCategoryExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
                 .build();
@@ -78,7 +78,7 @@ public class TaskCategoryGraphqlApi {
 
     @QueryMapping("taskCategory")
     @RequiresReferenceDataReader
-    public TaskCategoryDto retrieve(@Argument final Long id) {
+    public TaskCategoryDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
@@ -90,7 +90,7 @@ public class TaskCategoryGraphqlApi {
 
     @MutationMapping("taskCategoryDelete")
     @RequiresAdmin
-    public void delete(@Argument final Long id) {
+    public void delete(@Argument final UUID id) {
         service.deleteById(id);
     }
 

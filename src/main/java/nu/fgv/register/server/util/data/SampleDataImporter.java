@@ -114,12 +114,12 @@ public class SampleDataImporter {
     private String keycloakRealm;
 
     public SampleDataImporter(final PermissionService permissionService,
-                               final AuthorityService authorityService,
-                               final AuditDataSeeder auditDataSeeder,
-                               final Keycloak keycloakAdminClient,
-                               final String keycloakClientId,
-                               @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
-                               @Value("${spexregister.crypto.secret-key}") final String secretKey) {
+                              final AuthorityService authorityService,
+                              final AuditDataSeeder auditDataSeeder,
+                              final Keycloak keycloakAdminClient,
+                              final String keycloakClientId,
+                              @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
+                              @Value("${spexregister.crypto.secret-key}") final String secretKey) {
         this.permissionService = permissionService;
         this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
@@ -127,6 +127,18 @@ public class SampleDataImporter {
         this.keycloakClientId = keycloakClientId;
         this.sampleUserPassword = sampleUserPassword;
         cryptoConverter = new CryptoConverter(secretKey);
+    }
+
+    private static long insertImage(final JdbcClient jdbcClient, final byte[] data, final String contentType) {
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcClient
+                .sql("INSERT INTO image (data, content_type) VALUES (:data, :contentType)")
+                .param("data", data)
+                .param("contentType", contentType)
+                .update(keyHolder);
+
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 
     /**
@@ -334,9 +346,9 @@ public class SampleDataImporter {
     private void createSampleNews(final JdbcClient jdbcClient) {
         final String sql = """
                 INSERT INTO news
-                    (visible_from, visible_to, subject, text, published, created_by, created_at, version)
+                    (uuid, visible_from, visible_to, subject, text, published, created_by, created_at, version)
                 VALUES
-                    (:visibleFrom, :visibleTo, :subject, :text, :published, :createdBy, :createdAt, 0)
+                    (UUID(), :visibleFrom, :visibleTo, :subject, :text, :published, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_NEWS).forEach(i -> {
@@ -359,9 +371,9 @@ public class SampleDataImporter {
     private void createSampleTags(final JdbcClient jdbcClient) {
         final String sql = """
                 INSERT INTO tag
-                    (name, created_by, created_at, version)
+                    (uuid, name, created_by, created_at, version)
                 VALUES
-                    (:name, :createdBy, :createdAt, 0)
+                    (UUID(), :name, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_TAGS).forEach(_ -> jdbcClient
@@ -383,9 +395,9 @@ public class SampleDataImporter {
         final List<Type> vocals = getVocals(jdbcClient);
         final String sql = """
                 INSERT INTO spexare
-                    (first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, created_by, created_at, version)
+                    (uuid, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, created_by, created_at, version)
                 VALUES
-                    (:firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt, 0)
+                    (UUID(), :firstName, :lastName, :nickName, :socialSecurityNumber, :deceased, :published, :graduation, :comment, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, NUMBER_OF_SAMPLES_SPEXARE).forEach(i -> {
@@ -474,9 +486,9 @@ public class SampleDataImporter {
     private void createSpexareAddresses(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO address
-                    (street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id, created_by, created_at, version)
+                    (uuid, street_address, postal_code, city, country, phone, phone_mobile, email_address, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:streetAddress, :postalCode, :city, :country, :phone, :phoneMobile, :emailAddress, :typeId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :streetAddress, :postalCode, :city, :country, :phone, :phoneMobile, :emailAddress, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -506,9 +518,9 @@ public class SampleDataImporter {
     private void createSpexareConsents(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO consent
-                    (value, type_id, spexare_id, created_by, created_at, version)
+                    (uuid, value, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:value, :typeId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :value, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -530,9 +542,9 @@ public class SampleDataImporter {
     private void createSpexareMemberships(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO membership
-                    (year, type_id, spexare_id, created_by, created_at, version)
+                    (uuid, year, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:year, :typeId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :year, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         final Instant startYear = LocalDate.of(1948, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -561,9 +573,9 @@ public class SampleDataImporter {
     private void createSpexareToggles(final JdbcClient jdbcClient, final long spexareId) {
         final String sql = """
                 INSERT INTO toggle
-                    (value, type_id, spexare_id, created_by, created_at, version)
+                    (uuid, value, type_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:value, :typeId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :value, :typeId, :spexareId, :createdBy, :createdAt, 0)
                 """;
 
         jdbcClient
@@ -615,27 +627,27 @@ public class SampleDataImporter {
                                          final List<Type> vocals) {
         final String activitySql = """
                 INSERT INTO activity
-                    (spexare_id, created_by, created_at, version)
+                    (uuid, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :spexareId, :createdBy, :createdAt, 0)
                 """;
         final String spexActivitySql = """
                 INSERT INTO spex_activity
-                    (activity_id, spex_id, created_by, created_at, version)
+                    (uuid, activity_id, spex_id, created_by, created_at, version)
                 VALUES
-                    (:activityId, :spexId, :createdBy, :createdAt, 0)
+                    (UUID(), :activityId, :spexId, :createdBy, :createdAt, 0)
                 """;
         final String taskActivitySql = """
                 INSERT INTO task_activity
-                    (activity_id, task_id, created_by, created_at, version)
+                    (uuid, activity_id, task_id, created_by, created_at, version)
                 VALUES
-                    (:activityId, :taskId, :createdBy, :createdAt, 0)
+                    (UUID(), :activityId, :taskId, :createdBy, :createdAt, 0)
                 """;
         final String actorSql = """
                 INSERT INTO actor
-                    (task_activity_id, vocal_id, role, created_by, created_at, version)
+                    (uuid, task_activity_id, vocal_id, role, created_by, created_at, version)
                 VALUES
-                    (:taskActivityId, :vocalId, :role, :createdBy, :createdAt, 0)
+                    (UUID(), :taskActivityId, :vocalId, :role, :createdBy, :createdAt, 0)
                 """;
 
         IntStream.range(0, rnd.nextInt(NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES)).forEach(i -> {
@@ -773,9 +785,9 @@ public class SampleDataImporter {
 
         final String sql = """
                 INSERT INTO user
-                    (external_id, state_id, spexare_id, created_by, created_at, version)
+                    (uuid, external_id, state_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (:externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
                 """;
         final CredentialRepresentation credentialRepresentation = sampleUserCredential();
         final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
@@ -936,18 +948,6 @@ public class SampleDataImporter {
                     return vocal;
                 })
                 .list();
-    }
-
-    private static long insertImage(final JdbcClient jdbcClient, final byte[] data, final String contentType) {
-        final KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcClient
-                .sql("INSERT INTO image (data, content_type) VALUES (:data, :contentType)")
-                .param("data", data)
-                .param("contentType", contentType)
-                .update(keyHolder);
-
-        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 
     private byte[] imageToByteArray(final String base64EncodedImage) {

@@ -33,8 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -87,14 +89,14 @@ class AddressApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var address1 = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        final var address2 = AddressDto.builder().id(2L).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
+        final var address1 = AddressDto.builder().id(uuid(1)).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var address2 = AddressDto.builder().id(uuid(2)).streetAddress("Street2").type(TypeDto.builder().id("WORK").type(TypeType.ADDRESS).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(address1, address2), PageRequest.of(1, 2, Sort.by("type")), 10));
+        when(service.findBySpexare(any(UUID.class), any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(address1, address2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc&filter=streetAddress:whatever", 1L)
+                        get("/api/spexare/{spexareId}/addresses?page=1&size=2&sort=type,desc&filter=streetAddress:whatever", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -133,20 +135,20 @@ class AddressApiTest extends AbstractApiTest {
                                 pagingQueryParameters.and(filterQueryParameterDescriptors),
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "retrieve", Long.class, Pageable.class, String.class))
+                                security(getRolesFromMethod(AddressApi.class, "retrieve", UUID.class, Pageable.class, String.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var address = AddressDto.builder().id(uuid(1)).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(address);
+        when(service.findById(any(UUID.class), any(UUID.class))).thenReturn(address);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/addresses/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/addresses/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -167,7 +169,7 @@ class AddressApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(AddressApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
@@ -177,11 +179,11 @@ class AddressApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(AddressCreateDto.class);
         final var dto = AddressCreateDto.builder().streetAddress("Street1").build();
 
-        when(service.create(any(Long.class), any(String.class), any(AddressCreateDto.class))).thenReturn(AddressDto.builder().id(1L).streetAddress(dto.streetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build());
+        when(service.create(any(UUID.class), any(String.class), any(AddressCreateDto.class))).thenReturn(AddressDto.builder().id(uuid(1)).streetAddress(dto.streetAddress()).type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build());
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/addresses/{typeId}", 1L, "HOME")
+                        post("/api/spexare/{spexareId}/addresses/{typeId}", uuid(1), "HOME")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -211,7 +213,7 @@ class AddressApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "create", Long.class, String.class, AddressCreateDto.class))
+                                security(getRolesFromMethod(AddressApi.class, "create", UUID.class, String.class, AddressCreateDto.class))
                         )
                 );
     }
@@ -219,14 +221,14 @@ class AddressApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(AddressUpdateDto.class);
-        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
+        final var address = AddressDto.builder().id(uuid(1)).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var dto = AddressUpdateDto.builder().id(uuid(1)).streetAddress("Street1").city("city").build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(address);
+        when(service.update(any(UUID.class), any(String.class), any(UUID.class), any(AddressUpdateDto.class))).thenReturn(address);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                        put("/api/spexare/{spexareId}/addresses/{typeId}/{id}", uuid(1), "HOME", dto.id())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -258,7 +260,7 @@ class AddressApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "update", Long.class, String.class, Long.class, AddressUpdateDto.class))
+                                security(getRolesFromMethod(AddressApi.class, "update", UUID.class, String.class, UUID.class, AddressUpdateDto.class))
                         )
                 );
     }
@@ -266,14 +268,14 @@ class AddressApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(AddressUpdateDto.class);
-        final var address = AddressDto.builder().id(1L).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
-        final var dto = AddressUpdateDto.builder().id(1L).streetAddress("Street1").city("city").build();
+        final var address = AddressDto.builder().id(uuid(1)).streetAddress("Street1").type(TypeDto.builder().id("HOME").type(TypeType.ADDRESS).build()).build();
+        final var dto = AddressUpdateDto.builder().id(uuid(1)).streetAddress("Street1").city("city").build();
 
-        when(service.partialUpdate(any(Long.class), any(String.class), any(Long.class), any(AddressUpdateDto.class))).thenReturn(address);
+        when(service.partialUpdate(any(UUID.class), any(String.class), any(UUID.class), any(AddressUpdateDto.class))).thenReturn(address);
 
         mockMvc
                 .perform(
-                        patch("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", dto.id())
+                        patch("/api/spexare/{spexareId}/addresses/{typeId}/{id}", uuid(1), "HOME", dto.id())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -305,7 +307,7 @@ class AddressApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "partialUpdate", Long.class, String.class, Long.class, AddressUpdateDto.class))
+                                security(getRolesFromMethod(AddressApi.class, "partialUpdate", UUID.class, String.class, UUID.class, AddressUpdateDto.class))
                         )
                 );
     }
@@ -314,7 +316,7 @@ class AddressApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/addresses/{typeId}/{id}", 1L, "HOME", 1L)
+                        delete("/api/spexare/{spexareId}/addresses/{typeId}/{id}", uuid(1), "HOME", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -330,7 +332,7 @@ class AddressApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the address")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(AddressApi.class, "delete", Long.class, String.class, Long.class))
+                                security(getRolesFromMethod(AddressApi.class, "delete", UUID.class, String.class, UUID.class))
                         )
                 );
     }

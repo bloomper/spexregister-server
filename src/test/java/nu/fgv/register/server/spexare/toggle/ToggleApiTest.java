@@ -33,8 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -80,14 +82,14 @@ class ToggleApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var toggle1 = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
-        final var toggle2 = ToggleDto.builder().id(2L).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
+        final var toggle1 = ToggleDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle2 = ToggleDto.builder().id(uuid(2)).value(false).type(TypeDto.builder().id("CHALMERS_STUDENT").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(toggle1, toggle2), PageRequest.of(1, 2, Sort.by("type")), 10));
+        when(service.findBySpexare(any(UUID.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(toggle1, toggle2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", 1L)
+                        get("/api/spexare/{spexareId}/toggles?page=1&size=2&sort=type,desc", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -120,20 +122,20 @@ class ToggleApiTest extends AbstractApiTest {
                                 pagingQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "retrieve", Long.class, Pageable.class))
+                                security(getRolesFromMethod(ToggleApi.class, "retrieve", UUID.class, Pageable.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle = ToggleDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(toggle);
+        when(service.findById(any(UUID.class), any(UUID.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/toggles/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/toggles/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -154,7 +156,7 @@ class ToggleApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(ToggleApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
@@ -163,13 +165,13 @@ class ToggleApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(ToggleCreateDto.class);
         final var dto = ToggleCreateDto.builder().value(Boolean.TRUE).build();
-        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var toggle = ToggleDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(ToggleCreateDto.class))).thenReturn(toggle);
+        when(service.create(any(UUID.class), any(String.class), any(ToggleCreateDto.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/toggles/{typeId}", 1L, toggle.getId())
+                        post("/api/spexare/{spexareId}/toggles/{typeId}", uuid(1), toggle.getId())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -193,7 +195,7 @@ class ToggleApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "create", Long.class, String.class, ToggleCreateDto.class))
+                                security(getRolesFromMethod(ToggleApi.class, "create", UUID.class, String.class, ToggleCreateDto.class))
                         )
                 );
     }
@@ -201,14 +203,14 @@ class ToggleApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(ToggleUpdateDto.class);
-        final var dto = ToggleUpdateDto.builder().id(1L).value(Boolean.TRUE).build();
-        final var toggle = ToggleDto.builder().id(1L).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
+        final var dto = ToggleUpdateDto.builder().id(uuid(1)).value(Boolean.TRUE).build();
+        final var toggle = ToggleDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("DECEASED").type(TypeType.TOGGLE).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(ToggleUpdateDto.class))).thenReturn(toggle);
+        when(service.update(any(UUID.class), any(String.class), any(UUID.class), any(ToggleUpdateDto.class))).thenReturn(toggle);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, toggle.getType().getId(), toggle.getId())
+                        put("/api/spexare/{spexareId}/toggles/{typeId}/{id}", uuid(1), toggle.getType().getId(), toggle.getId())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -234,7 +236,7 @@ class ToggleApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "update", Long.class, String.class, Long.class, ToggleUpdateDto.class))
+                                security(getRolesFromMethod(ToggleApi.class, "update", UUID.class, String.class, UUID.class, ToggleUpdateDto.class))
                         )
                 );
     }
@@ -243,7 +245,7 @@ class ToggleApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/toggles/{typeId}/{id}", 1L, "DECEASED", 1L)
+                        delete("/api/spexare/{spexareId}/toggles/{typeId}/{id}", uuid(1), "DECEASED", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -259,7 +261,7 @@ class ToggleApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the toggle")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(ToggleApi.class, "delete", Long.class, String.class, Long.class))
+                                security(getRolesFromMethod(ToggleApi.class, "delete", UUID.class, String.class, UUID.class))
                         )
                 );
     }

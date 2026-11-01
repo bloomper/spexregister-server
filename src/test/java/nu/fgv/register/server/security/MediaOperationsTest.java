@@ -48,18 +48,6 @@ class MediaOperationsTest {
     private static final String BASE_PACKAGE = "nu.fgv.register.server";
     private static final String MEDIA = "'spexregister_MEDIA'";
 
-    @Test
-    void should_let_media_through_to_exactly_reading_spex() {
-        assertThat(graphqlOperationsOpenToMedia()).containsExactlyInAnyOrder(
-                "Query.spexPaged", "Query.spex", "Query.spexRevival", "Spex.revivalsPaged", "Spex.revivals",
-                "Spex.parent", "Spex.category");
-    }
-
-    @Test
-    void should_let_media_through_to_no_rest_operation_but_reading_spexes() {
-        assertThat(restControllersOpenToMedia()).containsExactly("SpexApi");
-    }
-
     private static Set<String> graphqlOperationsOpenToMedia() {
         return controllers().stream()
                 .flatMap(type -> Arrays.stream(type.getDeclaredMethods()))
@@ -111,5 +99,17 @@ class MediaOperationsTest {
         return scanner.findCandidateComponents(BASE_PACKAGE).stream()
                 .map(definition -> ClassUtils.resolveClassName(definition.getBeanClassName(), MediaOperationsTest.class.getClassLoader()))
                 .collect(Collectors.toSet());
+    }
+
+    @Test
+    void should_let_media_through_to_exactly_reading_spex() {
+        assertThat(graphqlOperationsOpenToMedia()).containsExactlyInAnyOrder(
+                "Query.spexPaged", "Query.spex", "Query.spexRevival", "Spex.revivalsPaged", "Spex.revivals",
+                "Spex.parent", "Spex.category");
+    }
+
+    @Test
+    void should_let_media_through_to_no_rest_operation_but_reading_spexes() {
+        assertThat(restControllersOpenToMedia()).containsExactly("SpexApi");
     }
 }

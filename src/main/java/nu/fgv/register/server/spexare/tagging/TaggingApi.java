@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -61,7 +62,7 @@ public class TaggingApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@PathVariable final Long spexareId,
+    public ResponseEntity<PagedModel<EntityModel<TagDto>>> retrieve(@PathVariable final UUID spexareId,
                                                                     @SortDefault(sort = Tag_.NAME, direction = Sort.Direction.ASC) final Pageable pageable) {
         final PagedModel<EntityModel<TagDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, pageable));
 
@@ -72,7 +73,7 @@ public class TaggingApi {
 
     @PostMapping(value = "/{tagId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> create(@PathVariable final Long spexareId, @PathVariable final Long tagId) {
+    public ResponseEntity<Object> create(@PathVariable final UUID spexareId, @PathVariable final UUID tagId) {
         service.create(spexareId, tagId);
 
         return ResponseEntity.created(linkTo(methodOn(TaggingApi.class).retrieve(spexareId, Pageable.unpaged())).toUri()).build();
@@ -80,21 +81,21 @@ public class TaggingApi {
 
     @DeleteMapping(value = "/{tagId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final Long tagId) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final UUID tagId) {
         service.deleteById(spexareId, tagId);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<TagDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<TagDto> entity, final UUID spexareId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
-    void addLinks(final TagDto dto, final Long spexareId) {
+    void addLinks(final TagDto dto, final UUID spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final TagDto dto, final Long spexareId) {
+    List<Link> getLinks(final TagDto dto, final UUID spexareId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(TaggingApi.class).retrieve(spexareId, Pageable.unpaged())).withRel("tags"));

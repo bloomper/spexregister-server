@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -65,7 +66,7 @@ public class AddressApi {
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<PagedModel<EntityModel<AddressDto>>> retrieve(@PathVariable final Long spexareId,
+    public ResponseEntity<PagedModel<EntityModel<AddressDto>>> retrieve(@PathVariable final UUID spexareId,
                                                                         @SortDefault(sort = Address_.TYPE, direction = Sort.Direction.ASC) final Pageable pageable,
                                                                         @RequestParam(required = false, defaultValue = "") final String filter) {
         final PagedModel<EntityModel<AddressDto>> paged = pagedResourcesAssembler.toModel(service.findBySpexare(spexareId, filter, pageable));
@@ -77,7 +78,7 @@ public class AddressApi {
 
     @PostMapping(value = "/{typeId}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<AddressDto>> create(@PathVariable final Long spexareId, @PathVariable final String typeId, @Valid @RequestBody final AddressCreateDto dto) {
+    public ResponseEntity<EntityModel<AddressDto>> create(@PathVariable final UUID spexareId, @PathVariable final String typeId, @Valid @RequestBody final AddressCreateDto dto) {
         final AddressDto createdDto = service.create(spexareId, typeId, dto);
 
         return ResponseEntity.created(linkTo(methodOn(AddressApi.class).retrieve(spexareId, createdDto.getId())).toUri())
@@ -86,7 +87,7 @@ public class AddressApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final Long spexareId, @PathVariable final Long id) {
+    public ResponseEntity<EntityModel<AddressDto>> retrieve(@PathVariable final UUID spexareId, @PathVariable final UUID id) {
         final AddressDto dto = service.findById(spexareId, id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto, spexareId)));
@@ -94,7 +95,7 @@ public class AddressApi {
 
     @PutMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<AddressDto>> update(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
+    public ResponseEntity<EntityModel<AddressDto>> update(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id, @Valid @RequestBody final AddressUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -106,7 +107,7 @@ public class AddressApi {
 
     @PatchMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<AddressDto>> partialUpdate(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id, @Valid @RequestBody final AddressUpdateDto dto) {
+    public ResponseEntity<EntityModel<AddressDto>> partialUpdate(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id, @Valid @RequestBody final AddressUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -118,21 +119,21 @@ public class AddressApi {
 
     @DeleteMapping(value = "/{typeId}/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Object> delete(@PathVariable final Long spexareId, @PathVariable final String typeId, @PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID spexareId, @PathVariable final String typeId, @PathVariable final UUID id) {
         service.deleteById(spexareId, typeId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    private void addLinks(final EntityModel<AddressDto> entity, final Long spexareId) {
+    private void addLinks(final EntityModel<AddressDto> entity, final UUID spexareId) {
         entity.getContent().add(getLinks(entity.getContent(), spexareId));
     }
 
-    void addLinks(final AddressDto dto, final Long spexareId) {
+    void addLinks(final AddressDto dto, final UUID spexareId) {
         dto.add(getLinks(dto, spexareId));
     }
 
-    List<Link> getLinks(final AddressDto dto, final Long spexareId) {
+    List<Link> getLinks(final AddressDto dto, final UUID spexareId) {
         final List<Link> links = new ArrayList<>();
 
         links.add(linkTo(methodOn(AddressApi.class).retrieve(spexareId, dto.getId())).withSelfRel());

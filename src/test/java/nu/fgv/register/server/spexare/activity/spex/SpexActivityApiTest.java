@@ -26,6 +26,9 @@ import org.springframework.restdocs.hypermedia.LinksSnippet;
 import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.UUID;
+
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,13 +91,13 @@ class SpexActivityApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(uuid(1)).build();
 
-        when(service.findByActivity(any(Long.class), any(Long.class))).thenReturn(spexActivity);
+        when(service.findByActivity(any(UUID.class), any(UUID.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity", 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -115,20 +118,20 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_by_id() throws Exception {
-        final var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(uuid(1)).build();
 
-        when(service.findById(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
+        when(service.findById(any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -150,20 +153,20 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieve", UUID.class, UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_create() throws Exception {
-        final var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(uuid(1)).build();
 
-        when(service.create(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
+        when(service.create(any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{spexId}", 1L, 1L, 1L)
+                        post("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{spexId}", uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -183,20 +186,20 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "create", Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "create", UUID.class, UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_update() throws Exception {
-        final var spexActivity = SpexActivityDto.builder().id(1L).build();
+        final var spexActivity = SpexActivityDto.builder().id(uuid(1)).build();
 
-        when(service.update(any(Long.class), any(Long.class), any(Long.class), any(Long.class))).thenReturn(spexActivity);
+        when(service.update(any(UUID.class), any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(spexActivity);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/{spexId}", 1L, 1L, 1L, 1L)
+                        put("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/{spexId}", uuid(1), uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -216,7 +219,7 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "update", Long.class, Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "update", UUID.class, UUID.class, UUID.class, UUID.class))
                         )
                 );
     }
@@ -225,7 +228,7 @@ class SpexActivityApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", 1L, 1L, 1L)
+                        delete("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}", uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -241,22 +244,22 @@ class SpexActivityApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the spex activity")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "delete", Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "delete", UUID.class, UUID.class, UUID.class))
                         )
                 );
     }
 
     @Test
     void should_get_spex() throws Exception {
-        final var spex = SpexDto.builder().id(1L).year("2021").build();
+        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
         final var realSpexApi = new SpexApi(null, null, null, null);
 
-        when(service.findSpexBySpexActivity(any(Long.class), any(Long.class), any(Long.class))).thenReturn(spex);
+        when(service.findSpexBySpexActivity(any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(spex);
         when(spexApi.getLinks(any(SpexDto.class), eq(false))).thenReturn(realSpexApi.getLinks(spex, false));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/spex", 1L, 1L, 1L)
+                        get("/api/spexare/{spexareId}/activities/{activityId}/spex-activity/{id}/spex", uuid(1), uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -278,7 +281,7 @@ class SpexActivityApiTest extends AbstractApiTest {
                                 spexLinks,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(SpexActivityApi.class, "retrieveSpex", Long.class, Long.class, Long.class))
+                                security(getRolesFromMethod(SpexActivityApi.class, "retrieveSpex", UUID.class, UUID.class, UUID.class))
                         )
                 );
     }

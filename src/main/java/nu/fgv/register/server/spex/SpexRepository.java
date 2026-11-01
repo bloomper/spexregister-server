@@ -21,7 +21,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -31,16 +34,34 @@ import java.util.Optional;
 public interface SpexRepository extends PolicyJpaRepository<Spex, Long>, JpaSpecificationExecutor<Spex> {
 
     /**
-     * {@link #findById}, refused when the caller may not read the spex.
+     * @param uuid the external id
+     * @return the spex with that external id, or empty when there is none
+     */
+    Optional<Spex> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<Spex> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
+
+    /**
+     * {@link #findByUuid}, refused when the caller may not read the spex.
      *
      * @param id the spex id
      * @return the spex, or empty when there is none
      * @throws org.springframework.security.access.AccessDeniedException when the spex exists but may not be read
      */
     @PostAuthorize("!returnObject.isEmpty() ? (hasPermission(returnObject.get(), 'READ') or hasPermission(returnObject.get(), 'ADMINISTRATION')) : true")
-    default Optional<Spex> findById0(final Long id) {
+    default Optional<Spex> findByUuid0(final UUID id) {
         return this
-                .findById(id);
+                .findByUuid(id);
     }
 
     /**

@@ -37,6 +37,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -181,7 +182,7 @@ class AuthorityGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                     .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
                     .build()
                     .documentName("user/authority/authority")
-                    .variable("id", 1L)
+                    .variable("id", UUID.randomUUID())
                     .execute()
                     .errors()
                     .satisfy((errors) -> assertThat(errors)

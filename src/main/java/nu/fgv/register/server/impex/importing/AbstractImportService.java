@@ -61,6 +61,17 @@ public abstract class AbstractImportService {
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    protected static <T extends HasImpexAction> void apply(final T dto,
+                                                           final Consumer<T> creator,
+                                                           final Consumer<T> updater,
+                                                           final Consumer<T> deleter) {
+        switch (dto.getAction()) {
+            case CREATE -> creator.accept(dto);
+            case UPDATE -> updater.accept(dto);
+            case DELETE -> deleter.accept(dto);
+        }
+    }
+
     /**
      * Runs in a new transaction, so a failure undoes only this work.
      *
@@ -138,17 +149,6 @@ public abstract class AbstractImportService {
                     summary.addError(dto.getRowNumber(), entity, e.getMessage());
                 }
             });
-        }
-    }
-
-    protected static <T extends HasImpexAction> void apply(final T dto,
-                                                           final Consumer<T> creator,
-                                                           final Consumer<T> updater,
-                                                           final Consumer<T> deleter) {
-        switch (dto.getAction()) {
-            case CREATE -> creator.accept(dto);
-            case UPDATE -> updater.accept(dto);
-            case DELETE -> deleter.accept(dto);
         }
     }
 

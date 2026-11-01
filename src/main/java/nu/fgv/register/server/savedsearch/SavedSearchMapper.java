@@ -40,6 +40,7 @@ public interface SavedSearchMapper {
 
     SavedSearchMapper SAVED_SEARCH_MAPPER = Mappers.getMapper(SavedSearchMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     SavedSearchDto toDto(SavedSearch model);
 
     @Mapping(target = "id", ignore = true)
@@ -57,6 +58,7 @@ public interface SavedSearchMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     SavedSearch toModel(SavedSearchUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

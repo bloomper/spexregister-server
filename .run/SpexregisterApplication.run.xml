@@ -1,57 +1,58 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="SpexregisterApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" value="local" />
-    <additionalParameters>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_BASE_URL" />
-        <option name="value" value="FILL_ME_IN" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_SECRET_KEY" />
-        <option name="value" value="FILL_ME_IN" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_SECRET" />
-        <option name="value" value="FILL_ME_IN" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_KEYCLOAK_URL" />
-        <option name="value" value="FILL_ME_IN" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_KEYCLOAK_REALM" />
-        <option name="value" value="fgv" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_ID" />
-        <option name="value" value="fgv-admin" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_KEYCLOAK_CLIENT_CLIENT_ID" />
-        <option name="value" value="spexregister" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_IMPORT_SAMPLE_DATA" />
-        <option name="value" value="false" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="API_SEED_AUDIT_DATA" />
-        <option name="value" value="false" />
-      </param>
-    </additionalParameters>
-    <module name="spexregister-server.main" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication" />
-    <method v="2">
-      <option name="Make" enabled="true" />
-    </method>
-  </configuration>
+    <configuration default="false" name="SpexregisterApplication" type="SpringBootApplicationConfigurationType"
+                   factoryName="Spring Boot">
+        <option name="ACTIVE_PROFILES" value="local"/>
+        <additionalParameters>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_BASE_URL"/>
+                <option name="value" value="FILL_ME_IN"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_SECRET_KEY"/>
+                <option name="value" value="FILL_ME_IN"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_SECRET"/>
+                <option name="value" value="FILL_ME_IN"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_KEYCLOAK_URL"/>
+                <option name="value" value="FILL_ME_IN"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_KEYCLOAK_REALM"/>
+                <option name="value" value="fgv"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_KEYCLOAK_ADMIN_CLIENT_ID"/>
+                <option name="value" value="fgv-admin"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_KEYCLOAK_CLIENT_CLIENT_ID"/>
+                <option name="value" value="spexregister"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_IMPORT_SAMPLE_DATA"/>
+                <option name="value" value="false"/>
+            </param>
+            <param>
+                <option name="enabled" value="true"/>
+                <option name="name" value="API_SEED_AUDIT_DATA"/>
+                <option name="value" value="false"/>
+            </param>
+        </additionalParameters>
+        <module name="spexregister-server.main"/>
+        <option name="SPRING_BOOT_MAIN_CLASS" value="nu.fgv.register.server.SpexregisterApplication"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
 </component>

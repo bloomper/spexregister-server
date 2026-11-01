@@ -51,6 +51,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.jeasy.random.FieldPredicates.inClass;
 import static org.jeasy.random.FieldPredicates.named;
@@ -253,7 +254,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEXARE/{id}", spexare.getId())
+                    .uri("/SPEXARE/{id}", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -268,7 +269,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             restTestClient
                     .get()
-                    .uri("/SPEXARE/{id}", 4711L)
+                    .uri("/SPEXARE/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -289,7 +290,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEX/{id}", spex.getId())
+                    .uri("/SPEX/{id}", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -308,7 +309,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEX/{id}", spex.getId())
+                    .uri("/SPEX/{id}", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -332,7 +333,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEX/{id}/neighbours?edge=PARTICIPATION&offset=0&first=2", spex.getId())
+                    .uri("/SPEX/{id}/neighbours?edge=PARTICIPATION&offset=0&first=2", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -342,7 +343,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEX/{id}/neighbours?edge=PARTICIPATION&offset=4&first=2", spex.getId())
+                    .uri("/SPEX/{id}/neighbours?edge=PARTICIPATION&offset=4&first=2", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -357,7 +358,7 @@ class GraphApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/SPEX/{id}/neighbours?edge=TAG", spex.getId())
+                    .uri("/SPEX/{id}/neighbours?edge=TAG", spex.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .apiVersion("1.0")
                     .exchange()

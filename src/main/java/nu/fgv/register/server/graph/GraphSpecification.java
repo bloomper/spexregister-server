@@ -33,6 +33,8 @@ import nu.fgv.register.server.task.Task_;
 import nu.fgv.register.server.task.category.TaskCategory_;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 /**
  * The queries behind the graph's search and neighbourhoods.
  *
@@ -44,55 +46,55 @@ public class GraphSpecification {
     private GraphSpecification() {
     }
 
-    public static Specification<Spexare> spexareInSpex(final Long spexId) {
+    public static Specification<Spexare> spexareInSpex(final UUID spexId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);
 
             final Join<?, ?> activity = root.join(Spexare_.ACTIVITIES);
             final Join<?, ?> spexActivity = activity.join(Activity_.SPEX_ACTIVITY);
 
-            return criteriaBuilder.equal(spexActivity.get(SpexActivity_.SPEX).get(Spex_.ID), spexId);
+            return criteriaBuilder.equal(spexActivity.get(SpexActivity_.SPEX).get(Spex_.UUID), spexId);
         };
     }
 
-    public static Specification<Spexare> spexareWithTask(final Long taskId) {
+    public static Specification<Spexare> spexareWithTask(final UUID taskId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);
 
             final Join<?, ?> activity = root.join(Spexare_.ACTIVITIES);
             final Join<?, ?> taskActivity = activity.join(Activity_.TASK_ACTIVITIES);
 
-            return criteriaBuilder.equal(taskActivity.get(TaskActivity_.TASK).get(Task_.ID), taskId);
+            return criteriaBuilder.equal(taskActivity.get(TaskActivity_.TASK).get(Task_.UUID), taskId);
         };
     }
 
-    public static Specification<Spexare> spexareWithId(final Long spexareId) {
-        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.ID), spexareId);
+    public static Specification<Spexare> spexareWithId(final UUID spexareId) {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.UUID), spexareId);
     }
 
-    public static Specification<Spexare> partnerOf(final Long spexareId) {
-        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.PARTNER).get(Spexare_.ID), spexareId);
+    public static Specification<Spexare> partnerOf(final UUID spexareId) {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spexare_.PARTNER).get(Spexare_.UUID), spexareId);
     }
 
-    public static Specification<Spexare> spexareWithTag(final Long tagId) {
+    public static Specification<Spexare> spexareWithTag(final UUID tagId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);
 
             final Join<?, Tag> tag = root.join(Spexare_.TAGS);
 
-            return criteriaBuilder.equal(tag.get(Tag_.ID), tagId);
+            return criteriaBuilder.equal(tag.get(Tag_.UUID), tagId);
         };
     }
 
-    public static Specification<Spex> spexInCategory(final Long categoryId) {
+    public static Specification<Spex> spexInCategory(final UUID categoryId) {
         return (root, _, criteriaBuilder) -> criteriaBuilder.and(
-                criteriaBuilder.equal(root.get(Spex_.DETAILS).get(SpexDetails_.CATEGORY).get(SpexCategory_.ID), categoryId),
+                criteriaBuilder.equal(root.get(Spex_.DETAILS).get(SpexDetails_.CATEGORY).get(SpexCategory_.UUID), categoryId),
                 criteriaBuilder.isNull(root.get(Spex_.PARENT))
         );
     }
 
-    public static Specification<Task> taskInCategory(final Long categoryId) {
-        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Task_.CATEGORY).get(TaskCategory_.ID), categoryId);
+    public static Specification<Task> taskInCategory(final UUID categoryId) {
+        return (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get(Task_.CATEGORY).get(TaskCategory_.UUID), categoryId);
     }
 
     public static Specification<Spexare> spexareMatching(final String term) {

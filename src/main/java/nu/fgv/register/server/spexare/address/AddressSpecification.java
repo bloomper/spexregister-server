@@ -26,6 +26,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Filters on addresses for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -45,8 +46,8 @@ public class AddressSpecification extends BaseSpecification<Address> {
         super(criteria);
     }
 
-    public static Specification<Address> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Address_.id), id);
+    public static Specification<Address> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Address_.uuid), id);
     }
 
     public static Specification<Address> hasSpexare(final Spexare spexare) {

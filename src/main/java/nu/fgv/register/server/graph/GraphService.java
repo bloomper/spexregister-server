@@ -19,6 +19,7 @@ package nu.fgv.register.server.graph;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.image.Image;
+import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.SpexRepository;
@@ -45,7 +46,6 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import nu.fgv.register.server.security.policy.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -120,39 +121,39 @@ public class GraphService {
     }
 
     private static GraphNodeDto nodeOf(final Spexare spexare) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEXARE, spexare.getId()), GraphNodeType.SPEXARE,
+        return new GraphNodeDto(idOf(GraphNodeType.SPEXARE, spexare.getUuid()), GraphNodeType.SPEXARE,
                 "%s %s".formatted(spexare.getFirstName(), spexare.getLastName()), spexare.getNickName(),
-                imageUrl(spexare.getImage(), () -> methodOn(SpexareApi.class).downloadImage(spexare.getId())),
-                false, spexare.getId());
+                imageUrl(spexare.getImage(), () -> methodOn(SpexareApi.class).downloadImage(spexare.getUuid())),
+                false, spexare.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final Spex spex) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEX, spex.getId()), GraphNodeType.SPEX,
+        return new GraphNodeDto(idOf(GraphNodeType.SPEX, spex.getUuid()), GraphNodeType.SPEX,
                 spex.getDetails().getTitle(), spex.getYear(),
-                imageUrl(spex.getDetails().getPoster(), () -> methodOn(SpexApi.class).downloadPoster(spex.getId())),
-                spex.getParent() != null, spex.getId());
+                imageUrl(spex.getDetails().getPoster(), () -> methodOn(SpexApi.class).downloadPoster(spex.getUuid())),
+                spex.getParent() != null, spex.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final SpexCategory category) {
-        return new GraphNodeDto(idOf(GraphNodeType.SPEX_CATEGORY, category.getId()), GraphNodeType.SPEX_CATEGORY,
+        return new GraphNodeDto(idOf(GraphNodeType.SPEX_CATEGORY, category.getUuid()), GraphNodeType.SPEX_CATEGORY,
                 category.getName(), null,
-                imageUrl(category.getLogo(), () -> methodOn(SpexCategoryApi.class).downloadLogo(category.getId())),
-                false, category.getId());
+                imageUrl(category.getLogo(), () -> methodOn(SpexCategoryApi.class).downloadLogo(category.getUuid())),
+                false, category.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final Task task) {
-        return new GraphNodeDto(idOf(GraphNodeType.TASK, task.getId()), GraphNodeType.TASK,
-                task.getName(), null, null, false, task.getId());
+        return new GraphNodeDto(idOf(GraphNodeType.TASK, task.getUuid()), GraphNodeType.TASK,
+                task.getName(), null, null, false, task.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final TaskCategory category) {
-        return new GraphNodeDto(idOf(GraphNodeType.TASK_CATEGORY, category.getId()), GraphNodeType.TASK_CATEGORY,
-                category.getName(), null, null, false, category.getId());
+        return new GraphNodeDto(idOf(GraphNodeType.TASK_CATEGORY, category.getUuid()), GraphNodeType.TASK_CATEGORY,
+                category.getName(), null, null, false, category.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final Tag tag) {
-        return new GraphNodeDto(idOf(GraphNodeType.TAG, tag.getId()), GraphNodeType.TAG,
-                tag.getName(), null, null, false, tag.getId());
+        return new GraphNodeDto(idOf(GraphNodeType.TAG, tag.getUuid()), GraphNodeType.TAG,
+                tag.getName(), null, null, false, tag.getUuid());
     }
 
     private static @Nullable String imageUrl(final @Nullable Image image, final Supplier<Object> endpoint) {
@@ -199,16 +200,16 @@ public class GraphService {
      * @return the node with its neighbours grouped by edge type, or empty when there is no such entity
      */
     @RequiresAdminOrEditorOrUser
-    public Optional<GraphNeighbourhoodDto> findNeighbourhood(final GraphNodeType type, final Long id, final int first) {
+    public Optional<GraphNeighbourhoodDto> findNeighbourhood(final GraphNodeType type, final UUID id, final int first) {
         return switch (type) {
-            case SPEXARE -> spexareRepository.findById0(id).map(spexare -> neighbourhoodOf(spexare, first));
-            case SPEX -> spexRepository.findById0(id).map(spex -> neighbourhoodOf(spex, first));
+            case SPEXARE -> spexareRepository.findByUuid0(id).map(spexare -> neighbourhoodOf(spexare, first));
+            case SPEX -> spexRepository.findByUuid0(id).map(spex -> neighbourhoodOf(spex, first));
             case SPEX_CATEGORY ->
-                    spexCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
-            case TASK -> taskRepository.findById0(id).map(task -> neighbourhoodOf(task, first));
+                    spexCategoryRepository.findByUuid0(id).map(category -> neighbourhoodOf(category, first));
+            case TASK -> taskRepository.findByUuid0(id).map(task -> neighbourhoodOf(task, first));
             case TASK_CATEGORY ->
-                    taskCategoryRepository.findById0(id).map(category -> neighbourhoodOf(category, first));
-            case TAG -> tagRepository.findById0(id).map(tag -> neighbourhoodOf(tag, first));
+                    taskCategoryRepository.findByUuid0(id).map(category -> neighbourhoodOf(category, first));
+            case TAG -> tagRepository.findByUuid0(id).map(tag -> neighbourhoodOf(tag, first));
         };
     }
 
@@ -220,7 +221,7 @@ public class GraphService {
      * @return the window of neighbours with the total count
      */
     @RequiresAdminOrEditorOrUser
-    public CountedWindow<GraphNodeDto> findNeighbours(final GraphNodeType type, final Long id,
+    public CountedWindow<GraphNodeDto> findNeighbours(final GraphNodeType type, final UUID id,
                                                       final GraphEdgeType edge, final GraphqlUtil.ScrollRequest scroll) {
         return switch (type) {
             case SPEX -> edge == GraphEdgeType.PARTICIPATION
@@ -283,7 +284,7 @@ public class GraphService {
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final Spexare spexare, final int first) {
-        final String origin = idOf(GraphNodeType.SPEXARE, spexare.getId());
+        final String origin = idOf(GraphNodeType.SPEXARE, spexare.getUuid());
         final List<GraphGroupDto> groups = new ArrayList<>();
 
         record Participation(Activity activity, Spex spex) {
@@ -303,7 +304,7 @@ public class GraphService {
                 .toList();
 
         groups.add(group(GraphEdgeType.PARTICIPATION, spexList.size(), spexList.stream(),
-                GraphService::nodeOf, spex -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX, spex.getId()),
+                GraphService::nodeOf, spex -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX, spex.getUuid()),
                         GraphEdgeType.PARTICIPATION, spex.getYear())));
 
         record Held(Task task, Spex spex, String roles) {
@@ -317,39 +318,39 @@ public class GraphService {
 
         groups.add(group(GraphEdgeType.FUNCTION, held.size(), held.stream(),
                 item -> nodeOf(item.task()),
-                item -> GraphEdgeDto.of(idOf(GraphNodeType.TASK, item.task().getId()),
-                        idOf(GraphNodeType.SPEX, item.spex().getId()), GraphEdgeType.FUNCTION,
+                item -> GraphEdgeDto.of(idOf(GraphNodeType.TASK, item.task().getUuid()),
+                        idOf(GraphNodeType.SPEX, item.spex().getUuid()), GraphEdgeType.FUNCTION,
                         functionLabel(spexare, item.roles()))));
 
         final List<Tag> tags = List.copyOf(orEmpty(spexare.getTags()));
 
         groups.add(group(GraphEdgeType.TAG, tags.size(), tags.stream().limit(first),
-                GraphService::nodeOf, tag -> GraphEdgeDto.of(origin, idOf(GraphNodeType.TAG, tag.getId()),
+                GraphService::nodeOf, tag -> GraphEdgeDto.of(origin, idOf(GraphNodeType.TAG, tag.getUuid()),
                         GraphEdgeType.TAG, null)));
 
         final List<Spexare> partners = Stream.concat(
                         Optional.ofNullable(spexare.getPartner())
-                                .map(partner -> spexareRepository.findAll(GraphSpecification.spexareWithId(partner.getId()), BY_ID, Permission.READ))
+                                .map(partner -> spexareRepository.findAll(GraphSpecification.spexareWithId(partner.getUuid()), BY_ID, Permission.READ))
                                 .orElseGet(List::of)
                                 .stream(),
-                        spexareRepository.findAll(GraphSpecification.partnerOf(spexare.getId()), BY_ID, Permission.READ).stream())
-                .collect(Collectors.toMap(Spexare::getId, partner -> partner, (a, b) -> a, LinkedHashMap::new))
+                        spexareRepository.findAll(GraphSpecification.partnerOf(spexare.getUuid()), BY_ID, Permission.READ).stream())
+                .collect(Collectors.toMap(Spexare::getUuid, partner -> partner, (a, b) -> a, LinkedHashMap::new))
                 .values().stream()
                 .limit(first)
                 .toList();
 
         groups.add(group(GraphEdgeType.PARTNER, partners.size(), partners.stream(),
-                GraphService::nodeOf, partner -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEXARE, partner.getId()),
+                GraphService::nodeOf, partner -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEXARE, partner.getUuid()),
                         GraphEdgeType.PARTNER, null)));
 
         return new GraphNeighbourhoodDto(nodeOf(spexare), groups);
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final Spex spex, final int first) {
-        final String origin = idOf(GraphNodeType.SPEX, spex.getId());
+        final String origin = idOf(GraphNodeType.SPEX, spex.getUuid());
         final List<GraphGroupDto> groups = new ArrayList<>();
         final CountedWindow<GraphNodeDto> participants =
-                spexareWindow(GraphSpecification.spexareInSpex(spex.getId()), firstOnly(first));
+                spexareWindow(GraphSpecification.spexareInSpex(spex.getUuid()), firstOnly(first));
 
         groups.add(new GraphGroupDto(GraphEdgeType.PARTICIPATION, participants.getTotalCount(),
                 participants.getContent(),
@@ -362,28 +363,28 @@ public class GraphService {
                 .orElseGet(List::of);
 
         groups.add(group(GraphEdgeType.CATEGORY, categories.size(), categories.stream(),
-                GraphService::nodeOf, category -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX_CATEGORY, category.getId()),
+                GraphService::nodeOf, category -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX_CATEGORY, category.getUuid()),
                         GraphEdgeType.CATEGORY, null)));
 
         final List<Spex> related = Stream.concat(
                         Optional.ofNullable(spex.getParent()).stream(),
                         spexRepository.findAll(Specification.<Spex>unrestricted()
-                                .and((root, _, cb) -> cb.equal(root.get("parent").get("id"), spex.getId())), BY_ID, Permission.READ).stream())
+                                .and((root, _, cb) -> cb.equal(root.get("parent").get("uuid"), spex.getUuid())), BY_ID, Permission.READ).stream())
                 .limit(first)
                 .toList();
 
         groups.add(group(GraphEdgeType.REVIVAL_OF, related.size(), related.stream(),
-                GraphService::nodeOf, other -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX, other.getId()),
+                GraphService::nodeOf, other -> GraphEdgeDto.of(origin, idOf(GraphNodeType.SPEX, other.getUuid()),
                         GraphEdgeType.REVIVAL_OF, null)));
 
         return new GraphNeighbourhoodDto(nodeOf(spex), groups);
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final Task task, final int first) {
-        final String origin = idOf(GraphNodeType.TASK, task.getId());
+        final String origin = idOf(GraphNodeType.TASK, task.getUuid());
         final List<GraphGroupDto> groups = new ArrayList<>();
         final CountedWindow<GraphNodeDto> participants =
-                spexareWindow(GraphSpecification.spexareWithTask(task.getId()), firstOnly(first));
+                spexareWindow(GraphSpecification.spexareWithTask(task.getUuid()), firstOnly(first));
 
         groups.add(new GraphGroupDto(GraphEdgeType.FUNCTION, participants.getTotalCount(),
                 participants.getContent(),
@@ -396,15 +397,15 @@ public class GraphService {
                 .orElseGet(List::of);
 
         groups.add(group(GraphEdgeType.CATEGORY, categories.size(), categories.stream(),
-                GraphService::nodeOf, category -> GraphEdgeDto.of(origin, idOf(GraphNodeType.TASK_CATEGORY, category.getId()),
+                GraphService::nodeOf, category -> GraphEdgeDto.of(origin, idOf(GraphNodeType.TASK_CATEGORY, category.getUuid()),
                         GraphEdgeType.CATEGORY, null)));
 
         return new GraphNeighbourhoodDto(nodeOf(task), groups);
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final Tag tag, final int first) {
-        final String origin = idOf(GraphNodeType.TAG, tag.getId());
-        final CountedWindow<GraphNodeDto> tagged = spexareWindow(GraphSpecification.spexareWithTag(tag.getId()), firstOnly(first));
+        final String origin = idOf(GraphNodeType.TAG, tag.getUuid());
+        final CountedWindow<GraphNodeDto> tagged = spexareWindow(GraphSpecification.spexareWithTag(tag.getUuid()), firstOnly(first));
 
         return new GraphNeighbourhoodDto(nodeOf(tag), List.of(new GraphGroupDto(GraphEdgeType.TAG,
                 tagged.getTotalCount(), tagged.getContent(),
@@ -414,8 +415,8 @@ public class GraphService {
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final SpexCategory category, final int first) {
-        final String origin = idOf(GraphNodeType.SPEX_CATEGORY, category.getId());
-        final CountedWindow<GraphNodeDto> spex = findNeighbours(GraphNodeType.SPEX_CATEGORY, category.getId(),
+        final String origin = idOf(GraphNodeType.SPEX_CATEGORY, category.getUuid());
+        final CountedWindow<GraphNodeDto> spex = findNeighbours(GraphNodeType.SPEX_CATEGORY, category.getUuid(),
                 GraphEdgeType.CATEGORY, firstOnly(first));
 
         return new GraphNeighbourhoodDto(nodeOf(category), List.of(new GraphGroupDto(GraphEdgeType.CATEGORY,
@@ -426,8 +427,8 @@ public class GraphService {
     }
 
     private GraphNeighbourhoodDto neighbourhoodOf(final TaskCategory category, final int first) {
-        final String origin = idOf(GraphNodeType.TASK_CATEGORY, category.getId());
-        final CountedWindow<GraphNodeDto> tasks = findNeighbours(GraphNodeType.TASK_CATEGORY, category.getId(),
+        final String origin = idOf(GraphNodeType.TASK_CATEGORY, category.getUuid());
+        final CountedWindow<GraphNodeDto> tasks = findNeighbours(GraphNodeType.TASK_CATEGORY, category.getUuid(),
                 GraphEdgeType.CATEGORY, firstOnly(first));
 
         return new GraphNeighbourhoodDto(nodeOf(category), List.of(new GraphGroupDto(GraphEdgeType.CATEGORY,

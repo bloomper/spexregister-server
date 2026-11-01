@@ -19,8 +19,10 @@ package nu.fgv.register.server.savedsearch;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Saved searches are private to their owner, so every lookup is scoped by owner rather than by an access policy.
@@ -31,9 +33,27 @@ import java.util.Optional;
 @Repository
 public interface SavedSearchRepository extends JpaRepository<SavedSearch, Long> {
 
+    /**
+     * @param uuid the external id
+     * @return the savedSearch with that external id, or empty when there is none
+     */
+    Optional<SavedSearch> findByUuid(UUID uuid);
+
+    /**
+     * @param uuids external ids
+     * @return those that exist
+     */
+    List<SavedSearch> findByUuidIn(Collection<UUID> uuids);
+
+    /**
+     * @param uuid the external id
+     * @return whether there is one with that external id
+     */
+    boolean existsByUuid(UUID uuid);
+
     List<SavedSearch> findByOwnerExternalIdOrderByNameAsc(String ownerExternalId);
 
-    Optional<SavedSearch> findByIdAndOwnerExternalId(Long id, String ownerExternalId);
+    Optional<SavedSearch> findByUuidAndOwnerExternalId(UUID uuid, String ownerExternalId);
 
     boolean existsByOwnerExternalIdAndNameIgnoreCase(String ownerExternalId, String name);
 }

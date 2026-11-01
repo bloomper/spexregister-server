@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -75,7 +76,7 @@ public class TaskActivityService {
      * @return the activity's task activities
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public List<TaskActivityDto> findByActivity(final Long spexareId, final Long id) {
+    public List<TaskActivityDto> findByActivity(final UUID spexareId, final UUID id) {
         return findBySpexareByActivity(spexareId, id, activity ->
                         repository
                                 .findAll(hasActivity(activity), Pageable.unpaged(Sort.by(TaskActivity_.ID)))
@@ -94,7 +95,7 @@ public class TaskActivityService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public CountedWindow<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<TaskActivityDto> findByActivity(final UUID spexareId, final UUID id, final ScrollRequest scroll, final Sort sort) {
         return findBySpexareByActivity(spexareId, id, activity ->
                         repository
                                 .findBy(hasActivity(activity), query -> {
@@ -117,7 +118,7 @@ public class TaskActivityService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<TaskActivityDto> findByActivity(final Long spexareId, final Long id, final Pageable pageable) {
+    public Page<TaskActivityDto> findByActivity(final UUID spexareId, final UUID id, final Pageable pageable) {
         return findBySpexareByActivity(spexareId, id, activity ->
                         repository
                                 .findAll(hasActivity(activity), pageable)
@@ -133,14 +134,14 @@ public class TaskActivityService {
      * @return the task activity
      */
     @RequiresAdminOrEditorOrUser
-    public TaskActivityDto findById(final Long spexareId, final Long activityId, final Long id) {
+    public TaskActivityDto findById(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
-                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(taskActivity -> taskActivity.getActivity().getUuid().equals(activityId))
+                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getUuid().equals(spexareId))
                     .map(TASK_ACTIVITY_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id));
         } else {
@@ -153,9 +154,9 @@ public class TaskActivityService {
      * @return whether the task activity exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -166,15 +167,15 @@ public class TaskActivityService {
      * @return the created task activity
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public TaskActivityDto create(final Long spexareId, final Long activityId, final Long taskId) {
+    public TaskActivityDto create(final UUID spexareId, final UUID activityId, final UUID taskId) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .flatMap(activity -> taskRepository
-                            .findById0(taskId)
+                            .findByUuid0(taskId)
                             .filter(task -> !repository.exists(hasActivity(activity).and(hasTask(task))))
                             .map(task -> {
                                 final TaskActivity taskActivity = new TaskActivity();
@@ -199,18 +200,18 @@ public class TaskActivityService {
      * @return the updated task activity
      */
     @RequiresAdminOrEditorOrUser
-    public TaskActivityDto update(final Long spexareId, final Long activityId, final Long taskId, final Long id) {
+    public TaskActivityDto update(final UUID spexareId, final UUID activityId, final UUID taskId, final UUID id) {
         if (doSpexareAndActivityAndTaskExist(spexareId, activityId, taskId) && doesTaskActivityExist(id)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .map(activity -> taskRepository
-                            .findById0(taskId)
+                            .findByUuid0(taskId)
                             .filter(task -> repository.exists(hasActivity(activity).and(hasId(id))))
                             .map(task -> repository
-                                    .findById(id)
+                                    .findByUuid(id)
                                     .filter(taskActivity -> taskActivity.getActivity().equals(activity))
                                     .map(taskActivity -> {
                                         taskActivity.setTask(task);
@@ -233,17 +234,17 @@ public class TaskActivityService {
      * @param id         the task activity id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final Long activityId, final Long id) {
+    public void deleteById(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
             spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkWritePermission)
-                    .flatMap(spexare -> activityRepository.findById(activityId))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(activityId))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .filter(activity -> repository.exists(hasActivity(activity).and(hasId(id))))
                     .ifPresentOrElse(
                             activity -> repository
-                                    .findById(id)
+                                    .findByUuid(id)
                                     .filter(taskActivity -> taskActivity.getActivity().equals(activity))
                                     .ifPresentOrElse(
                                             taskActivity -> repository.deleteById(taskActivity.getId()),
@@ -266,14 +267,14 @@ public class TaskActivityService {
      * @return the task
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public TaskDto findTaskByTaskActivity(final Long spexareId, final Long activityId, final Long id) {
+    public TaskDto findTaskByTaskActivity(final UUID spexareId, final UUID activityId, final UUID id) {
         if (doSpexareAndActivityExist(spexareId, activityId) && doesTaskActivityExist(id)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(taskActivity -> taskActivity.getActivity().getId().equals(activityId))
-                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(taskActivity -> taskActivity.getActivity().getUuid().equals(activityId))
+                    .filter(taskActivity -> taskActivity.getActivity().getSpexare().getUuid().equals(spexareId))
                     .map(TaskActivity::getTask)
                     .map(TASK_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(TaskActivity.class, id));
@@ -282,13 +283,13 @@ public class TaskActivityService {
         }
     }
 
-    private <T> T findBySpexareByActivity(final Long spexareId, final Long id, final Function<Activity, T> queryFunction, final Supplier<T> emptyResult) {
+    private <T> T findBySpexareByActivity(final UUID spexareId, final UUID id, final Function<Activity, T> queryFunction, final Supplier<T> emptyResult) {
         if (doSpexareAndActivityExist(spexareId, id)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> activityRepository.findById(id))
-                    .filter(activity -> activity.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> activityRepository.findByUuid(id))
+                    .filter(activity -> activity.getSpexare().getUuid().equals(spexareId))
                     .map(queryFunction)
                     .orElseGet(emptyResult);
         } else {
@@ -296,23 +297,23 @@ public class TaskActivityService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesTaskActivityExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesTaskActivityExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
-    private boolean doesActivityExist(final Long id) {
-        return activityRepository.findById(id).isPresent();
+    private boolean doesActivityExist(final UUID id) {
+        return activityRepository.findByUuid(id).isPresent();
     }
 
-    private boolean doSpexareAndActivityExist(final Long spexareId, final Long activityId) {
+    private boolean doSpexareAndActivityExist(final UUID spexareId, final UUID activityId) {
         return doesSpexareExist(spexareId) && doesActivityExist(activityId);
     }
 
-    private boolean doSpexareAndActivityAndTaskExist(final Long spexareId, final Long activityId, final Long taskId) {
-        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && taskRepository.findById0(taskId).isPresent();
+    private boolean doSpexareAndActivityAndTaskExist(final UUID spexareId, final UUID activityId, final UUID taskId) {
+        return doesSpexareExist(spexareId) && doesActivityExist(activityId) && taskRepository.findByUuid0(taskId).isPresent();
     }
 }

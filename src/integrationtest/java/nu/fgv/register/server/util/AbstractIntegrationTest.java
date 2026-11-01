@@ -95,6 +95,7 @@ public abstract class AbstractIntegrationTest {
     protected static final String AUTHORITY_EDITOR = "EDITOR";
     protected static final String AUTHORITY_USER = "USER";
     protected static final List<String> AUTHORITIES = List.of(AUTHORITY_ADMIN, AUTHORITY_EDITOR, AUTHORITY_USER);
+    protected static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
     private static final String TEST_REALM = "fgv";
     private static final String TEST_GRANT_TYPE = "password";
     private static final String TEST_DOMAIN = "@fgv.nu";
@@ -103,7 +104,6 @@ public abstract class AbstractIntegrationTest {
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
     private static final String TEST_PASSWORD = "s3cr3t-s3cr3t";
     private static final String TEST_CLIENT_ID = "spexregister";
-    protected static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
     private static final String TEST_UNBOUND_MCP_CLIENT_ID = "spexregister-mcp-unbound";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")

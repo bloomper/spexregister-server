@@ -41,7 +41,7 @@ public final class Auditor {
 
     /**
      * @return the email of the caller, or for the revival service its account and the person it acts for; empty when
-     *     there is no caller
+     * there is no caller
      */
     public static String current() {
         final boolean revival = Caller.current().hasRole(Caller.REVIVAL);

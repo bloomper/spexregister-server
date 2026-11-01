@@ -17,6 +17,7 @@
 package nu.fgv.register.server.impex.exporting;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * What an export job calls to gather what to write.
@@ -25,5 +26,5 @@ import java.util.List;
  * @since 2.0
  */
 public interface ExportService {
-    List<ExportHolder<?>> doExport(List<Long> ids, String filter);
+    List<ExportHolder<?>> doExport(List<UUID> ids, String filter);
 }

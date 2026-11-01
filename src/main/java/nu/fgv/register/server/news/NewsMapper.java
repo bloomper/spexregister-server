@@ -44,10 +44,12 @@ public interface NewsMapper {
 
     NewsMapper NEWS_MAPPER = Mappers.getMapper(NewsMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     NewsDto toDto(News model);
 
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     NewsImpexDto toImpexDto(News model);
 
     @Mapping(target = "id", ignore = true)
@@ -65,6 +67,7 @@ public interface NewsMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     News toModel(NewsUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

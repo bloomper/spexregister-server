@@ -38,9 +38,10 @@ public interface PermissionGrantMapper {
 
     PermissionGrantMapper PERMISSION_GRANT_MAPPER = Mappers.getMapper(PermissionGrantMapper.class);
 
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "spexareId", source = "spexare.id")
-    @Mapping(target = "spexId", source = "spex.id")
+    @Mapping(target = "userId", source = "user.uuid")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
+    @Mapping(target = "spexId", source = "spex.uuid")
     @Mapping(target = "expired", expression = "java(model.isExpired(java.time.LocalDate.now()))")
+    @Mapping(target = "id", source = "uuid")
     PermissionGrantDto toDto(PermissionGrant model);
 }

@@ -17,7 +17,6 @@
 package nu.fgv.register.server.audit;
 
 import lombok.Builder;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A non-fatal condition encountered while restoring.
@@ -28,18 +27,6 @@ import org.jspecify.annotations.Nullable;
 @Builder
 public record RestoreWarningDto(
         String code,
-        String message,
-        @Nullable Long previousId,
-        @Nullable Long newId
+        String message
 ) {
-    public static final String ID_REASSIGNED = "ID_REASSIGNED";
-
-    public static RestoreWarningDto idReassigned(final AuditedType type, final @Nullable Long previousId, final @Nullable Long newId) {
-        return RestoreWarningDto.builder()
-                .code(ID_REASSIGNED)
-                .message("%s %d was re-created as %d".formatted(type, previousId, newId))
-                .previousId(previousId)
-                .newId(newId)
-                .build();
-    }
 }

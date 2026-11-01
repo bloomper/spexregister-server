@@ -36,6 +36,8 @@ import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 import static nu.fgv.register.server.mcp.McpToolSupport.FILTER_DESCRIPTION;
 import static nu.fgv.register.server.mcp.McpToolSupport.PAGE_DESCRIPTION;
 import static nu.fgv.register.server.mcp.McpToolSupport.SIZE_DESCRIPTION;
@@ -67,14 +69,14 @@ public class TaskMcpTools {
 
     @McpTool(name = "get_task", description = "Get a task, including its category",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpTask getTask(@McpToolParam(description = "Task id") final Long id) {
+    public McpTask getTask(@McpToolParam(description = "Task id") final UUID id) {
         return toMcpTask(taskService.findById(id));
     }
 
     @McpTool(name = "create_task", description = "Create a task, optionally in a task category. Requires the ADMIN role.",
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
     public McpTask createTask(@McpToolParam(description = "Task name") final String name,
-                                     @McpToolParam(required = false, description = "Id of the task category to put the task in") final @Nullable Long categoryId) {
+                              @McpToolParam(required = false, description = "Id of the task category to put the task in") final @Nullable UUID categoryId) {
         support.audit("create_task");
         final TaskDto task = taskService.create(support.validate(TaskCreateDto.builder().name(name).build()));
 
@@ -87,7 +89,7 @@ public class TaskMcpTools {
 
     @McpTool(name = "update_task", description = "Rename a task. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTask updateTask(@McpToolParam(description = "Task id") final Long id,
+    public McpTask updateTask(@McpToolParam(description = "Task id") final UUID id,
                               @McpToolParam(description = "New task name") final String name) {
         support.audit("update_task");
 
@@ -96,8 +98,8 @@ public class TaskMcpTools {
 
     @McpTool(name = "set_task_category", description = "Set or clear the category of a task. Requires the ADMIN role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTask setTaskCategory(@McpToolParam(description = "Task id") final Long id,
-                                          @McpToolParam(required = false, description = "Task category id, omit to remove the category") final @Nullable Long categoryId) {
+    public McpTask setTaskCategory(@McpToolParam(description = "Task id") final UUID id,
+                                   @McpToolParam(required = false, description = "Task category id, omit to remove the category") final @Nullable UUID categoryId) {
         support.audit("set_task_category");
 
         if (categoryId != null) {
@@ -111,7 +113,7 @@ public class TaskMcpTools {
 
     @McpTool(name = "delete_task", description = "Permanently delete a single task. Requires the ADMIN role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteTask(@McpToolParam(description = "Task id") final Long id) {
+    public String deleteTask(@McpToolParam(description = "Task id") final UUID id) {
         support.audit("delete_task");
         taskService.deleteById(id);
 
@@ -128,7 +130,7 @@ public class TaskMcpTools {
 
     @McpTool(name = "get_task_category", description = "Get a task category",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpTaskCategory getTaskCategory(@McpToolParam(description = "Task category id") final Long id) {
+    public McpTaskCategory getTaskCategory(@McpToolParam(description = "Task category id") final UUID id) {
         return McpTaskCategory.of(categoryService.findById(id));
     }
 
@@ -143,7 +145,7 @@ public class TaskMcpTools {
 
     @McpTool(name = "update_task_category", description = "Update a task category; omitted fields are left unchanged. Requires the ADMIN role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTaskCategory updateTaskCategory(@McpToolParam(description = "Task category id") final Long id,
+    public McpTaskCategory updateTaskCategory(@McpToolParam(description = "Task category id") final UUID id,
                                               @McpToolParam(required = false, description = "New name") final @Nullable String name,
                                               @McpToolParam(required = false, description = "Whether tasks in this category are performed on stage as an actor") final @Nullable Boolean actorPresent) {
         support.audit("update_task_category");
@@ -158,7 +160,7 @@ public class TaskMcpTools {
 
     @McpTool(name = "delete_task_category", description = "Permanently delete a single task category. Requires the ADMIN role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteTaskCategory(@McpToolParam(description = "Task category id") final Long id) {
+    public String deleteTaskCategory(@McpToolParam(description = "Task category id") final UUID id) {
         support.audit("delete_task_category");
         categoryService.deleteById(id);
 
@@ -169,7 +171,7 @@ public class TaskMcpTools {
         return new McpTask(dto.getId(), dto.getName(), categoryOf(dto.getId()));
     }
 
-    private @Nullable McpTaskCategory categoryOf(final Long taskId) {
+    private @Nullable McpTaskCategory categoryOf(final UUID taskId) {
         try {
             return McpTaskCategory.of(taskService.findCategoryByTask(taskId));
         } catch (final ResourceNoValueException _) {
@@ -177,10 +179,10 @@ public class TaskMcpTools {
         }
     }
 
-    public record McpTask(Long id, String name, @Nullable McpTaskCategory category) {
+    public record McpTask(UUID id, String name, @Nullable McpTaskCategory category) {
     }
 
-    public record McpTaskCategory(Long id, String name, boolean actorPresent) {
+    public record McpTaskCategory(UUID id, String name, boolean actorPresent) {
 
         static McpTaskCategory of(final TaskCategoryDto dto) {
             return new McpTaskCategory(dto.getId(), dto.getName(), dto.getActorPresent());

@@ -42,6 +42,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -341,7 +342,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto result = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -354,14 +355,14 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "subject", "text", "visibleFrom")
-                    .contains(news.getId(), news.getSubject(), news.getText(), news.getVisibleFrom());
+                    .contains(news.getUuid(), news.getSubject(), news.getText(), news.getVisibleFrom());
         }
 
         @Test
         void should_return_404_when_not_found() {
             restTestClient
                     .get()
-                    .uri("/{id}", 1L)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -380,7 +381,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto before = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -400,7 +401,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto updated = restTestClient
                     .put()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -414,7 +415,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
             // The update leaves no publishing dates, so the item is unpublished and only editors and admins read it
             final NewsDto after = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -474,7 +475,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto before = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -533,7 +534,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto before = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -554,7 +555,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto updated = restTestClient
                     .patch()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -567,7 +568,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto after = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -607,7 +608,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             final NewsDto before = restTestClient
                     .get()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -668,7 +669,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -682,7 +683,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404_when_not_found() {
             restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -698,7 +699,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{id}", news.getId())
+                    .uri("/{id}", news.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -712,7 +713,7 @@ class NewsApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_403_when_not_permitted_due_to_insufficient_role() {
             restTestClient
                     .delete()
-                    .uri("/{id}", 123)
+                    .uri("/{id}", UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")

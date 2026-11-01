@@ -22,6 +22,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -30,7 +32,7 @@ import lombok.Builder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record TagUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @NotBlank(message = "{tag.name.notEmpty}")
         @Size(max = 255, message = "{tag.name.maxSize}")

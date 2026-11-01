@@ -45,10 +45,11 @@ public interface AddressMapper {
 
     AddressMapper ADDRESS_MAPPER = Mappers.getMapper(AddressMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     AddressDto toDto(Address model);
 
-    @Mapping(target = "id", source = "address.id")
-    @Mapping(target = "spexareId", source = "spexare.id")
+    @Mapping(target = "id", source = "address.uuid")
+    @Mapping(target = "spexareId", source = "spexare.uuid")
     @Mapping(target = "countryName", source = "country.label")
     @Mapping(target = "typeId", source = "type.id")
     @Mapping(target = "typeLabel", source = "type.label")
@@ -77,6 +78,7 @@ public interface AddressMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Address toModel(AddressUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

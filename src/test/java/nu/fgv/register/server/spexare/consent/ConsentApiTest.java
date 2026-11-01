@@ -33,8 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -80,14 +82,14 @@ class ConsentApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var consent1 = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
-        final var consent2 = ConsentDto.builder().id(2L).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
+        final var consent1 = ConsentDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent2 = ConsentDto.builder().id(uuid(2)).value(false).type(TypeDto.builder().id("CIRCULARS").type(TypeType.CONSENT).build()).build();
 
-        when(service.findBySpexare(any(Long.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(consent1, consent2), PageRequest.of(1, 2, Sort.by("type")), 10));
+        when(service.findBySpexare(any(UUID.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(consent1, consent2), PageRequest.of(1, 2, Sort.by("type")), 10));
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", 1L)
+                        get("/api/spexare/{spexareId}/consents?page=1&size=2&sort=type,desc", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -120,20 +122,20 @@ class ConsentApiTest extends AbstractApiTest {
                                 pagingQueryParameters,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "retrieve", Long.class, Pageable.class))
+                                security(getRolesFromMethod(ConsentApi.class, "retrieve", UUID.class, Pageable.class))
                         )
                 );
     }
 
     @Test
     void should_get() throws Exception {
-        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent = ConsentDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.findById(any(Long.class), any(Long.class))).thenReturn(consent);
+        when(service.findById(any(UUID.class), any(UUID.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
-                        get("/api/spexare/{spexareId}/consents/{id}", 1L, 1L)
+                        get("/api/spexare/{spexareId}/consents/{id}", uuid(1), uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -154,7 +156,7 @@ class ConsentApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "retrieve", Long.class, Long.class))
+                                security(getRolesFromMethod(ConsentApi.class, "retrieve", UUID.class, UUID.class))
                         )
                 );
     }
@@ -163,13 +165,13 @@ class ConsentApiTest extends AbstractApiTest {
     void should_create() throws Exception {
         final var fields = new ConstrainedFields(ConsentCreateDto.class);
         final var dto = ConsentCreateDto.builder().value(Boolean.TRUE).build();
-        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var consent = ConsentDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.create(any(Long.class), any(String.class), any(ConsentCreateDto.class))).thenReturn(consent);
+        when(service.create(any(UUID.class), any(String.class), any(ConsentCreateDto.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
-                        post("/api/spexare/{spexareId}/consents/{typeId}", 1L, consent.getId())
+                        post("/api/spexare/{spexareId}/consents/{typeId}", uuid(1), consent.getId())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -193,7 +195,7 @@ class ConsentApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 createResponseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "create", Long.class, String.class, ConsentCreateDto.class))
+                                security(getRolesFromMethod(ConsentApi.class, "create", UUID.class, String.class, ConsentCreateDto.class))
                         )
                 );
     }
@@ -201,14 +203,14 @@ class ConsentApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(ConsentUpdateDto.class);
-        final var dto = ConsentUpdateDto.builder().id(1L).value(Boolean.TRUE).build();
-        final var consent = ConsentDto.builder().id(1L).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
+        final var dto = ConsentUpdateDto.builder().id(uuid(1)).value(Boolean.TRUE).build();
+        final var consent = ConsentDto.builder().id(uuid(1)).value(true).type(TypeDto.builder().id("PUBLISH").type(TypeType.CONSENT).build()).build();
 
-        when(service.update(any(Long.class), any(String.class), any(Long.class), any(ConsentUpdateDto.class))).thenReturn(consent);
+        when(service.update(any(UUID.class), any(String.class), any(UUID.class), any(ConsentUpdateDto.class))).thenReturn(consent);
 
         mockMvc
                 .perform(
-                        put("/api/spexare/{spexareId}/consents/{typeId}/{id}", 1L, consent.getType().getId(), consent.getId())
+                        put("/api/spexare/{spexareId}/consents/{typeId}/{id}", uuid(1), consent.getType().getId(), consent.getId())
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -234,7 +236,7 @@ class ConsentApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "update", Long.class, String.class, Long.class, ConsentUpdateDto.class))
+                                security(getRolesFromMethod(ConsentApi.class, "update", UUID.class, String.class, UUID.class, ConsentUpdateDto.class))
                         )
                 );
     }
@@ -243,7 +245,7 @@ class ConsentApiTest extends AbstractApiTest {
     void should_delete() throws Exception {
         mockMvc
                 .perform(
-                        delete("/api/spexare/{spexareId}/consents/{typeId}/{id}", 1L, "PUBLISH", 1L)
+                        delete("/api/spexare/{spexareId}/consents/{typeId}/{id}", uuid(1), "PUBLISH", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -259,7 +261,7 @@ class ConsentApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the consent")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(ConsentApi.class, "delete", Long.class, String.class, Long.class))
+                                security(getRolesFromMethod(ConsentApi.class, "delete", UUID.class, String.class, UUID.class))
                         )
                 );
     }

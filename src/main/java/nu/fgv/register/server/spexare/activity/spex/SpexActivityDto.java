@@ -28,6 +28,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -42,11 +43,11 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpexActivityDto extends AbstractAuditableDto<SpexActivityDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @Builder
     public SpexActivityDto(
-            final Long id,
+            final UUID id,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,

@@ -40,10 +40,12 @@ public interface TaskCategoryMapper {
 
     TaskCategoryMapper TASK_CATEGORY_MAPPER = Mappers.getMapper(TaskCategoryMapper.class);
 
+    @Mapping(target = "id", source = "uuid")
     TaskCategoryDto toDto(TaskCategory model);
 
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
     @Mapping(target = "rowNumber", ignore = true)
+    @Mapping(target = "id", source = "uuid")
     TaskCategoryImpexDto toImpexDto(TaskCategory model);
 
     @Mapping(target = "id", ignore = true)
@@ -59,6 +61,7 @@ public interface TaskCategoryMapper {
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "id", ignore = true)
     TaskCategory toModel(TaskCategoryUpdateDto dto);
 
     @InheritConfiguration(name = "toModel")

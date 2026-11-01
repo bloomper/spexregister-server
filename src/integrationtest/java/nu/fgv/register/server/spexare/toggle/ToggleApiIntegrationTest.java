@@ -52,6 +52,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -163,7 +164,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -178,7 +179,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final List<ToggleDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -202,7 +203,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final List<ToggleDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -229,7 +230,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -258,7 +259,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ToggleDto result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), toggle.getId())
+                    .uri("/{id}", spexare.getUuid(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -271,7 +272,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result)
                     .extracting("id", "value")
-                    .contains(toggle.getId(), toggle.getValue());
+                    .contains(toggle.getUuid(), toggle.getValue());
         }
 
         @Test
@@ -280,7 +281,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", spexare.getId(), 1L)
+                    .uri("/{id}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -302,7 +303,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .get()
-                    .uri("/{id}", 1L, toggle.getId())
+                    .uri("/{id}", UUID.randomUUID(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -329,7 +330,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -340,7 +341,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final List<ToggleDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -364,7 +365,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -374,7 +375,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -397,7 +398,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", 1L, type.getId())
+                    .uri("/{typeId}", UUID.randomUUID(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -419,7 +420,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), "dummy")
+                    .uri("/{typeId}", spexare.getUuid(), "dummy")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -443,7 +444,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -467,7 +468,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{typeId}", spexare.getId(), type.getId())
+                    .uri("/{typeId}", spexare.getUuid(), type.getId())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -491,13 +492,13 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             repository.save(toggle);
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .value(Boolean.FALSE)
                     .build();
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -508,7 +509,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final List<ToggleDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -523,7 +524,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).hasSize(1);
             assertThat(result.getFirst())
                     .extracting("id", "value")
-                    .contains(toggle.getId(), Boolean.FALSE);
+                    .contains(toggle.getUuid(), Boolean.FALSE);
             assertThat(repository.count()).isEqualTo(1);
         }
 
@@ -533,12 +534,12 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var type = persistType(randomizeType());
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(1L)
+                    .id(UUID.randomUUID())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), dto.id())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -561,12 +562,12 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", 1L, type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -589,12 +590,12 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -618,12 +619,12 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare2));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -646,12 +647,12 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final var toggle = persistToggle(randomizeToggle(type, spexare));
             final var randDto = random.nextObject(ToggleUpdateDto.class);
             final var dto = randDto.toBuilder()
-                    .id(toggle.getId())
+                    .id(toggle.getUuid())
                     .build();
 
             final ProblemDetail result = restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -676,7 +677,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .put()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .body(dto)
@@ -699,7 +700,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -709,7 +710,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
             final List<ToggleDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -732,7 +733,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), 1L)
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -755,7 +756,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", -1L, type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", UUID.randomUUID(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -778,7 +779,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), "dummy", toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), "dummy", toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -802,7 +803,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare1.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare1.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -825,7 +826,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -848,7 +849,7 @@ class ToggleApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{typeId}/{id}", spexare.getId(), type.getId(), toggle.getId())
+                    .uri("/{typeId}/{id}", spexare.getUuid(), type.getId(), toggle.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

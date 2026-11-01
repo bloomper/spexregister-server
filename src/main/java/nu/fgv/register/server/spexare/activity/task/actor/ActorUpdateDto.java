@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -28,7 +30,7 @@ import lombok.Builder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ActorUpdateDto(
         @JsonProperty("id")
-        Long id,
+        UUID id,
 
         @JsonProperty("role")
         String role

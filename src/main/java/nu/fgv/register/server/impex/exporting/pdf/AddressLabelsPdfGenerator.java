@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -74,7 +75,7 @@ public class AddressLabelsPdfGenerator implements PdfGenerator {
             throw new ExportException("Required data missing");
         }
 
-        final Map<Long, SpexareImpexDto> spexareMap = new HashMap<>();
+        final Map<UUID, SpexareImpexDto> spexareMap = new HashMap<>();
 
         spexareReport.data().forEach(s -> spexareMap.put(s.getId(), s));
 

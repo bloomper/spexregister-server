@@ -26,6 +26,7 @@ import nu.fgv.register.server.util.filter.FilterCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Filters on memberships for the {@code filter} expressions of {@link nu.fgv.register.server.util.filter.FilterParser}.
@@ -45,8 +46,8 @@ public class MembershipSpecification extends BaseSpecification<Membership> {
         super(criteria);
     }
 
-    public static Specification<Membership> hasId(final Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Membership_.id), id);
+    public static Specification<Membership> hasId(final UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Membership_.uuid), id);
     }
 
     public static Specification<Membership> hasSpexare(final Spexare spexare) {

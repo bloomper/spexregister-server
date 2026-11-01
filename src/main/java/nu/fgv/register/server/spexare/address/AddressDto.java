@@ -29,6 +29,7 @@ import nu.fgv.register.server.util.AbstractAuditableDto;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +44,7 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddressDto extends AbstractAuditableDto<AddressDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("streetAddress")
     private String streetAddress;
@@ -71,7 +72,7 @@ public class AddressDto extends AbstractAuditableDto<AddressDto> {
 
     @Builder
     public AddressDto(
-            final Long id,
+            final UUID id,
             final String streetAddress,
             final String postalCode,
             final String city,

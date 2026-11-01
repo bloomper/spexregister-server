@@ -15,8 +15,7 @@
  */
 
 package nu.fgv.register.server.analytics;
-import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.task.Task;
+
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,10 +101,10 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
 
     @Test
     void should_chart_activities_added_through_the_api() {
-        jdbcClient.sql("INSERT INTO spex_details (id, title, created_by, created_at, version) VALUES (1, 'Bojan', 'system', NOW(), 0), (2, 'Nero', 'system', NOW(), 0)").update();
-        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at, version) VALUES (1, '2010', NULL, 1, 'system', NOW(), 0), (2, '2015', NULL, 2, 'system', NOW(), 0)").update();
-        jdbcClient.sql("INSERT INTO task_category (id, name, actor_present, created_by, created_at, version) VALUES (1, 'Orkester', FALSE, 'system', NOW(), 0)").update();
-        jdbcClient.sql("INSERT INTO task (id, name, category_id, created_by, created_at, version) VALUES (1, 'Trumpet', 1, 'system', NOW(), 0), (2, 'Kontrabas', 1, 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO spex_details (uuid, id, title, created_by, created_at, version) VALUES (UUID(), 1, 'Bojan', 'system', NOW(), 0), (UUID(), 2, 'Nero', 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO spex (uuid, id, year, parent_id, details_id, created_by, created_at, version) VALUES (UUID(), 1, '2010', NULL, 1, 'system', NOW(), 0), (UUID(), 2, '2015', NULL, 2, 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO task_category (uuid, id, name, actor_present, created_by, created_at, version) VALUES (UUID(), 1, 'Orkester', FALSE, 'system', NOW(), 0)").update();
+        jdbcClient.sql("INSERT INTO task (uuid, id, name, category_id, created_by, created_at, version) VALUES (UUID(), 1, 'Trumpet', 1, 'system', NOW(), 0), (UUID(), 2, 'Kontrabas', 1, 'system', NOW(), 0)").update();
 
         final String admin = obtainAdminAccessToken();
         final String ada = createSpexare(admin, "Ada", true);
@@ -151,9 +150,9 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
 
     @Test
     void should_return_spex_and_revivals_per_production_year() {
-        jdbcClient.sql("INSERT INTO spex_details (id, title, created_by, created_at) VALUES (1, 'Bojan', 'system', NOW()), (2, 'Nero', 'system', NOW())").update();
-        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at) VALUES (1, '1948', NULL, 1, 'system', NOW()), (2, '1990', NULL, 2, 'system', NOW())").update();
-        jdbcClient.sql("INSERT INTO spex (id, year, parent_id, details_id, created_by, created_at) VALUES (3, '1990', 1, 1, 'system', NOW()), (4, '2003', 1, 1, 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO spex_details (uuid, id, title, created_by, created_at) VALUES (UUID(), 1, 'Bojan', 'system', NOW()), (UUID(), 2, 'Nero', 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO spex (uuid, id, year, parent_id, details_id, created_by, created_at) VALUES (UUID(), 1, '1948', NULL, 1, 'system', NOW()), (UUID(), 2, '1990', NULL, 2, 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO spex (uuid, id, year, parent_id, details_id, created_by, created_at) VALUES (UUID(), 3, '1990', 1, 1, 'system', NOW()), (UUID(), 4, '2003', 1, 1, 'system', NOW())").update();
 
         httpGraphQlTester
                 .mutate()
@@ -172,8 +171,8 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
 
     @Test
     void should_return_tasks_per_category_largest_first() {
-        jdbcClient.sql("INSERT INTO task_category (id, name, created_by, created_at) VALUES (1, 'Orkester', 'system', NOW()), (2, 'Kommitté', 'system', NOW())").update();
-        jdbcClient.sql("INSERT INTO task (id, name, category_id, created_by, created_at) VALUES (1, 'Trumpet', 1, 'system', NOW()), (2, 'Directeur', 2, 'system', NOW()), (3, 'Ekonomichef', 2, 'system', NOW()), (4, 'Övrigt', NULL, 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO task_category (uuid, id, name, created_by, created_at) VALUES (UUID(), 1, 'Orkester', 'system', NOW()), (UUID(), 2, 'Kommitté', 'system', NOW())").update();
+        jdbcClient.sql("INSERT INTO task (uuid, id, name, category_id, created_by, created_at) VALUES (UUID(), 1, 'Trumpet', 1, 'system', NOW()), (UUID(), 2, 'Directeur', 2, 'system', NOW()), (UUID(), 3, 'Ekonomichef', 2, 'system', NOW()), (UUID(), 4, 'Övrigt', NULL, 'system', NOW())").update();
 
         httpGraphQlTester
                 .mutate()
@@ -281,7 +280,7 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .documentName("spexare/activity/taskActivity/taskActivityCreate")
                 .variable("spexareId", spexareId)
                 .variable("activityId", activityId)
-                .variable("taskId", taskId)
+                .variable("taskId", uuidOf("task", taskId))
                 .execute()
                 .errors()
                 .verify()
@@ -300,6 +299,10 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .execute()
                 .errors()
                 .verify();
+    }
+
+    private String uuidOf(final String table, final long id) {
+        return jdbcClient.sql("SELECT uuid FROM %s WHERE id = ?".formatted(table)).param(id).query(String.class).single();
     }
 
     private String addSpex(final String token, final String spexareId, final long spexId) {
@@ -321,7 +324,7 @@ class AnalyticsGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest 
                 .documentName("spexare/activity/spexActivity/spexActivityCreate")
                 .variable("spexareId", spexareId)
                 .variable("activityId", activityId)
-                .variable("spexId", spexId)
+                .variable("spexId", uuidOf("spex", spexId))
                 .execute()
                 .errors()
                 .verify();

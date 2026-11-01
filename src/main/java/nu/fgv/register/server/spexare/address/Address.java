@@ -26,6 +26,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -35,6 +36,7 @@ import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.ApplicationContextHolder;
+import nu.fgv.register.server.util.Uuids;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
@@ -58,6 +60,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.util.search.DefaultOverridingLuceneAnalysisConfigurer.NORMALIZER_LOWERCASE;
@@ -85,6 +88,10 @@ public class Address extends AbstractAuditable implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
+    @Setter(AccessLevel.NONE)
+    private UUID uuid = Uuids.v7();
 
     @Size(max = 255, message = "{address.streetAddress.size}")
     @Column(name = "street_address")

@@ -29,6 +29,7 @@ import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -43,7 +44,7 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NewsDto extends AbstractAuditableDto<NewsDto> {
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @JsonProperty("subject")
     private String subject;
@@ -62,7 +63,7 @@ public class NewsDto extends AbstractAuditableDto<NewsDto> {
 
     @Builder
     public NewsDto(
-            final Long id,
+            final UUID id,
             final String subject,
             final String text,
             final LocalDate visibleFrom,

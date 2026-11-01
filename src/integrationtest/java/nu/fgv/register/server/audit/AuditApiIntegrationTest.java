@@ -51,6 +51,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jeasy.random.FieldPredicates.inClass;
@@ -107,11 +108,11 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                 "spexare_audit", "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit", "revchanges", "revinfo");
     }
 
-    private List<RevisionDto> retrieveRevisions(final Long id, final String token) {
+    private List<RevisionDto> retrieveRevisions(final UUID id, final String token) {
         return retrieveRevisions(AuditedType.TAG, id, token);
     }
 
-    private List<RevisionDto> retrieveRevisions(final AuditedType type, final Long id, final String token) {
+    private List<RevisionDto> retrieveRevisions(final AuditedType type, final UUID id, final String token) {
         return Objects.requireNonNull(
                         restTestClient
                                 .get()
@@ -194,7 +195,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             tag.setName("renamed");
             repository.save(tag);
 
-            final List<RevisionDto> result = retrieveRevisions(tag.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(tag.getUuid(), obtainAdminAccessToken());
 
             assertThat(result).hasSize(2);
             assertThat(result.getFirst().revisionType().name()).isEqualTo("MOD");
@@ -210,7 +211,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .get()
-                    .uri("/{type}/{id}", "SPEXARE", spexare.getId())
+                    .uri("/{type}/{id}", "SPEXARE", spexare.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -229,7 +230,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
 
             assertThat(result).isNotEmpty();
             assertThat(result.getFirst().changes())
@@ -244,7 +245,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
 
             assertThat(result)
                     .extracting(RevisionDto::type)
@@ -263,7 +264,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var originalRevision = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+            final var originalRevision = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX)
                     .toList()
                     .getLast()
@@ -276,7 +277,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{type}/{id}/{revision}/restore", "SPEX", spex.getId(), originalRevision)
+                    .uri("/{type}/{id}/{revision}/restore", "SPEX", spex.getUuid(), originalRevision)
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -296,7 +297,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             details.setPoster(Image.of(new byte[]{4, 5, 6}, MediaType.IMAGE_PNG_VALUE));
             spexDetailsRepository.save(details);
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
 
             assertThat(result.getFirst().type()).isEqualTo(AuditedType.SPEX_DETAILS);
             assertThat(result.getFirst().changes())
@@ -311,7 +312,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
 
             assertThat(result)
                     .flatExtracting(RevisionDto::changes)
@@ -319,7 +320,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .singleElement()
                     .satisfies(change -> {
                         assertThat(change.type()).isEqualTo(AuditedType.SPEX_DETAILS);
-                        assertThat(change.entityId()).isEqualTo(details.getId());
+                        assertThat(change.entityId()).isEqualTo(details.getUuid().toString());
                     });
 
             assertThat(result)
@@ -328,7 +329,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .singleElement()
                     .satisfies(change -> {
                         assertThat(change.type()).isEqualTo(AuditedType.SPEX);
-                        assertThat(change.entityId()).isEqualTo(spex.getId());
+                        assertThat(change.entityId()).isEqualTo(spex.getUuid().toString());
                     });
         }
 
@@ -338,7 +339,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .toList()
                     .getLast();
@@ -354,7 +355,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             final byte[] poster = restTestClient
                     .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getId(), creation.revision(), "poster")
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -373,14 +374,14 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .toList()
                     .getLast();
 
             final byte[] poster = restTestClient
                     .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX_DETAILS", details.getId(), creation.revision(), "poster")
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX_DETAILS", details.getUuid(), creation.revision(), "poster")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -399,14 +400,14 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .toList()
                     .getLast();
 
             restTestClient
                     .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getId(), creation.revision(), "poster")
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -419,14 +420,14 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken()).stream()
+            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
                     .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .toList()
                     .getLast();
 
             restTestClient
                     .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getId(), creation.revision(), "title")
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "title")
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .apiVersion("1.0")
                     .exchange()
@@ -443,7 +444,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             spex.setDetails(second);
             spexRepository.save(spex);
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getId(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
 
             assertThat(result.getFirst().changes())
                     .extracting(FieldChangeDto::field)
@@ -464,12 +465,12 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
             tag.setName("renamed");
             repository.save(tag);
 
-            final var firstRevision = retrieveRevisions(tag.getId(), obtainAdminAccessToken()).getLast().revision();
+            final var firstRevision = retrieveRevisions(tag.getUuid(), obtainAdminAccessToken()).getLast().revision();
 
             final RestoreResultDto result = Objects.requireNonNull(
                     restTestClient
                             .post()
-                            .uri("/{type}/{id}/{revision}/restore", "TAG", tag.getId(), firstRevision)
+                            .uri("/{type}/{id}/{revision}/restore", "TAG", tag.getUuid(), firstRevision)
                             .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .apiVersion("1.0")
@@ -485,7 +486,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(restored.getName()).isEqualTo(originalName);
             assertThat(restored.getCreatedBy()).isEqualTo(originalCreatedBy);
-            assertThat(retrieveRevisions(tag.getId(), obtainAdminAccessToken())).hasSize(3);
+            assertThat(retrieveRevisions(tag.getUuid(), obtainAdminAccessToken())).hasSize(3);
         }
 
         @Test
@@ -494,7 +495,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{type}/{id}/{revision}/restore", "TAG", tag.getId(), 1)
+                    .uri("/{type}/{id}/{revision}/restore", "TAG", tag.getUuid(), 1L)
                     .header(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")

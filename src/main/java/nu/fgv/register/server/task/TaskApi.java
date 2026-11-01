@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -95,7 +96,7 @@ public class TaskApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -120,7 +121,7 @@ public class TaskApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final UUID id) {
         final TaskDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -155,7 +156,7 @@ public class TaskApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable final Long id, @Valid @RequestBody final TaskUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable final UUID id, @Valid @RequestBody final TaskUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -167,7 +168,7 @@ public class TaskApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final TaskUpdateDto dto) {
+    public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final TaskUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -179,7 +180,7 @@ public class TaskApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();
@@ -187,7 +188,7 @@ public class TaskApi {
 
     @GetMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final UUID id) {
         final TaskCategoryDto dto = service.findCategoryByTask(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, taskCategoryApi.getLinks(dto)));
@@ -195,7 +196,7 @@ public class TaskApi {
 
     @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> addCategory(@PathVariable final Long taskId, @PathVariable final Long id) {
+    public ResponseEntity<Object> addCategory(@PathVariable final UUID taskId, @PathVariable final UUID id) {
         service.addCategory(taskId, id);
 
         return ResponseEntity.noContent().build();
@@ -203,7 +204,7 @@ public class TaskApi {
 
     @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdmin
-    public ResponseEntity<Object> removeCategory(@PathVariable final Long taskId) {
+    public ResponseEntity<Object> removeCategory(@PathVariable final UUID taskId) {
         service.removeCategory(taskId);
 
         return ResponseEntity.noContent().build();

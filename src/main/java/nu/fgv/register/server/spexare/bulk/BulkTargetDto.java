@@ -21,6 +21,7 @@ import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -31,7 +32,7 @@ import java.util.List;
 public record BulkTargetDto(
 
         @Nullable
-        List<Long> ids,
+        List<UUID> ids,
 
         @Nullable
         String filter

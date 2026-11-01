@@ -47,7 +47,7 @@ public interface AuthorityMapper {
     @Mapping(target = "label", ignore = true)
     AuthorityDto toDto(Authority model);
 
-    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "userId", source = "user.uuid")
     @Mapping(target = "id", source = "authority.id")
     @Mapping(target = "label", source = "authority.label")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")

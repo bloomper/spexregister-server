@@ -31,6 +31,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
@@ -41,6 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.0
  */
 class SpexareImportIntegrationTest extends AbstractIntegrationTest {
+
+    private static final UUID PLACEHOLDER_ADA = UUID.randomUUID();
+    private static final UUID PLACEHOLDER_BO = UUID.randomUUID();
 
     private final SpexareImportService importService;
 
@@ -55,30 +59,7 @@ class SpexareImportIntegrationTest extends AbstractIntegrationTest {
         this.importService = importService;
     }
 
-    @BeforeEach
-    void setUp() {
-        jdbcClient.sql("UPDATE spexare SET partner_id = NULL").update();
-        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "address_audit", "spexare", "spexare_audit");
-    }
-
-    @Test
-    void should_roll_back_a_spexare_with_a_failing_row_and_keep_the_others() {
-        final AtomicReference<ImportResultDto> result = new AtomicReference<>();
-
-        runAsSystem(() -> result.set(importService.processImport(Map.of(
-                SpexareImpexDto.class, List.of(spexare(-1L, "Ada", 2), spexare(-2L, "Bo", 3)),
-                AddressImpexDto.class, List.of(address(-1L, 2), address(-1L, 3), address(-2L, 4))
-        ), Locale.ENGLISH)));
-
-        assertThat(result.get().isSuccess()).isFalse();
-        assertThat(result.get().getErrors()).singleElement().asString()
-                .contains("row 3")
-                .contains("no changes were saved for this spexare");
-        assertThat(jdbcClient.sql("SELECT first_name FROM spexare").query(String.class).list()).containsExactly("Bo");
-        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "address")).isEqualTo(1);
-    }
-
-    private static SpexareImpexDto spexare(final Long id, final String firstName, final int rowNumber) {
+    private static SpexareImpexDto spexare(final UUID id, final String firstName, final int rowNumber) {
         final SpexareImpexDto dto = new SpexareImpexDto();
 
         dto.setAction(ImpexAction.CREATE);
@@ -91,7 +72,7 @@ class SpexareImportIntegrationTest extends AbstractIntegrationTest {
         return dto;
     }
 
-    private static AddressImpexDto address(final Long spexareId, final int rowNumber) {
+    private static AddressImpexDto address(final UUID spexareId, final int rowNumber) {
         final AddressImpexDto dto = new AddressImpexDto();
 
         dto.setAction(ImpexAction.CREATE);
@@ -100,5 +81,28 @@ class SpexareImportIntegrationTest extends AbstractIntegrationTest {
         dto.setTypeId("HOME");
         dto.setStreetAddress("Gatan %d".formatted(rowNumber));
         return dto;
+    }
+
+    @BeforeEach
+    void setUp() {
+        jdbcClient.sql("UPDATE spexare SET partner_id = NULL").update();
+        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "address_audit", "spexare", "spexare_audit");
+    }
+
+    @Test
+    void should_roll_back_a_spexare_with_a_failing_row_and_keep_the_others() {
+        final AtomicReference<ImportResultDto> result = new AtomicReference<>();
+
+        runAsSystem(() -> result.set(importService.processImport(Map.of(
+                SpexareImpexDto.class, List.of(spexare(PLACEHOLDER_ADA, "Ada", 2), spexare(PLACEHOLDER_BO, "Bo", 3)),
+                AddressImpexDto.class, List.of(address(PLACEHOLDER_ADA, 2), address(PLACEHOLDER_ADA, 3), address(PLACEHOLDER_BO, 4))
+        ), Locale.ENGLISH)));
+
+        assertThat(result.get().isSuccess()).isFalse();
+        assertThat(result.get().getErrors()).singleElement().asString()
+                .contains("row 3")
+                .contains("no changes were saved for this spexare");
+        assertThat(jdbcClient.sql("SELECT first_name FROM spexare").query(String.class).list()).containsExactly("Bo");
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "address")).isEqualTo(1);
     }
 }

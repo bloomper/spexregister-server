@@ -17,6 +17,9 @@ If running locally, the corresponding URL is https://api.register.fgv.local.nu:8
 Introspection is enabled only with the Spring profile ``local``.
 The schema can otherwise be downloaded, with an access token, from ``/api/graphql/schema``.
 
+Every ``ID`` is a UUID (version 7), such as ``01933f2a-7c3e-7b1a-9d2e-4f5a6b7c8d9e``, that never changes, so other systems may store it.
+Types and states are the exception: their ids are codes such as ``HOME``.
+
 [[subscriptions]]
 == Subscriptions
 
@@ -93,6 +96,8 @@ Filtering on multiple attributes can be done by joining with ``AND`` or ``OR``, 
 To group clauses, use ``( `` and `` )`` (note the trailing and leading whitespaces).
 
 Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
+
+An ``id`` in a filter, such as ``category.id:01933f2a-7c3e-7b1a-9d2e-4f5a6b7c8d9e``, is matched against the UUID.
 
 [[pagination]]
 == Pagination

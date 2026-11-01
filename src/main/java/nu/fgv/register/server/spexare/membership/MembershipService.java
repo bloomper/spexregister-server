@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -81,8 +82,8 @@ public class MembershipService {
      * @return the memberships of each spexare, by spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public Map<Long, List<MembershipDto>> findBySpexareIds(final Collection<Long> ids) {
-        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+    public Map<UUID, List<MembershipDto>> findBySpexareIds(final Collection<UUID> ids) {
+        final List<Spexare> spexare = spexareRepository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
 
@@ -93,7 +94,7 @@ public class MembershipService {
         return repository
                 .findAll(hasSpexareIn(spexare), Sort.by(Membership_.TYPE))
                 .stream()
-                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(MEMBERSHIP_MAPPER::toDto, Collectors.toList())));
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getUuid(), Collectors.mapping(MEMBERSHIP_MAPPER::toDto, Collectors.toList())));
     }
 
     /**
@@ -101,7 +102,7 @@ public class MembershipService {
      * @return the spexare's memberships
      */
     @RequiresAdminOrEditorOrUser
-    public List<MembershipDto> findBySpexare(final Long id) {
+    public List<MembershipDto> findBySpexare(final UUID id) {
         return findBySpexare(id, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Membership_.TYPE)))
@@ -120,7 +121,7 @@ public class MembershipService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUser
-    public CountedWindow<MembershipDto> findBySpexare(final Long spexareId, final String filter, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<MembershipDto> findBySpexare(final UUID spexareId, final String filter, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findBy(hasText(filter) ?
@@ -146,7 +147,7 @@ public class MembershipService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<MembershipDto> findBySpexare(final Long spexareId, final String filter, final Pageable pageable) {
+    public Page<MembershipDto> findBySpexare(final UUID spexareId, final String filter, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
                         hasText(filter) ?
                                 repository
@@ -165,13 +166,13 @@ public class MembershipService {
      * @return the membership
      */
     @RequiresAdminOrEditorOrUser
-    public MembershipDto findById(final Long spexareId, final Long id) {
+    public MembershipDto findById(final UUID spexareId, final UUID id) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(membership -> membership.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(membership -> membership.getSpexare().getUuid().equals(spexareId))
                     .map(MEMBERSHIP_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Membership.class, id));
         } else {
@@ -184,9 +185,9 @@ public class MembershipService {
      * @return whether the membership exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -196,15 +197,15 @@ public class MembershipService {
      * @param dto       the year
      * @return the created membership
      * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already is a member
-     *     that year
+     *                                                                             that year
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public MembershipDto create(final Long spexareId, final String typeId, final MembershipCreateDto dto) {
+    public MembershipDto create(final UUID spexareId, final String typeId, final MembershipCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasYear(dto.year()))))
                             .map(spexare -> {
@@ -228,16 +229,16 @@ public class MembershipService {
      * @param id        the membership id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final String typeId, final Long id) {
+    public void deleteById(final UUID spexareId, final String typeId, final UUID id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesMembershipExist(id)) {
             typeRepository
                     .findById(typeId)
                     .ifPresent(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
-                            .filter(membership -> membership.getSpexare().getId().equals(spexareId))
+                            .flatMap(spexare -> repository.findByUuid(id))
+                            .filter(membership -> membership.getSpexare().getUuid().equals(spexareId))
                             .ifPresentOrElse(
                                     membership -> repository.deleteById(membership.getId()),
                                     () -> {
@@ -250,10 +251,10 @@ public class MembershipService {
         }
     }
 
-    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+    private <T> T findBySpexare(final UUID id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
         if (doesSpexareExist(id)) {
             return spexareRepository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkReadPermission)
                     .map(queryFunction)
                     .orElseGet(emptyResult);
@@ -262,15 +263,15 @@ public class MembershipService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesMembershipExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesMembershipExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
-    private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {
+    private boolean doSpexareAndTypeExist(final UUID spexareId, final String typeId) {
         return doesSpexareExist(spexareId) && typeService.existsByIdAndType(typeId, TypeType.MEMBERSHIP);
     }
 

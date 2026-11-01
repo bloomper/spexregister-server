@@ -27,11 +27,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -51,32 +52,10 @@ class TaskImportServiceTest {
             mock(PlatformTransactionManager.class)
     );
 
-    @Test
-    void should_set_the_category_when_updating_a_task_without_one() {
-        when(taskService.partialUpdate(any())).thenReturn(TaskDto.builder().id(1L).build());
-        when(taskService.findCategoryByTask(1L)).thenThrow(new ResourceNoValueException(Task.class, "category", 1L));
-
-        final ImportResultDto result = service.processImport(Map.of(TaskImpexDto.class, List.of(update(2L))), Locale.ENGLISH);
-
-        assertThat(result.getErrors(), empty());
-        verify(taskService).addCategory(1L, 2L);
-    }
-
-    @Test
-    void should_keep_the_category_when_updating_a_task_already_in_it() {
-        when(taskService.partialUpdate(any())).thenReturn(TaskDto.builder().id(1L).build());
-        when(taskService.findCategoryByTask(1L)).thenReturn(TaskCategoryDto.builder().id(2L).build());
-
-        final ImportResultDto result = service.processImport(Map.of(TaskImpexDto.class, List.of(update(2L))), Locale.ENGLISH);
-
-        assertThat(result.getErrors(), empty());
-        verify(taskService, never()).addCategory(anyLong(), anyLong());
-    }
-
-    private static TaskImpexDto update(final Long categoryId) {
+    private static TaskImpexDto update(final UUID categoryId) {
         final TaskImpexDto dto = new TaskImpexDto();
 
-        dto.setId(1L);
+        dto.setId(uuid(1));
         dto.setName("Name");
         dto.setCategoryId(categoryId);
         dto.setAction(ImpexAction.UPDATE);
@@ -89,5 +68,27 @@ class TaskImportServiceTest {
 
         messageSource.setUseCodeAsDefaultMessage(true);
         return messageSource;
+    }
+
+    @Test
+    void should_set_the_category_when_updating_a_task_without_one() {
+        when(taskService.partialUpdate(any())).thenReturn(TaskDto.builder().id(uuid(1)).build());
+        when(taskService.findCategoryByTask(uuid(1))).thenThrow(new ResourceNoValueException(Task.class, "category", uuid(1)));
+
+        final ImportResultDto result = service.processImport(Map.of(TaskImpexDto.class, List.of(update(uuid(2)))), Locale.ENGLISH);
+
+        assertThat(result.getErrors(), empty());
+        verify(taskService).addCategory(uuid(1), uuid(2));
+    }
+
+    @Test
+    void should_keep_the_category_when_updating_a_task_already_in_it() {
+        when(taskService.partialUpdate(any())).thenReturn(TaskDto.builder().id(uuid(1)).build());
+        when(taskService.findCategoryByTask(uuid(1))).thenReturn(TaskCategoryDto.builder().id(uuid(2)).build());
+
+        final ImportResultDto result = service.processImport(Map.of(TaskImpexDto.class, List.of(update(uuid(2)))), Locale.ENGLISH);
+
+        assertThat(result.getErrors(), empty());
+        verify(taskService, never()).addCategory(any(UUID.class), any(UUID.class));
     }
 }

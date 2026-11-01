@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -147,7 +148,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
         void should_return_404() {
             restTestClient
                     .get()
-                    .uri(builder -> builder.build(1L))
+                    .uri(builder -> builder.build(UUID.randomUUID()))
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -162,7 +163,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -187,7 +188,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(uriBuilder -> uriBuilder.build(spexare.getId()))
+                                    .uri(uriBuilder -> uriBuilder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -219,7 +220,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
                                     .get()
                                     .uri(uriBuilder -> uriBuilder
                                             .queryParam("size", size)
-                                            .build(spexare.getId())
+                                            .build(spexare.getUuid())
                                     )
                                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -248,7 +249,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -258,7 +259,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -281,7 +282,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -290,7 +291,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -311,7 +312,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{tagId}", 1L, tag.getId())
+                    .uri("/{tagId}", UUID.randomUUID(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -333,7 +334,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -355,7 +356,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
@@ -376,7 +377,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -385,7 +386,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -395,7 +396,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
             final List<TagDto> result = Objects.requireNonNull(
                             restTestClient
                                     .get()
-                                    .uri(builder -> builder.build(spexare.getId()))
+                                    .uri(builder -> builder.build(spexare.getUuid()))
                                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .apiVersion("1.0")
@@ -417,7 +418,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{tagId}", spexare.getId(), 1L)
+                    .uri("/{tagId}", spexare.getUuid(), UUID.randomUUID())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -438,7 +439,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{tagId}", -1L, tag.getId())
+                    .uri("/{tagId}", UUID.randomUUID(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -460,7 +461,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .post()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -469,7 +470,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             final ProblemDetail result = restTestClient
                     .delete()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.AUTHORIZATION, obtainUserAccessToken())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
@@ -491,7 +492,7 @@ class TaggingApiIntegrationTest extends AbstractIntegrationTest {
 
             restTestClient
                     .delete()
-                    .uri("/{tagId}", spexare.getId(), tag.getId())
+                    .uri("/{tagId}", spexare.getUuid(), tag.getUuid())
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()

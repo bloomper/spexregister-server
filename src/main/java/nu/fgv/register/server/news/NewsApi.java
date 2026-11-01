@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -94,7 +95,7 @@ public class NewsApi {
 
     @GetMapping(params = {"type"}, produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<Long> ids,
+    public ResponseEntity<JobReferenceDto> retrieve(@Nullable @RequestParam(required = false) final List<UUID> ids,
                                                     @RequestParam(required = false, defaultValue = "") final String filter,
                                                     @RequestParam final String type,
                                                     final Locale locale) {
@@ -121,7 +122,7 @@ public class NewsApi {
 
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
-    public ResponseEntity<EntityModel<NewsDto>> retrieve(@PathVariable final Long id) {
+    public ResponseEntity<EntityModel<NewsDto>> retrieve(@PathVariable final UUID id) {
         final NewsDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
@@ -156,7 +157,7 @@ public class NewsApi {
 
     @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
+    public ResponseEntity<EntityModel<NewsDto>> update(@PathVariable final UUID id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -168,7 +169,7 @@ public class NewsApi {
 
     @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final Long id, @Valid @RequestBody final NewsUpdateDto dto) {
+    public ResponseEntity<EntityModel<NewsDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final NewsUpdateDto dto) {
         if (!Objects.equals(id, dto.id())) {
             return ResponseEntity.badRequest().build();
         }
@@ -180,7 +181,7 @@ public class NewsApi {
 
     @DeleteMapping("/{id}")
     @RequiresAdminOrEditor
-    public ResponseEntity<Object> delete(@PathVariable final Long id) {
+    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
         service.deleteById(id);
 
         return ResponseEntity.noContent().build();

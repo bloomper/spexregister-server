@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -76,8 +77,8 @@ public class ConsentService {
      * @return the consents of each spexare, by spexare id
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public Map<Long, List<ConsentDto>> findBySpexareIds(final Collection<Long> ids) {
-        final List<Spexare> spexare = spexareRepository.findAllById(ids).stream()
+    public Map<UUID, List<ConsentDto>> findBySpexareIds(final Collection<UUID> ids) {
+        final List<Spexare> spexare = spexareRepository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
 
@@ -88,7 +89,7 @@ public class ConsentService {
         return repository
                 .findAll(hasSpexareIn(spexare), Sort.by(Consent_.TYPE))
                 .stream()
-                .collect(Collectors.groupingBy(model -> model.getSpexare().getId(), Collectors.mapping(CONSENT_MAPPER::toDto, Collectors.toList())));
+                .collect(Collectors.groupingBy(model -> model.getSpexare().getUuid(), Collectors.mapping(CONSENT_MAPPER::toDto, Collectors.toList())));
     }
 
     /**
@@ -96,7 +97,7 @@ public class ConsentService {
      * @return the spexare's consents
      */
     @RequiresAdminOrEditorOrUser
-    public List<ConsentDto> findBySpexare(final Long id) {
+    public List<ConsentDto> findBySpexare(final UUID id) {
         return findBySpexare(id, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), Pageable.unpaged(Sort.by(Consent_.TYPE)))
@@ -114,7 +115,7 @@ public class ConsentService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public CountedWindow<ConsentDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<ConsentDto> findBySpexare(final UUID spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findBy(hasSpexare(spexare), query -> {
@@ -136,7 +137,7 @@ public class ConsentService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<ConsentDto> findBySpexare(final Long spexareId, final Pageable pageable) {
+    public Page<ConsentDto> findBySpexare(final UUID spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, spexare ->
                         repository
                                 .findAll(hasSpexare(spexare), pageable)
@@ -151,13 +152,13 @@ public class ConsentService {
      * @return the consent
      */
     @RequiresAdminOrEditorOrUser
-    public ConsentDto findById(final Long spexareId, final Long id) {
+    public ConsentDto findById(final UUID spexareId, final UUID id) {
         if (doesSpexareExist(spexareId)) {
             return spexareRepository
-                    .findById0(spexareId)
+                    .findByUuid0(spexareId)
                     .map(permissionService::checkReadPermission)
-                    .flatMap(spexare -> repository.findById(id))
-                    .filter(consent -> consent.getSpexare().getId().equals(spexareId))
+                    .flatMap(spexare -> repository.findByUuid(id))
+                    .filter(consent -> consent.getSpexare().getUuid().equals(spexareId))
                     .map(CONSENT_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNotFoundException(Consent.class, id));
         } else {
@@ -170,9 +171,9 @@ public class ConsentService {
      * @return whether the consent exists
      */
     @RequiresAdminOrEditorOrUser
-    public boolean exists(final Long id) {
+    public boolean exists(final UUID id) {
         return repository
-                .findById(id)
+                .findByUuid(id)
                 .isPresent();
     }
 
@@ -182,15 +183,15 @@ public class ConsentService {
      * @param dto       the answer
      * @return the created consent
      * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has a
-     *     consent of the type
+     *                                                                             consent of the type
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public ConsentDto create(final Long spexareId, final String typeId, final ConsentCreateDto dto) {
+    public ConsentDto create(final UUID spexareId, final String typeId, final ConsentCreateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> !repository.exists(hasSpexare(spexare).and(hasType(type))))
                             .map(spexare -> {
@@ -216,16 +217,16 @@ public class ConsentService {
      * @return the updated consent
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public ConsentDto update(final Long spexareId, final String typeId, final Long id, final ConsentUpdateDto dto) {
+    public ConsentDto update(final UUID spexareId, final String typeId, final UUID id, final ConsentUpdateDto dto) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             return typeRepository
                     .findById(typeId)
                     .flatMap(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
-                            .filter(consent -> consent.getSpexare().getId().equals(spexareId))
+                            .flatMap(spexare -> repository.findByUuid(id))
+                            .filter(consent -> consent.getSpexare().getUuid().equals(spexareId))
                             .map(consent -> {
                                 consent.setValue(dto.value());
                                 return repository.save(consent);
@@ -244,16 +245,16 @@ public class ConsentService {
      * @param id        the consent id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final String typeId, final Long id) {
+    public void deleteById(final UUID spexareId, final String typeId, final UUID id) {
         if (doSpexareAndTypeExist(spexareId, typeId) && doesConsentExist(id)) {
             typeRepository
                     .findById(typeId)
                     .ifPresent(type -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> repository.exists(hasSpexare(spexare).and(hasType(type)).and(hasId(id))))
-                            .flatMap(spexare -> repository.findById(id))
-                            .filter(consent -> consent.getSpexare().getId().equals(spexareId))
+                            .flatMap(spexare -> repository.findByUuid(id))
+                            .filter(consent -> consent.getSpexare().getUuid().equals(spexareId))
                             .ifPresentOrElse(
                                     consent -> repository.deleteById(consent.getId()),
                                     () -> {
@@ -266,10 +267,10 @@ public class ConsentService {
         }
     }
 
-    private <T> T findBySpexare(final Long id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
+    private <T> T findBySpexare(final UUID id, final Function<Spexare, T> queryFunction, final Supplier<T> emptyResult) {
         if (doesSpexareExist(id)) {
             return spexareRepository
-                    .findById0(id)
+                    .findByUuid0(id)
                     .map(permissionService::checkReadPermission)
                     .map(queryFunction)
                     .orElseGet(emptyResult);
@@ -278,15 +279,15 @@ public class ConsentService {
         }
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doesConsentExist(final Long id) {
-        return repository.findById(id).isPresent();
+    private boolean doesConsentExist(final UUID id) {
+        return repository.findByUuid(id).isPresent();
     }
 
-    private boolean doSpexareAndTypeExist(final Long spexareId, final String typeId) {
+    private boolean doSpexareAndTypeExist(final UUID spexareId, final String typeId) {
         return doesSpexareExist(spexareId) && typeService.existsByIdAndType(typeId, TypeType.CONSENT);
     }
 

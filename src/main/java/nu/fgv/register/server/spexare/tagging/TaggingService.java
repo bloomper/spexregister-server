@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -74,10 +75,10 @@ public class TaggingService {
      * @return the tags of each spexare, by spexare id
      */
     @RequiresAdminOrEditorOrUser
-    public Map<Long, List<TagDto>> findBySpexareIds(final Collection<Long> ids) {
-        return spexareRepository.findWithTagsByIdIn(ids).stream()
+    public Map<UUID, List<TagDto>> findBySpexareIds(final Collection<UUID> ids) {
+        return spexareRepository.findWithTagsByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
-                .collect(Collectors.toMap(Spexare::getId, spexare -> Optional.ofNullable(spexare.getTags())
+                .collect(Collectors.toMap(Spexare::getUuid, spexare -> Optional.ofNullable(spexare.getTags())
                         .orElse(Set.of())
                         .stream()
                         .sorted(Comparator.comparing(Tag::getName))
@@ -90,7 +91,7 @@ public class TaggingService {
      * @return the spexare's tags
      */
     @RequiresAdminOrEditorOrUser
-    public List<TagDto> findBySpexare(final Long id) {
+    public List<TagDto> findBySpexare(final UUID id) {
         return findBySpexare(id, () ->
                 tagRepository
                         .findAll(hasSpexareId(id), Pageable.unpaged(Sort.by(Tag_.NAME)))
@@ -107,7 +108,7 @@ public class TaggingService {
      * @return the window with the total count
      */
     @RequiresAdminOrEditorOrUser
-    public CountedWindow<TagDto> findBySpexare(final Long spexareId, final ScrollRequest scroll, final Sort sort) {
+    public CountedWindow<TagDto> findBySpexare(final UUID spexareId, final ScrollRequest scroll, final Sort sort) {
         return findBySpexare(spexareId, () -> tagRepository
                 .findBy(hasSpexareId(spexareId), query -> {
                     final long total = query.count();
@@ -126,7 +127,7 @@ public class TaggingService {
      * @return the page
      */
     @RequiresAdminOrEditorOrUser
-    public Page<TagDto> findBySpexare(final Long spexareId, final Pageable pageable) {
+    public Page<TagDto> findBySpexare(final UUID spexareId, final Pageable pageable) {
         return findBySpexare(spexareId, () -> tagRepository
                 .findAll(hasSpexareId(spexareId), pageable)
                 .map(TAG_MAPPER::toDto));
@@ -140,12 +141,12 @@ public class TaggingService {
      * @throws nu.fgv.register.server.util.error.SubresourceAlreadyExistsException when the spexare already has the tag
      */
     @RequiresAdminOrEditorOrUserOrRevival
-    public void create(final Long spexareId, final Long tagId) {
+    public void create(final UUID spexareId, final UUID tagId) {
         if (doSpexareAndTagExist(spexareId, tagId)) {
             tagRepository
-                    .findById(tagId)
+                    .findByUuid(tagId)
                     .ifPresent(tag -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> !spexareRepository.exists(hasSpexare(spexare).and(hasTag(tag))))
                             .ifPresentOrElse(
@@ -173,12 +174,12 @@ public class TaggingService {
      * @param tagId     the tag id
      */
     @RequiresAdminOrEditorOrUser
-    public void deleteById(final Long spexareId, final Long tagId) {
+    public void deleteById(final UUID spexareId, final UUID tagId) {
         if (doSpexareAndTagExist(spexareId, tagId)) {
             tagRepository
-                    .findById(tagId)
+                    .findByUuid(tagId)
                     .ifPresent(tag -> spexareRepository
-                            .findById0(spexareId)
+                            .findByUuid0(spexareId)
                             .map(permissionService::checkWritePermission)
                             .filter(spexare -> spexareRepository.exists(hasSpexare(spexare).and(hasTag(tag))))
                             .ifPresentOrElse(
@@ -203,7 +204,7 @@ public class TaggingService {
         }
     }
 
-    private <T> T findBySpexare(final Long spexareId, final Supplier<T> querySupplier) {
+    private <T> T findBySpexare(final UUID spexareId, final Supplier<T> querySupplier) {
         if (isAllowedToReadSpexare(spexareId)) {
             return querySupplier.get();
         } else {
@@ -211,16 +212,16 @@ public class TaggingService {
         }
     }
 
-    private boolean isAllowedToReadSpexare(final Long spexareId) {
-        return spexareRepository.findById0(spexareId).map(permissionService::checkReadPermission).isPresent();
+    private boolean isAllowedToReadSpexare(final UUID spexareId) {
+        return spexareRepository.findByUuid0(spexareId).map(permissionService::checkReadPermission).isPresent();
     }
 
-    private boolean doesSpexareExist(final Long id) {
-        return spexareRepository.findById0(id).isPresent();
+    private boolean doesSpexareExist(final UUID id) {
+        return spexareRepository.findByUuid0(id).isPresent();
     }
 
-    private boolean doSpexareAndTagExist(final Long spexareId, final Long tagId) {
-        return doesSpexareExist(spexareId) && tagRepository.existsById(tagId);
+    private boolean doSpexareAndTagExist(final UUID spexareId, final UUID tagId) {
+        return doesSpexareExist(spexareId) && tagRepository.existsByUuid(tagId);
     }
 
 }

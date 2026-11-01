@@ -23,6 +23,7 @@ import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Anders Jacobsson
@@ -40,16 +41,16 @@ public record SpexareBulkInputDto(
         SpexareBulkOperation operation,
 
         @Nullable
-        List<Long> tags,
+        List<UUID> tags,
 
         @Nullable
-        List<Long> spex,
+        List<UUID> spex,
 
         @Nullable
-        List<Long> tasks,
+        List<UUID> tasks,
 
         @Nullable
-        Long spexId,
+        UUID spexId,
 
         @Nullable
         @Valid

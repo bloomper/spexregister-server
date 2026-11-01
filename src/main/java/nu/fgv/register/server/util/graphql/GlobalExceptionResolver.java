@@ -33,8 +33,10 @@ import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
 import org.springframework.graphql.execution.ErrorType;
@@ -42,6 +44,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BindException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
@@ -51,7 +54,8 @@ import java.util.Objects;
 
 /**
  * Turns the application's exceptions into GraphQL errors of the matching type with a message in the caller's language.
- * Optimistic locking failures become {@link CustomErrorType#CONFLICT}.
+ * Optimistic locking failures become {@link CustomErrorType#CONFLICT}, and arguments of the wrong type, such as a
+ * malformed id, {@link ErrorType#BAD_REQUEST}.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -85,6 +89,9 @@ public class GlobalExceptionResolver extends DataFetcherExceptionResolverAdapter
             case final AccessDeniedException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final AuthenticationException e -> buildGraphqlError(ErrorType.FORBIDDEN, e, environment);
             case final BadRequestException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
+            case final TypeMismatchException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
+            case final ConversionFailedException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
+            case final BindException e -> buildGraphqlError(ErrorType.BAD_REQUEST, e, environment);
             case final ExportException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);
             case final ExternalResourceNotFoundException e -> buildGraphqlError(ErrorType.NOT_FOUND, e, environment);
             case final ImportException e -> buildGraphqlError(ErrorType.INTERNAL_ERROR, e, environment);

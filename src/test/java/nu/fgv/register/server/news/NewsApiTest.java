@@ -33,7 +33,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -89,8 +91,8 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_get_paged() throws Exception {
-        final var news1 = NewsDto.builder().id(1L).subject("News 1 subject").text("News 1 text").build();
-        final var news2 = NewsDto.builder().id(2L).subject("News 2 subject").text("News 2 text").build();
+        final var news1 = NewsDto.builder().id(uuid(1)).subject("News 1 subject").text("News 1 text").build();
+        final var news2 = NewsDto.builder().id(uuid(2)).subject("News 2 subject").text("News 2 text").build();
 
         when(service.find(any(String.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(news1, news2), PageRequest.of(1, 2, Sort.by("visibleFrom")), 10));
 
@@ -140,7 +142,7 @@ class NewsApiTest extends AbstractApiTest {
 
         mockMvc
                 .perform(
-                        get("/api/news?ids=1,2,3&type=excel")
+                        get("/api/news?ids=" + uuid(1) + "," + uuid(2) + "," + uuid(3) + "&type=excel")
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -168,7 +170,7 @@ class NewsApiTest extends AbstractApiTest {
         final var fields = new ConstrainedFields(NewsCreateDto.class);
         final var dto = NewsCreateDto.builder().subject("News subject").text("News text").build();
 
-        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(1L).subject(dto.subject()).text(dto.text()).build());
+        when(service.create(any(NewsCreateDto.class))).thenReturn(NewsDto.builder().id(uuid(1)).subject(dto.subject()).text(dto.text()).build());
 
         mockMvc
                 .perform(
@@ -230,13 +232,13 @@ class NewsApiTest extends AbstractApiTest {
 
     @Test
     void should_get() throws Exception {
-        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
 
-        when(service.findById(any(Long.class))).thenReturn(news);
+        when(service.findById(any(UUID.class))).thenReturn(news);
 
         mockMvc
                 .perform(
-                        get("/api/news/{id}", 1)
+                        get("/api/news/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -256,7 +258,7 @@ class NewsApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(NewsApi.class, "retrieve", Long.class))
+                                security(getRolesFromMethod(NewsApi.class, "retrieve", UUID.class))
                         )
                 );
     }
@@ -264,14 +266,14 @@ class NewsApiTest extends AbstractApiTest {
     @Test
     void should_update() throws Exception {
         final var fields = new ConstrainedFields(NewsUpdateDto.class);
-        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
-        final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
+        final var dto = NewsUpdateDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
 
         when(service.update(any(NewsUpdateDto.class))).thenReturn(news);
 
         mockMvc
                 .perform(
-                        put("/api/news/{id}", 1)
+                        put("/api/news/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -300,7 +302,7 @@ class NewsApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(NewsApi.class, "update", Long.class, NewsUpdateDto.class))
+                                security(getRolesFromMethod(NewsApi.class, "update", UUID.class, NewsUpdateDto.class))
                         )
                 );
     }
@@ -308,14 +310,14 @@ class NewsApiTest extends AbstractApiTest {
     @Test
     void should_partial_update() throws Exception {
         final var fields = new ConstrainedFields(NewsUpdateDto.class);
-        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
-        final var dto = NewsUpdateDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
+        final var dto = NewsUpdateDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
 
         when(service.partialUpdate(any(NewsUpdateDto.class))).thenReturn(news);
 
         mockMvc
                 .perform(
-                        patch("/api/news/{id}", 1)
+                        patch("/api/news/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -344,21 +346,21 @@ class NewsApiTest extends AbstractApiTest {
                                 links,
                                 secureRequestHeaders,
                                 responseHeaders,
-                                security(getRolesFromMethod(NewsApi.class, "partialUpdate", Long.class, NewsUpdateDto.class))
+                                security(getRolesFromMethod(NewsApi.class, "partialUpdate", UUID.class, NewsUpdateDto.class))
                         )
                 );
     }
 
     @Test
     void should_delete() throws Exception {
-        final var news = NewsDto.builder().id(1L).subject("News subject").text("News text").build();
+        final var news = NewsDto.builder().id(uuid(1)).subject("News subject").text("News text").build();
 
-        when(service.findById(any(Long.class))).thenReturn(news);
-        doNothing().when(service).deleteById(any(Long.class));
+        when(service.findById(any(UUID.class))).thenReturn(news);
+        doNothing().when(service).deleteById(any(UUID.class));
 
         mockMvc
                 .perform(
-                        delete("/api/news/{id}", 1)
+                        delete("/api/news/{id}", uuid(1))
                                 .apiVersion("1.0")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
@@ -374,7 +376,7 @@ class NewsApiTest extends AbstractApiTest {
                                         parameterWithName("id").description("The id of the news")
                                 ),
                                 secureRequestHeaders,
-                                security(getRolesFromMethod(NewsApi.class, "delete", Long.class))
+                                security(getRolesFromMethod(NewsApi.class, "delete", UUID.class))
                         )
                 );
     }

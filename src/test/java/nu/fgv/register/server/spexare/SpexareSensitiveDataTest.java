@@ -44,6 +44,29 @@ class SpexareSensitiveDataTest {
     private static final String SOCIAL_SECURITY_NUMBER = "19850101-1234";
     private static final String COMMENT = "Bass in the 1985 spex";
 
+    private static Spexare spexare(final String externalId) {
+        final Spexare spexare = new Spexare();
+
+        spexare.setId(1L);
+        spexare.setFirstName("Ada");
+        spexare.setLastName("Lovelace");
+        spexare.setSocialSecurityNumber(SOCIAL_SECURITY_NUMBER);
+        spexare.setComment(COMMENT);
+        if (externalId != null) {
+            final User user = new User();
+
+            user.setExternalId(externalId);
+            spexare.setUser(user);
+        }
+        return spexare;
+    }
+
+    private static void authenticate(final String subject, final String role) {
+        final Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").subject(subject).build();
+
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(role))));
+    }
+
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
@@ -136,28 +159,5 @@ class SpexareSensitiveDataTest {
         assertThat(SpexareSensitiveData.isSensitivePath("comment"), is(false));
         assertThat(SpexareSensitiveData.isSensitivePath("partner.socialSecurityNumber"), is(true));
         assertThat(SpexareSensitiveData.isSensitivePath("firstName"), is(false));
-    }
-
-    private static Spexare spexare(final String externalId) {
-        final Spexare spexare = new Spexare();
-
-        spexare.setId(1L);
-        spexare.setFirstName("Ada");
-        spexare.setLastName("Lovelace");
-        spexare.setSocialSecurityNumber(SOCIAL_SECURITY_NUMBER);
-        spexare.setComment(COMMENT);
-        if (externalId != null) {
-            final User user = new User();
-
-            user.setExternalId(externalId);
-            spexare.setUser(user);
-        }
-        return spexare;
-    }
-
-    private static void authenticate(final String subject, final String role) {
-        final Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").subject(subject).build();
-
-        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(role))));
     }
 }

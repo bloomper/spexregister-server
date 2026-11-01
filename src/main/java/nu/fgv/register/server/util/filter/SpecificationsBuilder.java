@@ -47,7 +47,7 @@ public class SpecificationsBuilder<T> {
      *
      * @param postFixedExpressionStack the output of {@link FilterParser#parse}
      * @param converter                makes a specification of each criterion, usually the entity's specification
-     *     constructor
+     *                                 constructor
      * @return the specification of the whole filter
      * @throws nu.fgv.register.server.util.error.BadRequestException when the filter is malformed
      */

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,19 +54,19 @@ public class ToggleGraphqlApi {
 
     @MutationMapping("toggleCreate")
     @RequiresAdminOrEditorOrUser
-    public ToggleDto create(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ToggleCreateDto input) {
+    public ToggleDto create(@Argument final UUID spexareId, @Argument final String typeId, @Valid @Argument final ToggleCreateDto input) {
         return service.create(spexareId, typeId, input);
     }
 
     @MutationMapping("toggleUpdate")
     @RequiresAdminOrEditorOrUser
-    public ToggleDto update(@Argument final Long spexareId, @Argument final String typeId, @Valid @Argument final ToggleUpdateDto input) {
+    public ToggleDto update(@Argument final UUID spexareId, @Argument final String typeId, @Valid @Argument final ToggleUpdateDto input) {
         return service.update(spexareId, typeId, input.id(), input);
     }
 
     @MutationMapping("toggleDelete")
     @RequiresAdminOrEditorOrUser
-    public void delete(@Argument final Long spexareId, @Argument final String typeId, @Argument final Long id) {
+    public void delete(@Argument final UUID spexareId, @Argument final String typeId, @Argument final UUID id) {
         service.deleteById(spexareId, typeId, id);
     }
 
@@ -78,7 +79,7 @@ public class ToggleGraphqlApi {
     @BatchMapping(typeName = "Spexare", field = "toggles")
     @RequiresAdminOrEditorOrUser
     public Map<SpexareDto, List<ToggleDto>> retrieveBySpexare(final List<SpexareDto> dtos) {
-        final Map<Long, List<ToggleDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
+        final Map<UUID, List<ToggleDto>> result = service.findBySpexareIds(dtos.stream().map(SpexareDto::getId).distinct().toList());
 
         return dtos.stream()
                 .collect(Collectors.toMap(Function.identity(), dto -> result.getOrDefault(dto.getId(), List.of()), (a, _) -> a));

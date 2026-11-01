@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static nu.fgv.register.server.mcp.McpToolSupport.FILTER_DESCRIPTION;
 import static nu.fgv.register.server.mcp.McpToolSupport.PAGE_DESCRIPTION;
@@ -65,7 +66,7 @@ public class NewsMcpTools {
 
     @McpTool(name = "get_news", description = "Get a news item",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
-    public McpNews getNews(@McpToolParam(description = "News id") final Long id) {
+    public McpNews getNews(@McpToolParam(description = "News id") final UUID id) {
         return McpNews.of(service.findById(id));
     }
 
@@ -87,7 +88,7 @@ public class NewsMcpTools {
 
     @McpTool(name = "update_news", description = "Update a news item; omitted fields are left unchanged (a visibility date cannot be cleared once set). Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpNews updateNews(@McpToolParam(description = "News id") final Long id,
+    public McpNews updateNews(@McpToolParam(description = "News id") final UUID id,
                               @McpToolParam(required = false, description = "Subject") final @Nullable String subject,
                               @McpToolParam(required = false, description = "Text") final @Nullable String text,
                               @McpToolParam(required = false, description = VISIBLE_FROM_DESCRIPTION) final @Nullable LocalDate visibleFrom,
@@ -106,14 +107,15 @@ public class NewsMcpTools {
 
     @McpTool(name = "delete_news", description = "Permanently delete a single news item. Requires the ADMIN or EDITOR role.",
             annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteNews(@McpToolParam(description = "News id") final Long id) {
+    public String deleteNews(@McpToolParam(description = "News id") final UUID id) {
         support.audit("delete_news");
         service.deleteById(id);
 
         return "Deleted news %d".formatted(id);
     }
 
-    public record McpNews(Long id, String subject, String text, @Nullable LocalDate visibleFrom, @Nullable LocalDate visibleTo, boolean published) {
+    public record McpNews(UUID id, String subject, String text, @Nullable LocalDate visibleFrom,
+                          @Nullable LocalDate visibleTo, boolean published) {
 
         static McpNews of(final NewsDto dto) {
             return new McpNews(dto.getId(), dto.getSubject(), dto.getText(), dto.getVisibleFrom(), dto.getVisibleTo(), dto.getPublished());

@@ -30,6 +30,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import nu.fgv.register.server.util.validation.Luhn;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 import static nu.fgv.register.server.spexare.Spexare.SOCIAL_SECURITY_NUMBER_PATTERN;
 
 /**
@@ -45,7 +47,7 @@ public class SpexareImpexDto extends AbstractAuditableImpexDto<SpexareImpexDto> 
 
     @JsonProperty("id")
     @ExcelCell(header = "spexare.impex.id.columnName", position = 1, primaryKey = true)
-    private Long id;
+    private UUID id;
 
     @NotEmpty(message = "{spexare.firstName.notEmpty}")
     @Size(max = 255, message = "{spexare.firstName.size}")
@@ -100,7 +102,7 @@ public class SpexareImpexDto extends AbstractAuditableImpexDto<SpexareImpexDto> 
     @Nullable
     @JsonProperty("partnerId")
     @ExcelCell(header = "spexare.impex.partner.id.columnName", position = 11, updatable = true)
-    private Long partnerId;
+    private UUID partnerId;
 
     @Nullable
     @JsonProperty("partnerFirstName")

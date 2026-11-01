@@ -20,6 +20,8 @@ import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.server.core.Relation;
 
+import java.util.UUID;
+
 /**
  * @author Anders Jacobsson
  * @since 2.0
@@ -27,7 +29,7 @@ import org.springframework.hateoas.server.core.Relation;
 @Builder
 @Relation(collectionRelation = "bulkEntries", itemRelation = "bulkEntry")
 public record BulkEntryDto(
-        Long id,
+        UUID id,
         String label,
         BulkOutcome outcome,
         @Nullable String detail

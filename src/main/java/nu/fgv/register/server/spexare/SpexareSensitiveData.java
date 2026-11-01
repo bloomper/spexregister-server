@@ -91,7 +91,7 @@ public final class SpexareSensitiveData {
     /**
      * @param path a filter attribute path
      * @return whether it reaches memberships or the user, which a caller limited to the revival service may not filter
-     *     on
+     * on
      */
     public static boolean isRestrictedPath(final String path) {
         return Arrays.stream(path.split("\\.")).anyMatch(RESTRICTED_FIELDS::contains);
