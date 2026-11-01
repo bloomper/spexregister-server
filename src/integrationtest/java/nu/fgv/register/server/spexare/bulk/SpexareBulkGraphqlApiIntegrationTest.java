@@ -607,6 +607,68 @@ class SpexareBulkGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTes
         }
 
         @Test
+        void should_remove_tasks_and_then_the_spex_and_leave_spexare_without_them_alone() {
+            final var spexare = persistWritableSpexare();
+            final var other = persistWritableSpexare();
+            final var spex = persistSpex();
+            final var task = persistTask();
+            final var ids = List.of(spexare.getId(), other.getId());
+
+            asAdmin().documentName("spexare/bulk/spexareBulkApply").variable("input", Map.of(
+                    "target", Map.of("ids", List.of(spexare.getId())),
+                    "operation", "TASK_ADD",
+                    "spexId", spex.getId(),
+                    "tasks", List.of(task.getId()))).execute().errors().verify();
+
+            asAdmin()
+                    .documentName("spexare/bulk/spexareBulkApply")
+                    .variable("input", Map.of(
+                            "target", Map.of("ids", ids),
+                            "operation", "TASK_REMOVE",
+                            "spexId", spex.getId(),
+                            "tasks", List.of(task.getId())))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareBulkApply.applied").entity(Integer.class).isEqualTo(1)
+                    .path("spexareBulkApply.unchanged").entity(Integer.class).isEqualTo(1);
+            assertThat(countTaskActivities()).isZero();
+            assertThat(countActivities()).isEqualTo(1);
+
+            asAdmin()
+                    .documentName("spexare/bulk/spexareBulkApply")
+                    .variable("input", Map.of(
+                            "target", Map.of("ids", ids),
+                            "operation", "SPEX_REMOVE",
+                            "spex", List.of(spex.getId())))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareBulkApply.applied").entity(Integer.class).isEqualTo(1)
+                    .path("spexareBulkApply.unchanged").entity(Integer.class).isEqualTo(1);
+            assertThat(countActivities()).isZero();
+        }
+
+        @Test
+        void should_leave_a_task_on_a_spex_the_spexare_never_took_part_in_unchanged() {
+            final var spexare = persistWritableSpexare();
+            final var spex = persistSpex();
+            final var task = persistTask();
+
+            asAdmin()
+                    .documentName("spexare/bulk/spexareBulkApply")
+                    .variable("input", Map.of(
+                            "target", Map.of("ids", List.of(spexare.getId())),
+                            "operation", "TASK_REMOVE",
+                            "spexId", spex.getId(),
+                            "tasks", List.of(task.getId())))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("spexareBulkApply.unchanged").entity(Integer.class).isEqualTo(1);
+        }
+
+        @Test
         void should_set_fields() {
             final var spexare = persistWritableSpexare();
 

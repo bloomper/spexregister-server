@@ -36,10 +36,28 @@ $ git clone https://github.com/bloomper/spexregister-server
 [[setup]]
 == Setup
 
-Keycloak, Mailpit and Caddy, which FGV's applications share, run in the local stack of
-https://github.com/bloomper/fgv-infra-deploy[fgv-infra-deploy].
-Check it out next to this repository and set it up as its README describes under _Local development_.
+[[infrastructure]]
+=== Shared infrastructure
+
+Keycloak (with the realm ``fgv``), Mailpit, Umami and Caddy, which FGV's applications share, run in the local stack of https://github.com/bloomper/fgv-infra-deploy[fgv-infra-deploy].
+Check it out next to this repository and start it once; it keeps running for every application:
+
+[source,bash]
+----
+$ git clone https://github.com/bloomper/fgv-infra-deploy ../fgv-infra-deploy
+$ cd ../fgv-infra-deploy/local
+$ printf '%s' 'verysecret' > .docker/secrets/KEYCLOAK_MYSQL_ROOT_PASSWORD
+$ printf '%s' 'secret' > .docker/secrets/KEYCLOAK_MYSQL_USER_PASSWORD
+$ printf '%s' 'password' > .docker/secrets/KEYCLOAK_ADMIN_PASSWORD   # for the user KEYCLOAK_ADMIN in local/.env
+$ git update-index --skip-worktree .docker/secrets/*
+$ docker compose up -d
+----
+
 It creates the Docker network ``fgv-local``, which this repository's ``docker-compose.yaml`` joins.
+Keycloak imports the realm, with its clients and their secrets, from ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak].
+
+[[configuration]]
+=== Configuration
 
 There are some configuration parameters that need to be set before Spexregister Server can be started.
 Each parameter is a file under ``.docker/secrets``, containing only the value.
@@ -82,7 +100,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |===
 
 Access tokens are only accepted from the Keycloak clients listed in ``SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES``, which defaults to ``API_KEYCLOAK_CLIENT_CLIENT_ID``.
-For Nyuppsättning's service account to be let in, the list must include ``fgv-revival-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service``.
+For the service accounts of Nyuppsättning, Spexify and Spexflix to be let in, the list must include ``fgv-revival-service``, ``fgv-spexify-service`` and ``fgv-spexflix-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service``.
 
 Add the following to `/etc/hosts` (or the Windows equivalent):
 
@@ -95,6 +113,7 @@ Add the following to `/etc/hosts` (or the Windows equivalent):
 127.0.0.1 api.register.fgv.local.nu
 127.0.0.1 register.fgv.local.nu
 127.0.0.1 mail.fgv.local.nu
+127.0.0.1 analytics.fgv.local.nu
 ----
 
 [[run]]
