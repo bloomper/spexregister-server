@@ -1,0 +1,3 @@
+mutation maintenanceJobRun($job: MaintenanceJob!) {
+    maintenanceJobRun(job: $job)
+}

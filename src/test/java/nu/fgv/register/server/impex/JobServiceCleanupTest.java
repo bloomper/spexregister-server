@@ -17,6 +17,7 @@
 package nu.fgv.register.server.impex;
 
 import nu.fgv.register.server.util.error.JobDeleteNotAllowedException;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,8 @@ class JobServiceCleanupTest {
     private final JobRepository jobRepository = mock(JobRepository.class);
     private final JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
     private final JobService service = new JobService(jobRepository, mock(JobOperator.class), mock(Job.class), mock(Job.class),
-            mock(ApplicationContext.class), jdbcTemplate, mock(ObjectMapper.class), mock(JobProgressService.class));
+            mock(ApplicationContext.class), jdbcTemplate, mock(ObjectMapper.class), mock(JobProgressService.class),
+            new MaintenanceJobTracker());
     @TempDir
     private Path storage;
 

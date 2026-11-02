@@ -27,6 +27,8 @@ import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
+import nu.fgv.register.server.util.job.MaintenanceJob;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Page;
@@ -66,6 +68,7 @@ public class NewsService {
 
     private final NewsRepository repository;
     private final PermissionService permissionService;
+    private final MaintenanceJobTracker tracker;
 
     /**
      * The news the caller may read that match the filter.
@@ -230,8 +233,8 @@ public class NewsService {
      */
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
     public void publishAndUnpublishNews() {
-        log.info("Starting scheduled news publish/unpublish job");
-        runAsSystem(() -> {
+        runAsSystem(() -> tracker.run(MaintenanceJob.NEWS_PUBLISHING, () -> {
+            log.info("Starting scheduled news publish/unpublish job");
             final AtomicInteger unpublishedCount = new AtomicInteger();
             final AtomicInteger publishedCount = new AtomicInteger();
 
@@ -253,7 +256,7 @@ public class NewsService {
                         publishedCount.incrementAndGet();
                     });
             log.info("Finished news publish/unpublish job (published: {}, unpublished: {})", publishedCount.get(), unpublishedCount.get());
-        });
+        }));
     }
 
     private boolean doesNewsExist(final UUID id) {

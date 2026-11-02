@@ -1,0 +1,21 @@
+extend type Query {
+    """
+    ADMIN, EDITOR or USER. Every living spexare the caller may read whose address has been geocoded, placed at their home
+    address, or another address when there is none. Addresses are geocoded by a scheduled job, so a changed address
+    moves on the map after its next run.
+    """
+    spexareLocations: [SpexareLocation!]!
+}
+
+"A spexare on the map."
+type SpexareLocation {
+    "The spexare's id."
+    id: ID!
+    firstName: String
+    lastName: String
+    nickName: String
+    "The latitude of the address, in WGS 84."
+    latitude: Float!
+    "The longitude of the address, in WGS 84."
+    longitude: Float!
+}

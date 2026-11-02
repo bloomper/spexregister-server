@@ -20,6 +20,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.Spexare;
+import nu.fgv.register.server.util.job.MaintenanceJob;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.scheduling.annotation.Async;
@@ -44,6 +46,7 @@ import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
 public class IndexingService {
 
     private final EntityManager entityManager;
+    private final MaintenanceJobTracker tracker;
 
     /**
      * Rebuilds the index of the entity type in the background.
@@ -96,13 +99,13 @@ public class IndexingService {
     @Transactional
     public void scheduledRun() {
         log.info("Starting search full re-indexing job");
-        runAsSystem(() -> initiateIndexingFor(Spexare.class, true)
+        runAsSystem(() -> tracker.runAsync(MaintenanceJob.SEARCH_INDEX, () -> initiateIndexingFor(Spexare.class, true)
                 .whenComplete((ignored, e) -> {
                     if (e != null) {
                         log.error("Full re-indexing job finished with errors", e);
                     } else {
                         log.info("Full re-indexing job finished successfully");
                     }
-                }));
+                })));
     }
 }

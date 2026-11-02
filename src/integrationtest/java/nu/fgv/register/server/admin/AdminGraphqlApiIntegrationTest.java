@@ -17,6 +17,7 @@
 package nu.fgv.register.server.admin;
 
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
+import nu.fgv.register.server.util.job.MaintenanceJob;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
@@ -82,5 +83,62 @@ class AdminGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                 )
                 .path("indexSpexare")
                 .valueIsNull();
+    }
+
+    @Test
+    void should_list_the_maintenance_jobs() {
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                .build()
+                .documentName("admin/maintenanceJobs")
+                .execute()
+                .errors()
+                .verify()
+                .path("maintenanceJobs[*].job")
+                .entityList(MaintenanceJob.class)
+                .containsExactly(MaintenanceJob.values());
+    }
+
+    @Test
+    void should_run_a_maintenance_job() {
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                .build()
+                .documentName("admin/maintenanceJobRun")
+                .variable("job", MaintenanceJob.NEWS_PUBLISHING)
+                .execute()
+                .errors()
+                .verify()
+                .path("maintenanceJobRun")
+                .entity(Boolean.class)
+                .isEqualTo(true);
+    }
+
+    @Test
+    void should_return_FORBIDDEN_for_maintenance_jobs_when_not_admin() {
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainEditorAccessToken()))
+                .build()
+                .documentName("admin/maintenanceJobRun")
+                .variable("job", MaintenanceJob.USER_SYNC)
+                .execute()
+                .errors()
+                .satisfy((errors) -> assertThat(errors)
+                        .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
+                );
+
+        httpGraphQlTester
+                .mutate()
+                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
+                .build()
+                .documentName("admin/maintenanceJobs")
+                .execute()
+                .errors()
+                .satisfy((errors) -> assertThat(errors)
+                        .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.FORBIDDEN.toString()))
+                );
     }
 }

@@ -127,6 +127,16 @@ spexregister:
     job-cleanup:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7
+    geocode-addresses:
+      cron-expression: 0 20 * * * ? # Every hour at :20
+  geocoding:
+    enabled: ${API_GEOCODING_ENABLED:false}
+    url: ${API_GEOCODING_URL:https://nominatim.openstreetmap.org}
+    user-agent: ${API_GEOCODING_USER_AGENT:spexregister-server/2.0}
+    email: ${API_GEOCODING_EMAIL:}
+    default-country: SE
+    batch-size: 300
+    delay: PT1.1S
   keycloak:
     url: ${API_KEYCLOAK_URL}
     realm: ${API_KEYCLOAK_REALM}

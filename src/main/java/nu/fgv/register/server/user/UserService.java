@@ -43,6 +43,8 @@ import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
+import nu.fgv.register.server.util.job.MaintenanceJob;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.jspecify.annotations.Nullable;
@@ -125,6 +127,7 @@ public class UserService {
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
     private final PlatformTransactionManager transactionManager;
+    private final MaintenanceJobTracker tracker;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
     @Value("${spexregister.keycloak.pending-approval-group}")
@@ -734,8 +737,8 @@ public class UserService {
     @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
     @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void scheduledSync() {
-        log.info("Starting user sync job");
-        runAsSystem(() -> {
+        runAsSystem(() -> tracker.run(MaintenanceJob.USER_SYNC, () -> {
+            log.info("Starting user sync job");
             final Set<String> members = new HashSet<>();
             final Map<String, UserRepresentation> representations = new HashMap<>();
             final AtomicInteger synced = new AtomicInteger();
@@ -778,7 +781,7 @@ public class UserService {
                     });
 
             log.info("Finished user sync job (members: {}, synced: {}, removed: {}, named: {})", members.size(), synced.get(), removed.get(), named.get());
-        });
+        }));
     }
 
     // Keycloak returns role members a page at a time; asking once only ever yields the first page.

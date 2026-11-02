@@ -1,0 +1,10 @@
+query spexareLocations {
+    spexareLocations {
+        id
+        firstName
+        lastName
+        nickName
+        latitude
+        longitude
+    }
+}

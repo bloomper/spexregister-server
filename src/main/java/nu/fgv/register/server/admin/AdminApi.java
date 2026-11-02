@@ -17,11 +17,17 @@
 package nu.fgv.register.server.admin;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.util.job.MaintenanceJob;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * The administrative REST API under {@code /api/admin}.
@@ -42,5 +48,17 @@ public class AdminApi {
         service.indexSpexare();
 
         return ResponseEntity.accepted().build();
+    }
+
+    @GetMapping("/jobs")
+    @RequiresAdmin
+    public ResponseEntity<List<MaintenanceJobStatusDto>> jobs() {
+        return ResponseEntity.ok(service.jobs());
+    }
+
+    @PostMapping("/jobs/{job}")
+    @RequiresAdmin
+    public ResponseEntity<Void> runJob(@PathVariable final MaintenanceJob job) {
+        return service.runJob(job) ? ResponseEntity.accepted().build() : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }
