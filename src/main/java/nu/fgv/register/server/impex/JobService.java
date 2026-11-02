@@ -29,6 +29,8 @@ import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.JobDeleteNotAllowedException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
+import nu.fgv.register.server.util.job.MaintenanceJob;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.Job;
@@ -91,6 +93,7 @@ public class JobService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final JobProgressService progressService;
+    private final MaintenanceJobTracker tracker;
     @Value("${spexregister.jobs.job-cleanup.purge-threshold-in-days}")
     private int purgeThresholdInDays;
     @Value("${spexregister.impex.storage-path}")
@@ -409,10 +412,12 @@ public class JobService {
      */
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")
     public void scheduledCleanup() {
-        log.info("Starting job metadata and files cleanup job");
-        purgeOldJobMetadata(purgeThresholdInDays);
-        purgeOldFiles(Paths.get(storagePath, "exports"), purgeThresholdInDays);
-        purgeOldFiles(Paths.get(storagePath, "imports"), purgeThresholdInDays);
+        tracker.run(MaintenanceJob.JOB_CLEANUP, () -> {
+            log.info("Starting job metadata and files cleanup job");
+            purgeOldJobMetadata(purgeThresholdInDays);
+            purgeOldFiles(Paths.get(storagePath, "exports"), purgeThresholdInDays);
+            purgeOldFiles(Paths.get(storagePath, "imports"), purgeThresholdInDays);
+        });
     }
 
     private void purgeOldFiles(final Path directory, final int purgeThresholdInDays) {

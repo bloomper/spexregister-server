@@ -20,6 +20,8 @@ import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.IdNumber;
+import nu.fgv.register.server.map.Geocoder;
+import nu.fgv.register.server.map.PreferredAddresses;
 import nu.fgv.register.server.news.NewsMapper;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
@@ -97,6 +99,23 @@ public class SampleDataImporter {
     private static final int SPEXARE_MIN_AGE = 18;
     private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
+    private static final List<SamplePlace> SAMPLE_PLACES = List.of(
+            new SamplePlace(57.7089, 11.9746, 0.06, 60),
+            new SamplePlace(59.3293, 18.0686, 0.05, 12),
+            new SamplePlace(55.6050, 13.0038, 0.03, 5),
+            new SamplePlace(57.6348, 18.2948, 0.02, 1),
+            new SamplePlace(56.6745, 12.8568, 0.02, 3),
+            new SamplePlace(57.7210, 12.9401, 0.02, 3),
+            new SamplePlace(58.2837, 12.2886, 0.02, 2),
+            new SamplePlace(58.3912, 13.8451, 0.02, 2),
+            new SamplePlace(59.8586, 17.6389, 0.02, 2),
+            new SamplePlace(58.4108, 15.6214, 0.02, 2),
+            new SamplePlace(57.7826, 14.1618, 0.02, 2),
+            new SamplePlace(63.8258, 20.2630, 0.02, 1),
+            new SamplePlace(65.5848, 22.1547, 0.02, 1),
+            new SamplePlace(59.9139, 10.7522, 0.03, 2),
+            new SamplePlace(55.6761, 12.5683, 0.03, 2)
+    );
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
     private static final String SAMPLE_USER_DOMAIN = "@fgv.nu";
     private final PermissionService permissionService;
@@ -160,6 +179,7 @@ public class SampleDataImporter {
         timed("Created the tags", () -> createSampleTags(jdbcClient));
         failedImageDownloads.set(0);
         timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
+        timed("Placed the spexare on the map", () -> createSampleLocations(jdbcClient));
         if (failedImageDownloads.get() > 0) {
             log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
         }
@@ -465,6 +485,62 @@ public class SampleDataImporter {
                     .param("spexareId", spexareIds.get(i))
                     .update();
         });
+    }
+
+    /**
+     * Places each living spexare with an address near one of {@link #SAMPLE_PLACES}, as the geocoding job would, since
+     * the sample addresses are made up and would not be found. A few are left as not found, as real addresses sometimes
+     * are. Each location is stored under the key of its chosen address, so the geocoding job leaves it alone.
+     */
+    private void createSampleLocations(final JdbcClient jdbcClient) {
+        final List<PreferredAddresses.Candidate> candidates = jdbcClient.sql("""
+                        SELECT a.spexare_id, a.type_id, a.street_address, a.postal_code, a.city, a.country
+                        FROM address a
+                        JOIN spexare s ON s.id = a.spexare_id
+                        WHERE s.deceased IS NULL OR s.deceased = FALSE
+                        """)
+                .query((resultSet, rowNum) -> new PreferredAddresses.Candidate(
+                        resultSet.getLong("spexare_id"),
+                        resultSet.getString("type_id"),
+                        new Geocoder.AddressQuery(
+                                resultSet.getString("street_address"),
+                                resultSet.getString("postal_code"),
+                                resultSet.getString("city"),
+                                resultSet.getString("country"))))
+                .list();
+        final String sql = """
+                INSERT INTO spexare_location
+                    (spexare_id, query, latitude, longitude, geocoded_at)
+                VALUES
+                    (:spexareId, :query, :latitude, :longitude, :geocodedAt)
+                """;
+        final double totalWeight = SAMPLE_PLACES.stream().mapToDouble(SamplePlace::weight).sum();
+
+        PreferredAddresses.choose(candidates).forEach((spexareId, address) -> {
+            final boolean found = rnd.nextInt(20) != 0;
+            final SamplePlace place = pickSamplePlace(totalWeight);
+
+            jdbcClient
+                    .sql(sql)
+                    .param("spexareId", spexareId)
+                    .param("query", address.key())
+                    .param("latitude", found ? place.latitude() + rnd.nextGaussian() * place.spread() : null)
+                    .param("longitude", found ? place.longitude() + rnd.nextGaussian() * place.spread() * 2 : null)
+                    .param("geocodedAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                    .update();
+        });
+    }
+
+    private SamplePlace pickSamplePlace(final double totalWeight) {
+        double remaining = rnd.nextDouble() * totalWeight;
+
+        for (final SamplePlace place : SAMPLE_PLACES) {
+            remaining -= place.weight();
+            if (remaining < 0) {
+                return place;
+            }
+        }
+        return SAMPLE_PLACES.getLast();
     }
 
     private void createSpexareImage(final JdbcClient jdbcClient, final long spexareId) {
@@ -995,5 +1071,16 @@ public class SampleDataImporter {
 
     private OffsetDateTime randomizeCreatedAt() {
         return faker.timeAndDate().past(3 * 365, TimeUnit.DAYS).atZone(ZoneId.of("UTC")).toOffsetDateTime();
+    }
+
+    /**
+     * A town sample spexare are placed around.
+     *
+     * @param latitude  the latitude of its centre
+     * @param longitude the longitude of its centre
+     * @param spread    how far from the centre, in degrees of latitude, most spexare end up
+     * @param weight    how many spexare live there, relative to the other towns
+     */
+    private record SamplePlace(double latitude, double longitude, double spread, double weight) {
     }
 }

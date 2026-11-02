@@ -35,6 +35,8 @@ spexregister:
       cron-expression: '-'
     job-cleanup:
       cron-expression: '-'
+    geocode-addresses:
+      cron-expression: '-'
   crypto:
     secret-key: 7x!A%C*F-JaNdRgUkXp2s5v8y/B?E(G+
   keycloak:

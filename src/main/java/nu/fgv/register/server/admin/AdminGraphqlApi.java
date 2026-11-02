@@ -17,12 +17,17 @@
 package nu.fgv.register.server.admin;
 
 import lombok.RequiredArgsConstructor;
+import nu.fgv.register.server.util.job.MaintenanceJob;
 import nu.fgv.register.server.util.security.RequiresAdmin;
+import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
+
 /**
- * The administrative mutations.
+ * The administrative queries and mutations.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -37,5 +42,17 @@ public class AdminGraphqlApi {
     @RequiresAdmin
     public void indexSpexare() {
         service.indexSpexare();
+    }
+
+    @QueryMapping("maintenanceJobs")
+    @RequiresAdmin
+    public List<MaintenanceJobStatusDto> maintenanceJobs() {
+        return service.jobs();
+    }
+
+    @MutationMapping("maintenanceJobRun")
+    @RequiresAdmin
+    public boolean runMaintenanceJob(@Argument final MaintenanceJob job) {
+        return service.runJob(job);
     }
 }

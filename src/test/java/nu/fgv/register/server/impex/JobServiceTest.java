@@ -17,6 +17,7 @@
 package nu.fgv.register.server.impex;
 
 import nu.fgv.register.server.impex.model.JobStatusDto;
+import nu.fgv.register.server.util.job.MaintenanceJobTracker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,8 @@ class JobServiceTest {
             mock(ApplicationContext.class),
             mock(JdbcTemplate.class),
             mock(ObjectMapper.class),
-            progressService
+            progressService,
+            new MaintenanceJobTracker()
     );
 
     private static void authenticateAs(final String subject) {

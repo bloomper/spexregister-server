@@ -1,4 +1,37 @@
+extend type Query {
+    "ADMIN. The scheduled maintenance jobs, with their schedules and how their latest runs went."
+    maintenanceJobs: [MaintenanceJobStatus!]!
+}
+
 extend type Mutation {
     "ADMIN. Rebuilds the spexare search index in the background."
     indexSpexare: Void
+    "ADMIN. Starts the job in the background, as its schedule would. False when it is already running."
+    maintenanceJobRun(job: MaintenanceJob!): Boolean!
+}
+
+"""
+A scheduled maintenance job: rebuilding the search index (SEARCH_INDEX), syncing users with Keycloak (USER_SYNC),
+publishing and unpublishing news by their visibility period (NEWS_PUBLISHING), removing old import and export jobs
+(JOB_CLEANUP) and geocoding changed addresses for the map (ADDRESS_GEOCODING).
+"""
+enum MaintenanceJob {
+    SEARCH_INDEX
+    USER_SYNC
+    NEWS_PUBLISHING
+    JOB_CLEANUP
+    ADDRESS_GEOCODING
+}
+
+"A maintenance job and how its latest run went. Runs are remembered until the server restarts."
+type MaintenanceJobStatus {
+    job: MaintenanceJob!
+    "The job's cron expression, or null when it is not scheduled."
+    schedule: String
+    running: Boolean!
+    "When the latest run started, or null when it has not run since the server started."
+    lastStartedAt: Instant
+    lastFinishedAt: Instant
+    "Whether the latest run finished without an error; null while it runs."
+    lastSucceeded: Boolean
 }

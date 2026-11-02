@@ -1,0 +1,10 @@
+query maintenanceJobs {
+    maintenanceJobs {
+        job
+        schedule
+        running
+        lastStartedAt
+        lastFinishedAt
+        lastSucceeded
+    }
+}
