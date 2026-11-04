@@ -805,6 +805,24 @@
         "roles": [
           "MEDIA"
         ]
+      },
+      {
+        "client": "fgv-revival",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-spexify",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-spexflix",
+        "roles": [
+          "USER"
+        ]
       }
     ],
     "fgv-revival": [
@@ -814,6 +832,24 @@
           "USER",
           "SUPER_ADMIN",
           "OBSERVER"
+        ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-spexify",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-spexflix",
+        "roles": [
+          "USER"
         ]
       }
     ],
@@ -829,6 +865,18 @@
         "roles": [
           "USER"
         ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
+        "roles": [
+          "USER"
+        ]
       }
     ],
     "fgv-spexflix": [
@@ -840,6 +888,18 @@
       },
       {
         "client": "fgv-spexify",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
         "roles": [
           "USER"
         ]
@@ -1550,6 +1610,19 @@
         "phone",
         "offline_access",
         "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "id": "4f5c8ec3-1717-482b-87ac-0f3a06d69ec7",
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
       ]
     },
     {
@@ -1644,6 +1717,19 @@
         "phone",
         "offline_access",
         "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "id": "521a9fc4-88e3-4f8b-ba88-4bdb1351f424",
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
       ]
     },
     {
