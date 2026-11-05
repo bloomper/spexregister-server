@@ -838,7 +838,8 @@
           "MEDIA"
         ],
         "realm-management": [
-          "view-users"
+          "view-users",
+          "view-clients"
         ]
       },
       "notBefore": 0,
@@ -863,7 +864,8 @@
           "MEDIA"
         ],
         "realm-management": [
-          "view-users"
+          "view-users",
+          "view-clients"
         ]
       },
       "notBefore": 0,
@@ -900,13 +902,15 @@
       {
         "client": "fgv-spexgram-service",
         "roles": [
-          "view-users"
+          "view-users",
+          "view-clients"
         ]
       },
       {
         "client": "fgv-archive-service",
         "roles": [
-          "view-users"
+          "view-users",
+          "view-clients"
         ]
       }
     ],
