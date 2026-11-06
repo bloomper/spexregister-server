@@ -62,13 +62,17 @@ Keycloak imports the realm, with its clients and their secrets, from ``realm/fgv
 There are some configuration parameters that need to be set before Spexregister Server can be started.
 Each parameter is a file under ``.docker/secrets``, containing only the value.
 The files are in git with the placeholder ``CHANGE_ME``, as are the directories that ``docker-compose.yaml`` mounts (kept by ``.gitkeep``).
-Replace each placeholder, without a trailing newline, e.g.
-``printf '%s' 'verysecret' > .docker/secrets/SPEXREGISTER_MYSQL_ROOT_PASSWORD``, and tell git to leave your values alone so they are never committed:
+Two scripts fill them in, once fgv-infra-deploy's local stack runs (see <<infrastructure>>):
 
 [source,bash]
 ----
-$ git update-index --skip-worktree .docker/secrets/*
+$ ./scripts/init-secrets.sh          # random passwords and keys for every file still holding CHANGE_ME
+$ ./scripts/configure-keycloak.sh    # the Keycloak client secrets, read from the local Keycloak
 ----
+
+Both keep the values that are already set, so they can be run again, and tell git to leave your values alone so they are never committed (``git update-index --skip-worktree .docker/secrets/*``).
+The database passwords take effect only when the databases are created, i.e. with empty data folders.
+To set a value by hand, write it without a trailing newline, e.g. ``printf '%s' 'verysecret' > .docker/secrets/SPEXREGISTER_MYSQL_ROOT_PASSWORD``.
 
 To see a changed placeholder after a pull, undo it with ``git update-index --no-skip-worktree .docker/secrets/*``.
 
@@ -129,7 +133,7 @@ $ docker compose up -d
 Keycloak, its realm, registration and Turnstile are described in fgv-infra-deploy's README.
 The realm lets a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, log in from ``SPEXREGISTER_URL`` in fgv-infra-deploy's ``local/.env``, which defaults to ``http://localhost:3000``.
 
-``./scripts/configure-keycloak.sh`` allows Postman's callback URL in Keycloak (see <<testing_the_api>>).
+``./scripts/configure-keycloak.sh`` copies the secrets of the Keycloak clients the API uses from the local Keycloak into ``.docker/secrets``, sets the web client's id and secret (``KEYCLOAK_CLIENT_ID``, ``KEYCLOAK_CLIENT_SECRET``) in the ``.env.local`` of the web's checkout next to this one (or where ``WEB_DIR`` points), and allows Postman's callback URL in Keycloak (see <<testing_the_api>>).
 It finds fgv-infra-deploy in ``../fgv-infra-deploy``, or where ``INFRA_DEPLOY`` points.
 
 When the ``spexregister-api`` container isn't running, Caddy forwards ``https://api.register.fgv.local.nu:8443`` to port 8080 on the host, i.e. Spexregister Server started from the IDE or with ``./gradlew bootRun``.
