@@ -55,5 +55,6 @@ spexregister:
   impex:
     storage-path: ./integrationtest-data/impex_data
   data:
+    sample-user-password: s3cr3t-s3cr3t
     seed-audit-data: false
     import-sample-data: false
