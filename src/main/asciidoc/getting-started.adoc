@@ -103,7 +103,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |===
 
 Access tokens are only accepted from the Keycloak clients listed in ``SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES``, which defaults to ``API_KEYCLOAK_CLIENT_CLIENT_ID``.
-For the service accounts of Nyuppsättning, Spexify, Spexflix, Spexgram and Spexarkivet to be let in, the list must include ``fgv-revival-service``, ``fgv-spexify-service``, ``fgv-spexflix-service``, ``fgv-spexgram-service`` and ``fgv-archive-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service``.
+For the service accounts of Nyuppsättning, Spexify, Spexflix, Spexgram and Spexarkiv to be let in, the list must include ``fgv-revival-service``, ``fgv-spexify-service``, ``fgv-spexflix-service``, ``fgv-spexgram-service`` and ``fgv-archive-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service``.
 
 Add the following to `/etc/hosts` (or the Windows equivalent):
 

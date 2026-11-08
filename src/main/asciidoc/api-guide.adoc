@@ -119,7 +119,7 @@ Spexregister Server uses the following roles:
 |EDITOR|ROLE_EDITOR|User with selected administrative privileges
 |ADMIN|ROLE_ADMIN|User with full administrative privileges
 |REVIVAL|ROLE_REVIVAL|Nyuppsättning's service account only
-|MEDIA|ROLE_MEDIA|Spexify's, Spexflix's, Spexgram's and Spexarkivet's service accounts only
+|MEDIA|ROLE_MEDIA|Spexify's, Spexflix's, Spexgram's and Spexarkiv's service accounts only
 
 |===
 
