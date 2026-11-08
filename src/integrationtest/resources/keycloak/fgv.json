@@ -635,9 +635,7 @@
           "containerId": "ca0ec03d-ee2b-4662-9fff-5451b23f06a5",
           "attributes": {}
         }
-      ],
-      "fgv-spexgram-service": [],
-      "fgv-archive-service": []
+      ]
     }
   },
   "groups": [
@@ -951,6 +949,18 @@
         ]
       },
       {
+        "client": "fgv-spexgram-service",
+        "roles": [
+          "MEDIA"
+        ]
+      },
+      {
+        "client": "fgv-archive-service",
+        "roles": [
+          "MEDIA"
+        ]
+      },
+      {
         "client": "fgv-revival",
         "roles": [
           "USER"
@@ -969,15 +979,15 @@
         ]
       },
       {
-        "client": "fgv-spexgram-service",
+        "client": "fgv-spexgram",
         "roles": [
-          "MEDIA"
+          "USER"
         ]
       },
       {
-        "client": "fgv-archive-service",
+        "client": "fgv-archive",
         "roles": [
-          "MEDIA"
+          "USER"
         ]
       }
     ],
@@ -1007,6 +1017,18 @@
         "roles": [
           "USER"
         ]
+      },
+      {
+        "client": "fgv-spexgram",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-archive",
+        "roles": [
+          "USER"
+        ]
       }
     ],
     "fgv-spexify": [
@@ -1023,18 +1045,6 @@
         ]
       },
       {
-        "client": "spexregister",
-        "roles": [
-          "USER"
-        ]
-      },
-      {
-        "client": "fgv-revival",
-        "roles": [
-          "USER"
-        ]
-      },
-      {
         "client": "fgv-spexgram",
         "roles": [
           "USER"
@@ -1042,6 +1052,18 @@
       },
       {
         "client": "fgv-archive",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
         "roles": [
           "USER"
         ]
@@ -1061,18 +1083,6 @@
         ]
       },
       {
-        "client": "spexregister",
-        "roles": [
-          "USER"
-        ]
-      },
-      {
-        "client": "fgv-revival",
-        "roles": [
-          "USER"
-        ]
-      },
-      {
         "client": "fgv-spexgram",
         "roles": [
           "USER"
@@ -1080,6 +1090,18 @@
       },
       {
         "client": "fgv-archive",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
         "roles": [
           "USER"
         ]
@@ -1103,6 +1125,18 @@
         "roles": [
           "USER"
         ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
+        "roles": [
+          "USER"
+        ]
       }
     ],
     "fgv-archive": [
@@ -1120,6 +1154,18 @@
       },
       {
         "client": "fgv-spexgram",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "spexregister",
+        "roles": [
+          "USER"
+        ]
+      },
+      {
+        "client": "fgv-revival",
         "roles": [
           "USER"
         ]
