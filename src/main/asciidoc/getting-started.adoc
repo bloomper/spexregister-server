@@ -40,12 +40,12 @@ $ git clone https://github.com/bloomper/spexregister-server
 === Shared infrastructure
 
 Keycloak (with the realm ``fgv``), Mailpit, Umami and Caddy, which FGV's applications share, run in the local stack of https://github.com/bloomper/fgv-infra-deploy[fgv-infra-deploy].
-Check it out next to this repository and start it once; it keeps running for every application:
+Check it out two levels up (``../../fgv-infra-deploy`` from this repository) and start it once; it keeps running for every application:
 
 [source,bash]
 ----
-$ git clone https://github.com/bloomper/fgv-infra-deploy ../fgv-infra-deploy
-$ cd ../fgv-infra-deploy/local
+$ git clone https://github.com/bloomper/fgv-infra-deploy ../../fgv-infra-deploy
+$ cd ../../fgv-infra-deploy/local
 $ printf '%s' 'verysecret' > .docker/secrets/KEYCLOAK_MYSQL_ROOT_PASSWORD
 $ printf '%s' 'secret' > .docker/secrets/KEYCLOAK_MYSQL_USER_PASSWORD
 $ printf '%s' 'password' > .docker/secrets/KEYCLOAK_ADMIN_PASSWORD   # for the user KEYCLOAK_ADMIN in local/.env
@@ -126,7 +126,7 @@ You are now ready to get Spexregister Server up and running, after fgv-infra-dep
 
 [source,bash]
 ----
-$ docker compose -f ../fgv-infra-deploy/local/compose.yaml up -d
+$ docker compose -f ../../fgv-infra-deploy/local/compose.yaml up -d
 $ docker compose up -d
 ----
 
@@ -134,7 +134,7 @@ Keycloak, its realm, registration and Turnstile are described in fgv-infra-deplo
 The realm lets a locally running https://github.com/bloomper/spexregister-web[spexregister-web], i.e. ``npm run dev``, log in from ``SPEXREGISTER_URL`` in fgv-infra-deploy's ``local/.env``, which defaults to ``http://localhost:3000``.
 
 ``./scripts/configure-keycloak.sh`` copies the secrets of the Keycloak clients the API uses from the local Keycloak into ``.docker/secrets``, sets the web client's id and secret (``KEYCLOAK_CLIENT_ID``, ``KEYCLOAK_CLIENT_SECRET``) in the ``.env.local`` of the web's checkout next to this one (or where ``WEB_DIR`` points), and allows Postman's callback URL in Keycloak (see <<testing_the_api>>).
-It finds fgv-infra-deploy in ``../fgv-infra-deploy``, or where ``INFRA_DEPLOY`` points.
+It finds fgv-infra-deploy in ``../../fgv-infra-deploy``, or where ``INFRA_DEPLOY`` points.
 
 When the ``spexregister-api`` container isn't running, Caddy forwards ``https://api.register.fgv.local.nu:8443`` to port 8080 on the host, i.e. Spexregister Server started from the IDE or with ``./gradlew bootRun``.
 
