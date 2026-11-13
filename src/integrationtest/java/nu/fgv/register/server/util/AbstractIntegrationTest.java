@@ -106,7 +106,7 @@ public abstract class AbstractIntegrationTest {
     private static final String TEST_CLIENT_ID = "spexregister";
     private static final String TEST_UNBOUND_MCP_CLIENT_ID = "spexregister-mcp-unbound";
     @ServiceConnection
-    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.11")
+    private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.13")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
             .withCommand("mysqld",
                     "--innodb-flush-log-at-trx-commit=0",
@@ -148,7 +148,7 @@ public abstract class AbstractIntegrationTest {
     private static final OpensearchContainer opensearch;
 
     static {
-        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.7.0"));
+        opensearch = new OpensearchContainer(DockerImageName.parse("opensearchproject/opensearch:3.9.0"));
         opensearch.start();
     }
     */
