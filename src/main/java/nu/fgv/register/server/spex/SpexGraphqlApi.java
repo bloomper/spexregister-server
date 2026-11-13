@@ -27,7 +27,6 @@ import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.jspecify.annotations.Nullable;
@@ -90,7 +89,7 @@ public class SpexGraphqlApi {
     }
 
     @BatchMapping(typeName = "Spex", field = "parent")
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<SpexDto, SpexDto> retrieveParents(final List<SpexDto> dtos) {
         final Map<UUID, SpexDto> parents = service.findParentsBySpex(ids(dtos));
 
@@ -121,7 +120,7 @@ public class SpexGraphqlApi {
     }
 
     @BatchMapping(typeName = "Spex", field = "category")
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<SpexDto, SpexCategoryDto> retrieveCategories(final List<SpexDto> dtos) {
         final Map<UUID, SpexCategoryDto> categories = service.findCategoriesBySpex(ids(dtos));
 

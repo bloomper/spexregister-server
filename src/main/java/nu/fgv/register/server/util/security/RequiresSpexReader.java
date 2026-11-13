@@ -24,14 +24,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Every role that reads spex may call: the roles that read reference data, and the media service ({@code MEDIA}) of
- * Spexify and Spexflix, which reads spex and nothing else.
+ * Every role that reads spex may call: the roles that read reference data.
  *
  * @author Anders Jacobsson
  * @since 2.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER', 'spexregister_REVIVAL', 'spexregister_MEDIA')")
+@PreAuthorize("hasAnyRole('spexregister_ADMIN', 'spexregister_EDITOR', 'spexregister_USER', 'spexregister_REVIVAL')")
 public @interface RequiresSpexReader {
 }

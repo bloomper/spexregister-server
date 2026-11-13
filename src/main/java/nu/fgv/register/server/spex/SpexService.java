@@ -38,7 +38,6 @@ import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
 import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
 import org.springframework.data.domain.Page;
@@ -321,7 +320,7 @@ public class SpexService {
      * @param ids spex ids
      * @return the originals of those that are revivals and readable, by revival id
      */
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<UUID, SpexDto> findParentsBySpex(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getParent() != null)
@@ -357,7 +356,7 @@ public class SpexService {
      * @param ids spex ids
      * @return the categories of those that have one and are readable, by spex id
      */
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<UUID, SpexCategoryDto> findCategoriesBySpex(final Collection<UUID> ids) {
         return findReadable(ids).stream()
                 .filter(spex -> spex.getDetails().getCategory() != null)

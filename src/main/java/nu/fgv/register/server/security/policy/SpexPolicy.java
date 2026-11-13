@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
-import static nu.fgv.register.server.security.policy.Caller.MEDIA;
 import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
 import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
@@ -40,7 +39,7 @@ import static nu.fgv.register.server.security.policy.Caller.USER;
 public class SpexPolicy implements AccessPolicy<Spex> {
 
     private static final RoleRules RULES = RoleRules.builder()
-            .read(USER, EDITOR, ADMIN, REVIVAL, MEDIA, SPEXIPEDIA)
+            .read(USER, EDITOR, ADMIN, REVIVAL, SPEXIPEDIA)
             .build();
 
     private final PermissionGrants grants;
