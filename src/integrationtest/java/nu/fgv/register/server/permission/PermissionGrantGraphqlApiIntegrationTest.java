@@ -237,20 +237,6 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         updateSpexare(spexare, false);
     }
 
-    @Test
-    void should_let_a_user_edit_a_spex_but_not_delete_it() {
-        grant(Permission.WRITE, PermissionGrantScope.SPEX, null, spex, null);
-
-        as(obtainUserAccessToken())
-                .document("mutation u($id: ID!) { spexUpdate(input: { id: $id, year: \"1956\", title: \"Ali Baba och de fyrtio rövarna\" }) { title } }")
-                .variable("id", spex.getUuid()).execute().errors().verify()
-                .path("spexUpdate.title").entity(String.class).isEqualTo("Ali Baba och de fyrtio rövarna");
-
-        as(obtainUserAccessToken())
-                .document("mutation d($id: ID!) { spexDelete(id: $id) }")
-                .variable("id", spex.getUuid()).execute().errors()
-                .satisfy(errors -> assertThat(errors).anyMatch(this::isForbidden));
-    }
 
     @Test
     void should_keep_the_personal_identity_number_hidden_from_a_grantee() {

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,11 +50,9 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
     private static final String MCP_PATH = "/api/mcp";
     private static final Set<String> EXPECTED_TOOLS = Set.of(
-            "list_tasks", "get_task", "create_task", "update_task", "set_task_category", "delete_task",
-            "list_task_categories", "get_task_category", "create_task_category", "update_task_category", "delete_task_category",
-            "list_spex", "get_spex", "create_spex", "update_spex", "set_spex_category", "delete_spex",
-            "add_spex_revival", "delete_spex_revival",
-            "list_spex_categories", "get_spex_category", "create_spex_category", "update_spex_category", "delete_spex_category",
+            // Spex and tasks are read only: Spexipedia keeps them
+            "list_tasks", "get_task", "list_task_categories", "get_task_category",
+            "list_spex", "get_spex", "list_spex_categories", "get_spex_category",
             "list_news", "get_news", "create_news", "update_news", "delete_news",
             "list_tags", "get_tag", "create_tag", "update_tag", "delete_tag",
             "get_user_statistics"
@@ -239,48 +238,27 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_tool_error_when_role_is_insufficient() {
-            final JsonNode result = callTool(obtainMcpAccessToken(TEST_USER), "create_task", Map.of("name", "Regissör"));
+            final JsonNode result = callTool(obtainMcpAccessToken(TEST_USER), "create_tag", Map.of("name", "Regissör"));
 
             assertThat(result.get("isError").asBoolean()).isTrue();
-            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "task")).isZero();
+            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "tag")).isZero();
         }
 
         @Test
         void should_return_tool_error_when_input_is_invalid() {
-            final JsonNode result = callTool(obtainMcpAccessToken(TEST_ADMIN), "create_spex", Map.of("year", "86", "title", "Fel år"));
+            final JsonNode result = callTool(obtainMcpAccessToken(TEST_ADMIN), "create_tag", Map.of("name", " "));
 
             assertThat(result.get("isError").asBoolean()).isTrue();
-            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "spex")).isZero();
+            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "tag")).isZero();
         }
 
-        @Test
-        void should_partially_update_task_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Scen", "actorPresent", true)));
 
-            final JsonNode updated = toolContent(callTool(token, "update_task_category", Map.of("id", category.get("id").asString(), "name", "Scenen")));
-
-            assertThat(updated.get("name").asString()).isEqualTo("Scenen");
-            assertThat(updated.get("actorPresent").asBoolean()).isTrue();
-        }
-
-        @Test
-        void should_create_task_in_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-
-            final JsonNode task = toolContent(callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString())));
-
-            assertThat(task.get("name").asString()).isEqualTo("Trumpet");
-            assertThat(task.get("category").get("name").asString()).isEqualTo("Orkester");
-        }
 
         @Test
         void should_list_tasks_with_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
-            callTool(token, "create_task", Map.of("name", "Affisch"));
+            final UUID category = fixtures().taskCategory("Orkester", false);
+            fixtures().task("Trumpet", category);
+            fixtures().task("Affisch", null);
 
             final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_tasks", Map.of()));
 
@@ -294,9 +272,9 @@ class McpIntegrationTest extends AbstractIntegrationTest {
         @Test
         void should_filter_tasks_by_category() {
             final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
-            callTool(token, "create_task", Map.of("name", "Affisch"));
+            final UUID category = fixtures().taskCategory("Orkester", false);
+            fixtures().task("Trumpet", category);
+            fixtures().task("Affisch", null);
 
             final JsonNode listed = toolContent(callTool(token, "list_tasks", Map.of("filter", "category.name:Orkester")));
 
@@ -306,11 +284,10 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_list_spex_without_revivals_by_default() {
-            final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon")));
-            final String spexId = spex.get("id").asString();
+            final UUID napoleon = fixtures().spex("1986", "Napoleon", null);
+            final String spexId = napoleon.toString();
 
-            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spexId, "year", "2006")));
+            fixtures().revival(napoleon, "2006", "Napoleon");
 
             final String userToken = obtainMcpAccessToken(TEST_USER);
             final JsonNode originals = toolContent(callTool(userToken, "list_spex", Map.of()));
@@ -324,12 +301,11 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_list_spex_with_category() {
-            final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(adminToken, "create_spex_category", Map.of("name", "Chalmersspexet", "firstYear", "1948")));
-            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon", "categoryId", category.get("id").asString())));
-            callTool(adminToken, "create_spex", Map.of("year", "1990", "title", "Anna"));
+            final UUID category = fixtures().spexCategory("Chalmersspexet", "1948");
+            final UUID napoleon = fixtures().spex("1986", "Napoleon", category);
+            fixtures().spex("1990", "Anna", null);
 
-            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spex.get("id").asString(), "year", "2006")));
+            fixtures().revival(napoleon, "2006", "Napoleon");
 
             final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_spex", Map.of("includeRevivals", true)));
 
@@ -367,5 +343,16 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(List.copyOf(tag.propertyNames())).containsExactlyInAnyOrder("id", "name");
         }
+    }
+
+    @Autowired
+    private nu.fgv.register.server.sync.SyncService syncService;
+    private nu.fgv.register.server.util.BaseDataFixtures fixtures;
+
+    private nu.fgv.register.server.util.BaseDataFixtures fixtures() {
+        if (fixtures == null) {
+            fixtures = new nu.fgv.register.server.util.BaseDataFixtures(syncService);
+        }
+        return fixtures;
     }
 }

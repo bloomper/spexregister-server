@@ -16,8 +16,9 @@
 
 package nu.fgv.register.server.security;
 
-import nu.fgv.register.server.spex.SpexCreateDto;
 import nu.fgv.register.server.spex.SpexDto;
+import nu.fgv.register.server.sync.SyncService;
+import nu.fgv.register.server.util.BaseDataFixtures;
 import nu.fgv.register.server.spex.SpexService;
 import nu.fgv.register.server.spexare.SpexareCreateDto;
 import nu.fgv.register.server.spexare.SpexareDto;
@@ -30,10 +31,8 @@ import nu.fgv.register.server.spexare.membership.MembershipService;
 import nu.fgv.register.server.tag.TagCreateDto;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.tag.TagService;
-import nu.fgv.register.server.task.TaskCreateDto;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.task.TaskService;
-import nu.fgv.register.server.task.category.TaskCategoryCreateDto;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryService;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
@@ -163,8 +162,8 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Test
     void should_read_spexes_and_their_revivals() {
-        final SpexDto original = asAdmin(() -> spexService.create(SpexCreateDto.builder().year("1956").title("Ali Baba").build()));
-        final SpexDto revival = asAdmin(() -> spexService.addRevival(original.getId(), "2028"));
+        final SpexDto original = asAdmin(() -> spexService.findById(fixtures().spex("1956", "Ali Baba", null)));
+        final SpexDto revival = asAdmin(() -> spexService.findById(fixtures().revival(original.getId(), "2028", original.getTitle())));
 
         revivalTester()
                 .document("""
@@ -199,12 +198,8 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Test
     void should_read_tasks_and_task_categories() {
-        final TaskCategoryDto category = asAdmin(() -> taskCategoryService.create(TaskCategoryCreateDto.builder().name("Ensemble").actorPresent(true).build()));
-        final TaskDto task = asAdmin(() -> taskService.create(TaskCreateDto.builder().name("Sångare").build()));
-        asAdmin(() -> {
-            taskService.addCategory(task.getId(), category.getId());
-            return null;
-        });
+        final TaskCategoryDto category = asAdmin(() -> taskCategoryService.findById(fixtures().taskCategory("Ensemble", true)));
+        final TaskDto task = asAdmin(() -> taskService.findById(fixtures().task("Sångare", category.getId())));
 
         revivalTester()
                 .document("query { taskPaged(first: 100) { edges { node { id name category { id name } } } totalCount } }")
@@ -293,9 +288,9 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Test
     void should_list_the_participants_of_a_spex_and_its_revivals() {
-        final SpexDto original = asAdmin(() -> spexService.create(SpexCreateDto.builder().year("1956").title("Ali Baba").build()));
-        final SpexDto revival = asAdmin(() -> spexService.addRevival(original.getId(), "2028"));
-        final SpexDto other = asAdmin(() -> spexService.create(SpexCreateDto.builder().year("1957").title("Bröderna Marx").build()));
+        final SpexDto original = asAdmin(() -> spexService.findById(fixtures().spex("1956", "Ali Baba", null)));
+        final SpexDto revival = asAdmin(() -> spexService.findById(fixtures().revival(original.getId(), "2028", original.getTitle())));
+        final SpexDto other = asAdmin(() -> spexService.findById(fixtures().spex("1957", "Bröderna Marx", null)));
         final SpexareDto inOriginal = asAdmin(() -> createSpexare("Doris", false));
         final SpexareDto inRevival = asAdmin(() -> createSpexare("Erik", true));
         final SpexareDto inOther = asAdmin(() -> createSpexare("Fredrika", true));
@@ -357,8 +352,8 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Test
     void should_create_what_nyuppsattning_needs_and_record_who_acted() {
-        final SpexDto spex = asAdmin(() -> spexService.create(SpexCreateDto.builder().year("1956").title("Ali Baba").build()));
-        final TaskDto task = asAdmin(() -> taskService.create(TaskCreateDto.builder().name("Sångare").build()));
+        final SpexDto spex = asAdmin(() -> spexService.findById(fixtures().spex("1956", "Ali Baba", null)));
+        final TaskDto task = asAdmin(() -> taskService.findById(fixtures().task("Sångare", null)));
         final TagDto tag = asAdmin(() -> tagService.create(new TagCreateDto("Nyuppsättning")));
         final String socialSecurityNumber = fullSocialSecurityNumber();
 
@@ -416,13 +411,8 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .verify()
                 .path("consentUpdate.value").entity(Boolean.class).isEqualTo(false);
 
-        final String revivalId = revivalTester(ACTING_PERSON_HEADER)
-                .document("mutation spexRevivalCreate($spexId: ID!) { spexRevivalCreate(spexId: $spexId, year: \"2030\") { id } }")
-                .variable("spexId", spex.getId())
-                .execute()
-                .errors()
-                .verify()
-                .path("spexRevivalCreate.id").entity(String.class).get();
+        // Nyuppsättning creates the revival in Spexipedia; it reaches Spexregister through the sync
+        final String revivalId = fixtures().revival(spex.getId(), "2030", spex.getTitle()).toString();
 
         final String activityId = revivalTester(ACTING_PERSON_HEADER)
                 .document("mutation activityCreate($spexareId: ID!) { activityCreate(spexareId: $spexareId) { id } }")
@@ -534,8 +524,6 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
             "query { userPaged(first: 10) { totalCount } }",
             "query { spexareMe { id } }",
             "query { spexareExport(type: EXCEL) { id } }",
-            "mutation { spexCreate(input: { year: \"1999\", title: \"Inte tillåten\" }) { id } }",
-            "mutation { taskCreate(input: { name: \"Inte tillåten\" }) { id } }",
             "mutation { tagCreate(input: { name: \"Inte tillåten\" }) { id } }",
             "mutation { spexareUpdate(input: { id: \"00000000-0000-7000-8000-000000000001\", firstName: \"A\", lastName: \"B\", deceased: false, published: true }) { id } }",
             "mutation { spexareDelete(id: \"00000000-0000-7000-8000-000000000001\") }",
@@ -549,7 +537,6 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
             "mutation { taskActivityDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
             "mutation { actorDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", activityId: \"00000000-0000-7000-8000-000000000001\", taskActivityId: \"00000000-0000-7000-8000-000000000001\", vocalId: \"B1\", id: \"00000000-0000-7000-8000-000000000001\") }",
             "mutation { taggingDelete(spexareId: \"00000000-0000-7000-8000-000000000001\", tagId: \"00000000-0000-7000-8000-000000000001\") }",
-            "mutation { spexRevivalDelete(spexId: \"00000000-0000-7000-8000-000000000001\", id: \"00000000-0000-7000-8000-000000000001\") }",
             "mutation { toggleCreate(spexareId: \"00000000-0000-7000-8000-000000000001\", typeId: \"X\", input: { value: true }) { id } }"
     })
     void should_refuse_everything_else(final String document) {
@@ -563,7 +550,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
     @Test
     void should_refuse_the_category_of_a_spex() {
-        asAdmin(() -> spexService.create(SpexCreateDto.builder().year("1956").title("Ali Baba").build()));
+        asAdmin(() -> spexService.findById(fixtures().spex("1956", "Ali Baba", null)));
 
         revivalTester()
                 .document("query { spexPaged(first: 10) { edges { node { id category { id } } } } }")
@@ -639,6 +626,17 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Autowired
+    private SyncService syncService;
+    private BaseDataFixtures fixtures;
+
+    private BaseDataFixtures fixtures() {
+        if (fixtures == null) {
+            fixtures = new BaseDataFixtures(syncService);
+        }
+        return fixtures;
     }
 
     private <T> T asAdmin(final Supplier<T> action) {

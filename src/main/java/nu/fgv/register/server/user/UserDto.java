@@ -52,7 +52,7 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
     private String email;
 
     @JsonProperty("spexareAutoLink")
-    private boolean spexareAutoLink;
+    private Boolean spexareAutoLink;
 
     @JsonProperty("temporaryPassword")
     private String temporaryPassword;
@@ -63,7 +63,7 @@ public class UserDto extends AbstractAuditableDto<UserDto> {
             final String externalId,
             final String email,
             final String temporaryPassword,
-            final boolean spexareAutoLink,
+            final Boolean spexareAutoLink,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,

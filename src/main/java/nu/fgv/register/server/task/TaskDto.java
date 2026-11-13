@@ -49,13 +49,13 @@ public class TaskDto extends AbstractAuditableDto<TaskDto> {
     private String name;
 
     @JsonProperty("retired")
-    private boolean retired;
+    private Boolean retired;
 
     @Builder
     public TaskDto(
             final UUID id,
             final String name,
-            final boolean retired,
+            final Boolean retired,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,

@@ -135,7 +135,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         category.setId(null);
         category.setName(name);
         category.setFirstYear("1948");
-        category.setLogo(null);
+        category.setLogoUrl(null);
 
         return spexCategoryRepository.save(category);
     }
@@ -146,7 +146,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         details.setId(null);
         details.setTitle(title);
         details.setCategory(category);
-        details.setPoster(Image.of(new byte[]{1, 2, 3}, MediaType.IMAGE_PNG_VALUE));
 
         return spexDetailsRepository.save(details);
     }
@@ -255,11 +254,11 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .filteredOn(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .flatExtracting(RevisionDto::changes)
                     .extracting(FieldChangeDto::field)
-                    .contains("title", "poster", "category");
+                    .contains("title", "category");
         }
 
         @Test
-        void should_restore_the_details_along_with_the_spex() {
+        void should_refuse_to_restore_a_spex_since_spexipedia_keeps_base_data() {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
@@ -282,29 +281,11 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
-                    .expectStatus().isOk();
+                    .expectStatus().isForbidden();
 
-            assertThat(spexRepository.findById(spex.getId()).orElseThrow().getYear()).isEqualTo("2024");
-            assertThat(spexDetailsRepository.findById(details.getId()).orElseThrow().getTitle()).isEqualTo("Nobel");
+            assertThat(spexRepository.findById(spex.getId()).orElseThrow().getYear()).isEqualTo("2025");
         }
 
-        @Test
-        void should_report_a_poster_change_on_the_details_of_a_spex() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            details.setPoster(Image.of(new byte[]{4, 5, 6}, MediaType.IMAGE_PNG_VALUE));
-            spexDetailsRepository.save(details);
-
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
-
-            assertThat(result.getFirst().type()).isEqualTo(AuditedType.SPEX_DETAILS);
-            assertThat(result.getFirst().changes())
-                    .filteredOn(change -> "poster".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> assertThat(change.binary()).isTrue());
-        }
 
         @Test
         void should_attribute_each_change_in_a_merged_revision_to_its_own_entity() {
@@ -316,7 +297,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(result)
                     .flatExtracting(RevisionDto::changes)
-                    .filteredOn(change -> "poster".equals(change.field()))
+                    .filteredOn(change -> "title".equals(change.field()))
                     .singleElement()
                     .satisfies(change -> {
                         assertThat(change.type()).isEqualTo(AuditedType.SPEX_DETAILS);
@@ -333,86 +314,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     });
         }
 
-        @Test
-        void should_serve_the_poster_as_it_was_at_a_revision() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            assertThat(creation.changes())
-                    .filteredOn(change -> "poster".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> {
-                        assertThat(change.binary()).isTrue();
-                        assertThat(change.oldValue()).isNull();
-                        assertThat(change.newValue()).isEqualTo(MediaType.IMAGE_PNG_VALUE);
-                    });
-
-            final byte[] poster = restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectHeader().contentType(MediaType.IMAGE_PNG)
-                    .expectBody(byte[].class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(poster).containsExactly(1, 2, 3);
-        }
-
-        @Test
-        void should_serve_the_poster_when_asked_for_by_the_details_themselves() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            final byte[] poster = restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX_DETAILS", details.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectHeader().contentType(MediaType.IMAGE_PNG)
-                    .expectBody(byte[].class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(poster).containsExactly(1, 2, 3);
-        }
-
-        @Test
-        void should_serve_the_poster_to_someone_permitted_only_on_the_spex() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk();
-        }
 
         @Test
         void should_refuse_to_serve_a_property_that_is_not_binary() {

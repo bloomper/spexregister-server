@@ -80,7 +80,7 @@ public class SyncService {
                        final SpexRepository spexRepository, final SpexDetailsRepository detailsRepository,
                        final TaskCategoryRepository taskCategoryRepository, final TaskRepository taskRepository,
                        final SpexCharacterRepository characterRepository, final EntityManagerFactory entityManagerFactory,
-                       final IndexingService indexingService, final ApplicationEventPublisher events, final Clock clock) {
+                       final IndexingService indexingService, final ApplicationEventPublisher events) {
         this.client = client;
         this.properties = properties;
         this.jdbc = jdbc;
@@ -94,7 +94,7 @@ public class SyncService {
         this.entityManagerFactory = entityManagerFactory;
         this.indexingService = indexingService;
         this.events = events;
-        this.clock = clock;
+        this.clock = Clock.systemUTC();
     }
 
     @Scheduled(cron = "${spexregister.jobs.sync-spexipedia.cron-expression}")
@@ -211,6 +211,14 @@ public class SyncService {
     }
 
     // Applying changes -------------------------------------------------------------------------------------------------
+
+    /**
+     * Applies changes in one transaction, as a pull applies a page, without moving the cursor; for tests that need base
+     * data, which only the sync may write.
+     */
+    public void applyAll(final List<FeedChange> changes) {
+        SecurityUtil.runAs(AUDITOR, () -> transactionTemplate.executeWithoutResult(_ -> changes.forEach(this::apply)));
+    }
 
     /**
      * @return whether it was a merge

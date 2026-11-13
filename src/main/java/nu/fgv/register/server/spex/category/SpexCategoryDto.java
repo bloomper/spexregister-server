@@ -55,7 +55,7 @@ public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
     private String logoUrl;
 
     @JsonProperty("retired")
-    private boolean retired;
+    private Boolean retired;
 
     @Builder
     public SpexCategoryDto(
@@ -63,7 +63,7 @@ public class SpexCategoryDto extends AbstractAuditableDto<SpexCategoryDto> {
             final String name,
             final String firstYear,
             final String logoUrl,
-            final boolean retired,
+            final Boolean retired,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,

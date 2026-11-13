@@ -52,18 +52,18 @@ public class TaskCategoryDto extends AbstractAuditableDto<TaskCategoryDto> {
     private Boolean actorPresent;
 
     @JsonProperty("board")
-    private boolean board;
+    private Boolean board;
 
     @JsonProperty("retired")
-    private boolean retired;
+    private Boolean retired;
 
     @Builder
     public TaskCategoryDto(
             final UUID id,
             final String name,
             final Boolean actorPresent,
-            final boolean board,
-            final boolean retired,
+            final Boolean board,
+            final Boolean retired,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,

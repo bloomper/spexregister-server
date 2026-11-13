@@ -32,6 +32,8 @@ public final class RandomizerSupport {
 
     public static EasyRandomParameters parameters() {
         return new EasyRandomParameters()
-                .excludeField(ofType(Image.class));
+                .excludeField(ofType(Image.class))
+                // Characters come from Spexipedia through the sync; tests link them on purpose
+                .excludeField(ofType(nu.fgv.register.server.spex.character.SpexCharacter.class));
     }
 }

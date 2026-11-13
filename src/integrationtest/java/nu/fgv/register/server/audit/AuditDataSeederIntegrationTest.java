@@ -155,7 +155,7 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
         category.setId(null);
         category.setFirstYear("1948");
-        category.setLogo(null);
+        category.setLogoUrl(null);
 
         return spexCategoryRepository.save(category);
     }
@@ -166,7 +166,6 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         details.setId(null);
         details.setTitle(title);
         details.setCategory(category);
-        details.setPoster(null);
 
         return spexDetailsRepository.save(details);
     }

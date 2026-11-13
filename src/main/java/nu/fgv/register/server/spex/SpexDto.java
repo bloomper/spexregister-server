@@ -60,7 +60,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     private String posterUrl;
 
     @JsonProperty("retired")
-    private boolean retired;
+    private Boolean retired;
 
     @Builder
     public SpexDto(
@@ -69,7 +69,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
             final String title,
             final @Nullable Boolean revival,
             final String posterUrl,
-            final boolean retired,
+            final Boolean retired,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
