@@ -184,6 +184,12 @@ public class UserGraphqlApi {
         service.addSpexare(userId, id);
     }
 
+    @MutationMapping("userSpexareAutoLinkSet")
+    @RequiresAdmin
+    public void setSpexareAutoLink(@Argument final UUID userId, @Argument final boolean enabled) {
+        service.setSpexareAutoLink(userId, enabled);
+    }
+
     @MutationMapping("userSpexareRemove")
     @RequiresAdmin
     public void removeSpexare(@Argument final UUID userId) {

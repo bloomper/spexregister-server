@@ -85,6 +85,7 @@ class UserApiTest extends AbstractApiTest {
             fieldWithPath("externalId").description("The external id of the user"),
             fieldWithPath("email").description("The email of the user"),
             fieldWithPath("temporaryPassword").description("The temporary password of the user").optional(),
+            fieldWithPath("spexareAutoLink").description("Whether the user is linked to a spexare automatically by verified email address"),
             linksSubsection
     );
     private final LinksSnippet links = baseLinks.and(

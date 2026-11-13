@@ -1,0 +1,29 @@
+# The SPEXIPEDIA role: Spexipedia's service account reads who took part in its spex. Published spexare only; names only
+# when asked for (Spexipedia's pages for visitors ask without).
+
+extend type Query {
+    "SPEXIPEDIA. The published spexare who took part in the spex (each a spex or a revival), with their tasks and characters there."
+    spexipediaParticipants(spexIds: [ID!]!, names: Boolean!): [SpexipediaParticipant!]!
+    "SPEXIPEDIA. Published spexare among the ids."
+    spexipediaSpexare(ids: [ID!]!, names: Boolean!): [SpexipediaSpexare!]!
+    "SPEXIPEDIA. Published spexare whose name or nickname contains every word, for picking credits."
+    spexipediaSpexareSearch(q: String!, first: Int = 25): [SpexipediaSpexare!]!
+}
+
+type SpexipediaParticipant {
+    spexareId: ID!
+    nickname: String
+    "Null unless names were asked for."
+    name: String
+    "The spex or revival."
+    spexId: ID!
+    taskIds: [ID!]!
+    characterIds: [ID!]!
+}
+
+type SpexipediaSpexare {
+    id: ID!
+    nickname: String
+    "Null unless names were asked for."
+    name: String
+}

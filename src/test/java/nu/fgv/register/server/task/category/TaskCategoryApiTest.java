@@ -75,6 +75,8 @@ class TaskCategoryApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
             fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
+            fieldWithPath("board").description("Whether Spexipedia shows the category's tasks as the board of a spex"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia: kept on activities, not offered for new ones"),
             linksSubsection
     );
     private final LinksSnippet links = baseLinks.and(
@@ -83,8 +85,6 @@ class TaskCategoryApiTest extends AbstractApiTest {
     );
     @MockitoBean
     private TaskCategoryService service;
-    @MockitoBean
-    private TaskCategoryImportService importService;
     @MockitoBean
     private JobService jobService;
 
@@ -162,69 +162,6 @@ class TaskCategoryApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_create() throws Exception {
-        final var fields = new ConstrainedFields(TaskCategoryCreateDto.class);
-        final var dto = TaskCategoryCreateDto.builder().actorPresent(false).name("Scenmästare").build();
-
-        when(service.create(any(TaskCategoryCreateDto.class))).thenReturn(TaskCategoryDto.builder().id(uuid(1)).actorPresent(dto.actorPresent()).name(dto.name()).build());
-
-        mockMvc
-                .perform(
-                        post("/api/tasks/categories")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "task-category-create",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                requestFields(
-                                        fields.withPath("name").description("The name of the task category"),
-                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                createResponseHeaders,
-                                security(getRolesFromMethod(TaskCategoryApi.class, "create", TaskCategoryCreateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_create_import() throws Exception {
-        when(jobService.createImportJob(any(), any(), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
-
-        mockMvc
-                .perform(
-                        post("/api/tasks/categories?type=excel")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .content(new byte[]{1, 2, 3})
-                )
-                .andExpect(status().isAccepted())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-category-create-import",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                queryParameters(
-                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)")
-                                ),
-                                importResponseFields,
-                                security(getRolesFromMethod(TaskCategoryApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
-                        )
-                );
-    }
-
-    @Test
     void should_get() throws Exception {
         final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").build();
 
@@ -253,120 +190,6 @@ class TaskCategoryApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(TaskCategoryApi.class, "retrieve", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_update() throws Exception {
-        final var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
-        final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").build();
-        final var dto = TaskCategoryUpdateDto.builder().id(uuid(1)).actorPresent(true).name("Scenmästare").build();
-
-        when(service.update(any(TaskCategoryUpdateDto.class))).thenReturn(category);
-
-        mockMvc
-                .perform(
-                        put("/api/tasks/categories/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-category-update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task category")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the task category"),
-                                        fields.withPath("name").description("The name of the task category"),
-                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(TaskCategoryApi.class, "update", UUID.class, TaskCategoryUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_partial_update() throws Exception {
-        final var fields = new ConstrainedFields(TaskCategoryUpdateDto.class);
-        final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").actorPresent(false).build();
-        final var dto = TaskCategoryUpdateDto.builder().id(uuid(1)).actorPresent(false).build();
-
-        when(service.partialUpdate(any(TaskCategoryUpdateDto.class))).thenReturn(category);
-
-        mockMvc
-                .perform(
-                        patch("/api/tasks/categories/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-category-update-partial",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task category")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the task category"),
-                                        fields.withPath("name").description("The name of the task category").optional(),
-                                        fields.withPath("actorPresent").description("The flag telling whether the task category can have associated actor information").optional()
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(TaskCategoryApi.class, "partialUpdate", UUID.class, TaskCategoryUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_delete() throws Exception {
-        final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").build();
-
-        when(service.findById(any(UUID.class))).thenReturn(category);
-        doNothing().when(service).deleteById(any(UUID.class));
-
-        mockMvc
-                .perform(
-                        delete("/api/tasks/categories/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-category-delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task category")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(TaskCategoryApi.class, "delete", UUID.class))
                         )
                 );
     }

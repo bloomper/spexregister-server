@@ -90,6 +90,7 @@ class SpexApiTest extends AbstractApiTest {
             fieldWithPath("title").description("The title of the spex"),
             fieldWithPath("revival").description("The revival flag of the spex"),
             fieldWithPath("posterUrl").description("The poster URL of the spex"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia: kept on activities, not offered for new ones"),
             linksSubsection
     );
     private final LinksSnippet links = baseLinks.and(
@@ -106,6 +107,7 @@ class SpexApiTest extends AbstractApiTest {
             fieldWithPath("name").description("The name of the spex category"),
             fieldWithPath("firstYear").description("The first year of the spex category"),
             fieldWithPath("logoUrl").description("The logo URL of the spex category"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia: kept on activities, not offered for new ones"),
             linksSubsection
     );
     private final LinksSnippet categoryLinks = baseLinks.and(
@@ -115,8 +117,6 @@ class SpexApiTest extends AbstractApiTest {
     );
     @MockitoBean
     private SpexService service;
-    @MockitoBean
-    private SpexImportService importService;
     @MockitoBean
     private SpexCategoryApi categoryApi;
     @MockitoBean
@@ -197,69 +197,6 @@ class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_create() throws Exception {
-        final var fields = new ConstrainedFields(SpexCreateDto.class);
-        final var dto = SpexCreateDto.builder().year("1948").title("Bojan").build();
-
-        when(service.create(any(SpexCreateDto.class))).thenReturn(SpexDto.builder().id(uuid(1)).year(dto.year()).title(dto.title()).build());
-
-        mockMvc
-                .perform(
-                        post("/api/spex")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "spex-create",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                requestFields(
-                                        fields.withPath("year").description("The year of the spex"),
-                                        fields.withPath("title").description("The title of the spex")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                createResponseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "create", SpexCreateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_create_import() throws Exception {
-        when(jobService.createImportJob(any(), any(), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
-
-        mockMvc
-                .perform(
-                        post("/api/spex?type=excel")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .content(new byte[]{1, 2, 3})
-                )
-                .andExpect(status().isAccepted())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-create-import",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                queryParameters(
-                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)")
-                                ),
-                                importResponseFields,
-                                security(getRolesFromMethod(SpexApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
-                        )
-                );
-    }
-
-    @Test
     void should_get() throws Exception {
         final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
 
@@ -288,251 +225,6 @@ class SpexApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(SpexApi.class, "retrieve", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_update() throws Exception {
-        final var fields = new ConstrainedFields(SpexUpdateDto.class);
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        final var dto = SpexUpdateDto.builder().id(uuid(1)).year("1948").title("Bojan").build();
-
-        when(service.update(any(SpexUpdateDto.class))).thenReturn(spex);
-
-        mockMvc
-                .perform(
-                        put("/api/spex/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the spex"),
-                                        fields.withPath("year").description("The year of the spex"),
-                                        fields.withPath("title").description("The title of the spex")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "update", UUID.class, SpexUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_partial_update() throws Exception {
-        final var fields = new ConstrainedFields(SpexUpdateDto.class);
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        final var dto = SpexUpdateDto.builder().id(uuid(1)).year("1948").title("Bojan").build();
-
-        when(service.partialUpdate(any(SpexUpdateDto.class))).thenReturn(spex);
-
-        mockMvc
-                .perform(
-                        patch("/api/spex/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-update-partial",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the spex"),
-                                        fields.withPath("year").description("The year of the spex").optional(),
-                                        fields.withPath("title").description("The title of the spex").optional()
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "partialUpdate", UUID.class, SpexUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_delete() throws Exception {
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-
-        when(service.findById(any(UUID.class))).thenReturn(spex);
-        doNothing().when(service).deleteById(any(UUID.class));
-
-        mockMvc
-                .perform(
-                        delete("/api/spex/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the spex")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "delete", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_download_poster() throws Exception {
-        final var poster = Pair.of(new byte[]{10, 12}, MediaType.IMAGE_PNG_VALUE);
-        when(service.getPoster(any(UUID.class))).thenReturn(poster);
-
-        mockMvc
-                .perform(
-                        get("/api/spex/{spexId}/poster", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, poster.getSecond()))
-                .andExpect(header().longValue(HttpHeaders.CONTENT_LENGTH, poster.getFirst().length))
-                .andExpect(header().string("Content-Security-Policy", FileUtil.IMAGE_CONTENT_SECURITY_POLICY))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-poster-get",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                secureRequestHeaders,
-                                responseHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type header"),
-                                        headerWithName(HttpHeaders.CONTENT_LENGTH).description("The content length header")
-                                ),
-                                responseBody(),
-                                security(getRolesFromMethod(SpexApi.class, "downloadPoster", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_upload_poster() throws Exception {
-        final var poster = new byte[]{10, 12};
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        when(service.savePoster(any(UUID.class), any())).thenReturn(spex);
-
-        mockMvc
-                .perform(
-                        put("/api/spex/{spexId}/poster", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.IMAGE_PNG)
-                                .content(poster)
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-poster-add",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                secureRequestHeaders.and(
-                                        headerWithName(HttpHeaders.CONTENT_TYPE).description("The content type (image/png, image/jpeg and image/gif supported)")
-                                ),
-                                requestBody(),
-                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", UUID.class, byte[].class))
-                        )
-                );
-    }
-
-    @Test
-    void should_upload_poster_via_multipart() throws Exception {
-        final var poster = new MockMultipartFile("file", "poster.png", MediaType.IMAGE_PNG_VALUE, new byte[]{10, 12});
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        when(service.savePoster(any(UUID.class), any())).thenReturn(spex);
-
-        mockMvc
-                .perform(
-                        multipart("/api/spex/{spexId}/poster", uuid(1))
-                                .file(poster)
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-poster-add-multipart",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                secureRequestHeaders,
-                                requestParts(
-                                        partWithName("file").description("The poster to upload")
-                                ),
-                                security(getRolesFromMethod(SpexApi.class, "uploadPoster", UUID.class, MultipartFile.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_delete_poster() throws Exception {
-        final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        when(service.deletePoster(any(UUID.class))).thenReturn(spex);
-
-        mockMvc
-                .perform(
-                        delete("/api/spex/{spexId}/poster", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "spex-poster-remove",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "deletePoster", UUID.class))
                         )
                 );
     }
@@ -653,62 +345,6 @@ class SpexApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_add_revival() throws Exception {
-        final var revival = SpexDto.builder().id(uuid(1)).year("2021").title("Bojan").revival(true).build();
-
-        when(service.addRevival(any(UUID.class), any(String.class))).thenReturn(revival);
-
-        mockMvc
-                .perform(
-                        post("/api/spex/{spexId}/revivals/{year}", uuid(1), "2021")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "spex-revival-add",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("year").description("The year of the revival")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                createResponseHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "createRevival", UUID.class, String.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_delete_revival() throws Exception {
-        mockMvc
-                .perform(
-                        delete("/api/spex/{spexId}/revivals/{id}", uuid(1), uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                                "spex-revival-remove",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("id").description("The id of the revival")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "deleteRevival", UUID.class, UUID.class))
-                        )
-                );
-    }
-
-    @Test
     void should_get_category() throws Exception {
         final var category = SpexCategoryDto.builder().id(uuid(1)).name("category").build();
         final var realCategoryApi = new SpexCategoryApi(null, null, null);
@@ -737,53 +373,6 @@ class SpexApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(SpexApi.class, "retrieveCategory", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_add_category() throws Exception {
-        mockMvc
-                .perform(
-                        put("/api/spex/{spexId}/category/{id}", uuid(1), uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                                "spex-category-add",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex"),
-                                        parameterWithName("id").description("The id of the spex category")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "addCategory", UUID.class, UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_remove_category() throws Exception {
-        mockMvc
-                .perform(
-                        delete("/api/spex/{spexId}/category", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                                "spex-category-remove",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("spexId").description("The id of the spex")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(SpexApi.class, "removeCategory", UUID.class))
                         )
                 );
     }

@@ -71,11 +71,12 @@ class GrantedPolicyTest {
 
     @ParameterizedTest
     @EnumSource(Permission.class)
-    void should_give_a_user_what_a_grant_on_a_spex_covers(final Permission permission) {
+    void should_let_a_grant_on_a_spex_cover_reading_only(final Permission permission) {
         final Spex spex = new Spex();
         when(grants.covers(any(Caller.class), eq(spex), eq(permission))).thenReturn(true);
 
-        assertThat(spexPolicy.permits(caller("USER"), spex, permission)).isTrue();
+        // Spexipedia keeps base data: no grant lets anyone change Spexregister's copy
+        assertThat(spexPolicy.permits(caller("USER"), spex, permission)).isEqualTo(permission == Permission.READ);
     }
 
     @Test
@@ -83,7 +84,7 @@ class GrantedPolicyTest {
         final Spexare spexare = unpublishedSpexare();
 
         assertThat(spexarePolicy.permits(caller("EDITOR"), spexare, Permission.WRITE)).isTrue();
-        assertThat(spexPolicy.permits(caller("ADMIN"), new Spex(), Permission.DELETE)).isTrue();
+        assertThat(spexPolicy.permits(caller("ADMIN"), new Spex(), Permission.READ)).isTrue();
         verify(grants, never()).covers(any(Caller.class), any(Spexare.class), any());
         verify(grants, never()).covers(any(Caller.class), any(Spex.class), any());
     }

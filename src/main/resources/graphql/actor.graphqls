@@ -1,8 +1,16 @@
+extend type Query {
+    "Every role but MEDIA. The characters an actor of the spex may play: its own and, for a revival, its parent's."
+    spexCharacters(spexId: ID!): [SpexCharacter!]!
+}
+
 extend type Mutation {
-    "Every role, with WRITE on the spexare. vocalId is a VOCAL type such as B1."
-    actorCreate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorCreate!): Actor
-    "ADMIN, EDITOR or USER with WRITE on the spexare."
-    actorUpdate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorUpdate!): Actor
+    """
+    Every role, with WRITE on the spexare. vocalId is a VOCAL type such as B1. characterId is a character of the
+    activity's spex or of its parent (see spexCharacters); the free-text role is for the rare actor without one.
+    """
+    actorCreate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorCreate!, characterId: ID): Actor
+    "ADMIN, EDITOR or USER with WRITE on the spexare. characterId as for actorCreate; null clears it, leaving it out keeps it."
+    actorUpdate(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, input: ActorUpdate!, characterId: ID): Actor
     "ADMIN, EDITOR or USER with WRITE on the spexare."
     actorDelete(spexareId: ID!, activityId: ID!, taskActivityId: ID!, vocalId: ID!, id: ID!): Void
 }
@@ -14,6 +22,8 @@ type Actor {
     role: String
     "The vocal part sung, a VOCAL type."
     vocal: Type
+    "The character in Spexipedia."
+    character: SpexCharacter
     createdBy: String!
     createdAt: Instant!
     lastModifiedBy: String
@@ -38,4 +48,14 @@ input ActorCreate {
 input ActorUpdate {
     id: ID!
     role: String
+}
+
+"A character of a spex, from Spexipedia."
+type SpexCharacter {
+    id: ID!
+    name: String!
+    position: Int!
+    retired: Boolean!
+    "The spex or revival the character belongs to."
+    spexId: ID!
 }

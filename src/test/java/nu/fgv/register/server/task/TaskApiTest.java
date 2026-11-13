@@ -76,6 +76,7 @@ class TaskApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia: kept on activities, not offered for new ones"),
             linksSubsection
     );
     private final LinksSnippet links = baseLinks.and(
@@ -87,6 +88,8 @@ class TaskApiTest extends AbstractApiTest {
             fieldWithPath("id").description("The id of the task category"),
             fieldWithPath("name").description("The name of the task category"),
             fieldWithPath("actorPresent").description("The flag telling whether the task category can have associated actor information"),
+            fieldWithPath("board").description("Whether Spexipedia shows the category's tasks as the board of a spex"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia: kept on activities, not offered for new ones"),
             linksSubsection
     );
     private final LinksSnippet categoryLinks = baseLinks.and(
@@ -95,8 +98,6 @@ class TaskApiTest extends AbstractApiTest {
     );
     @MockitoBean
     private TaskService service;
-    @MockitoBean
-    private TaskImportService importService;
     @MockitoBean
     private TaskCategoryApi categoryApi;
     @MockitoBean
@@ -175,68 +176,6 @@ class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_create() throws Exception {
-        final var fields = new ConstrainedFields(TaskCreateDto.class);
-        final var dto = TaskCreateDto.builder().name("Scenmästare").build();
-
-        when(service.create(any(TaskCreateDto.class))).thenReturn(TaskDto.builder().id(uuid(1)).name(dto.name()).build());
-
-        mockMvc
-                .perform(
-                        post("/api/tasks")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(document(
-                                "task-create",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                requestFields(
-                                        fields.withPath("name").description("The name of the task")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                createResponseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "create", TaskCreateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_create_import() throws Exception {
-        when(jobService.createImportJob(any(), any(), any(ImpexType.class), any(Locale.class))).thenReturn(1L);
-
-        mockMvc
-                .perform(
-                        post("/api/tasks?type=excel")
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .content(new byte[]{1, 2, 3})
-                )
-                .andExpect(status().isAccepted())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-create-import",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                queryParameters(
-                                        parameterWithName("type").description("The impex type (excel, excel_xls and pdf supported)")
-                                ),
-                                importResponseFields,
-                                security(getRolesFromMethod(TaskApi.class, "createAndUpdate", byte[].class, String.class, Locale.class))
-                        )
-                );
-    }
-
-    @Test
     void should_get() throws Exception {
         final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
 
@@ -270,118 +209,6 @@ class TaskApiTest extends AbstractApiTest {
     }
 
     @Test
-    void should_update() throws Exception {
-        final var fields = new ConstrainedFields(TaskUpdateDto.class);
-        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
-        final var dto = TaskUpdateDto.builder().id(uuid(1)).name("Scenmästare").build();
-
-        when(service.update(any(TaskUpdateDto.class))).thenReturn(task);
-
-        mockMvc
-                .perform(
-                        put("/api/tasks/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-update",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the task"),
-                                        fields.withPath("name").description("The name of the task")
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "update", UUID.class, TaskUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_partial_update() throws Exception {
-        final var fields = new ConstrainedFields(TaskUpdateDto.class);
-        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
-        final var dto = TaskUpdateDto.builder().id(uuid(1)).name("Scenmästare").build();
-
-        when(service.partialUpdate(any(TaskUpdateDto.class))).thenReturn(task);
-
-        mockMvc
-                .perform(
-                        patch("/api/tasks/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is(notNullValue())))
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-update-partial",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task")
-                                ),
-                                requestFields(
-                                        fields.withPath("id").description("The id of the task"),
-                                        fields.withPath("name").description("The name of the task").optional()
-                                ),
-                                responseFields,
-                                links,
-                                secureRequestHeaders,
-                                responseHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "partialUpdate", UUID.class, TaskUpdateDto.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_delete() throws Exception {
-        final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
-
-        when(service.findById(any(UUID.class))).thenReturn(task);
-        doNothing().when(service).deleteById(any(UUID.class));
-
-        mockMvc
-                .perform(
-                        delete("/api/tasks/{id}", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(print())
-                .andDo(
-                        document(
-                                "task-delete",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("id").description("The id of the task")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "delete", UUID.class))
-                        )
-                );
-    }
-
-    @Test
     void should_get_category() throws Exception {
         final var category = TaskCategoryDto.builder().id(uuid(1)).name("category").build();
         final var realCategoryApi = new TaskCategoryApi(null, null, null);
@@ -410,53 +237,6 @@ class TaskApiTest extends AbstractApiTest {
                                 secureRequestHeaders,
                                 responseHeaders,
                                 security(getRolesFromMethod(TaskApi.class, "retrieveCategory", UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_add_category() throws Exception {
-        mockMvc
-                .perform(
-                        put("/api/tasks/{taskId}/category/{id}", uuid(1), uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                                "task-category-add",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("taskId").description("The id of the task"),
-                                        parameterWithName("id").description("The id of the task category")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "addCategory", UUID.class, UUID.class))
-                        )
-                );
-    }
-
-    @Test
-    void should_remove_category() throws Exception {
-        mockMvc
-                .perform(
-                        delete("/api/tasks/{taskId}/category", uuid(1))
-                                .apiVersion("1.0")
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
-                )
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                                "task-category-remove",
-                                preprocessRequest(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH).removeMatching(HttpHeaders.HOST)),
-                                preprocessResponse(prettyPrint(), modifyHeaders().removeMatching(HttpHeaders.CONTENT_LENGTH)),
-                                pathParameters(
-                                        parameterWithName("taskId").description("The id of the task")
-                                ),
-                                secureRequestHeaders,
-                                security(getRolesFromMethod(TaskApi.class, "removeCategory", UUID.class))
                         )
                 );
     }

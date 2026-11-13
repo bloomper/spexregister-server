@@ -110,6 +110,7 @@ class MediaOperationsTest {
 
     @Test
     void should_let_media_through_to_no_rest_operation_but_reading_spexes() {
-        assertThat(restControllersOpenToMedia()).containsExactly("SpexApi");
+        // Posters are Spexipedia's images now, so the poster download is gone
+        assertThat(restControllersOpenToMedia()).isEmpty();
     }
 }

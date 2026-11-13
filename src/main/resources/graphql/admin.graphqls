@@ -35,3 +35,37 @@ type MaintenanceJobStatus {
     "Whether the latest run finished without an error; null while it runs."
     lastSucceeded: Boolean
 }
+
+extend type Query {
+    "ADMIN. Where the sync of base data from Spexipedia has got to."
+    syncSources: [SyncSource!]!
+}
+
+extend type Mutation {
+    """
+    ADMIN. Pulls Spexipedia's change feed now and waits for it; with full, from the start, reporting the records here that
+    Spexipedia no longer lists (they are never deleted). Null when a pull is already running.
+    """
+    syncRun(full: Boolean = false): SyncResult
+}
+
+"A source of copied data: today Spexipedia, for spex, revivals, categories, tasks and characters."
+type SyncSource {
+    name: String!
+    "How far the copy has read the source's change feed."
+    cursor: String
+    lastPulledAt: Instant
+    lastSuccess: Instant
+    lastError: String
+    "How many changes have been applied in all."
+    applied: Float!
+    "Whether the source has not been reached for an hour."
+    stale: Boolean!
+}
+
+type SyncResult {
+    applied: Int!
+    "In a full pull: kind:id of the records here that the source no longer lists."
+    missing: [String!]!
+    error: String
+}

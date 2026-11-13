@@ -39,6 +39,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import nu.fgv.register.server.spexare.activity.task.actor.ActorCharacterService;
+import nu.fgv.register.server.sync.SyncService;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import javax.sql.DataSource;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -118,6 +127,8 @@ public class SampleDataImporter {
     );
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
     private static final String SAMPLE_USER_DOMAIN = "@fgv.nu";
+    private static final int SPEXIPEDIA_ATTEMPTS = 60;
+    private static final Duration SPEXIPEDIA_RETRY_INTERVAL = Duration.ofSeconds(10);
     private final PermissionService permissionService;
     private final AuthorityService authorityService;
     private final AuditDataSeeder auditDataSeeder;
@@ -129,6 +140,12 @@ public class SampleDataImporter {
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CustomSwedenIdNumber customSwedenIdNumber = new CustomSwedenIdNumber();
     private final CryptoConverter cryptoConverter;
+    private final ObjectProvider<SyncService> syncService;
+    private final ObjectProvider<ActorCharacterService> actorCharacterService;
+    private final ObjectProvider<DataSource> dataSource;
+    private final AtomicBoolean pending = new AtomicBoolean();
+    // Spex key to the names of its characters, and its parent's for a revival, for sample actors' roles
+    private Map<Long, List<String>> characterNames = Map.of();
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
 
@@ -138,7 +155,10 @@ public class SampleDataImporter {
                               final Keycloak keycloakAdminClient,
                               final String keycloakClientId,
                               @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
-                              @Value("${spexregister.crypto.secret-key}") final String secretKey) {
+                              @Value("${spexregister.crypto.secret-key}") final String secretKey,
+                              final ObjectProvider<SyncService> syncService,
+                              final ObjectProvider<ActorCharacterService> actorCharacterService,
+                              final ObjectProvider<DataSource> dataSource) {
         this.permissionService = permissionService;
         this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
@@ -146,6 +166,9 @@ public class SampleDataImporter {
         this.keycloakClientId = keycloakClientId;
         this.sampleUserPassword = sampleUserPassword;
         cryptoConverter = new CryptoConverter(secretKey);
+        this.syncService = syncService;
+        this.actorCharacterService = actorCharacterService;
+        this.dataSource = dataSource;
     }
 
     private static long insertImage(final JdbcClient jdbcClient, final byte[] data, final String contentType) {
@@ -166,32 +189,168 @@ public class SampleDataImporter {
     public void importSampleData(final Connection connection) {
         final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(connection, true));
 
-        final long started = System.nanoTime();
-
         log.info("Importing sample data");
         timed("Emptied the tables", () -> purgeAllRelevantTables(jdbcClient));
         timed("Deleted the users in Keycloak", this::purgeKeycloak);
         SecurityContextHolder.getContext().setAuthentication(AUTH);
-
-        timed("Created the task categories and tasks", () -> createSampleTaskCategoriesAndTasks(connection, jdbcClient));
-        timed("Created the spex categories and spex", () -> createSampleSpexCategoriesAndSpex(connection, jdbcClient));
         timed("Created the news", () -> createSampleNews(jdbcClient));
         timed("Created the tags", () -> createSampleTags(jdbcClient));
-        failedImageDownloads.set(0);
-        timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
-        timed("Placed the spexare on the map", () -> createSampleLocations(jdbcClient));
-        if (failedImageDownloads.get() > 0) {
-            log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
-        }
-        final List<String> users = NotificationSuspender.whileSuspended(keycloakAdminClient.realm(keycloakRealm), () -> {
-            timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
-            return timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
-        });
-
-        timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
-
         SecurityContextHolder.clearContext();
-        log.info("Imported sample data in {} s", Duration.ofNanos(System.nanoTime() - started).toSeconds());
+        // Spex and tasks come from Spexipedia: the rest is made once the application runs and has pulled its feed
+        pending.set(true);
+    }
+
+    /**
+     * The second half of the sample data: waits for Spexipedia, pulls its change feed from the start (spex categories,
+     * spex, revivals, task categories, tasks and characters with Spexipedia's sample ids), then makes the spexare, with
+     * activities on those spex and actors playing their characters, and the users.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public void completeSampleData() {
+        if (!pending.getAndSet(false)) {
+            return;
+        }
+
+        final JdbcClient jdbcClient = JdbcClient.create(dataSource.getObject());
+        final long started = System.nanoTime();
+
+        timed("Copied base data from Spexipedia", this::pullBaseData);
+        SecurityContextHolder.getContext().setAuthentication(AUTH);
+        try {
+            characterNames = characterNames(jdbcClient);
+            failedImageDownloads.set(0);
+            timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
+            timed("Created Spexipedia's fixed spexare", () -> createFixedSpexare(jdbcClient));
+            timed("Placed the spexare on the map", () -> createSampleLocations(jdbcClient));
+            if (failedImageDownloads.get() > 0) {
+                log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
+            }
+
+            final List<String> users = NotificationSuspender.whileSuspended(keycloakAdminClient.realm(keycloakRealm), () -> {
+                timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
+                return timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
+            });
+
+            timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
+            timed("Linked actors to characters", () -> actorCharacterService.getObject().linkByRole());
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+        log.info("Imported the rest of the sample data in {} s", Duration.ofNanos(System.nanoTime() - started).toSeconds());
+    }
+
+    /**
+     * Pulls Spexipedia's feed from the start, waiting for Spexipedia for up to ten minutes; refuses without it.
+     */
+    private void pullBaseData() {
+        final SyncService sync = syncService.getObject();
+
+        for (int attempt = 1; attempt <= SPEXIPEDIA_ATTEMPTS; attempt++) {
+            final SyncService.Result result = sync.pull(true);
+
+            if (result != null && result.error() == null && result.applied() > 0) {
+                log.info("Copied {} changes from Spexipedia", result.applied());
+                return;
+            }
+            log.info("Waiting for Spexipedia's sample data ({}/{}): {}", attempt, SPEXIPEDIA_ATTEMPTS,
+                    result == null ? "a pull is running" : Objects.requireNonNullElse(result.error(), "no changes yet"));
+            try {
+                Thread.sleep(SPEXIPEDIA_RETRY_INTERVAL);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while waiting for Spexipedia", e);
+            }
+        }
+        throw new IllegalStateException("Spexipedia's base data is needed for the sample data: start Spexipedia with its sample data first");
+    }
+
+    private static Map<Long, List<String>> characterNames(final JdbcClient jdbcClient) {
+        final Map<Long, List<String>> names = new HashMap<>();
+
+        jdbcClient.sql("""
+                        SELECT s.id, c.name FROM spex s
+                        JOIN spex_character c ON c.spex_id = s.id OR c.spex_id = s.parent_id
+                        WHERE c.retired = 0""")
+                .query((rs, _) -> Map.entry(rs.getLong(1), rs.getString(2)))
+                .list()
+                .forEach(entry -> names.computeIfAbsent(entry.getKey(), _ -> new ArrayList<>()).add(entry.getValue()));
+        return names;
+    }
+
+    /**
+     * The spexare Spexipedia's sample credits refer to, with the same ids: published and unpublished, with and without
+     * nicknames. The first two also played in, and sat on the board of, the earliest sample spex.
+     */
+    private void createFixedSpexare(final JdbcClient jdbcClient) {
+        final String[][] fixed = {
+                {"00000000-0000-7000-a000-000000000001", "Bertil", "Basson", "Basen", "true"},
+                {"00000000-0000-7000-a000-000000000002", "Cecilia", "Cellodal", "Cellan", "true"},
+                {"00000000-0000-7000-a000-000000000003", "David", "Dirigentsson", null, "true"},
+                {"00000000-0000-7000-a000-000000000004", "Eva", "Ensemblé", "Evita", "false"},
+                {"00000000-0000-7000-a000-000000000005", "Fredrik", "Fiolin", "Fiolen", "true"},
+                {"00000000-0000-7000-a000-000000000006", "Greta", "Gitarrqvist", null, "false"}};
+        final Long earliest = jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NULL ORDER BY year, id LIMIT 1").query(Long.class).optional().orElse(null);
+        final Long ensemble = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.actor_present = 1 ORDER BY t.id LIMIT 1")
+                .query(Long.class).optional().orElse(null);
+        final Long board = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.board = 1 ORDER BY t.name LIMIT 1")
+                .query(Long.class).optional().orElse(null);
+
+        for (int i = 0; i < fixed.length; i++) {
+            final String[] row = fixed[i];
+            final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+            jdbcClient.sql("""
+                            INSERT INTO spexare (uuid, first_name, last_name, nick_name, deceased, published, created_by, created_at, version)
+                            VALUES (:uuid, :first, :last, :nick, 0, :published, :createdBy, :createdAt, 0)""")
+                    .param("uuid", row[0]).param("first", row[1]).param("last", row[2]).param("nick", row[3])
+                    .param("published", Boolean.parseBoolean(row[4]))
+                    .param("createdBy", SYSTEM_USER).param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                    .update(keyHolder);
+            if (earliest == null || keyHolder.getKey() == null || i > 3) {
+                continue;
+            }
+
+            final long spexareId = keyHolder.getKey().longValue();
+            final long activityId = insertActivity(jdbcClient, spexareId, earliest);
+
+            if (ensemble != null) {
+                final List<String> characters = characterNames.getOrDefault(earliest, List.of());
+                final long taskActivityId = insertTaskActivity(jdbcClient, activityId, ensemble);
+
+                jdbcClient.sql("""
+                                INSERT INTO actor (uuid, task_activity_id, vocal_id, role, created_by, created_at, version)
+                                VALUES (UUID(), :ta, 'UNKNOWN', :role, :createdBy, :createdAt, 0)""")
+                        .param("ta", taskActivityId).param("role", characters.isEmpty() ? null : characters.get(i % characters.size()))
+                        .param("createdBy", SYSTEM_USER).param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                        .update();
+            }
+            if (board != null && i < 2) {
+                insertTaskActivity(jdbcClient, activityId, board);
+            }
+        }
+    }
+
+    private long insertActivity(final JdbcClient jdbcClient, final long spexareId, final long spexId) {
+        final KeyHolder activity = new GeneratedKeyHolder();
+
+        jdbcClient.sql("INSERT INTO activity (uuid, spexare_id, created_by, created_at, version) VALUES (UUID(), :s, :by, :at, 0)")
+                .param("s", spexareId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC"))).update(activity);
+
+        final long activityId = Objects.requireNonNull(activity.getKey()).longValue();
+
+        jdbcClient.sql("INSERT INTO spex_activity (uuid, activity_id, spex_id, created_by, created_at, version) VALUES (UUID(), :a, :s, :by, :at, 0)")
+                .param("a", activityId).param("s", spexId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC"))).update();
+        return activityId;
+    }
+
+    private long insertTaskActivity(final JdbcClient jdbcClient, final long activityId, final long taskId) {
+        final KeyHolder taskActivity = new GeneratedKeyHolder();
+
+        jdbcClient.sql("INSERT INTO task_activity (uuid, activity_id, task_id, created_by, created_at, version) VALUES (UUID(), :a, :t, :by, :at, 0)")
+                .param("a", activityId).param("t", taskId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                .update(taskActivity);
+        return Objects.requireNonNull(taskActivity.getKey()).longValue();
     }
 
     private void timed(final String step, final Runnable action) {
@@ -250,6 +409,7 @@ public class SampleDataImporter {
                 "tagging",
                 "toggle",
                 "spexare",
+                "spex_character",
                 "task",
                 "task_category",
                 "spex",
@@ -261,11 +421,14 @@ public class SampleDataImporter {
                 "user"
         );
 
+        jdbcClient.sql("UPDATE spex SET parent_id = NULL").update();
         tables.forEach(table ->
                 jdbcClient
                         .sql("DELETE FROM %s".formatted(table))
                         .update()
         );
+        // The copy of base data is pulled again from the start of Spexipedia's feed
+        jdbcClient.sql("UPDATE sync_source SET cursor_value = NULL, applied = 0, last_error = NULL").update();
     }
 
     private void purgeKeycloak() {
@@ -285,82 +448,6 @@ public class SampleDataImporter {
                 }
             }
         });
-    }
-
-    private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
-        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/tasks.sql"));
-
-        final String taskSql = "UPDATE task SET created_at = :createdAt WHERE id = :id";
-
-        jdbcClient.sql("SELECT id FROM task")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient.sql(taskSql)
-                            .param("createdAt", randomizeCreatedAt())
-                            .param("id", id)
-                            .update();
-                });
-    }
-
-    private void createSampleSpexCategoriesAndSpex(final Connection connection, final JdbcClient jdbcClient) {
-        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/spex.sql"));
-
-        final String categorySql = """
-                UPDATE spex_category
-                SET
-                    logo_id = :imageId
-                WHERE
-                    id = :id
-                """;
-
-        jdbcClient.sql("SELECT id FROM spex_category")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient
-                            .sql(categorySql)
-                            .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
-                            .param("id", id)
-                            .update();
-                });
-
-        final String detailsSql = """
-                UPDATE spex_details
-                SET
-                    poster_id = :imageId
-                WHERE
-                    id = :id
-                """;
-
-        jdbcClient.sql("SELECT id FROM spex_details")
-                .query()
-                .listOfRows()
-                .forEach(row ->
-                        jdbcClient
-                                .sql(detailsSql)
-                                .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
-                                .param("id", row.get("id"))
-                                .update()
-                );
-
-        final String spexSql = "UPDATE spex SET created_at = :createdAt WHERE id = :id";
-
-        jdbcClient.sql("SELECT id FROM spex")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient.sql(spexSql)
-                            .param("createdAt", randomizeCreatedAt())
-                            .param("id", id)
-                            .update();
-                });
     }
 
     private void createSampleNews(final JdbcClient jdbcClient) {
@@ -773,7 +860,9 @@ public class SampleDataImporter {
                                 .sql(actorSql)
                                 .param("taskActivityId", taskActivityId)
                                 .param("vocalId", rnd.nextBoolean() ? vocals.get(rnd.nextInt(vocals.size())).getId() : "UNKNOWN")
-                                .param("role", rnd.nextBoolean() ?
+                                .param("role", !characterNames.getOrDefault(spexId, List.of()).isEmpty() && rnd.nextInt(5) != 0
+                                        ? characterNames.get(spexId).get(rnd.nextInt(characterNames.get(spexId).size()))
+                                        : rnd.nextBoolean() ?
                                         faker.collection(
                                                         () -> faker.oscarMovie().actor(),
                                                         () -> faker.oscarMovie().character(),

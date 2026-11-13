@@ -79,6 +79,7 @@ class TaskActivityApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet taskResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia"),
             linksSubsection
     );
     private final LinksSnippet taskLinks = baseLinks.and(

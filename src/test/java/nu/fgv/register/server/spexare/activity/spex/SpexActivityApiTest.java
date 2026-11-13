@@ -74,6 +74,7 @@ class SpexActivityApiTest extends AbstractApiTest {
             fieldWithPath("title").description("The title of the spex"),
             fieldWithPath("revival").description("The revival flag of the spex"),
             fieldWithPath("posterUrl").description("The poster URL of the spex"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia"),
             linksSubsection
     );
     private final LinksSnippet spexLinks = baseLinks.and(

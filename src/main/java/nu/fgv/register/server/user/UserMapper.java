@@ -55,6 +55,7 @@ public interface UserMapper {
     @Mapping(target = "id", source = "model.uuid")
     @Mapping(target = "email", source = "representation.email")
     @Mapping(target = "temporaryPassword", source = "temporaryPassword")
+    @Mapping(target = "spexareAutoLink", source = "model.spexareAutoLink")
     UserDto toDto(User model, UserRepresentation representation, @Nullable String temporaryPassword);
 
     @Mapping(target = "id", source = "model.uuid")
