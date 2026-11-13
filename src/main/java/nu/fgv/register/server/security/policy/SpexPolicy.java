@@ -25,6 +25,7 @@ import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
 import static nu.fgv.register.server.security.policy.Caller.MEDIA;
 import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
+import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
@@ -35,12 +36,11 @@ import static nu.fgv.register.server.security.policy.Caller.USER;
  * @since 2.0
  */
 @Component
+// Read only: Spexipedia keeps base data, and Spexregister's copy is written only by the sync
 public class SpexPolicy implements AccessPolicy<Spex> {
 
     private static final RoleRules RULES = RoleRules.builder()
-            .read(USER, EDITOR, ADMIN, REVIVAL, MEDIA)
-            .write(EDITOR, REVIVAL)
-            .administer(ADMIN)
+            .read(USER, EDITOR, ADMIN, REVIVAL, MEDIA, SPEXIPEDIA)
             .build();
 
     private final PermissionGrants grants;
@@ -56,11 +56,17 @@ public class SpexPolicy implements AccessPolicy<Spex> {
 
     @Override
     public Specification<Spex> permitted(final Caller caller, final Permission permission) {
+        if (permission != Permission.READ) {
+            return RoleRules.none();
+        }
         return RULES.allows(caller, permission) ? RoleRules.all() : grants.coveringSpex(caller, permission);
     }
 
     @Override
     public boolean permits(final Caller caller, final Spex spex, final Permission permission) {
+        if (permission != Permission.READ) {
+            return false;
+        }
         return RULES.allows(caller, permission) || grants.covers(caller, spex, permission);
     }
 }

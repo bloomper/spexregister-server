@@ -52,28 +52,4 @@ public interface TaskMapper {
     @Mapping(target = "id", source = "uuid")
     TaskImpexDto toImpexDto(Task model);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    Task toModel(TaskCreateDto dto);
-
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    Task toModel(TaskUpdateDto dto);
-
-    @InheritConfiguration(name = "toModel")
-    void toPartialModel(TaskUpdateDto dto, @MappingTarget Task model);
-
-    TaskCreateDto toCreateDto(TaskImpexDto dto);
-
-    TaskUpdateDto toUpdateDto(TaskImpexDto dto);
 }

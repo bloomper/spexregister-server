@@ -110,15 +110,6 @@ public class TaskApi {
                         .build());
     }
 
-    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<TaskDto>> create(@Valid @RequestBody final TaskCreateDto dto) {
-        final TaskDto newDto = service.create(dto);
-
-        return ResponseEntity.created(linkTo(methodOn(TaskApi.class).retrieve(newDto.getId())).toUri())
-                .body(EntityModel.of(newDto, getLinks(newDto)));
-    }
-
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskDto>> retrieve(@PathVariable final UUID id) {
@@ -127,87 +118,12 @@ public class TaskApi {
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"})
-    @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestBody final byte[] file,
-                                                           @RequestParam final String type,
-                                                           final Locale locale) {
-        final Long jobId = jobService.createImportJob(TaskImportService.class, file, ImpexType.fromValue(type), locale);
-
-        return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
-                .body(JobReferenceDto.builder()
-                        .id(jobId)
-                        .build());
-    }
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"}, consumes = {"multipart/form-data"})
-    @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestParam("file") final MultipartFile file,
-                                                           @RequestParam final String type,
-                                                           final Locale locale) {
-        try {
-            return createAndUpdate(file.getBytes(), type, locale);
-        } catch (final IOException e) {
-            throw new InternalErrorException(e.getMessage());
-        }
-    }
-
-    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TaskDto>> update(@PathVariable final UUID id, @Valid @RequestBody final TaskUpdateDto dto) {
-        if (!Objects.equals(id, dto.id())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        final TaskDto updatedDto = service.update(dto);
-
-        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
-    }
-
-    @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdminOrEditor
-    public ResponseEntity<EntityModel<TaskDto>> partialUpdate(@PathVariable final UUID id, @Valid @RequestBody final TaskUpdateDto dto) {
-        if (!Objects.equals(id, dto.id())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        final TaskDto updatedDto = service.partialUpdate(dto);
-
-        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
-    }
-
-    @DeleteMapping("/{id}")
-    @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
-        service.deleteById(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping(value = "/{id}/category", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<TaskCategoryDto>> retrieveCategory(@PathVariable final UUID id) {
         final TaskCategoryDto dto = service.findCategoryByTask(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, taskCategoryApi.getLinks(dto)));
-    }
-
-    @PutMapping(value = "/{taskId}/category/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<Object> addCategory(@PathVariable final UUID taskId, @PathVariable final UUID id) {
-        service.addCategory(taskId, id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping(value = "/{taskId}/category", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<Object> removeCategory(@PathVariable final UUID taskId) {
-        service.removeCategory(taskId);
-
-        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<TaskDto> entity) {

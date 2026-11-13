@@ -1,3 +1,4 @@
+# Spexipedia keeps base data; this is the copy the sync writes (spexregister-spec, docs/base-data-and-memberships.md, 3).
 extend type Query {
     "ADMIN, EDITOR or USER."
     spexCategoryPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): SpexCategoryConnection
@@ -7,16 +8,6 @@ extend type Query {
     spexCategoryExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
-extend type Mutation {
-    "ADMIN."
-    spexCategoryCreate(input: SpexCategoryCreate!): SpexCategory
-    "ADMIN."
-    spexCategoryUpdate(input: SpexCategoryUpdate!): SpexCategory
-    "ADMIN."
-    spexCategoryDelete(id: ID!): Void
-    "ADMIN."
-    spexCategoryLogoDelete(id: ID!): Void
-}
 
 "An ensemble that stages spex, such as Gamla Chalmersspexet or Bobspexet."
 type SpexCategory {
@@ -24,8 +15,10 @@ type SpexCategory {
     name: String!
     "The year of its first spex."
     firstYear: Year!
-    "Where to fetch the logo from the REST API, when there is one."
+    "Spexipedia's public address of the logo, when there is one."
     logoUrl: String
+    "Retired in Spexipedia."
+    retired: Boolean!
     createdBy: String!
     createdAt: Instant!
     lastModifiedBy: String
@@ -43,13 +36,4 @@ type SpexCategoryEdge {
     node: SpexCategory!
 }
 
-input SpexCategoryCreate {
-    name: String!
-    firstYear: Year!
-}
 
-input SpexCategoryUpdate {
-    id: ID!
-    name: String!
-    firstYear: Year!
-}

@@ -164,70 +164,6 @@ public class TaskService {
     }
 
     /**
-     * @param dto the new task
-     * @return the created task
-     */
-    @RequiresAdmin
-    public TaskDto create(final TaskCreateDto dto) {
-        return Optional.of(TASK_MAPPER.toModel(dto))
-                .map(model -> {
-                    final Task task = repository.save(model);
-
-                    return TASK_MAPPER.toDto(task);
-                })
-                .orElseThrow(() -> new InternalErrorException("Could not create task"));
-    }
-
-    /**
-     * The same as {@link #partialUpdate}.
-     *
-     * @param dto the task id and new values
-     * @return the updated task
-     */
-    @RequiresAdminOrEditor
-    public TaskDto update(final TaskUpdateDto dto) {
-        return partialUpdate(dto);
-    }
-
-    /**
-     * Changes the values given; null values are left unchanged.
-     *
-     * @param dto the task id and new values
-     * @return the updated task
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
-     */
-    @RequiresAdminOrEditor
-    public TaskDto partialUpdate(final TaskUpdateDto dto) {
-        return repository
-                .findByUuid0(dto.id())
-                .map(permissionService::checkWritePermission)
-                .map(task -> {
-                    TASK_MAPPER.toPartialModel(dto, task);
-                    return task;
-                })
-                .map(repository::save)
-                .map(TASK_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.id()));
-    }
-
-    /**
-     * @param id the task id
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
-     */
-    @RequiresAdmin
-    public void deleteById(final UUID id) {
-        if (doesTaskExist(id)) {
-            repository.findByUuid0(id)
-                    .map(permissionService::checkDeletePermission)
-                    .ifPresent(task -> {
-                        repository.delete(task);
-                    });
-        } else {
-            throw new ResourceNotFoundException(Task.class, id);
-        }
-    }
-
-    /**
      * @param id the task id
      * @return the task's category
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the task has no category
@@ -241,50 +177,6 @@ public class TaskService {
                     .map(Task::getCategory)
                     .map(TASK_CATEGORY_MAPPER::toDto)
                     .orElseThrow(() -> new ResourceNoValueException(Task.class, Task_.CATEGORY, id));
-        } else {
-            throw new ResourceNotFoundException(Task.class, id);
-        }
-    }
-
-    /**
-     * Puts the task in the category.
-     *
-     * @param taskId the task id
-     * @param id     the category id
-     */
-    @RequiresAdmin
-    public void addCategory(final UUID taskId, final UUID id) {
-        if (doTaskAndCategoryExist(taskId, id)) {
-            repository
-                    .findByUuid0(taskId)
-                    .map(permissionService::checkWritePermission)
-                    .ifPresent(task -> categoryRepository
-                            .findByUuid(id)
-                            .ifPresent(category -> {
-                                task.setCategory(category);
-                                repository.save(task);
-                            })
-                    );
-        } else {
-            throw new ResourcesNotFoundException(List.of(Task.class, TaskCategory.class), taskId, id);
-        }
-    }
-
-    /**
-     * Takes the task out of its category.
-     *
-     * @param id the task id
-     */
-    @RequiresAdmin
-    public void removeCategory(final UUID id) {
-        if (doesTaskExist(id)) {
-            repository
-                    .findByUuid0(id)
-                    .map(permissionService::checkWritePermission)
-                    .ifPresent(task -> {
-                        task.setCategory(null);
-                        repository.save(task);
-                    });
         } else {
             throw new ResourceNotFoundException(Task.class, id);
         }

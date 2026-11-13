@@ -112,118 +112,12 @@ public class SpexCategoryApi {
                         .build());
     }
 
-    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexCategoryDto>> create(@Valid @RequestBody final SpexCategoryCreateDto dto) {
-        final SpexCategoryDto newDto = service.create(dto);
-
-        return ResponseEntity.created(linkTo(methodOn(SpexCategoryApi.class).retrieve(newDto.getId())).toUri())
-                .body(EntityModel.of(newDto, getLinks(newDto)));
-    }
-
     @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
     public ResponseEntity<EntityModel<SpexCategoryDto>> retrieve(@PathVariable final UUID id) {
         final SpexCategoryDto dto = service.findById(id);
 
         return ResponseEntity.ok(EntityModel.of(dto, getLinks(dto)));
-    }
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"})
-    @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestBody final byte[] file,
-                                                           @RequestParam final String type,
-                                                           final Locale locale) {
-        final Long jobId = jobService.createImportJob(SpexCategoryImportService.class, file, ImpexType.fromValue(type), locale);
-
-        return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .location(linkTo(methodOn(JobApi.class).results(jobId)).toUri())
-                .body(JobReferenceDto.builder()
-                        .id(jobId)
-                        .build());
-    }
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT}, params = {"type"}, consumes = {"multipart/form-data"})
-    @RequiresAdminOrEditor
-    public ResponseEntity<JobReferenceDto> createAndUpdate(@RequestParam("file") final MultipartFile file,
-                                                           @RequestParam final String type,
-                                                           final Locale locale) {
-        try {
-            return createAndUpdate(file.getBytes(), type, locale);
-        } catch (final IOException e) {
-            throw new InternalErrorException(e.getMessage());
-        }
-    }
-
-    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexCategoryDto>> update(@PathVariable final UUID id, @Valid @RequestBody final SpexCategoryUpdateDto dto) {
-        if (!Objects.equals(id, dto.id())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        final SpexCategoryDto updatedDto = service.update(dto);
-
-        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
-    }
-
-    @PatchMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @RequiresAdmin
-    public ResponseEntity<EntityModel<SpexCategoryDto>> partialUpdate(@PathVariable final UUID id, @RequestBody final SpexCategoryUpdateDto dto) {
-        if (!Objects.equals(id, dto.id())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        final SpexCategoryDto updatedDto = service.partialUpdate(dto);
-
-        return ResponseEntity.ok(EntityModel.of(updatedDto, getLinks(updatedDto)));
-    }
-
-    @DeleteMapping("/{id}")
-    @RequiresAdmin
-    public ResponseEntity<Object> delete(@PathVariable final UUID id) {
-        service.deleteById(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{spexCategoryId}/logo")
-    @RequiresAdminOrEditorOrUser
-    public ResponseEntity<Resource> downloadLogo(@PathVariable final UUID spexCategoryId) {
-        final Pair<byte[], String> logo = service.getLogo(spexCategoryId);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(logo.getSecond()))
-                .header("Content-Security-Policy", FileUtil.IMAGE_CONTENT_SECURITY_POLICY)
-                .header("X-Content-Type-Options", "nosniff")
-                .body(new ByteArrayResource(logo.getFirst()));
-    }
-
-    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, FileUtil.IMAGE_SVG_VALUE})
-    @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final UUID spexCategoryId, @RequestBody final byte[] file) {
-        service.saveLogo(spexCategoryId, file);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @RequestMapping(value = "/{spexCategoryId}/logo", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {"multipart/form-data"})
-    @RequiresAdmin
-    public ResponseEntity<Object> uploadLogo(@PathVariable final UUID spexCategoryId, @RequestParam("file") final MultipartFile file) {
-        try {
-            return uploadLogo(spexCategoryId, file.getBytes());
-        } catch (final IOException e) {
-            throw new InternalErrorException(e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{spexCategoryId}/logo")
-    @RequiresAdmin
-    public ResponseEntity<Object> deleteLogo(@PathVariable final UUID spexCategoryId) {
-        service.deleteLogo(spexCategoryId);
-
-        return ResponseEntity.noContent().build();
     }
 
     private void addLinks(final EntityModel<SpexCategoryDto> entity) {
@@ -239,7 +133,9 @@ public class SpexCategoryApi {
 
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(dto.getId())).withSelfRel());
         links.add(linkTo(methodOn(SpexCategoryApi.class).retrieve(Pageable.unpaged(), "")).withRel("spex-categories"));
-        links.add(linkTo(methodOn(SpexCategoryApi.class).downloadLogo(dto.getId())).withRel("logo"));
+        if (dto.getLogoUrl() != null) {
+            links.add(Link.of(dto.getLogoUrl(), "logo"));
+        }
         links.add(linkTo(methodOn(AuditApi.class).retrieve(AuditedType.SPEX_CATEGORY, String.valueOf(dto.getId()))).withRel("revisions"));
 
         return links;

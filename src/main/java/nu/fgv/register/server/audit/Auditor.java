@@ -61,6 +61,13 @@ public final class Auditor {
 
     private static String accountOf(final boolean revival) {
         final String email = getCurrentUserEmailClaim();
+        final var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+
+        // Work without a token, such as the sync of base data, is recorded by the name it runs as
+        if (!hasText(email) && authentication instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+                && !"system".equals(authentication.getName())) {
+            return authentication.getName();
+        }
 
         if (hasText(email) || !revival) {
             return email;

@@ -73,28 +73,10 @@ public class TaskGraphqlApi {
                 .build();
     }
 
-    @MutationMapping("taskCreate")
-    @RequiresAdmin
-    public TaskDto create(@Valid @Argument final TaskCreateDto input) {
-        return service.create(input);
-    }
-
     @QueryMapping("task")
     @RequiresReferenceDataReader
     public TaskDto retrieve(@Argument final UUID id) {
         return service.findById(id);
-    }
-
-    @MutationMapping("taskUpdate")
-    @RequiresAdminOrEditor
-    public TaskDto update(@Valid @Argument final TaskUpdateDto input) {
-        return service.update(input);
-    }
-
-    @MutationMapping("taskDelete")
-    @RequiresAdmin
-    public void delete(@Argument final UUID id) {
-        service.deleteById(id);
     }
 
     @SchemaMapping(typeName = "Task", field = "category")
@@ -106,18 +88,6 @@ public class TaskGraphqlApi {
             // Ignore
             return null;
         }
-    }
-
-    @MutationMapping("taskCategoryAdd")
-    @RequiresAdmin
-    public void addCategory(@Argument final UUID taskId, @Argument final UUID id) {
-        service.addCategory(taskId, id);
-    }
-
-    @MutationMapping("taskCategoryRemove")
-    @RequiresAdmin
-    public void removeCategory(@Argument final UUID taskId) {
-        service.removeCategory(taskId);
     }
 
 }

@@ -83,34 +83,10 @@ public class SpexGraphqlApi {
                 .build();
     }
 
-    @MutationMapping("spexCreate")
-    @RequiresAdmin
-    public SpexDto create(@Valid @Argument final SpexCreateDto input) {
-        return service.create(input);
-    }
-
     @QueryMapping("spex")
     @RequiresSpexReader
     public SpexDto retrieve(@Argument final UUID id) {
         return service.findById(id);
-    }
-
-    @MutationMapping("spexUpdate")
-    @RequiresAdminOrEditorOrUser
-    public SpexDto update(@Valid @Argument final SpexUpdateDto input) {
-        return service.update(input);
-    }
-
-    @MutationMapping("spexDelete")
-    @RequiresAdmin
-    public void delete(@Argument final UUID id) {
-        service.deleteById(id);
-    }
-
-    @MutationMapping("spexPosterDelete")
-    @RequiresAdminOrEditorOrUser
-    public void deletePoster(@Argument final UUID id) {
-        service.deletePoster(id);
     }
 
     @BatchMapping(typeName = "Spex", field = "parent")
@@ -144,18 +120,6 @@ public class SpexGraphqlApi {
         return service.findRevivalById(spexId, id);
     }
 
-    @MutationMapping("spexRevivalCreate")
-    @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto createRevival(@Argument final UUID spexId, @Argument final String year) {
-        return service.addRevival(spexId, year);
-    }
-
-    @MutationMapping("spexRevivalDelete")
-    @RequiresAdminOrEditorOrUser
-    public void deleteRevival(@Argument final UUID spexId, @Argument final UUID id) {
-        service.deleteRevival(spexId, id);
-    }
-
     @BatchMapping(typeName = "Spex", field = "category")
     @RequiresAdminOrEditorOrUserOrMedia
     public Map<SpexDto, SpexCategoryDto> retrieveCategories(final List<SpexDto> dtos) {
@@ -166,15 +130,4 @@ public class SpexGraphqlApi {
                 .collect(Collectors.toMap(Function.identity(), dto -> categories.get(dto.getId()), (a, _) -> a));
     }
 
-    @MutationMapping("spexCategoryAdd")
-    @RequiresAdmin
-    public void addCategory(@Argument final UUID spexId, @Argument final UUID id) {
-        service.addCategory(spexId, id);
-    }
-
-    @MutationMapping("spexCategoryRemove")
-    @RequiresAdmin
-    public void removeCategory(@Argument final UUID spexId) {
-        service.removeCategory(spexId);
-    }
 }

@@ -130,14 +130,14 @@ public class GraphService {
     private static GraphNodeDto nodeOf(final Spex spex) {
         return new GraphNodeDto(idOf(GraphNodeType.SPEX, spex.getUuid()), GraphNodeType.SPEX,
                 spex.getDetails().getTitle(), spex.getYear(),
-                imageUrl(spex.getDetails().getPoster(), () -> methodOn(SpexApi.class).downloadPoster(spex.getUuid())),
+                spex.getPosterUrl(),
                 spex.getParent() != null, spex.getUuid());
     }
 
     private static GraphNodeDto nodeOf(final SpexCategory category) {
         return new GraphNodeDto(idOf(GraphNodeType.SPEX_CATEGORY, category.getUuid()), GraphNodeType.SPEX_CATEGORY,
                 category.getName(), null,
-                imageUrl(category.getLogo(), () -> methodOn(SpexCategoryApi.class).downloadLogo(category.getUuid())),
+                category.getLogoUrl(),
                 false, category.getUuid());
     }
 

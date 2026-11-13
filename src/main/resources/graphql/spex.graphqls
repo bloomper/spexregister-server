@@ -1,3 +1,4 @@
+# Spexipedia keeps base data; this is the copy the sync writes (spexregister-spec, docs/base-data-and-memberships.md, 3).
 extend type Query {
     "Every role. Only original spex by default; filter on parent!NULL for the revivals."
     spexPaged(first: Int, after: String, last: Int, before: String, filter: String! = "parent:NULL", sort: [String]! = ["year"], direction: SortDirection = ASC): SpexConnection
@@ -12,29 +13,6 @@ extend type Query {
     spexExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
-extend type Mutation {
-    "ADMIN."
-    spexCreate(input: SpexCreate!): Spex
-    """
-    Changes the year and the title, which is shared with the original and all its revivals. Requires WRITE on the spex.
-    """
-    spexUpdate(input: SpexUpdate!): Spex
-    "ADMIN. Removes the spex with its revivals."
-    spexDelete(id: ID!): Void
-    "Removes the poster, shared with the original and all its revivals. Requires WRITE on the spex."
-    spexPosterDelete(id: ID!): Void
-    """
-    Every role. Adds a revival of the spex in the year. Requires WRITE on the spex; fails when there already is one that
-    year.
-    """
-    spexRevivalCreate(spexId: ID!, year: Year!): SpexRevival
-    "Requires WRITE on the original spex."
-    spexRevivalDelete(spexId: ID!, id: ID!): Void
-    "ADMIN. Sets the category of the spex and of all that share its title."
-    spexCategoryAdd(spexId: ID!, id: ID!): Void
-    "ADMIN. Clears the category of the spex and of all that share its title."
-    spexCategoryRemove(spexId: ID!): Void
-}
 
 """
 A spex in a year: an original production, or a revival of one when parent is set. Title, poster and category are shared
@@ -48,8 +26,10 @@ type Spex {
     revival: Boolean
     "The original, for a revival. Not for the REVIVAL role."
     parent: SpexParent
-    "Where to fetch the poster from the REST API, when there is one."
+    "Spexipedia's public address of the poster, when there is one: its own, else its original's for a revival."
     posterUrl: String
+    "Retired in Spexipedia: kept on activities, not offered for new ones."
+    retired: Boolean!
     "Not for the REVIVAL role."
     category: SpexCategory
     revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
@@ -103,13 +83,4 @@ type SpexRevivalEdge {
     node: SpexRevival!
 }
 
-input SpexCreate {
-    year: Year!
-    title: String!
-}
 
-input SpexUpdate {
-    id: ID!
-    year: Year!
-    title: String!
-}

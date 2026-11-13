@@ -18,15 +18,11 @@ package nu.fgv.register.server.mcp;
 
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.mcp.McpToolSupport.PageResult;
-import nu.fgv.register.server.spex.SpexCreateDto;
 import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.spex.SpexService;
-import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.spex.Spex_;
-import nu.fgv.register.server.spex.category.SpexCategoryCreateDto;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.spex.category.SpexCategoryService;
-import nu.fgv.register.server.spex.category.SpexCategoryUpdateDto;
 import nu.fgv.register.server.spex.category.SpexCategory_;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import org.jspecify.annotations.Nullable;
@@ -65,7 +61,7 @@ public class SpexMcpTools {
     private final SpexCategoryService categoryService;
     private final McpToolSupport support;
 
-    @McpTool(name = "list_spex", description = "List spex (original productions, excluding revivals unless includeRevivals is true). Includes each spex's category. Filterable fields: year, details.title, details.category.id, details.category.name.",
+    @McpTool(name = "list_spex", description = "List spex (original productions, excluding revivals unless includeRevivals is true). Includes each spex's category. Filterable fields: year, details.title, details.category.id, details.category.name. Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpSpex> listSpex(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                         @McpToolParam(required = false, description = "Also include revivals, defaults to false") final @Nullable Boolean includeRevivals,
@@ -83,7 +79,7 @@ public class SpexMcpTools {
         return PageResult.of(spexService.find(effectiveFilter, pageable(page, size, Sort.by(Spex_.YEAR))), this::toMcpSpex);
     }
 
-    @McpTool(name = "get_spex", description = "Get a spex, including its category and revivals",
+    @McpTool(name = "get_spex", description = "Get a spex, including its category and revivals Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpSpexDetails getSpex(@McpToolParam(description = "Spex id") final UUID id) {
         final SpexDto spex = spexService.findById(id);
@@ -94,84 +90,7 @@ public class SpexMcpTools {
         return new McpSpexDetails(spex.getId(), spex.getYear(), spex.getTitle(), Boolean.TRUE.equals(spex.getRevival()), categoryOf(id), revivals);
     }
 
-    @McpTool(name = "create_spex", description = "Create a spex, optionally in a spex category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpSpexDetails createSpex(@McpToolParam(description = "Year of the premiere, four digits") final String year,
-                                     @McpToolParam(description = "Title") final String title,
-                                     @McpToolParam(required = false, description = "Id of the spex category") final @Nullable UUID categoryId) {
-        support.audit("create_spex");
-        final SpexDto spex = spexService.create(support.validate(SpexCreateDto.builder().year(year).title(title).build()));
-
-        if (categoryId != null) {
-            spexService.addCategory(spex.getId(), categoryId);
-        }
-
-        return getSpex(spex.getId());
-    }
-
-    @McpTool(name = "update_spex", description = "Update a spex; omitted fields are left unchanged. The title is shared with the spex's revivals. Requires the ADMIN or EDITOR role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpex updateSpex(@McpToolParam(description = "Spex id") final UUID id,
-                              @McpToolParam(required = false, description = "Year, four digits") final @Nullable String year,
-                              @McpToolParam(required = false, description = "Title") final @Nullable String title) {
-        support.audit("update_spex");
-        final SpexDto current = spexService.findById(id);
-
-        return toMcpSpex(spexService.update(support.validate(new SpexUpdateDto(
-                id,
-                orElse(year, current.getYear()),
-                orElse(title, current.getTitle())
-        ))));
-    }
-
-    @McpTool(name = "set_spex_category", description = "Set or clear the category of a spex. Requires the ADMIN role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpexDetails setSpexCategory(@McpToolParam(description = "Spex id") final UUID id,
-                                          @McpToolParam(required = false, description = "Spex category id, omit to remove the category") final @Nullable UUID categoryId) {
-        support.audit("set_spex_category");
-
-        if (categoryId != null) {
-            spexService.addCategory(id, categoryId);
-        } else {
-            spexService.removeCategory(id);
-        }
-
-        return getSpex(id);
-    }
-
-    @McpTool(name = "delete_spex", description = "Permanently delete a single spex together with all its revivals. Requires the ADMIN role.",
-            annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpex(@McpToolParam(description = "Spex id") final UUID id) {
-        support.audit("delete_spex");
-        spexService.deleteById(id);
-
-        return "Deleted spex %d".formatted(id);
-    }
-
-    @McpTool(name = "add_spex_revival", description = "Add a revival of a spex in a given year. Requires the ADMIN or EDITOR role.",
-            annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpSpex addSpexRevival(@McpToolParam(description = "Id of the original spex") final UUID spexId,
-                                  @McpToolParam(description = "Year of the revival, four digits") final String year) {
-        support.audit("add_spex_revival");
-        if (!YEAR.matcher(year).matches()) {
-            throw new IllegalArgumentException("Year must be four digits between 1900 and 2199, was '%s'".formatted(year));
-        }
-
-
-        return toMcpSpex(spexService.addRevival(spexId, year));
-    }
-
-    @McpTool(name = "delete_spex_revival", description = "Permanently delete a single revival of a spex. Requires the ADMIN or EDITOR role.",
-            annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpexRevival(@McpToolParam(description = "Id of the original spex") final UUID spexId,
-                                    @McpToolParam(description = "Id of the revival") final UUID revivalId) {
-        support.audit("delete_spex_revival");
-        spexService.deleteRevival(spexId, revivalId);
-
-        return "Deleted revival %d of spex %d".formatted(revivalId, spexId);
-    }
-
-    @McpTool(name = "list_spex_categories", description = "List spex categories (e.g. the different spex ensembles). Filterable fields: name, firstYear.",
+    @McpTool(name = "list_spex_categories", description = "List spex categories (e.g. the different spex ensembles). Filterable fields: name, firstYear. Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpSpexCategory> listSpexCategories(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                                           @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
@@ -179,43 +98,10 @@ public class SpexMcpTools {
         return PageResult.of(categoryService.find(filter(filter), pageable(page, size, Sort.by(SpexCategory_.NAME))), McpSpexCategory::of);
     }
 
-    @McpTool(name = "get_spex_category", description = "Get a spex category",
+    @McpTool(name = "get_spex_category", description = "Get a spex category Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpSpexCategory getSpexCategory(@McpToolParam(description = "Spex category id") final UUID id) {
         return McpSpexCategory.of(categoryService.findById(id));
-    }
-
-    @McpTool(name = "create_spex_category", description = "Create a spex category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpSpexCategory createSpexCategory(@McpToolParam(description = "Category name") final String name,
-                                              @McpToolParam(description = "First year, four digits") final String firstYear) {
-        support.audit("create_spex_category");
-
-        return McpSpexCategory.of(categoryService.create(support.validate(new SpexCategoryCreateDto(name, firstYear))));
-    }
-
-    @McpTool(name = "update_spex_category", description = "Update a spex category; omitted fields are left unchanged. Requires the ADMIN role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpSpexCategory updateSpexCategory(@McpToolParam(description = "Spex category id") final UUID id,
-                                              @McpToolParam(required = false, description = "New name") final @Nullable String name,
-                                              @McpToolParam(required = false, description = "First year, four digits") final @Nullable String firstYear) {
-        support.audit("update_spex_category");
-        final SpexCategoryDto current = categoryService.findById(id);
-
-        return McpSpexCategory.of(categoryService.update(support.validate(new SpexCategoryUpdateDto(
-                id,
-                orElse(name, current.getName()),
-                orElse(firstYear, current.getFirstYear())
-        ))));
-    }
-
-    @McpTool(name = "delete_spex_category", description = "Permanently delete a single spex category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteSpexCategory(@McpToolParam(description = "Spex category id") final UUID id) {
-        support.audit("delete_spex_category");
-        categoryService.deleteById(id);
-
-        return "Deleted spex category %d".formatted(id);
     }
 
     private McpSpex toMcpSpex(final SpexDto dto) {

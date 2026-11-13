@@ -70,28 +70,10 @@ public class TaskCategoryGraphqlApi {
                 .build();
     }
 
-    @MutationMapping("taskCategoryCreate")
-    @RequiresAdmin
-    public TaskCategoryDto create(@Valid @Argument final TaskCategoryCreateDto input) {
-        return service.create(input);
-    }
-
     @QueryMapping("taskCategory")
     @RequiresReferenceDataReader
     public TaskCategoryDto retrieve(@Argument final UUID id) {
         return service.findById(id);
-    }
-
-    @MutationMapping("taskCategoryUpdate")
-    @RequiresAdmin
-    public TaskCategoryDto update(@Valid @Argument final TaskCategoryUpdateDto input) {
-        return service.update(input);
-    }
-
-    @MutationMapping("taskCategoryDelete")
-    @RequiresAdmin
-    public void delete(@Argument final UUID id) {
-        service.deleteById(id);
     }
 
 }

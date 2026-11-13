@@ -17,6 +17,7 @@
 package nu.fgv.register.server.spexare.activity.task.actor;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +33,7 @@ import lombok.Setter;
 import lombok.ToString;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spexare.activity.task.TaskActivity;
+import nu.fgv.register.server.spex.character.SpexCharacter;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.Uuids;
 import org.hibernate.annotations.Cache;
@@ -94,6 +96,15 @@ public class Actor extends AbstractAuditable implements Serializable {
     @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type vocal;
+
+    /**
+     * The character in Spexipedia, from the spex or its parent for a revival; the free-text role stays for the rare
+     * actor without one.
+     */
+    @ManyToOne
+    @JoinColumn(name = "character_id")
+    @Nullable
+    private SpexCharacter character;
 
     @ManyToOne
     @AssociationInverseSide(

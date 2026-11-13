@@ -96,12 +96,6 @@ public class SpexDetails extends AbstractAuditable implements Serializable {
     @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String title;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "poster_id")
-    @AuditedBinary
-    @ToString.Exclude
-    @Nullable
-    private Image poster;
 
     @ManyToOne
     @IndexedEmbedded

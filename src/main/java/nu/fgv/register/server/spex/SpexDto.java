@@ -59,6 +59,9 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
     @JsonProperty("posterUrl")
     private String posterUrl;
 
+    @JsonProperty("retired")
+    private boolean retired;
+
     @Builder
     public SpexDto(
             final UUID id,
@@ -66,6 +69,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
             final String title,
             final @Nullable Boolean revival,
             final String posterUrl,
+            final boolean retired,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -77,6 +81,7 @@ public class SpexDto extends AbstractAuditableDto<SpexDto> {
         this.title = title;
         this.revival = revival;
         this.posterUrl = posterUrl;
+        this.retired = retired;
     }
 
     public static class SpexDtoBuilder {

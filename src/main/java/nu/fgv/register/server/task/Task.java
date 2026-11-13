@@ -77,8 +77,10 @@ public class Task extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Spexipedia's id, set by the sync.
+     */
     @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
-    @Setter(AccessLevel.NONE)
     private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{task.name.notEmpty}")
@@ -93,6 +95,12 @@ public class Task extends AbstractAuditable implements Serializable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @Nullable
     private TaskCategory category;
+
+    /**
+     * Retired in Spexipedia: readable, but not offered for new activities.
+     */
+    @Column(name = "retired", nullable = false)
+    private boolean retired;
 
     @Override
     public boolean equals(final @Nullable Object o) {

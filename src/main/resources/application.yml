@@ -49,6 +49,17 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${API_KEYCLOAK_URL}/realms/${API_KEYCLOAK_REALM}
+      # spexregister-service reads Spexipedia's change feed (SYNC on fgv-spexipedia)
+      client:
+        registration:
+          spexregister-service:
+            provider: fgv
+            client-id: ${API_KEYCLOAK_SERVICE_CLIENT_ID:spexregister-service}
+            client-secret: ${API_KEYCLOAK_SERVICE_CLIENT_SECRET:}
+            authorization-grant-type: client_credentials
+        provider:
+          fgv:
+            token-uri: ${API_KEYCLOAK_URL}/realms/${API_KEYCLOAK_REALM}/protocol/openid-connect/token
   threads:
     virtual:
       enabled: true
@@ -124,6 +135,8 @@ spexregister:
       cron-expression: 5 0 0 * * ? # Every night at 00:00:05
     sync-users:
       cron-expression: 0 */5 * * * ? # Every 5 minutes
+    sync-spexipedia:
+      cron-expression: 30 */5 * * * ? # Every 5 minutes, and when Spexipedia notifies
     job-cleanup:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7
@@ -146,6 +159,11 @@ spexregister:
     client:
       client-id: ${API_KEYCLOAK_CLIENT_CLIENT_ID}
     pending-approval-group: pending-approval
+  spexipedia:
+    # Base data comes from Spexipedia's change feed; off only for tests that have no Spexipedia
+    enabled: ${API_SPEXIPEDIA_SYNC_ENABLED:true}
+    graphql-url: ${API_SPEXIPEDIA_GRAPHQL_URL:https://api.spexipedia.fgv.local.nu:8443/api/graphql}
+    web-url: ${SPEXIPEDIA_URL:http://localhost:3006}
   mcp:
     authorized-parties: ${API_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
   impex:

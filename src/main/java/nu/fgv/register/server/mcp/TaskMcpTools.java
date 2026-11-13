@@ -18,15 +18,11 @@ package nu.fgv.register.server.mcp;
 
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.mcp.McpToolSupport.PageResult;
-import nu.fgv.register.server.task.TaskCreateDto;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.task.TaskService;
-import nu.fgv.register.server.task.TaskUpdateDto;
 import nu.fgv.register.server.task.Task_;
-import nu.fgv.register.server.task.category.TaskCategoryCreateDto;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
 import nu.fgv.register.server.task.category.TaskCategoryService;
-import nu.fgv.register.server.task.category.TaskCategoryUpdateDto;
 import nu.fgv.register.server.task.category.TaskCategory_;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import org.jspecify.annotations.Nullable;
@@ -59,7 +55,7 @@ public class TaskMcpTools {
     private final TaskCategoryService categoryService;
     private final McpToolSupport support;
 
-    @McpTool(name = "list_tasks", description = "List tasks (roles a person can have in a spex, e.g. director or musician), including their categories. Filterable fields: name, category.id, category.name.",
+    @McpTool(name = "list_tasks", description = "List tasks (roles a person can have in a spex, e.g. director or musician), including their categories. Filterable fields: name, category.id, category.name. Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTask> listTasks(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                          @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
@@ -67,60 +63,13 @@ public class TaskMcpTools {
         return PageResult.of(taskService.find(filter(filter), pageable(page, size, Sort.by(Task_.NAME))), this::toMcpTask);
     }
 
-    @McpTool(name = "get_task", description = "Get a task, including its category",
+    @McpTool(name = "get_task", description = "Get a task, including its category Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpTask getTask(@McpToolParam(description = "Task id") final UUID id) {
         return toMcpTask(taskService.findById(id));
     }
 
-    @McpTool(name = "create_task", description = "Create a task, optionally in a task category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpTask createTask(@McpToolParam(description = "Task name") final String name,
-                              @McpToolParam(required = false, description = "Id of the task category to put the task in") final @Nullable UUID categoryId) {
-        support.audit("create_task");
-        final TaskDto task = taskService.create(support.validate(TaskCreateDto.builder().name(name).build()));
-
-        if (categoryId != null) {
-            taskService.addCategory(task.getId(), categoryId);
-        }
-
-        return getTask(task.getId());
-    }
-
-    @McpTool(name = "update_task", description = "Rename a task. Requires the ADMIN or EDITOR role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTask updateTask(@McpToolParam(description = "Task id") final UUID id,
-                              @McpToolParam(description = "New task name") final String name) {
-        support.audit("update_task");
-
-        return toMcpTask(taskService.update(support.validate(new TaskUpdateDto(id, name))));
-    }
-
-    @McpTool(name = "set_task_category", description = "Set or clear the category of a task. Requires the ADMIN role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTask setTaskCategory(@McpToolParam(description = "Task id") final UUID id,
-                                   @McpToolParam(required = false, description = "Task category id, omit to remove the category") final @Nullable UUID categoryId) {
-        support.audit("set_task_category");
-
-        if (categoryId != null) {
-            taskService.addCategory(id, categoryId);
-        } else {
-            taskService.removeCategory(id);
-        }
-
-        return getTask(id);
-    }
-
-    @McpTool(name = "delete_task", description = "Permanently delete a single task. Requires the ADMIN role.",
-            annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteTask(@McpToolParam(description = "Task id") final UUID id) {
-        support.audit("delete_task");
-        taskService.deleteById(id);
-
-        return "Deleted task %d".formatted(id);
-    }
-
-    @McpTool(name = "list_task_categories", description = "List task categories. Filterable fields: name, actorPresent.",
+    @McpTool(name = "list_task_categories", description = "List task categories. Filterable fields: name, actorPresent. Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public PageResult<McpTaskCategory> listTaskCategories(@McpToolParam(required = false, description = FILTER_DESCRIPTION) final @Nullable String filter,
                                                           @McpToolParam(required = false, description = PAGE_DESCRIPTION) final @Nullable Integer page,
@@ -128,43 +77,10 @@ public class TaskMcpTools {
         return PageResult.of(categoryService.find(filter(filter), pageable(page, size, Sort.by(TaskCategory_.NAME))), McpTaskCategory::of);
     }
 
-    @McpTool(name = "get_task_category", description = "Get a task category",
+    @McpTool(name = "get_task_category", description = "Get a task category Read only: spex, revivals, categories and tasks are kept in Spexipedia, and changed there.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public McpTaskCategory getTaskCategory(@McpToolParam(description = "Task category id") final UUID id) {
         return McpTaskCategory.of(categoryService.findById(id));
-    }
-
-    @McpTool(name = "create_task_category", description = "Create a task category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
-    public McpTaskCategory createTaskCategory(@McpToolParam(description = "Category name") final String name,
-                                              @McpToolParam(required = false, description = "Whether tasks in this category are performed on stage as an actor, defaults to false") final @Nullable Boolean actorPresent) {
-        support.audit("create_task_category");
-
-        return McpTaskCategory.of(categoryService.create(support.validate(new TaskCategoryCreateDto(name, orElse(actorPresent, false)))));
-    }
-
-    @McpTool(name = "update_task_category", description = "Update a task category; omitted fields are left unchanged. Requires the ADMIN role.",
-            annotations = @McpAnnotations(idempotentHint = true, openWorldHint = false))
-    public McpTaskCategory updateTaskCategory(@McpToolParam(description = "Task category id") final UUID id,
-                                              @McpToolParam(required = false, description = "New name") final @Nullable String name,
-                                              @McpToolParam(required = false, description = "Whether tasks in this category are performed on stage as an actor") final @Nullable Boolean actorPresent) {
-        support.audit("update_task_category");
-        final TaskCategoryDto current = categoryService.findById(id);
-
-        return McpTaskCategory.of(categoryService.update(support.validate(new TaskCategoryUpdateDto(
-                id,
-                orElse(name, current.getName()),
-                orElse(actorPresent, current.getActorPresent())
-        ))));
-    }
-
-    @McpTool(name = "delete_task_category", description = "Permanently delete a single task category. Requires the ADMIN role.",
-            annotations = @McpAnnotations(openWorldHint = false))
-    public String deleteTaskCategory(@McpToolParam(description = "Task category id") final UUID id) {
-        support.audit("delete_task_category");
-        categoryService.deleteById(id);
-
-        return "Deleted task category %d".formatted(id);
     }
 
     private McpTask toMcpTask(final TaskDto dto) {

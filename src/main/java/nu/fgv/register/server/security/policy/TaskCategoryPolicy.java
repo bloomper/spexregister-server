@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
 import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
+import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
@@ -31,12 +32,12 @@ import static nu.fgv.register.server.security.policy.Caller.USER;
  * @since 2.0
  */
 @Component
+// Read only: Spexipedia keeps base data, and Spexregister's copy is written only by the sync
 public class TaskCategoryPolicy extends ReferenceDataPolicy<TaskCategory> {
 
     public TaskCategoryPolicy() {
         super(TaskCategory.class, RoleRules.builder()
-                .read(USER, EDITOR, ADMIN, REVIVAL)
-                .administer(ADMIN)
+                .read(USER, EDITOR, ADMIN, REVIVAL, SPEXIPEDIA)
                 .build());
     }
 }

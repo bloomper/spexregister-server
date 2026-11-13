@@ -70,34 +70,10 @@ public class SpexCategoryGraphqlApi {
                 .build();
     }
 
-    @MutationMapping("spexCategoryCreate")
-    @RequiresAdmin
-    public SpexCategoryDto create(@Valid @Argument final SpexCategoryCreateDto input) {
-        return service.create(input);
-    }
-
     @QueryMapping("spexCategory")
     @RequiresAdminOrEditorOrUser
     public SpexCategoryDto retrieve(@Argument final UUID id) {
         return service.findById(id);
-    }
-
-    @MutationMapping("spexCategoryUpdate")
-    @RequiresAdmin
-    public SpexCategoryDto update(@Valid @Argument final SpexCategoryUpdateDto input) {
-        return service.update(input);
-    }
-
-    @MutationMapping("spexCategoryDelete")
-    @RequiresAdmin
-    public void delete(@Argument final UUID id) {
-        service.deleteById(id);
-    }
-
-    @MutationMapping("spexCategoryLogoDelete")
-    @RequiresAdmin
-    public void deleteLogo(@Argument final UUID id) {
-        service.deleteLogo(id);
     }
 
 }

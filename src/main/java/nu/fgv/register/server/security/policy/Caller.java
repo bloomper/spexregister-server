@@ -44,6 +44,8 @@ public record Caller(Set<String> roles, @Nullable String subject) {
     public static final String USER = "USER";
     public static final String REVIVAL = "REVIVAL";
     public static final String MEDIA = "MEDIA";
+    public static final String SPEXIPEDIA = "SPEXIPEDIA";
+    public static final String NOTIFY = "NOTIFY";
     private static final String ROLE_PREFIX = "ROLE_spexregister_";
     private static final Caller NOBODY = new Caller(Set.of(), null);
 

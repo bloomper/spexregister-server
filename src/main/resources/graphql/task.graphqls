@@ -1,3 +1,4 @@
+# Spexipedia keeps base data; this is the copy the sync writes (spexregister-spec, docs/base-data-and-memberships.md, 3).
 extend type Query {
     "Every role."
     taskPaged(first: Int, after: String, last: Int, before: String, filter: String! = "", sort: [String]! = ["name"], direction: SortDirection = ASC): TaskConnection
@@ -7,23 +8,13 @@ extend type Query {
     taskExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
-extend type Mutation {
-    "ADMIN."
-    taskCreate(input: TaskCreate!): Task
-    "ADMIN or EDITOR."
-    taskUpdate(input: TaskUpdate!): Task
-    "ADMIN."
-    taskDelete(id: ID!): Void
-    "ADMIN. Puts the task in the category."
-    taskCategoryAdd(taskId: ID!, id: ID!): Void
-    "ADMIN. Takes the task out of its category."
-    taskCategoryRemove(taskId: ID!): Void
-}
 
 "A role a spexare can have in a spex, such as director or musician."
 type Task {
     id: ID!
     name: String!
+    "Retired in Spexipedia: kept on activities, not offered for new ones."
+    retired: Boolean!
     category: TaskCategory
     createdBy: String!
     createdAt: Instant!
@@ -42,11 +33,4 @@ type TaskEdge {
     node: Task!
 }
 
-input TaskCreate {
-    name: String!
-}
 
-input TaskUpdate {
-    id: ID!
-    name: String!
-}
